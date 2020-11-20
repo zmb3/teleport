@@ -428,6 +428,36 @@ buildbox-grpc:
 	  --gofast_out=plugins=grpc:.\
     *.proto
 
+# proto generates GRPC defs from service definitions
+.PHONY: api
+api: buildbox
+	docker run \
+		--rm \
+		-v $(shell pwd):/go/src/github.com/gravitational/teleport $(BUILDBOX_TAG) \
+		make -C /go/src/github.com/gravitational/teleport buildbox-api
+
+# proto generates GRPC stuff inside buildbox
+.PHONY: buildbox-api
+buildbox-api:
+# standard GRPC output
+	echo $$PROTO_INCLUDE
+	find lib/ -iname *.proto | xargs clang-format -i -style='{ColumnLimit: 100, IndentWidth: 4, Language: Proto}'
+
+	protoc -I=.:$$PROTO_INCLUDE \
+		--proto_path=lib/services \
+		--gofast_out=plugins=grpc:api/types \
+		types.proto
+
+	protoc -I=.:$$PROTO_INCLUDE \
+		--proto_path=lib/wrappers \
+		--gofast_out=plugins=grpc:api/types \
+		wrappers.proto
+
+	protoc -I=.:$$PROTO_INCLUDE \
+		--proto_path=lib/auth/proto \
+		--gofast_out=plugins=grpc:api/client \
+		authservice.proto
+
 .PHONY: goinstall
 goinstall:
 	go install $(BUILDFLAGS) \
