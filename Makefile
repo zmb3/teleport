@@ -445,17 +445,23 @@ buildbox-api:
 
 	protoc -I=.:$$PROTO_INCLUDE \
 		--proto_path=lib/services \
-		--gofast_out=plugins=grpc:api/types \
+		--gofast_out=plugins=grpc:api/proto \
+		--doc_out=api/docs \
+		--doc_opt=markdown,types.md \
 		types.proto
 
 	protoc -I=.:$$PROTO_INCLUDE \
 		--proto_path=lib/wrappers \
-		--gofast_out=plugins=grpc:api/types \
+		--gofast_out=plugins=grpc:api/proto \
+		--doc_out=api/docs \
+		--doc_opt=markdown,wrappers.md \
 		wrappers.proto
 
 	protoc -I=.:$$PROTO_INCLUDE \
 		--proto_path=lib/auth/proto \
-		--gofast_out=plugins=grpc:api/client \
+		--gofast_out=plugins=grpc:api/proto \
+		--doc_out=api/docs \
+		--doc_opt=markdown,client.md \
 		authservice.proto
 
 .PHONY: goinstall
