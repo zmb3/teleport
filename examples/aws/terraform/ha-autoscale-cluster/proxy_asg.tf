@@ -81,7 +81,7 @@ resource "aws_autoscaling_group" "proxy_acm" {
 }
 
 data "template_file" "proxy_user_data" {
-  template = file("proxy-user-data.tpl")
+  template = file("${path.module}/proxy-user-data.tpl")
 
   vars = {
     region               = var.region

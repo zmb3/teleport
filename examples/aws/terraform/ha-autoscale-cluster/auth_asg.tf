@@ -41,7 +41,7 @@ resource "aws_autoscaling_group" "auth" {
 }
 
 data "template_file" "auth_user_data" {
-  template = file("auth-user-data.tpl")
+  template = file("${path.module}/auth-user-data.tpl")
 
   vars = {
     region                   = var.region

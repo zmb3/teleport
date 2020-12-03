@@ -36,7 +36,7 @@ resource "aws_autoscaling_group" "node" {
 }
 
 data "template_file" "node_user_data" {
-  template = file("node-user-data.tpl")
+  template = file("${path.module}/node-user-data.tpl")
 
   vars = {
     region           = var.region
