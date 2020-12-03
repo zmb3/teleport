@@ -77,7 +77,7 @@ resource "aws_autoscaling_group" "monitor_acm" {
 }
 
 data "template_file" "monitor_user_data" {
-  template = file("monitor-user-data.tpl")
+  template = file("${path.module}/monitor-user-data.tpl")
 
   vars = {
     region           = var.region
