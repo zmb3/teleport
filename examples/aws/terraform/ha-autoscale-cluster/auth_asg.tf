@@ -66,7 +66,7 @@ resource "aws_launch_configuration" "auth" {
     create_before_destroy = true
   }
   name_prefix                 = "${var.cluster_name}-auth-"
-  image_id                    = data.aws_ami.base.id
+  image_id                    = var.ami_id
   instance_type               = var.auth_instance_type
   user_data                   = data.template_file.auth_user_data.rendered
   key_name                    = var.key_name

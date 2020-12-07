@@ -53,7 +53,7 @@ resource "aws_launch_configuration" "node" {
     create_before_destroy = true
   }
   name_prefix                 = "${var.cluster_name}-node-"
-  image_id                    = data.aws_ami.base.id
+  image_id                    = var.ami_id
   instance_type               = var.node_instance_type
   user_data                   = data.template_file.node_user_data.rendered
   key_name                    = var.key_name
