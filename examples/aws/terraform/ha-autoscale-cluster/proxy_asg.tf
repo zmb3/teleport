@@ -103,7 +103,7 @@ resource "aws_launch_configuration" "proxy" {
     create_before_destroy = true
   }
   name_prefix                 = "${var.cluster_name}-proxy-"
-  image_id                    = data.aws_ami.base.id
+  image_id                    = var.ami_id
   instance_type               = var.proxy_instance_type
   user_data                   = data.template_file.proxy_user_data.rendered
   key_name                    = var.key_name
@@ -112,4 +112,3 @@ resource "aws_launch_configuration" "proxy" {
   security_groups             = [aws_security_group.proxy.id]
   iam_instance_profile        = aws_iam_instance_profile.proxy.id
 }
-
