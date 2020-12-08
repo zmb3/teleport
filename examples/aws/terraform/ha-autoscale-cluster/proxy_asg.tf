@@ -6,16 +6,16 @@
 resource "aws_autoscaling_group" "proxy" {
   name                      = "${var.cluster_name}-proxy"
   max_size                  = 5
-  min_size                  = length(local.azs)
+  min_size                  = length(var.az_list)
   health_check_grace_period = 300
   health_check_type         = "EC2"
-  desired_capacity          = length(local.azs)
+  desired_capacity          = length(var.az_list)
   force_delete              = false
   launch_configuration      = aws_launch_configuration.proxy.name
-  vpc_zone_identifier       = aws_subnet.public.*.id
+  vpc_zone_identifier       = [for subnet in aws_subnet.public : subnet.id]
 
   // Auto scaling group is associated with load balancer
-  target_group_arns = [aws_lb_target_group.proxy_proxy.arn, aws_lb_target_group.proxy_web[0].arn]
+    target_group_arns = [aws_lb_target_group.proxy_proxy.arn, aws_lb_target_group.proxy_web[0].arn]
   count             = var.use_acm ? 0 : 1
 
   tag {
@@ -45,13 +45,13 @@ resource "aws_autoscaling_group" "proxy" {
 resource "aws_autoscaling_group" "proxy_acm" {
   name                      = "${var.cluster_name}-proxy"
   max_size                  = 5
-  min_size                  = length(local.azs)
+  min_size                  = length(var.az_list)
   health_check_grace_period = 300
   health_check_type         = "EC2"
-  desired_capacity          = length(local.azs)
+  desired_capacity          = length(var.az_list)
   force_delete              = false
   launch_configuration      = aws_launch_configuration.proxy.name
-  vpc_zone_identifier       = aws_subnet.public.*.id
+  vpc_zone_identifier       = [for subnet in aws_subnet.public : subnet.id]
 
   // Auto scaling group is associated with load balancer
   target_group_arns = [aws_lb_target_group.proxy_proxy.arn, aws_lb_target_group.proxy_tunnel_acm[0].arn, aws_lb_target_group.proxy_web_acm[0].arn]
@@ -84,7 +84,7 @@ data "template_file" "proxy_user_data" {
   template = file("${path.module}/proxy-user-data.tpl")
 
   vars = {
-    region               = var.region
+    region               = data.aws_region.current.name
     cluster_name         = var.cluster_name
     auth_server_addr     = aws_lb.auth.dns_name
     proxy_server_lb_addr = aws_lb.proxy.dns_name
@@ -93,7 +93,6 @@ data "template_file" "proxy_user_data" {
     domain_name          = var.route53_domain
     s3_bucket            = var.s3_bucket_name
     telegraf_version     = var.telegraf_version
-    teleport_uid         = var.teleport_uid
     use_acm              = var.use_acm
   }
 }

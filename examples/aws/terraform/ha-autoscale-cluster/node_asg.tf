@@ -10,7 +10,7 @@ resource "aws_autoscaling_group" "node" {
   desired_capacity          = 1
   force_delete              = false
   launch_configuration      = aws_launch_configuration.node.name
-  vpc_zone_identifier       = aws_subnet.node.*.id
+  vpc_zone_identifier       = [for subnet in aws_subnet.node : subnet.id]
 
   tag {
     key                 = "TeleportCluster"
@@ -39,7 +39,7 @@ data "template_file" "node_user_data" {
   template = file("${path.module}/node-user-data.tpl")
 
   vars = {
-    region           = var.region
+    region           = data.aws_region.current.name
     cluster_name     = var.cluster_name
     telegraf_version = var.telegraf_version
     auth_server_addr = aws_lb.auth.dns_name
@@ -61,4 +61,3 @@ resource "aws_launch_configuration" "node" {
   security_groups             = [aws_security_group.node.id]
   iam_instance_profile        = aws_iam_instance_profile.node.id
 }
-

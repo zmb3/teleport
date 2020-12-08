@@ -5,13 +5,13 @@
 resource "aws_autoscaling_group" "auth" {
   name                      = "${var.cluster_name}-auth"
   max_size                  = 5
-  min_size                  = length(local.azs)
+  min_size                  = length(var.az_list)
   health_check_grace_period = 300
   health_check_type         = "EC2"
-  desired_capacity          = length(local.azs)
+  desired_capacity          = length(var.az_list)
   force_delete              = false
   launch_configuration      = aws_launch_configuration.auth.name
-  vpc_zone_identifier       = aws_subnet.auth.*.id
+  vpc_zone_identifier       = [for subnet in aws_subnet.auth : subnet.id]
 
   // These are target groups of the auth server network load balancer
   // this autoscaling group is associated with target groups of the NLB
@@ -44,7 +44,7 @@ data "template_file" "auth_user_data" {
   template = file("${path.module}/auth-user-data.tpl")
 
   vars = {
-    region                   = var.region
+    region                   = data.aws_region.current.name
     locks_table_name         = aws_dynamodb_table.locks.name
     auth_server_addr         = aws_lb.auth.dns_name
     cluster_name             = var.cluster_name
@@ -56,7 +56,6 @@ data "template_file" "auth_user_data" {
     influxdb_addr            = "http://${aws_lb.monitor.dns_name}:8086"
     license_path             = var.license_path
     telegraf_version         = var.telegraf_version
-    teleport_uid             = var.teleport_uid
     use_acm                  = var.use_acm
   }
 }
@@ -66,7 +65,7 @@ resource "aws_launch_configuration" "auth" {
     create_before_destroy = true
   }
   name_prefix                 = "${var.cluster_name}-auth-"
-  image_id                    = var.ami_id
+  image_id                    = data.aws_ami.base.id
   instance_type               = var.auth_instance_type
   user_data                   = data.template_file.auth_user_data.rendered
   key_name                    = var.key_name
