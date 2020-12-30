@@ -83,16 +83,6 @@ func (kind WatchKind) Matches(e Event) (bool, error) {
 	return true, nil
 }
 
-// Event represents an event that happened in the backend
-type Event struct {
-	// Type is the event type
-	Type backend.OpType
-	// Resource is a modified or deleted resource
-	// in case of deleted resources, only resource header
-	// will be provided
-	Resource Resource
-}
-
 // Events returns new events interface
 type Events interface {
 	// NewWatcher returns a new event watcher

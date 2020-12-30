@@ -1718,7 +1718,7 @@ func TestApplyTraits(t *testing.T) {
 			},
 		}
 
-		outRole := role.ApplyTraits(tt.inTraits)
+		outRole := ApplyTraits(role, tt.inTraits)
 		require.Equal(t, outRole.GetLogins(Allow), tt.allow.outLogins, comment)
 		require.Equal(t, outRole.GetNodeLabels(Allow), tt.allow.outLabels, comment)
 		require.Equal(t, outRole.GetClusterLabels(Allow), tt.allow.outLabels, comment)

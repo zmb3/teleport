@@ -34,6 +34,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/bpf"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -346,7 +347,7 @@ func SetLabels(staticLabels map[string]string, cmdLabels services.CommandLabels)
 		// so a little defensive cloning is harmless.
 		labelsClone := make(map[string]string, len(staticLabels))
 		for name, label := range staticLabels {
-			if !services.IsValidLabelKey(name) {
+			if !types.IsValidLabelKey(name) {
 				return trace.BadParameter("invalid label key: %q", name)
 			}
 			labelsClone[name] = label

@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/utils"
@@ -37,102 +36,6 @@ var _ = Suite(&MigrationsSuite{})
 
 func (s *MigrationsSuite) SetUpSuite(c *C) {
 	utils.InitLoggerForTests(testing.Verbose())
-}
-
-func (s *MigrationsSuite) TestMigrateServers(c *C) {
-	in := &ServerV1{
-		Kind:      KindNode,
-		ID:        "id1",
-		Addr:      "127.0.0.1:22",
-		Hostname:  "localhost",
-		Labels:    map[string]string{"a": "b", "c": "d"},
-		CmdLabels: map[string]CommandLabelV1{"o": CommandLabelV1{Command: []string{"ls", "-l"}, Period: time.Second}},
-	}
-
-	out := in.V2()
-	expected := &ServerV2{
-		Kind:    KindNode,
-		Version: V2,
-		Metadata: Metadata{
-			Name:      in.ID,
-			Labels:    in.Labels,
-			Namespace: defaults.Namespace,
-		},
-		Spec: ServerSpecV2{
-			Addr:      in.Addr,
-			Hostname:  in.Hostname,
-			CmdLabels: map[string]CommandLabelV2{"o": CommandLabelV2{Command: []string{"ls", "-l"}, Period: NewDuration(time.Second)}},
-		},
-	}
-	c.Assert(out, DeepEquals, expected)
-
-	data, err := json.Marshal(in)
-	c.Assert(err, IsNil)
-	out2, err := GetServerMarshaler().UnmarshalServer(data, KindNode)
-	c.Assert(err, IsNil)
-	c.Assert(out2, DeepEquals, out)
-
-	// check V2 marshaling
-	data, err = GetServerMarshaler().MarshalServer(expected, WithVersion(V2))
-	c.Assert(err, IsNil)
-	out3, err := GetServerMarshaler().UnmarshalServer(data, KindNode)
-	c.Assert(err, IsNil)
-	c.Assert(out3, DeepEquals, expected)
-
-	// check V1 marshaling
-	data, err = GetServerMarshaler().MarshalServer(expected, WithVersion(V1))
-	c.Assert(err, IsNil)
-
-	var out4 ServerV1
-	err = json.Unmarshal(data, &out4)
-	out4.Namespace = ""
-	c.Assert(err, IsNil)
-	c.Assert(out4, DeepEquals, *in)
-}
-
-func (s *MigrationsSuite) TestMigrateReverseTunnels(c *C) {
-	in := &ReverseTunnelV1{
-		DomainName: "example.com",
-		DialAddrs:  []string{"127.0.0.1:3245", "127.0.0.1:3450"},
-	}
-
-	out := in.V2()
-	expected := &ReverseTunnelV2{
-		Kind:    KindReverseTunnel,
-		Version: V2,
-		Metadata: Metadata{
-			Name:      in.DomainName,
-			Namespace: defaults.Namespace,
-		},
-		Spec: ReverseTunnelSpecV2{
-			DialAddrs:   in.DialAddrs,
-			ClusterName: in.DomainName,
-			Type:        ProxyTunnel,
-		},
-	}
-	c.Assert(out, DeepEquals, expected)
-
-	data, err := json.Marshal(in)
-	c.Assert(err, IsNil)
-	out2, err := GetReverseTunnelMarshaler().UnmarshalReverseTunnel(data)
-	c.Assert(err, IsNil)
-	c.Assert(out2, DeepEquals, expected)
-
-	data, err = json.Marshal(expected)
-	c.Assert(err, IsNil)
-	out3, err := GetReverseTunnelMarshaler().UnmarshalReverseTunnel(data)
-	c.Assert(err, IsNil)
-	c.Assert(out3, DeepEquals, expected)
-
-	// test backwards compatibility
-	data, err = GetReverseTunnelMarshaler().MarshalReverseTunnel(expected, WithVersion(V1))
-	c.Assert(err, IsNil)
-
-	var out4 ReverseTunnelV1
-	err = json.Unmarshal(data, &out4)
-	c.Assert(err, IsNil)
-
-	c.Assert(out4, DeepEquals, *in)
 }
 
 func (s *MigrationsSuite) TestMigrateCertAuthorities(c *C) {
