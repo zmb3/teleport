@@ -40,6 +40,7 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/auth/native"
 	"github.com/gravitational/teleport/lib/auth/testauthority"
@@ -273,7 +274,7 @@ func (s *InstanceSecrets) GetCAs() []services.CertAuthority {
 		[][]byte{s.PrivKey},
 		[][]byte{s.PubKey},
 		[]string{},
-		services.CertAuthoritySpecV2_RSA_SHA2_512,
+		types.CertAuthoritySpecV2_RSA_SHA2_512,
 	)
 	hostCA.SetTLSKeyPairs([]services.TLSKeyPair{{Cert: s.TLSCACert, Key: s.PrivKey}})
 
@@ -283,7 +284,7 @@ func (s *InstanceSecrets) GetCAs() []services.CertAuthority {
 		[][]byte{s.PrivKey},
 		[][]byte{s.PubKey},
 		[]string{services.RoleNameForCertAuthority(s.SiteName)},
-		services.CertAuthoritySpecV2_RSA_SHA2_512,
+		types.CertAuthoritySpecV2_RSA_SHA2_512,
 	)
 	userCA.SetTLSKeyPairs([]services.TLSKeyPair{{Cert: s.TLSCACert, Key: s.PrivKey}})
 

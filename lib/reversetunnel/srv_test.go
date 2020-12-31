@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/auth/testauthority"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -45,7 +46,7 @@ func TestServerKeyAuth(t *testing.T) {
 			[][]byte{priv},
 			[][]byte{pub},
 			nil,
-			services.CertAuthoritySpecV2_RSA_SHA2_256,
+			types.CertAuthoritySpecV2_RSA_SHA2_256,
 		)},
 	}
 	con := mockSSHConnMetadata{}

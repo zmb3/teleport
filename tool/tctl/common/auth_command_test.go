@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gravitational/teleport/api/client/proto"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/client/identityfile"
 	"github.com/gravitational/teleport/lib/kube/kubeconfig"
@@ -45,7 +46,7 @@ func TestAuthSignKubeconfig(t *testing.T) {
 		nil,
 		[][]byte{[]byte("SSH CA cert")},
 		nil,
-		services.CertAuthoritySpecV2_RSA_SHA2_512,
+		types.CertAuthoritySpecV2_RSA_SHA2_512,
 	)
 	ca.SetTLSKeyPairs([]services.TLSKeyPair{{Cert: []byte("TLS CA cert")}})
 

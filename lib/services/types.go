@@ -84,19 +84,6 @@ type (
 	KubernetesCluster               = types.KubernetesCluster
 )
 
-var (
-	CertAuthoritySpecV2_UNKNOWN      = types.CertAuthoritySpecV2_UNKNOWN
-	CertAuthoritySpecV2_RSA_SHA1     = types.CertAuthoritySpecV2_RSA_SHA1
-	CertAuthoritySpecV2_RSA_SHA2_256 = types.CertAuthoritySpecV2_RSA_SHA2_256
-	CertAuthoritySpecV2_RSA_SHA2_512 = types.CertAuthoritySpecV2_RSA_SHA2_512
-	KeepAlive_APP                    = types.KeepAlive_APP
-	KeepAlive_NODE                   = types.KeepAlive_NODE
-	RequestState_NONE                = types.RequestState_NONE
-	RequestState_PENDING             = types.RequestState_PENDING
-	RequestState_APPROVED            = types.RequestState_APPROVED
-	RequestState_DENIED              = types.RequestState_DENIED
-)
-
 // access_request.go
 type (
 	AccessRequest       = types.AccessRequest

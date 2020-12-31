@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/services"
 )
@@ -44,7 +45,7 @@ func accessWorkflow(ctx context.Context, client *auth.Client) {
 	}()
 
 	// retrieve all pending access requests
-	filter := services.AccessRequestFilter{State: services.RequestState_PENDING}
+	filter := services.AccessRequestFilter{State: types.RequestState_PENDING}
 	accessReqs, err := client.GetAccessRequests(ctx, filter)
 	if err != nil {
 		log.Printf("Failed to retrieve access requests: %v", accessReqs)
@@ -59,7 +60,7 @@ func accessWorkflow(ctx context.Context, client *auth.Client) {
 	// approve access request
 	if err = client.SetAccessRequestState(ctx, services.AccessRequestUpdate{
 		RequestID: accessReq.GetName(),
-		State:     services.RequestState_APPROVED,
+		State:     types.RequestState_APPROVED,
 		Reason:    "seems legit",
 		// Roles: If you don't want to grant all the roles requested,
 		// you can provide a subset of role with the Roles field.
@@ -73,7 +74,7 @@ func accessWorkflow(ctx context.Context, client *auth.Client) {
 	// deny access request
 	if err = client.SetAccessRequestState(ctx, services.AccessRequestUpdate{
 		RequestID: accessReq.GetName(),
-		State:     services.RequestState_DENIED,
+		State:     types.RequestState_DENIED,
 		Reason:    "not today",
 	}); err != nil {
 		log.Printf("Failed to deny request: %v", err)

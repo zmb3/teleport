@@ -35,6 +35,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/backend/lite"
@@ -838,7 +839,7 @@ func parseAuthorizedKeys(bytes []byte, allowedLogins []string) (services.CertAut
 		nil,
 		[][]byte{ssh.MarshalAuthorizedKey(pubkey)},
 		nil,
-		services.CertAuthoritySpecV2_UNKNOWN,
+		types.CertAuthoritySpecV2_UNKNOWN,
 	)
 
 	// transform old allowed logins into roles
