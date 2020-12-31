@@ -47,6 +47,12 @@ const (
 	// ApplicationTokenAlgorithm is the default algorithm used to sign
 	// application access tokens.
 	ApplicationTokenAlgorithm = jose.RS256
+
+	// KeepAliveInterval is interval at which Teleport will send keep-alive
+	// messages to the client. The default interval of 5 minutes (300 seconds) is
+	// set to help keep connections alive when using AWS NLBs (which have a default
+	// timeout of 350 seconds)
+	KeepAliveInterval = 5 * time.Minute
 )
 
 // EnhancedEvents returns the default list of enhanced events.

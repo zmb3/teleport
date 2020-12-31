@@ -19,6 +19,7 @@ package services
 import (
 	"context"
 
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/utils/parse"
 
@@ -60,47 +61,12 @@ func (r *RequestIDs) IsEmpty() bool {
 	return len(r.AccessRequests) < 1
 }
 
-// AccessRequestUpdate encompasses the parameters of a
-// SetAccessRequestState call.
-type AccessRequestUpdate struct {
-	// RequestID is the ID of the request to be updated.
-	RequestID string
-	// State is the state that the target request
-	// should resolve to.
-	State RequestState
-	// Reason is an optional description of *why* the
-	// the request is being resolved.
-	Reason string
-	// Annotations supplies extra data associated with
-	// the resolution; primarily for audit purposes.
-	Annotations map[string][]string
-	// Roles, if non-empty declares a list of roles
-	// that should override the role list of the request.
-	// This parameter is only accepted on approvals
-	// and must be a subset of the role list originally
-	// present on the request.
-	Roles []string
-}
-
-func (u *AccessRequestUpdate) Check() error {
-	if u.RequestID == "" {
-		return trace.BadParameter("missing request id")
-	}
-	if u.State.IsNone() {
-		return trace.BadParameter("missing request state")
-	}
-	if len(u.Roles) > 0 && !u.State.IsApproved() {
-		return trace.BadParameter("cannot override roles when setting state: %s", u.State)
-	}
-	return nil
-}
-
 // DynamicAccess is a service which manages dynamic RBAC.
 type DynamicAccess interface {
 	// CreateAccessRequest stores a new access request.
 	CreateAccessRequest(ctx context.Context, req AccessRequest) error
 	// SetAccessRequestState updates the state of an existing access request.
-	SetAccessRequestState(ctx context.Context, params AccessRequestUpdate) error
+	SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error
 	// GetAccessRequests gets all currently active access requests.
 	GetAccessRequests(ctx context.Context, filter AccessRequestFilter) ([]AccessRequest, error)
 	// DeleteAccessRequest deletes an access request.

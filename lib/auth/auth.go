@@ -732,7 +732,7 @@ func (a *Server) PreAuthenticatedSignIn(user string, identity tlsca.Identity) (s
 	if err := a.UpsertWebSession(user, sess); err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return services.WebSessionWithoutSecrets(sess), nil
+	return sess.WithoutSecrets(), nil
 }
 
 func (a *Server) U2FSignRequest(user string, password []byte) (*u2f.SignRequest, error) {
@@ -1475,7 +1475,7 @@ func (a *Server) GetWebSessionInfo(userName string, id string) (services.WebSess
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return services.WebSessionWithoutSecrets(sess), nil
+	return sess.WithoutSecrets(), nil
 }
 
 func (a *Server) DeleteNamespace(namespace string) error {

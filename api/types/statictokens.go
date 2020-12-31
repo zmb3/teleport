@@ -209,22 +209,6 @@ type StaticTokensMarshaler interface {
 	Unmarshal(bytes []byte, opts ...MarshalOption) (StaticTokens, error)
 }
 
-var staticTokensMarshaler StaticTokensMarshaler = &TeleportStaticTokensMarshaler{}
-
-// SetStaticTokensMarshaler sets the marshaler.
-func SetStaticTokensMarshaler(m StaticTokensMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	staticTokensMarshaler = m
-}
-
-// GetStaticTokensMarshaler gets the marshaler.
-func GetStaticTokensMarshaler() StaticTokensMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return staticTokensMarshaler
-}
-
 // TeleportStaticTokensMarshaler is used to marshal and unmarshal StaticTokens.
 type TeleportStaticTokensMarshaler struct{}
 
@@ -285,4 +269,20 @@ func (t *TeleportStaticTokensMarshaler) Marshal(c StaticTokens, opts ...MarshalO
 	default:
 		return nil, trace.BadParameter("unrecognized resource version %T", c)
 	}
+}
+
+var staticTokensMarshaler StaticTokensMarshaler = &TeleportStaticTokensMarshaler{}
+
+// SetStaticTokensMarshaler sets the marshaler.
+func SetStaticTokensMarshaler(m StaticTokensMarshaler) {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	staticTokensMarshaler = m
+}
+
+// GetStaticTokensMarshaler gets the marshaler.
+func GetStaticTokensMarshaler() StaticTokensMarshaler {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	return staticTokensMarshaler
 }

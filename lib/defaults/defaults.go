@@ -338,7 +338,7 @@ var (
 	// messages to the client. The default interval of 5 minutes (300 seconds) is
 	// set to help keep connections alive when using AWS NLBs (which have a default
 	// timeout of 350 seconds)
-	KeepAliveInterval = 5 * time.Minute
+	KeepAliveInterval = defaults.KeepAliveInterval
 
 	// KeepAliveCountMax is the number of keep-alive messages that can be sent
 	// without receiving a response from the client before the client is

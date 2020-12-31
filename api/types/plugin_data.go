@@ -26,6 +26,23 @@ import (
 	"github.com/jonboulle/clockwork"
 )
 
+// PluginData is used by plugins to store per-resource state.  An instance of PluginData
+// corresponds to a resource which may be managed by one or more plugins.  Data is stored
+// as a mapping of the form `plugin -> key -> val`, effectively giving each plugin its own
+// key-value store.  Importantly, an instance of PluginData can only be created for a resource
+// which currently exist, and automatically expires shortly after the corresponding resource.
+// Currently, only the AccessRequest resource is supported.
+type PluginData interface {
+	Resource
+	// Entries gets all entries.
+	Entries() map[string]*PluginDataEntry
+	// Update attempts to apply an update.
+	Update(params PluginDataUpdateParams) error
+	// CheckAndSetDefaults validates the plugin data
+	// and supplies default values where appropriate.
+	CheckAndSetDefaults() error
+}
+
 // NewPluginData configures a new PluginData instance associated
 // with the supplied resource name (currently, this must be the
 // name of an access request).
@@ -47,23 +64,6 @@ func NewPluginData(resourceName string, resourceKind string) (PluginData, error)
 		return nil, err
 	}
 	return &data, nil
-}
-
-// PluginData is used by plugins to store per-resource state.  An instance of PluginData
-// corresponds to a resource which may be managed by one or more plugins.  Data is stored
-// as a mapping of the form `plugin -> key -> val`, effectively giving each plugin its own
-// key-value store.  Importantly, an instance of PluginData can only be created for a resource
-// which currently exist, and automatically expires shortly after the corresponding resource.
-// Currently, only the AccessRequest resource is supported.
-type PluginData interface {
-	Resource
-	// Entries gets all entries.
-	Entries() map[string]*PluginDataEntry
-	// Update attempts to apply an update.
-	Update(params PluginDataUpdateParams) error
-	// CheckAndSetDefaults validates the plugin data
-	// and supplies default values where appropriate.
-	CheckAndSetDefaults() error
 }
 
 // GetKind returns resource kind

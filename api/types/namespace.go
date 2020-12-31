@@ -21,11 +21,22 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/gravitational/teleport/api/constants"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
 )
+
+// NewNamespace returns new namespace
+func NewNamespace(name string) Namespace {
+	return Namespace{
+		Kind:    constants.KindNamespace,
+		Version: constants.V2,
+		Metadata: Metadata{
+			Name: name,
+		},
+	}
+}
 
 // CheckAndSetDefaults checks validity of all parameters and sets defaults
 func (n *Namespace) CheckAndSetDefaults() error {
@@ -139,7 +150,7 @@ func MarshalNamespace(resource Namespace, opts ...MarshalOption) ([]byte, error)
 		copy.SetResourceID(0)
 		resource = copy
 	}
-	return utils.FastMarshal(resource)
+	return FastMarshal(resource)
 }
 
 // UnmarshalNamespace unmarshals role from JSON or YAML,
@@ -157,7 +168,7 @@ func UnmarshalNamespace(data []byte, opts ...MarshalOption) (*Namespace, error) 
 	// always skip schema validation on namespaces unmarshal
 	// the namespace is always created by teleport now
 	var namespace Namespace
-	if err := utils.FastUnmarshal(data, &namespace); err != nil {
+	if err := FastUnmarshal(data, &namespace); err != nil {
 		return nil, trace.BadParameter(err.Error())
 	}
 

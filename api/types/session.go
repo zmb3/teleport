@@ -231,20 +231,82 @@ func (ws *WebSessionV2) GetExpiryTime() time.Time {
 	return ws.Spec.Expires
 }
 
-var webSessionMarshaler WebSessionMarshaler = &TeleportWebSessionMarshaler{}
-
-// SetWebSessionMarshaler sets global WebSessionMarshaler
-func SetWebSessionMarshaler(u WebSessionMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	webSessionMarshaler = u
+// GetAppSessionRequest contains the parameters to request an application
+// web session.
+type GetAppSessionRequest struct {
+	// SessionID is the session ID of the application session itself.
+	SessionID string
 }
 
-// GetWebSessionMarshaler returns currently set WebSessionMarshaler
-func GetWebSessionMarshaler() WebSessionMarshaler {
-	marshalerMutex.RLock()
-	defer marshalerMutex.RUnlock()
-	return webSessionMarshaler
+// Check validates the request.
+func (r *GetAppSessionRequest) Check() error {
+	if r.SessionID == "" {
+		return trace.BadParameter("session ID missing")
+	}
+	return nil
+}
+
+// CreateAppSessionRequest contains the parameters needed to request
+// creating an application web session.
+type CreateAppSessionRequest struct {
+	// Username is the identity of the user requesting the session.
+	Username string `json:"username"`
+	// ParentSession is the session ID of the parent session.
+	ParentSession string `json:"parent_session"`
+	// PublicAddr is the public address of the application.
+	PublicAddr string `json:"public_addr"`
+	// ClusterName is the name of the cluster within which the application is running.
+	ClusterName string `json:"cluster_name"`
+}
+
+// Check validates the request.
+func (r CreateAppSessionRequest) Check() error {
+	if r.Username == "" {
+		return trace.BadParameter("username missing")
+	}
+	if r.ParentSession == "" {
+		return trace.BadParameter("parent session missing")
+	}
+	if r.PublicAddr == "" {
+		return trace.BadParameter("public address missing")
+	}
+	if r.ClusterName == "" {
+		return trace.BadParameter("cluster name missing")
+	}
+
+	return nil
+}
+
+// DeleteAppSessionRequest are the parameters used to request removal of
+// an application web session.
+type DeleteAppSessionRequest struct {
+	SessionID string `json:"session_id"`
+}
+
+// WebSessionSpecV2Schema is JSON schema for cert authority V2
+const WebSessionSpecV2Schema = `{
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["pub", "bearer_token", "bearer_token_expires", "expires", "user"],
+	"properties": {
+	  "user": {"type": "string"},
+	  "pub": {"type": "string"},
+	  "priv": {"type": "string"},
+	  "tls_cert": {"type": "string"},
+	  "bearer_token": {"type": "string"},
+	  "bearer_token_expires": {"type": "string"},
+	  "expires": {"type": "string"}%v
+	}
+  }`
+
+// GetWebSessionSchema returns JSON Schema for web session
+func GetWebSessionSchema() string {
+	return GetWebSessionSchemaWithExtensions("")
+}
+
+// GetWebSessionSchemaWithExtensions returns JSON Schema for web session with user-supplied extensions
+func GetWebSessionSchemaWithExtensions(extension string) string {
+	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, fmt.Sprintf(WebSessionSpecV2Schema, extension), DefaultDefinitions)
 }
 
 // WebSessionMarshaler implements marshal/unmarshal of User implementations
@@ -336,28 +398,18 @@ func (*TeleportWebSessionMarshaler) MarshalWebSession(ws WebSession, opts ...Mar
 	}
 }
 
-// WebSessionSpecV2Schema is JSON schema for cert authority V2
-const WebSessionSpecV2Schema = `{
-  "type": "object",
-  "additionalProperties": false,
-  "required": ["pub", "bearer_token", "bearer_token_expires", "expires", "user"],
-  "properties": {
-    "user": {"type": "string"},
-    "pub": {"type": "string"},
-    "priv": {"type": "string"},
-    "tls_cert": {"type": "string"},
-    "bearer_token": {"type": "string"},
-    "bearer_token_expires": {"type": "string"},
-    "expires": {"type": "string"}%v
-  }
-}`
+var webSessionMarshaler WebSessionMarshaler = &TeleportWebSessionMarshaler{}
 
-// GetWebSessionSchema returns JSON Schema for web session
-func GetWebSessionSchema() string {
-	return GetWebSessionSchemaWithExtensions("")
+// SetWebSessionMarshaler sets global WebSessionMarshaler
+func SetWebSessionMarshaler(u WebSessionMarshaler) {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	webSessionMarshaler = u
 }
 
-// GetWebSessionSchemaWithExtensions returns JSON Schema for web session with user-supplied extensions
-func GetWebSessionSchemaWithExtensions(extension string) string {
-	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, fmt.Sprintf(WebSessionSpecV2Schema, extension), DefaultDefinitions)
+// GetWebSessionMarshaler returns currently set WebSessionMarshaler
+func GetWebSessionMarshaler() WebSessionMarshaler {
+	marshalerMutex.RLock()
+	defer marshalerMutex.RUnlock()
+	return webSessionMarshaler
 }

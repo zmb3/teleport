@@ -26,12 +26,6 @@ import (
 	"github.com/gravitational/trace"
 )
 
-// ProxyGetter is an service that gets proxies
-type ProxyGetter interface {
-	// GetProxies returns a list of registered proxies
-	GetProxies() ([]Server, error)
-}
-
 // Presence records and reports the presence of all components
 // of the cluster - Nodes, Proxies and SSH nodes
 type Presence interface {
@@ -198,6 +192,12 @@ type Presence interface {
 
 	// DeleteAllKubeServices deletes all registered kubernetes services.
 	DeleteAllKubeServices(context.Context) error
+}
+
+// ProxyGetter is an service that gets proxies
+type ProxyGetter interface {
+	// GetProxies returns a list of registered proxies
+	GetProxies() ([]Server, error)
 }
 
 // Site represents a cluster of teleport nodes who collectively trust the same

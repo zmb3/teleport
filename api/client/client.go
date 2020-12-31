@@ -26,14 +26,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"golang.org/x/net/http2"
+
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client/proto"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/events"
 	"github.com/gravitational/teleport/lib/jwt"
-	"github.com/gravitational/teleport/lib/services"
-	"golang.org/x/net/http2"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/gravitational/trace"
@@ -204,7 +204,7 @@ func (c *Client) UpsertNode(s types.Server) (*types.KeepAlive, error) {
 
 // UpdateRemoteCluster updates remote cluster from the specified value.
 func (c *Client) UpdateRemoteCluster(ctx context.Context, rc types.RemoteCluster) error {
-	rcV3, ok := rc.(*services.RemoteClusterV3)
+	rcV3, ok := rc.(*types.RemoteClusterV3)
 	if !ok {
 		return trace.BadParameter("unsupported remote cluster type %T", rcV3)
 	}
@@ -254,7 +254,7 @@ func (c *Client) GetUser(name string, withSecrets bool) (types.User, error) {
 // GetUsers returns a list of users.
 // withSecrets controls whether authentication details are returned.
 func (c *Client) GetUsers(withSecrets bool) ([]types.User, error) {
-	stream, err := c.grpc.GetUsers(context.TODO(), &GetUsersRequest{
+	stream, err := c.grpc.GetUsers(context.TODO(), &proto.GetUsersRequest{
 		WithSecrets: withSecrets,
 	})
 	if err != nil {
@@ -334,7 +334,7 @@ func (c *Client) CreateAccessRequest(ctx context.Context, req types.AccessReques
 // extract the OTP key from the QR code, then allow the user to signup with
 // the same OTP token.
 func (c *Client) RotateResetPasswordTokenSecrets(ctx context.Context, tokenID string) (types.ResetPasswordTokenSecrets, error) {
-	secrets, err := c.grpc.RotateResetPasswordTokenSecrets(ctx, &RotateResetPasswordTokenSecretsRequest{
+	secrets, err := c.grpc.RotateResetPasswordTokenSecrets(ctx, &proto.RotateResetPasswordTokenSecretsRequest{
 		TokenID: tokenID,
 	})
 	if err != nil {

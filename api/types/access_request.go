@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -313,6 +312,41 @@ func (r *AccessRequestV3) Equals(other AccessRequest) bool {
 	return r.Spec.Equals(&o.Spec)
 }
 
+// AccessRequestUpdate encompasses the parameters of a
+// SetAccessRequestState call.
+type AccessRequestUpdate struct {
+	// RequestID is the ID of the request to be updated.
+	RequestID string
+	// State is the state that the target request
+	// should resolve to.
+	State RequestState
+	// Reason is an optional description of *why* the
+	// the request is being resolved.
+	Reason string
+	// Annotations supplies extra data associated with
+	// the resolution; primarily for audit purposes.
+	Annotations map[string][]string
+	// Roles, if non-empty declares a list of roles
+	// that should override the role list of the request.
+	// This parameter is only accepted on approvals
+	// and must be a subset of the role list originally
+	// present on the request.
+	Roles []string
+}
+
+func (u *AccessRequestUpdate) Check() error {
+	if u.RequestID == "" {
+		return trace.BadParameter("missing request id")
+	}
+	if u.State.IsNone() {
+		return trace.BadParameter("missing request state")
+	}
+	if len(u.Roles) > 0 && !u.State.IsApproved() {
+		return trace.BadParameter("cannot override roles when setting state: %s", u.State)
+	}
+	return nil
+}
+
 // RequestStrategy is an indicator of how access requests
 // should be handled for holders of a given role.
 type RequestStrategy string
@@ -527,7 +561,7 @@ func (r *accessRequestMarshaler) MarshalAccessRequest(req AccessRequest, opts ..
 			cp.SetResourceID(0)
 			r = &cp
 		}
-		return utils.FastMarshal(r)
+		return FastMarshal(r)
 	default:
 		return nil, trace.BadParameter("unrecognized access request type: %T", req)
 	}
@@ -540,11 +574,11 @@ func (r *accessRequestMarshaler) UnmarshalAccessRequest(data []byte, opts ...Mar
 	}
 	var req AccessRequestV3
 	if cfg.SkipValidation {
-		if err := utils.FastUnmarshal(data, &req); err != nil {
+		if err := FastUnmarshal(data, &req); err != nil {
 			return nil, trace.Wrap(err)
 		}
 	} else {
-		if err := utils.UnmarshalWithSchema(GetAccessRequestSchema(), &req, data); err != nil {
+		if err := UnmarshalWithSchema(GetAccessRequestSchema(), &req, data); err != nil {
 			return nil, trace.Wrap(err)
 		}
 	}

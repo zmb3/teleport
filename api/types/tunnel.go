@@ -192,6 +192,9 @@ func (r *ReverseTunnelV2) Check() error {
 	return nil
 }
 
+// TunnelType is the type of tunnel. Either node or proxy.
+type TunnelType string
+
 const (
 	// NodeTunnel is a tunnel where the node connects to the proxy (dial back).
 	NodeTunnel TunnelType = "node"
@@ -205,9 +208,6 @@ const (
 	// KubeTunnel is a tunnel where the kubernetes service dials back to the proxy.
 	KubeTunnel TunnelType = "kube"
 )
-
-// TunnelType is the type of tunnel. Either node or proxy.
-type TunnelType string
 
 // GetReverseTunnelSchema returns role schema with optionally injected
 // schema for extensions
@@ -274,22 +274,6 @@ func UnmarshalReverseTunnel(data []byte, opts ...MarshalOption) (ReverseTunnel, 
 	return nil, trace.BadParameter("reverse tunnel version %v is not supported", h.Version)
 }
 
-var tunnelMarshaler ReverseTunnelMarshaler = &teleportTunnelMarshaler{}
-
-// SetReverseTunnelMarshaler sets global ReverseTunnelMarshaler
-func SetReverseTunnelMarshaler(m ReverseTunnelMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	tunnelMarshaler = m
-}
-
-// GetReverseTunnelMarshaler returns currently set ReverseTunnelMarshaler
-func GetReverseTunnelMarshaler() ReverseTunnelMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return tunnelMarshaler
-}
-
 // ReverseTunnelMarshaler implements marshal/unmarshal of reverse tunnel implementations
 type ReverseTunnelMarshaler interface {
 	// UnmarshalReverseTunnel unmarshals reverse tunnel from binary representation
@@ -326,4 +310,20 @@ func (*teleportTunnelMarshaler) MarshalReverseTunnel(rt ReverseTunnel, opts ...M
 	default:
 		return nil, trace.BadParameter("unrecognized user version %T", rt)
 	}
+}
+
+var tunnelMarshaler ReverseTunnelMarshaler = &teleportTunnelMarshaler{}
+
+// SetReverseTunnelMarshaler sets global ReverseTunnelMarshaler
+func SetReverseTunnelMarshaler(m ReverseTunnelMarshaler) {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	tunnelMarshaler = m
+}
+
+// GetReverseTunnelMarshaler returns currently set ReverseTunnelMarshaler
+func GetReverseTunnelMarshaler() ReverseTunnelMarshaler {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	return tunnelMarshaler
 }

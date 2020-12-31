@@ -53,7 +53,7 @@ func (s *ServerSuite) TestServersCompare(c *check.C) {
 		},
 		Spec: types.ServerSpecV2{
 			Addr:      "localhost:3022",
-			CmdLabels: map[string]types.CommandLabelV2{"a": types.CommandLabelV2{Period: Duration(time.Minute), Command: []string{"ls", "-l"}}},
+			CmdLabels: map[string]types.CommandLabelV2{"a": {Period: Duration(time.Minute), Command: []string{"ls", "-l"}}},
 			Version:   "4.0.0",
 		},
 	}
@@ -73,7 +73,7 @@ func (s *ServerSuite) TestServersCompare(c *check.C) {
 
 	// Command labels are different
 	node2 = *node
-	node2.Spec.CmdLabels = map[string]types.CommandLabelV2{"a": types.CommandLabelV2{Period: Duration(time.Minute), Command: []string{"ls", "-lR"}}}
+	node2.Spec.CmdLabels = map[string]types.CommandLabelV2{"a": {Period: Duration(time.Minute), Command: []string{"ls", "-lR"}}}
 	c.Assert(CompareServers(node, &node2), check.Equals, Different)
 
 	// Address has changed

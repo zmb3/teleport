@@ -441,6 +441,24 @@ func (r RoleMap) Check() error {
 	return trace.Wrap(err)
 }
 
+// SortedTrustedCluster sorts clusters by name
+type SortedTrustedCluster []TrustedCluster
+
+// Len returns the length of a list.
+func (s SortedTrustedCluster) Len() int {
+	return len(s)
+}
+
+// Less compares items by name.
+func (s SortedTrustedCluster) Less(i, j int) bool {
+	return s[i].GetName() < s[j].GetName()
+}
+
+// Swap swaps two items in a list.
+func (s SortedTrustedCluster) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
 // TrustedClusterSpecSchemaTemplate is a template for trusted cluster schema
 const TrustedClusterSpecSchemaTemplate = `{
   "type": "object",
@@ -495,22 +513,6 @@ func GetTrustedClusterSchema(extensionSchema string) string {
 type TrustedClusterMarshaler interface {
 	Marshal(c TrustedCluster, opts ...MarshalOption) ([]byte, error)
 	Unmarshal(bytes []byte, opts ...MarshalOption) (TrustedCluster, error)
-}
-
-var trustedClusterMarshaler TrustedClusterMarshaler = &TeleportTrustedClusterMarshaler{}
-
-// SetTrustedClusterMarshaler sets global TrustedClusterMarshaler
-func SetTrustedClusterMarshaler(m TrustedClusterMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	trustedClusterMarshaler = m
-}
-
-// GetTrustedClusterMarshaler returns currently set TrustedClusterMarshaler
-func GetTrustedClusterMarshaler() TrustedClusterMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return trustedClusterMarshaler
 }
 
 // TeleportTrustedClusterMarshaler implements TrustedClusterMarshaler
@@ -573,20 +575,18 @@ func (t *TeleportTrustedClusterMarshaler) Marshal(c TrustedCluster, opts ...Mars
 	}
 }
 
-// SortedTrustedCluster sorts clusters by name
-type SortedTrustedCluster []TrustedCluster
+var trustedClusterMarshaler TrustedClusterMarshaler = &TeleportTrustedClusterMarshaler{}
 
-// Len returns the length of a list.
-func (s SortedTrustedCluster) Len() int {
-	return len(s)
+// SetTrustedClusterMarshaler sets global TrustedClusterMarshaler
+func SetTrustedClusterMarshaler(m TrustedClusterMarshaler) {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	trustedClusterMarshaler = m
 }
 
-// Less compares items by name.
-func (s SortedTrustedCluster) Less(i, j int) bool {
-	return s[i].GetName() < s[j].GetName()
-}
-
-// Swap swaps two items in a list.
-func (s SortedTrustedCluster) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
+// GetTrustedClusterMarshaler returns currently set TrustedClusterMarshaler
+func GetTrustedClusterMarshaler() TrustedClusterMarshaler {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	return trustedClusterMarshaler
 }

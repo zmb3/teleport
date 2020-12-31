@@ -195,7 +195,7 @@ type Refs []Ref
 // ParseRefs parses a comma-separated string of resource references (eg "users/alice,users/bob")
 func ParseRefs(refs string) (Refs, error) {
 	if refs == "all" {
-		return []Ref{Ref{Kind: "all"}}, nil
+		return []Ref{{Kind: "all"}}, nil
 	}
 	var escaped bool
 	isBreak := func(r rune) bool {

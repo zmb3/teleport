@@ -357,22 +357,6 @@ type SemaphoreMarshaler interface {
 	Unmarshal(bytes []byte, opts ...MarshalOption) (Semaphore, error)
 }
 
-var semaphoreMarshaler SemaphoreMarshaler = &TeleportSemaphoreMarshaler{}
-
-// SetSemaphoreMarshaler sets the marshaler.
-func SetSemaphoreMarshaler(m SemaphoreMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	semaphoreMarshaler = m
-}
-
-// GetSemaphoreMarshaler gets the marshaler.
-func GetSemaphoreMarshaler() SemaphoreMarshaler {
-	marshalerMutex.RLock()
-	defer marshalerMutex.RUnlock()
-	return semaphoreMarshaler
-}
-
 // TeleportSemaphoreMarshaler is used to marshal and unmarshal Semaphore.
 type TeleportSemaphoreMarshaler struct{}
 
@@ -433,4 +417,20 @@ func (t *TeleportSemaphoreMarshaler) Marshal(c Semaphore, opts ...MarshalOption)
 	default:
 		return nil, trace.BadParameter("unrecognized resource version %T", c)
 	}
+}
+
+var semaphoreMarshaler SemaphoreMarshaler = &TeleportSemaphoreMarshaler{}
+
+// SetSemaphoreMarshaler sets the marshaler.
+func SetSemaphoreMarshaler(m SemaphoreMarshaler) {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	semaphoreMarshaler = m
+}
+
+// GetSemaphoreMarshaler gets the marshaler.
+func GetSemaphoreMarshaler() SemaphoreMarshaler {
+	marshalerMutex.RLock()
+	defer marshalerMutex.RUnlock()
+	return semaphoreMarshaler
 }

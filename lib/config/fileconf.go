@@ -1171,17 +1171,16 @@ func (o *OIDCConnector) Parse() (services.OIDCConnector, error) {
 		})
 	}
 
-	other := &services.OIDCConnectorV1{
-		ID:            o.ID,
-		Display:       o.Display,
+	v2 := services.NewOIDCConnector(o.ID, services.OIDCConnectorSpecV2{
 		IssuerURL:     o.IssuerURL,
 		ClientID:      o.ClientID,
 		ClientSecret:  o.ClientSecret,
 		RedirectURL:   o.RedirectURL,
+		Display:       o.Display,
 		Scope:         o.Scope,
 		ClaimsToRoles: mappings,
-	}
-	v2 := other.V2()
+	})
+
 	v2.SetACR(o.ACR)
 	v2.SetProvider(o.Provider)
 	if err := v2.Check(); err != nil {

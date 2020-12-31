@@ -22,8 +22,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/gravitational/teleport/api/defaults"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -156,7 +155,7 @@ func AuditConfigFromObject(in interface{}) (*AuditConfig, error) {
 	if in == nil {
 		return &cfg, nil
 	}
-	if err := utils.ObjectToStruct(in, &cfg); err != nil {
+	if err := ObjectToStruct(in, &cfg); err != nil {
 		return nil, trace.Wrap(err)
 	}
 	return &cfg, nil
@@ -381,14 +380,14 @@ func (c *ClusterConfigV3) CheckAndSetDefaults() error {
 
 	// check if the recording type is valid
 	all := []string{RecordAtNode, RecordAtProxy, RecordAtNodeSync, RecordAtProxySync, RecordOff}
-	ok := utils.SliceContainsStr(all, c.Spec.SessionRecording)
+	ok := SliceContainsStr(all, c.Spec.SessionRecording)
 	if !ok {
 		return trace.BadParameter("session_recording must either be: %v", strings.Join(all, ","))
 	}
 
 	// check if host key checking mode is valid
 	all = []string{HostKeyCheckYes, HostKeyCheckNo}
-	ok = utils.SliceContainsStr(all, c.Spec.ProxyChecksHostKeys)
+	ok = SliceContainsStr(all, c.Spec.ProxyChecksHostKeys)
 	if !ok {
 		return trace.BadParameter("proxy_checks_host_keys must be one of: %v", strings.Join(all, ","))
 	}
@@ -516,11 +515,11 @@ func (t *teleportClusterConfigMarshaler) Unmarshal(bytes []byte, opts ...Marshal
 	}
 
 	if cfg.SkipValidation {
-		if err := utils.FastUnmarshal(bytes, &clusterConfig); err != nil {
+		if err := FastUnmarshal(bytes, &clusterConfig); err != nil {
 			return nil, trace.BadParameter(err.Error())
 		}
 	} else {
-		err = utils.UnmarshalWithSchema(GetClusterConfigSchema(""), &clusterConfig, bytes)
+		err = UnmarshalWithSchema(GetClusterConfigSchema(""), &clusterConfig, bytes)
 		if err != nil {
 			return nil, trace.BadParameter(err.Error())
 		}
@@ -555,7 +554,7 @@ func (t *teleportClusterConfigMarshaler) Marshal(c ClusterConfig, opts ...Marsha
 			copy.SetResourceID(0)
 			resource = &copy
 		}
-		return utils.FastMarshal(resource)
+		return FastMarshal(resource)
 	default:
 		return nil, trace.BadParameter("unrecognized resource version %T", c)
 	}

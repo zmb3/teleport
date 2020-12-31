@@ -851,7 +851,7 @@ func (b *Bool) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &stringVar); err != nil {
 		return trace.Wrap(err)
 	}
-	v, err := utils.ParseBool(stringVar)
+	v, err := ParseBool(stringVar)
 	if err != nil {
 		*b = false
 		return nil
@@ -876,7 +876,7 @@ func (b *Bool) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&stringVar); err != nil {
 		return trace.Wrap(err)
 	}
-	v, err := utils.ParseBool(stringVar)
+	v, err := ParseBool(stringVar)
 	if err != nil {
 		*b = Bool(v)
 		return nil
@@ -970,6 +970,14 @@ func (b *BoolOption) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	b.Value = val.Value()
 	return nil
+}
+
+// ProcessNamespace sets default namespace in case if namespace is empty
+func ProcessNamespace(namespace string) string {
+	if namespace == "" {
+		return defaults.Namespace
+	}
+	return namespace
 }
 
 // RoleSpecV3SchemaTemplate is JSON schema for RoleSpecV3
@@ -1101,38 +1109,6 @@ func GetRoleSchema(version string, extensionSchema string) string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, schema, schemaDefinitions)
 }
 
-var roleMarshaler RoleMarshaler = &teleportRoleMarshaler{}
-
-// SetRoleMarshaler sets the global RoleMarshaler
-func SetRoleMarshaler(m RoleMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	roleMarshaler = m
-}
-
-// GetRoleMarshaler returns currently set RoleMarshaler
-func GetRoleMarshaler() RoleMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return roleMarshaler
-}
-
-// RoleMarshaler implements marshal/unmarshal of Role implementations
-// mostly adds support for extended versions
-type RoleMarshaler interface {
-	// UnmarshalRole from binary representation
-	UnmarshalRole(bytes []byte, opts ...MarshalOption) (Role, error)
-	// MarshalRole to binary representation
-	MarshalRole(u Role, opts ...MarshalOption) ([]byte, error)
-}
-
-type teleportRoleMarshaler struct{}
-
-// UnmarshalRole unmarshals role from JSON.
-func (*teleportRoleMarshaler) UnmarshalRole(bytes []byte, opts ...MarshalOption) (Role, error) {
-	return UnmarshalRole(bytes, opts...)
-}
-
 // UnmarshalRole unmarshals role from JSON, sets defaults, and checks schema.
 func UnmarshalRole(data []byte, opts ...MarshalOption) (*RoleV3, error) {
 	var h ResourceHeader
@@ -1175,6 +1151,22 @@ func UnmarshalRole(data []byte, opts ...MarshalOption) (*RoleV3, error) {
 	return nil, trace.BadParameter("role version %q is not supported", h.Version)
 }
 
+// RoleMarshaler implements marshal/unmarshal of Role implementations
+// mostly adds support for extended versions
+type RoleMarshaler interface {
+	// UnmarshalRole from binary representation
+	UnmarshalRole(bytes []byte, opts ...MarshalOption) (Role, error)
+	// MarshalRole to binary representation
+	MarshalRole(u Role, opts ...MarshalOption) ([]byte, error)
+}
+
+type teleportRoleMarshaler struct{}
+
+// UnmarshalRole unmarshals role from JSON.
+func (*teleportRoleMarshaler) UnmarshalRole(bytes []byte, opts ...MarshalOption) (Role, error) {
+	return UnmarshalRole(bytes, opts...)
+}
+
 // MarshalRole marshals role into JSON.
 func (*teleportRoleMarshaler) MarshalRole(r Role, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
@@ -1196,10 +1188,18 @@ func (*teleportRoleMarshaler) MarshalRole(r Role, opts ...MarshalOption) ([]byte
 	}
 }
 
-// ProcessNamespace sets default namespace in case if namespace is empty
-func ProcessNamespace(namespace string) string {
-	if namespace == "" {
-		return defaults.Namespace
-	}
-	return namespace
+var roleMarshaler RoleMarshaler = &teleportRoleMarshaler{}
+
+// SetRoleMarshaler sets the global RoleMarshaler
+func SetRoleMarshaler(m RoleMarshaler) {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	roleMarshaler = m
+}
+
+// GetRoleMarshaler returns currently set RoleMarshaler
+func GetRoleMarshaler() RoleMarshaler {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	return roleMarshaler
 }

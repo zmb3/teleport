@@ -17,17 +17,15 @@ limitations under the License.
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"time"
 
-	"github.com/coreos/go-oidc/jose"
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/gravitational/teleport/api/defaults"
 
+	"github.com/coreos/go-oidc/jose"
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
 )
@@ -195,20 +193,6 @@ func (o *OIDCConnectorV2) V2() *OIDCConnectorV2 {
 	return o
 }
 
-// V1 converts OIDCConnectorV2 to OIDCConnectorV1 format
-func (o *OIDCConnectorV2) V1() *OIDCConnectorV1 {
-	return &OIDCConnectorV1{
-		ID:            o.Metadata.Name,
-		IssuerURL:     o.Spec.IssuerURL,
-		ClientID:      o.Spec.ClientID,
-		ClientSecret:  o.Spec.ClientSecret,
-		RedirectURL:   o.Spec.RedirectURL,
-		Display:       o.Spec.Display,
-		Scope:         o.Spec.Scope,
-		ClaimsToRoles: o.Spec.ClaimsToRoles,
-	}
-}
-
 // SetDisplay sets friendly name for this provider.
 func (o *OIDCConnectorV2) SetDisplay(display string) {
 	o.Spec.Display = display
@@ -341,7 +325,7 @@ func (o *OIDCConnectorV2) GetClaims() []string {
 	for _, mapping := range o.Spec.ClaimsToRoles {
 		out = append(out, mapping.Claim)
 	}
-	return utils.Deduplicate(out)
+	return Deduplicate(out)
 }
 
 // GetTraitMappings returns the OIDCConnector's TraitMappingSet
@@ -383,7 +367,7 @@ func (o *OIDCConnectorV2) Check() error {
 	}
 
 	if o.Spec.GoogleServiceAccountURI != "" {
-		uri, err := utils.ParseSessionsURI(o.Spec.GoogleServiceAccountURI)
+		uri, err := ParseSessionsURI(o.Spec.GoogleServiceAccountURI)
 		if err != nil {
 			return trace.Wrap(err)
 		}
@@ -490,55 +474,6 @@ func OIDCClaimsToTraits(claims jose.Claims) map[string][]string {
 	return traits
 }
 
-// OIDCConnectorV1 specifies configuration for Open ID Connect compatible external
-// identity provider, e.g. google in some organisation
-type OIDCConnectorV1 struct {
-	// ID is a provider id, 'e.g.' google, used internally
-	ID string `json:"id"`
-	// Issuer URL is the endpoint of the provider, e.g. https://accounts.google.com
-	IssuerURL string `json:"issuer_url"`
-	// ClientID is id for authentication client (in our case it's our Auth server)
-	ClientID string `json:"client_id"`
-	// ClientSecret is used to authenticate our client and should not
-	// be visible to end user
-	ClientSecret string `json:"client_secret"`
-	// RedirectURL - Identity provider will use this URL to redirect
-	// client's browser back to it after successful authentication
-	// Should match the URL on Provider's side
-	RedirectURL string `json:"redirect_url"`
-	// Display - Friendly name for this provider.
-	Display string `json:"display"`
-	// Scope is additional scopes set by provider
-	Scope []string `json:"scope"`
-	// ClaimsToRoles specifies dynamic mapping from claims to roles
-	ClaimsToRoles []ClaimMapping `json:"claims_to_roles"`
-}
-
-// V1 returns V1 version of the resource
-func (o *OIDCConnectorV1) V1() *OIDCConnectorV1 {
-	return o
-}
-
-// V2 returns V2 version of the connector
-func (o *OIDCConnectorV1) V2() *OIDCConnectorV2 {
-	return &OIDCConnectorV2{
-		Kind:    constants.KindOIDCConnector,
-		Version: constants.V2,
-		Metadata: Metadata{
-			Name: o.ID,
-		},
-		Spec: OIDCConnectorSpecV2{
-			IssuerURL:     o.IssuerURL,
-			ClientID:      o.ClientID,
-			ClientSecret:  o.ClientSecret,
-			RedirectURL:   o.RedirectURL,
-			Display:       o.Display,
-			Scope:         o.Scope,
-			ClaimsToRoles: o.ClaimsToRoles,
-		},
-	}
-}
-
 // OIDCConnectorSpecV2Schema is a JSON Schema for OIDC Connector
 var OIDCConnectorSpecV2Schema = fmt.Sprintf(`{
 	"type": "object",
@@ -637,26 +572,19 @@ func (*teleportOIDCConnectorMarshaler) UnmarshalOIDCConnector(bytes []byte, opts
 		return nil, trace.Wrap(err)
 	}
 	var h ResourceHeader
-	err = utils.FastUnmarshal(bytes, &h)
+	err = FastUnmarshal(bytes, &h)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 	switch h.Version {
-	case "":
-		var c OIDCConnectorV1
-		err := json.Unmarshal(bytes, &c)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		return c.V2(), nil
 	case constants.V2:
 		var c OIDCConnectorV2
 		if cfg.SkipValidation {
-			if err := utils.FastUnmarshal(bytes, &c); err != nil {
+			if err := FastUnmarshal(bytes, &c); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		} else {
-			if err := utils.UnmarshalWithSchema(GetOIDCConnectorSchema(), &c, bytes); err != nil {
+			if err := UnmarshalWithSchema(GetOIDCConnectorSchema(), &c, bytes); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		}
@@ -682,36 +610,18 @@ func (*teleportOIDCConnectorMarshaler) MarshalOIDCConnector(c OIDCConnector, opt
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	type connv1 interface {
-		V1() *OIDCConnectorV1
-	}
 
-	type connv2 interface {
-		V2() *OIDCConnectorV2
-	}
-	version := cfg.GetVersion()
-	switch version {
-	case constants.V1:
-		v, ok := c.(connv1)
-		if !ok {
-			return nil, trace.BadParameter("don't know how to marshal %v", constants.V1)
-		}
-		return json.Marshal(v.V1())
-	case constants.V2:
-		v, ok := c.(connv2)
-		if !ok {
-			return nil, trace.BadParameter("don't know how to marshal %v", constants.V2)
-		}
-		v2 := v.V2()
+	switch oidcConnector := c.(type) {
+	case *OIDCConnectorV2:
 		if !cfg.PreserveResourceID {
 			// avoid modifying the original object
 			// to prevent unexpected data races
-			copy := *v2
+			copy := *oidcConnector
 			copy.SetResourceID(0)
-			v2 = &copy
+			oidcConnector = &copy
 		}
-		return utils.FastMarshal(v2)
+		return FastMarshal(oidcConnector)
 	default:
-		return nil, trace.BadParameter("version %v is not supported", version)
+		return nil, trace.BadParameter("unrecognized OIDC connector version %T", c)
 	}
 }

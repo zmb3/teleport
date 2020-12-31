@@ -20,6 +20,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/gravitational/teleport/lib/sshutils"
 	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
@@ -28,11 +29,21 @@ import (
 // These functions are copied over from utils.go.
 // TODO: Move all these util functions here.
 var (
-	CopyStrings       = utils.CopyStrings
-	StringSlicesEqual = utils.StringSlicesEqual
-	SliceContainsStr  = utils.SliceContainsStr
-	Deduplicate       = utils.Deduplicate
-	ReplaceRegexp     = utils.ReplaceRegexp
+	CopyStrings                   = utils.CopyStrings
+	StringSlicesEqual             = utils.StringSlicesEqual
+	SliceContainsStr              = utils.SliceContainsStr
+	CopyByteSlice                 = utils.CopyByteSlice
+	CopyByteSlices                = utils.CopyByteSlices
+	Deduplicate                   = utils.Deduplicate
+	ReplaceRegexp                 = utils.ReplaceRegexp
+	ParsePrivateKey               = utils.ParsePrivateKey
+	ParsePublicKey                = utils.ParsePublicKey
+	ObjectToStruct                = utils.ObjectToStruct
+	ParseSessionsURI              = utils.ParseSessionsURI
+	GenerateSelfSignedSigningCert = utils.GenerateSelfSignedSigningCert
+	ParseSigningKeyStorePEM       = utils.ParseSigningKeyStorePEM
+	ContainsExpansion             = utils.ContainsExpansion
+	ParseBool                     = utils.ParseBool
 
 	UTC             = utils.UTC
 	HumanTimeFormat = utils.HumanTimeFormat
@@ -40,6 +51,11 @@ var (
 	FastUnmarshal       = utils.FastUnmarshal
 	FastMarshal         = utils.FastMarshal
 	UnmarshalWithSchema = utils.UnmarshalWithSchema
+)
+
+// sshutils
+var (
+	AlgSigner = sshutils.AlgSigner
 )
 
 // CheckParseAddr takes a string and returns true if it can be parsed into a utils.NetAddr

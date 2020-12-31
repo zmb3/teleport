@@ -9,186 +9,532 @@ import (
 // The new structs are used to wrap the imported types with additional methods.
 // The other types are basic imports and can be removed if their references are updated.
 
-type AccessRequest = types.AccessRequest
-type AccessRequestFilter = types.AccessRequestFilter
-type AccessRequestConditions = types.AccessRequestConditions
-type RequestState = types.RequestState
-
-var NewAccessRequest = types.NewAccessRequest
-
-type AuthPreference = types.AuthPreference
-
-var NewAuthPreference = types.NewAuthPreference
-
-type ClusterName = types.ClusterName
-
-var NewClusterName = types.NewClusterName
-
-type ClusterConfig = types.ClusterConfig
-
-var NewClusterConfig = types.NewClusterConfig
-var DefaultClusterConfig = types.DefaultClusterConfig
-
-type App = types.App
-
-type CertAuthority = types.CertAuthority
-type CertAuthorityV1 = types.CertAuthorityV1
-
-var NewCertAuthority = types.NewCertAuthority
-var NewJWTAuthority = types.NewJWTAuthority
-
-type Duration = types.Duration
-
-type Event = types.Event
-
-type ExternalIdentity = types.ExternalIdentity
-
-type KubernetesCluster = types.KubernetesCluster
-
-type License = types.License
-
-var NewLicence = types.NewLicense
-
-type OIDCConnector = types.OIDCConnector
-
-var NewOIDCConnector = types.NewOIDCConnector
-
-type SAMLConnector = types.SAMLConnector
-
-var NewSAMLConnector = types.NewSAMLConnector
-
-type GithubConnector = types.GithubConnector
-
-var NewGithubConnector = types.NewGithubConnector
-
-type MarshalConfig = types.MarshalConfig
-type MarshalOption = types.MarshalOption
-
-type PluginData = types.PluginData
-type PluginDataFilter = types.PluginDataFilter
-type PluginDataEntry = types.PluginDataEntry
-type PluginDataUpdateParams = types.PluginDataUpdateParams
-
-var NewPluginData = types.NewPluginData
-
-type Presence = types.Presence
-type ProxyGetter = types.ProxyGetter
-type KeepAliver = types.KeepAliver
-
-type Provisioner = types.Provisioner
-type ProvisionToken = types.ProvisionToken
-
-var NewProvisionToken = types.NewProvisionToken
-var MustCreateProvisionToken = types.MustCreateProvisionToken
-
-type RemoteCluster = types.RemoteCluster
-
-var NewRemoteCluster = types.NewRemoteCluster
-
-type ResetPasswordToken = types.ResetPasswordToken
-type ResetPasswordTokenSecrets = types.ResetPasswordTokenSecrets
-
-var NewResetPasswordToken = types.NewResetPasswordToken
-var NewResetPasswordTokenSecrets = types.NewResetPasswordTokenSecrets
-
-type Resource = types.Resource
-type ResourceWithSecrets = types.ResourceWithSecrets
-type ResourceHeader = types.ResourceHeader
-type Metadata = types.Metadata
-
-type ReverseTunnel = types.ReverseTunnel
-type TunnelType = types.TunnelType
-
-var NewReverseTunnel = types.NewReverseTunnel
-
-type Role = types.Role
-type RoleV3 = types.RoleV3
-type RoleSpecV3 = types.RoleSpecV3
-type RoleConditions = types.RoleConditions
-type RoleConditionType = types.RoleConditionType
-type RoleOptions = types.RoleOptions
-type Rule = types.Rule
-type Labels = types.Labels
-
-var NewRule = types.NewRule
-var NewBoolOption = types.NewBoolOption
-
-type Rotation = types.Rotation
-
-type RuleContext = types.RuleContext
-
-type Semaphore = types.Semaphore
-
-type Server = types.Server
-type CommandLabel = types.CommandLabel
-
-type StaticTokens = types.StaticTokens
-
-var NewStaticTokens = types.NewStaticTokens
-var DefaultStaticTokens = types.DefaultStaticTokens
-var NewBool = types.NewBool
-
-type Trust = types.Trust
-
-type TraitMapping = types.TraitMapping
-type TraitMappingSet = types.TraitMappingSet
-
-type TrustedCluster = types.TrustedCluster
-type RoleMap = types.RoleMap
-
-var NewTrustedCluster = types.NewTrustedCluster
-
-type TunnelConnection = types.TunnelConnection
-
-type RoleMapping = types.RoleMapping
-
-type User = types.User
-type ConnectorRef = types.ConnectorRef
-
-var NewUser = types.NewUser
-
-type WebSession = types.WebSession
-
-type ServerV2 = types.ServerV2
-type RemoteClusterV3 = types.RemoteClusterV3
-
-type Context = types.Context
-type UserV2 = types.UserV2
-type UserSpecV2 = types.UserSpecV2
-type CommandLabelV2 = types.CommandLabelV2
-type ServerSpecV2 = types.ServerSpecV2
-type CertAuthorityV2 = types.CertAuthorityV2
-type CertAuthoritySpecV2 = types.CertAuthoritySpecV2
-
-var UserCA = types.UserCA
-var GetCertAuthorityMarshaler = types.GetCertAuthorityMarshaler
-
-// Some functions and variables  need to be imported from the types package
-var (
-	UnmarshalRole         = types.UnmarshalRole
-	BoolDefaultTrue       = types.BoolDefaultTrue
-	GetWhereParserFn      = types.GetWhereParserFn
-	GetActionsParserFn    = types.GetActionsParserFn
-	CombineLabels         = types.CombineLabels
-	ProcessNamespace      = types.ProcessNamespace
-	UnmarshalCertRoles    = types.UnmarshalCertRoles
-	ParseSigningAlg       = types.ParseSigningAlg
-	MaxDuration           = types.MaxDuration
-	NewDuration           = types.NewDuration
-	IsValidLabelKey       = types.IsValidLabelKey
-	RequestState_NONE     = types.RequestState_NONE
-	RequestState_PENDING  = types.RequestState_PENDING
-	RequestState_APPROVED = types.RequestState_APPROVED
-	RequestState_DENIED   = types.RequestState_DENIED
+// types.pb.go
+type (
+	KeepAlive                       = types.KeepAlive
+	Metadata                        = types.Metadata
+	Rotation                        = types.Rotation
+	RotationSchedule                = types.RotationSchedule
+	ResourceHeader                  = types.ResourceHeader
+	ServerV2                        = types.ServerV2
+	ServerSpecV2                    = types.ServerSpecV2
+	App                             = types.App
+	Rewrite                         = types.Rewrite
+	CommandLabelV2                  = types.CommandLabelV2
+	TLSKeyPair                      = types.TLSKeyPair
+	JWTKeyPair                      = types.JWTKeyPair
+	CertAuthorityV2                 = types.CertAuthorityV2
+	CertAuthoritySpecV2             = types.CertAuthoritySpecV2
+	RoleMapping                     = types.RoleMapping
+	ProvisionTokenV1                = types.ProvisionTokenV1
+	ProvisionTokenV2                = types.ProvisionTokenV2
+	ProvisionTokenSpecV2            = types.ProvisionTokenSpecV2
+	StaticTokensV2                  = types.StaticTokensV2
+	StaticTokensSpecV2              = types.StaticTokensSpecV2
+	ClusterNameV2                   = types.ClusterNameV2
+	ClusterNameSpecV2               = types.ClusterNameSpecV2
+	ClusterConfigV3                 = types.ClusterConfigV3
+	ClusterConfigSpecV3             = types.ClusterConfigSpecV3
+	AuditConfig                     = types.AuditConfig
+	Namespace                       = types.Namespace
+	NamespaceSpec                   = types.NamespaceSpec
+	ResetPasswordTokenV3            = types.ResetPasswordTokenV3
+	ResetPasswordTokenSpecV3        = types.ResetPasswordTokenSpecV3
+	ResetPasswordTokenSecretsV3     = types.ResetPasswordTokenSecretsV3
+	ResetPasswordTokenSecretsSpecV3 = types.ResetPasswordTokenSecretsSpecV3
+	AccessRequestV3                 = types.AccessRequestV3
+	AccessRequestSpecV3             = types.AccessRequestSpecV3
+	AccessRequestFilter             = types.AccessRequestFilter
+	PluginDataV3                    = types.PluginDataV3
+	PluginDataEntry                 = types.PluginDataEntry
+	PluginDataSpecV3                = types.PluginDataSpecV3
+	PluginDataFilter                = types.PluginDataFilter
+	PluginDataUpdateParams          = types.PluginDataUpdateParams
+	RoleV3                          = types.RoleV3
+	RoleSpecV3                      = types.RoleSpecV3
+	RoleOptions                     = types.RoleOptions
+	RoleConditions                  = types.RoleConditions
+	AccessRequestConditions         = types.AccessRequestConditions
+	AccessRequestClaimMapping       = types.AccessRequestClaimMapping
+	Rule                            = types.Rule
+	BoolValue                       = types.BoolValue
+	UserV2                          = types.UserV2
+	UserSpecV2                      = types.UserSpecV2
+	ExternalIdentity                = types.ExternalIdentity
+	LoginStatus                     = types.LoginStatus
+	CreatedBy                       = types.CreatedBy
+	U2FRegistrationData             = types.U2FRegistrationData
+	LocalAuthSecrets                = types.LocalAuthSecrets
+	ConnectorRef                    = types.ConnectorRef
+	UserRef                         = types.UserRef
+	ReverseTunnelV2                 = types.ReverseTunnelV2
+	ReverseTunnelSpecV2             = types.ReverseTunnelSpecV2
+	TunnelConnectionV2              = types.TunnelConnectionV2
+	TunnelConnectionSpecV2          = types.TunnelConnectionSpecV2
+	SemaphoreFilter                 = types.SemaphoreFilter
+	AcquireSemaphoreRequest         = types.AcquireSemaphoreRequest
+	SemaphoreLease                  = types.SemaphoreLease
+	SemaphoreLeaseRef               = types.SemaphoreLeaseRef
+	SemaphoreV3                     = types.SemaphoreV3
+	SemaphoreSpecV3                 = types.SemaphoreSpecV3
+	WebSessionV2                    = types.WebSessionV2
+	WebSessionSpecV2                = types.WebSessionSpecV2
+	RemoteClusterV3                 = types.RemoteClusterV3
+	RemoteClusterStatusV3           = types.RemoteClusterStatusV3
+	KubernetesCluster               = types.KubernetesCluster
 )
 
-// The following constants are imported from api/types to simplify
-// refactoring. These could be removed and their references updated.
-const (
+var (
+	CertAuthoritySpecV2_UNKNOWN      = types.CertAuthoritySpecV2_UNKNOWN
+	CertAuthoritySpecV2_RSA_SHA1     = types.CertAuthoritySpecV2_RSA_SHA1
+	CertAuthoritySpecV2_RSA_SHA2_256 = types.CertAuthoritySpecV2_RSA_SHA2_256
+	CertAuthoritySpecV2_RSA_SHA2_512 = types.CertAuthoritySpecV2_RSA_SHA2_512
+	KeepAlive_APP                    = types.KeepAlive_APP
+	KeepAlive_NODE                   = types.KeepAlive_NODE
+	RequestState_NONE                = types.RequestState_NONE
+	RequestState_PENDING             = types.RequestState_PENDING
+	RequestState_APPROVED            = types.RequestState_APPROVED
+	RequestState_DENIED              = types.RequestState_DENIED
+)
+
+// access_request.go
+type (
+	AccessRequest       = types.AccessRequest
+	AccessRequestUpdate = types.AccessRequestUpdate
+	RequestStrategy     = types.RequestStrategy
+	RequestState        = types.RequestState
+)
+
+var (
+	NewAccessRequest          = types.NewAccessRequest
+	GetAccessRequestMarshaler = types.GetAccessRequestMarshaler
+
+	RequestStrategyOptional = types.RequestStrategyOptional
+	RequestStrategyReason   = types.RequestStrategyReason
+	RequestStrategyAlways   = types.RequestStrategyAlways
+)
+
+// authentication.go
+type (
+	AuthPreference       = types.AuthPreference
+	AuthPreferenceV2     = types.AuthPreferenceV2
+	AuthPreferenceSpecV2 = types.AuthPreferenceSpecV2
+	U2F                  = types.U2F
+)
+
+var (
+	NewAuthPreference          = types.NewAuthPreference
+	GetAuthPreferenceMarshaler = types.GetAuthPreferenceMarshaler
+	SetAuthPreferenceMarshaler = types.SetAuthPreferenceMarshaler
+)
+
+// authority.go
+type (
+	CertAuthority   = types.CertAuthority
+	CertAuthorityV1 = types.CertAuthorityV1
+	CertRoles       = types.CertRoles
+)
+
+var (
+	NewCertAuthority          = types.NewCertAuthority
+	NewJWTAuthority           = types.NewJWTAuthority
+	SetCertAuthorityMarshaler = types.SetCertAuthorityMarshaler
+	GetCertAuthorityMarshaler = types.GetCertAuthorityMarshaler
+	GenerateSchedule          = types.GenerateSchedule
+
+	RotationStateStandby       = types.RotationStateStandby
+	RotationStateInProgress    = types.RotationStateInProgress
+	RotationPhaseStandby       = types.RotationPhaseStandby
+	RotationPhaseInit          = types.RotationPhaseInit
+	RotationPhaseUpdateClients = types.RotationPhaseUpdateClients
+	RotationPhaseUpdateServers = types.RotationPhaseUpdateServers
+	RotationPhaseRollback      = types.RotationPhaseRollback
+	RotationModeManual         = types.RotationModeManual
+	RotationModeAuto           = types.RotationModeAuto
+
+	RotatePhases       = types.RotatePhases
+	RemoveCASecrets    = types.RemoveCASecrets
+	MarshalCertRoles   = types.MarshalCertRoles
+	UnmarshalCertRoles = types.UnmarshalCertRoles
+	ParseSigningAlg    = types.ParseSigningAlg
+	RotationSchema     = types.RotationSchema
+)
+
+// clusterconfig.go
+type ClusterConfig = types.ClusterConfig
+
+var (
+	NewClusterConfig          = types.NewClusterConfig
+	DefaultClusterConfig      = types.DefaultClusterConfig
+	AuditConfigFromObject     = types.AuditConfigFromObject
+	SetClusterConfigMarshaler = types.SetClusterConfigMarshaler
+	GetClusterConfigMarshaler = types.GetClusterConfigMarshaler
+
+	RecordAtNode      = types.RecordAtNode
+	RecordAtProxy     = types.RecordAtProxy
+	RecordOff         = types.RecordOff
+	RecordAtNodeSync  = types.RecordAtNodeSync
+	RecordAtProxySync = types.RecordAtProxySync
+
+	HostKeyCheckYes = types.HostKeyCheckYes
+	HostKeyCheckNo  = types.HostKeyCheckNo
+
+	IsRecordAtProxy = types.IsRecordAtProxy
+	IsRecordSync    = types.IsRecordSync
+)
+
+// clustername.go
+type ClusterName = types.ClusterName
+
+var (
+	NewClusterName          = types.NewClusterName
+	SetClusterNameMarshaler = types.SetClusterNameMarshaler
+	GetClusterNameMarshaler = types.GetClusterNameMarshaler
+)
+
+// duration.go
+type Duration = types.Duration
+
+var (
+	MaxDuration = types.MaxDuration
+	NewDuration = types.NewDuration
+)
+
+// event.go
+type (
+	Event     = types.Event
+	Watch     = types.Watch
+	WatchKind = types.WatchKind
+	Events    = types.Events
+	Watcher   = types.Watcher
+)
+
+// github.go
+type (
+	GithubConnector       = types.GithubConnector
+	GithubConnectorV3     = types.GithubConnectorV3
+	GithubConnectorSpecV3 = types.GithubConnectorSpecV3
+	TeamMapping           = types.TeamMapping
+	GithubClaims          = types.GithubClaims
+)
+
+var (
+	NewGithubConnector          = types.NewGithubConnector
+	SetGithubConnectorMarshaler = types.SetGithubConnectorMarshaler
+	GetGithubConnectorMarshaler = types.GetGithubConnectorMarshaler
+)
+
+// license.go
+type (
+	License       = types.License
+	LicenseV3     = types.LicenseV3
+	LicenseSpecV3 = types.LicenseSpecV3
+)
+
+var (
+	NewLicense       = types.NewLicense
+	UnmarshalLicense = types.UnmarshalLicense
+	MarshalLicense   = types.MarshalLicense
+)
+
+// namespace.go
+type SortedNamespaces = types.SortedNamespaces
+
+var (
+	MarshalNamespace   = types.MarshalNamespace
+	UnmarshalNamespace = types.UnmarshalNamespace
+
+	IsValidNamespace = types.IsValidNamespace
+)
+
+// oidc.go
+type (
+	OIDCConnector       = types.OIDCConnector
+	OIDCConnectorV2     = types.OIDCConnectorV2
+	OIDCConnectorSpecV2 = types.OIDCConnectorSpecV2
+	ClaimMapping        = types.ClaimMapping
+)
+
+var (
+	NewOIDCConnector          = types.NewOIDCConnector
+	SetOIDCConnectorMarshaler = types.SetOIDCConnectorMarshaler
+	GetOIDCConnectorMarshaler = types.GetOIDCConnectorMarshaler
+
+	GetClaimNames      = types.GetClaimNames
+	OIDCClaimsToTraits = types.OIDCClaimsToTraits
+)
+
+// parser.go
+type (
+	RuleContext   = types.RuleContext
+	LogAction     = types.LogAction
+	Context       = types.Context
+	EmptyResource = types.EmptyResource
+)
+
+var (
+	ResourceNameExpr      = types.ResourceNameExpr
+	CertAuthorityTypeExpr = types.CertAuthorityTypeExpr
+
+	NewWhereParser     = types.NewWhereParser
+	GetStringMapValue  = types.GetStringMapValue
+	NewActionsParser   = types.NewActionsParser
+	NewLogActionFn     = types.NewLogActionFn
+	GetWhereParserFn   = types.GetWhereParserFn
+	SetWhereParserFn   = types.SetWhereParserFn
+	GetActionsParserFn = types.GetActionsParserFn
+	SetActionsParserFn = types.SetActionsParserFn
+
+	UserIdentifier     = types.UserIdentifier
+	ResourceIdentifier = types.ResourceIdentifier
+)
+
+// plugin_data.go
+type PluginData = types.PluginData
+
+var (
+	NewPluginData          = types.NewPluginData
+	GetPluginDataMarshaler = types.GetPluginDataMarshaler
+)
+
+// presence.go
+type (
+	Presence    = types.Presence
+	ProxyGetter = types.ProxyGetter
+	Site        = types.Site
+	KeepAliver  = types.KeepAliver
+)
+
+var NewNamespace = types.NewNamespace
+
+// provisioning.go
+type (
+	Provisioner    = types.Provisioner
+	ProvisionToken = types.ProvisionToken
+)
+
+var (
+	NewProvisionToken        = types.NewProvisionToken
+	MustCreateProvisionToken = types.MustCreateProvisionToken
+	MarshalProvisionToken    = types.MarshalProvisionToken
+	UnmarshalProvisionToken  = types.UnmarshalProvisionToken
+
+	ProvisionTokensToV1   = types.ProvisionTokensToV1
+	ProvisionTokensFromV1 = types.ProvisionTokensFromV1
+)
+
+// remotecluster.go
+type RemoteCluster = types.RemoteCluster
+
+var (
+	NewRemoteCluster       = types.NewRemoteCluster
+	UnmarshalRemoteCluster = types.UnmarshalRemoteCluster
+	MarshalRemoteCluster   = types.MarshalRemoteCluster
+)
+
+// resetpasswordtoken.go
+type ResetPasswordToken = types.ResetPasswordToken
+
+var (
+	NewResetPasswordToken          = types.NewResetPasswordToken
+	SetResetTokenMarshaler         = types.SetResetTokenMarshaler
+	GetResetPasswordTokenMarshaler = types.GetResetPasswordTokenMarshaler
+)
+
+// resetpasswordtokensecrets.go
+
+type ResetPasswordTokenSecrets = types.ResetPasswordTokenSecrets
+
+var (
+	NewResetPasswordTokenSecrets          = types.NewResetPasswordTokenSecrets
+	UnmarshalResetPasswordTokenSecrets    = types.UnmarshalResetPasswordTokenSecrets
+	MarshalResetPasswordTokenSecrets      = types.MarshalResetPasswordTokenSecrets
+	SetResetTokenSecretsMarshaler         = types.SetResetTokenSecretsMarshaler
+	GetResetPasswordTokenSecretsMarshaler = types.GetResetPasswordTokenSecretsMarshaler
+)
+
+// resource.go
+type (
+	Resource            = types.Resource
+	ResourceWithSecrets = types.ResourceWithSecrets
+	MarshalConfig       = types.MarshalConfig
+	MarshalOption       = types.MarshalOption
+	ResourceMarshaler   = types.ResourceMarshaler
+	ResourceUnmarshaler = types.ResourceUnmarshaler
+	UnknownResource     = types.UnknownResource
+)
+
+var (
+	GetResourceMarshalerKinds   = types.GetResourceMarshalerKinds
+	IsValidLabelKey             = types.IsValidLabelKey
+	RegisterResourceMarshaler   = types.RegisterResourceMarshaler
+	RegisterResourceUnmarshaler = types.RegisterResourceUnmarshaler
+	CollectOptions              = types.CollectOptions
+	V2SchemaTemplate            = types.V2SchemaTemplate
+	MetadataSchema              = types.MetadataSchema
+	DefaultDefinitions          = types.DefaultDefinitions
+	MarshalResource             = types.MarshalResource
+	UnmarshalResource           = types.UnmarshalResource
+)
+
+// role.go
+type (
+	Role              = types.Role
+	RoleConditionType = types.RoleConditionType
+	Labels            = types.Labels
+	Bool              = types.Bool
+)
+
+var (
+	NewRule          = types.NewRule
+	CopyRulesSlice   = types.CopyRulesSlice
+	RuleSlicesEqual  = types.RuleSlicesEqual
+	NewBool          = types.NewBool
+	NewBoolOption    = types.NewBoolOption
+	BoolDefaultTrue  = types.BoolDefaultTrue
+	ProcessNamespace = types.ProcessNamespace
+	UnmarshalRole    = types.UnmarshalRole
+	SetRoleMarshaler = types.SetRoleMarshaler
+	GetRoleMarshaler = types.GetRoleMarshaler
+)
+
+// saml.go
+type (
+	SAMLConnector       = types.SAMLConnector
+	SAMLConnectorV2     = types.SAMLConnectorV2
+	SAMLConnectorSpecV2 = types.SAMLConnectorSpecV2
+	AttributeMapping    = types.AttributeMapping
+	SigningKeyPair      = types.SigningKeyPair
+)
+
+var (
+	NewSAMLConnector          = types.NewSAMLConnector
+	GetAttributeNames         = types.GetAttributeNames
+	SAMLAssertionsToTraits    = types.SAMLAssertionsToTraits
+	SetSAMLConnectorMarshaler = types.SetSAMLConnectorMarshaler
+	GetSAMLConnectorMarshaler = types.GetSAMLConnectorMarshaler
+)
+
+// semaphore.go
+type (
+	Semaphore  = types.Semaphore
+	Semaphores = types.Semaphores
+)
+
+var (
+	SemaphoreKindConnection = types.SemaphoreKindConnection
+	GetSemaphoreMarshaler   = types.GetSemaphoreMarshaler
+)
+
+// server.go
+type (
+	Server       = types.Server
+	CommandLabel = types.CommandLabel
+)
+
+var (
+	CombineLabels      = types.CombineLabels
+	LabelsAsString     = types.LabelsAsString
+	V2ToLabels         = types.V2ToLabels
+	LabelsToV2         = types.LabelsToV2
+	SetServerMarshaler = types.SetServerMarshaler
+	GetServerMarshaler = types.GetServerMarshaler
+)
+
+// session.go
+type (
+	WebSession              = types.WebSession
+	GetAppSessionRequest    = types.GetAppSessionRequest
+	CreateAppSessionRequest = types.CreateAppSessionRequest
+	DeleteAppSessionRequest = types.DeleteAppSessionRequest
+)
+
+var (
+	NewWebSession          = types.NewWebSession
+	SetWebSessionMarshaler = types.SetWebSessionMarshaler
+	GetWebSessionMarshaler = types.GetWebSessionMarshaler
+)
+
+// statictokens.go
+type StaticTokens = types.StaticTokens
+
+var (
+	NewStaticTokens          = types.NewStaticTokens
+	DefaultStaticTokens      = types.DefaultStaticTokens
+	SetStaticTokensMarshaler = types.SetStaticTokensMarshaler
+	GetStaticTokensMarshaler = types.GetStaticTokensMarshaler
+)
+
+// traits.go
+type (
+	TraitMapping    = types.TraitMapping
+	TraitMappingSet = types.TraitMappingSet
+)
+
+// trust.go
+type (
+	Trust        = types.Trust
+	CertAuthType = types.CertAuthType
+	CertAuthID   = types.CertAuthID
+)
+
+var (
+	HostCA    = types.HostCA
+	UserCA    = types.UserCA
+	JWTSigner = types.JWTSigner
+)
+
+// trustedcluster.go
+type (
+	TrustedCluster       = types.TrustedCluster
+	TrustedClusterV2     = types.TrustedClusterV2
+	TrustedClusterSpecV2 = types.TrustedClusterSpecV2
+	RoleMap              = types.RoleMap
+	SortedTrustedCluster = types.SortedTrustedCluster
+)
+
+var (
+	NewTrustedCluster          = types.NewTrustedCluster
+	SetTrustedClusterMarshaler = types.SetTrustedClusterMarshaler
+	GetTrustedClusterMarshaler = types.GetTrustedClusterMarshaler
+)
+
+// tunnel.go
+type (
+	ReverseTunnel = types.ReverseTunnel
+	TunnelType    = types.TunnelType
+)
+
+var (
+	NewReverseTunnel          = types.NewReverseTunnel
+	UnmarshalReverseTunnel    = types.UnmarshalReverseTunnel
+	SetReverseTunnelMarshaler = types.SetReverseTunnelMarshaler
+	GetReverseTunnelMarshaler = types.GetReverseTunnelMarshaler
+
 	NodeTunnel  = types.NodeTunnel
 	ProxyTunnel = types.ProxyTunnel
 	AppTunnel   = types.AppTunnel
 	KubeTunnel  = types.KubeTunnel
+)
+
+// tunnelconn.go
+type (
+	TunnelConnection = types.TunnelConnection
+)
+
+var (
+	NewTunnelConnection       = types.NewTunnelConnection
+	UnmarshalTunnelConnection = types.UnmarshalTunnelConnection
+	MarshalTunnelConnection   = types.MarshalTunnelConnection
+)
+
+// user.go
+type User = types.User
+
+var (
+	NewUser          = types.NewUser
+	SetUserMarshaler = types.SetUserMarshaler
+	GetUserMarshaler = types.GetUserMarshaler
 )
 
 // The following Constants are imported from api/constants to simplify

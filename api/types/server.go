@@ -591,22 +591,6 @@ func UnmarshalServerResource(data []byte, kind string, cfg *MarshalConfig) (Serv
 	return nil, trace.BadParameter("server resource version %q is not supported", h.Version)
 }
 
-var serverMarshaler ServerMarshaler = &TeleportServerMarshaler{}
-
-// SetServerMarshaler sets global ServerMarshaler
-func SetServerMarshaler(m ServerMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	serverMarshaler = m
-}
-
-// GetServerMarshaler returns currently set ServerMarshaler
-func GetServerMarshaler() ServerMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return serverMarshaler
-}
-
 // ServerMarshaler implements marshal/unmarshal of Role implementations
 // mostly adds support for extended versions
 type ServerMarshaler interface {
@@ -689,6 +673,22 @@ func (*TeleportServerMarshaler) MarshalServers(s []Server) ([]byte, error) {
 	}
 
 	return bytes, nil
+}
+
+var serverMarshaler ServerMarshaler = &TeleportServerMarshaler{}
+
+// SetServerMarshaler sets global ServerMarshaler
+func SetServerMarshaler(m ServerMarshaler) {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	serverMarshaler = m
+}
+
+// GetServerMarshaler returns currently set ServerMarshaler
+func GetServerMarshaler() ServerMarshaler {
+	marshalerMutex.Lock()
+	defer marshalerMutex.Unlock()
+	return serverMarshaler
 }
 
 // validKubeClusterName filters the allowed characters in kubernetes cluster
