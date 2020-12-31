@@ -24,6 +24,7 @@ import (
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/coreos/go-oidc/jose"
 	"github.com/gravitational/trace"
@@ -325,7 +326,7 @@ func (o *OIDCConnectorV2) GetClaims() []string {
 	for _, mapping := range o.Spec.ClaimsToRoles {
 		out = append(out, mapping.Claim)
 	}
-	return Deduplicate(out)
+	return utils.Deduplicate(out)
 }
 
 // GetTraitMappings returns the OIDCConnector's TraitMappingSet
@@ -367,7 +368,7 @@ func (o *OIDCConnectorV2) Check() error {
 	}
 
 	if o.Spec.GoogleServiceAccountURI != "" {
-		uri, err := ParseSessionsURI(o.Spec.GoogleServiceAccountURI)
+		uri, err := utils.ParseSessionsURI(o.Spec.GoogleServiceAccountURI)
 		if err != nil {
 			return trace.Wrap(err)
 		}
@@ -476,62 +477,62 @@ func OIDCClaimsToTraits(claims jose.Claims) map[string][]string {
 
 // OIDCConnectorSpecV2Schema is a JSON Schema for OIDC Connector
 var OIDCConnectorSpecV2Schema = fmt.Sprintf(`{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["issuer_url", "client_id", "client_secret", "redirect_url"],
-	"properties": {
-	  "issuer_url": {"type": "string"},
-	  "client_id": {"type": "string"},
-	  "client_secret": {"type": "string"},
-	  "redirect_url": {"type": "string"},
-	  "acr_values": {"type": "string"},
-	  "provider": {"type": "string"},
-	  "display": {"type": "string"},
-	  "prompt": {"type": "string"},
-	  "google_service_account_uri": {"type": "string"},
-	  "google_admin_email": {"type": "string"},
-	  "scope": {
-		"type": "array",
-		"items": {
-		  "type": "string"
-		}
-	  },
-	  "claims_to_roles": {
-		"type": "array",
-		"items": %v
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["issuer_url", "client_id", "client_secret", "redirect_url"],
+  "properties": {
+    "issuer_url": {"type": "string"},
+    "client_id": {"type": "string"},
+    "client_secret": {"type": "string"},
+    "redirect_url": {"type": "string"},
+    "acr_values": {"type": "string"},
+    "provider": {"type": "string"},
+    "display": {"type": "string"},
+    "prompt": {"type": "string"},
+    "google_service_account_uri": {"type": "string"},
+    "google_admin_email": {"type": "string"},
+    "scope": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
 	  }
+	},
+	"claims_to_roles": {
+	  "type": "array",
+	  "items": %v
 	}
-  }`, ClaimMappingSchema)
+  }
+}`, ClaimMappingSchema)
 
 // OIDCConnectorV2SchemaTemplate is a template JSON Schema for user
 const OIDCConnectorV2SchemaTemplate = `{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["kind", "spec", "metadata", "version"],
-	"properties": {
-	  "kind": {"type": "string"},
-	  "version": {"type": "string", "default": "v1"},
-	  "metadata": %v,
-	  "spec": %v
-	}
-  }`
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "spec", "metadata", "version"],
+  "properties": {
+    "kind": {"type": "string"},
+    "version": {"type": "string", "default": "v1"},
+    "metadata": %v,
+    "spec": %v
+  }
+}`
 
 // ClaimMappingSchema is JSON schema for claim mapping
 var ClaimMappingSchema = `{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["claim", "value" ],
-	"properties": {
-	  "claim": {"type": "string"},
-	  "value": {"type": "string"},
-	  "roles": {
-		"type": "array",
-		"items": {
-		  "type": "string"
-		}
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["claim", "value" ],
+  "properties": {
+	"claim": {"type": "string"},
+	"value": {"type": "string"},
+	"roles": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
 	  }
 	}
-  }`
+  }
+}`
 
 var connectorMarshaler OIDCConnectorMarshaler = &teleportOIDCConnectorMarshaler{}
 
@@ -572,7 +573,7 @@ func (*teleportOIDCConnectorMarshaler) UnmarshalOIDCConnector(bytes []byte, opts
 		return nil, trace.Wrap(err)
 	}
 	var h ResourceHeader
-	err = FastUnmarshal(bytes, &h)
+	err = utils.FastUnmarshal(bytes, &h)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -580,11 +581,11 @@ func (*teleportOIDCConnectorMarshaler) UnmarshalOIDCConnector(bytes []byte, opts
 	case constants.V2:
 		var c OIDCConnectorV2
 		if cfg.SkipValidation {
-			if err := FastUnmarshal(bytes, &c); err != nil {
+			if err := utils.FastUnmarshal(bytes, &c); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		} else {
-			if err := UnmarshalWithSchema(GetOIDCConnectorSchema(), &c, bytes); err != nil {
+			if err := utils.UnmarshalWithSchema(GetOIDCConnectorSchema(), &c, bytes); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		}
@@ -620,7 +621,7 @@ func (*teleportOIDCConnectorMarshaler) MarshalOIDCConnector(c OIDCConnector, opt
 			copy.SetResourceID(0)
 			oidcConnector = &copy
 		}
-		return FastMarshal(oidcConnector)
+		return utils.FastMarshal(oidcConnector)
 	default:
 		return nil, trace.BadParameter("unrecognized OIDC connector version %T", c)
 	}

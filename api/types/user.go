@@ -23,6 +23,7 @@ import (
 
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -238,7 +239,7 @@ func (u *UserV2) Expiry() time.Time {
 
 // SetRoles sets a list of roles for user
 func (u *UserV2) SetRoles(roles []string) {
-	u.Spec.Roles = Deduplicate(roles)
+	u.Spec.Roles = utils.Deduplicate(roles)
 }
 
 // GetStatus returns login status of the user
@@ -333,87 +334,118 @@ func (c CreatedBy) String() string {
 	}
 	if c.Connector != nil {
 		return fmt.Sprintf("%v connector %v for user %v at %v",
-			c.Connector.Type, c.Connector.ID, c.Connector.Identity, HumanTimeFormat(c.Time))
+			c.Connector.Type, c.Connector.ID, c.Connector.Identity, utils.HumanTimeFormat(c.Time))
 	}
 	return fmt.Sprintf("%v at %v", c.User.Name, c.Time)
 }
 
+// String returns debug friendly representation of this identity
+func (i *ExternalIdentity) String() string {
+	return fmt.Sprintf("OIDCIdentity(connectorID=%v, username=%v)", i.ConnectorID, i.Username)
+}
+
+// Equals returns true if this identity equals to passed one
+func (i *ExternalIdentity) Equals(other *ExternalIdentity) bool {
+	return i.ConnectorID == other.ConnectorID && i.Username == other.Username
+}
+
+// Check returns nil if all parameters are great, err otherwise
+func (i *ExternalIdentity) Check() error {
+	if i.ConnectorID == "" {
+		return trace.BadParameter("ConnectorID: missing value")
+	}
+	if i.Username == "" {
+		return trace.BadParameter("Username: missing username")
+	}
+	return nil
+}
+
 // UserSpecV2SchemaTemplate is JSON schema for V2 user
 const UserSpecV2SchemaTemplate = `{
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "expires": {"type": "string"},
-      "roles": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
-      },
-      "traits": {
-        "type": "object",
-        "additionalProperties": false,
-        "patternProperties": {
-          "^.+$": {
-            "type": ["array", "null"],
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "oidc_identities": {
-        "type": "array",
-        "items": %v
-      },
-      "saml_identities": {
-        "type": "array",
-        "items": %v
-      },
-      "github_identities": {
-        "type": "array",
-        "items": %v
-      },
-      "status": %v,
-      "created_by": %v,
-      "local_auth": %v%v
-    }
-  }`
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"expires": {"type": "string"},
+		"roles": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"traits": {
+			"type": "object",
+			"additionalProperties": false,
+			"patternProperties": {
+				"^.+$": {
+					"type": ["array", "null"],
+					"items": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"oidc_identities": {
+			"type": "array",
+			"items": %v
+		},
+		"saml_identities": {
+			"type": "array",
+			"items": %v
+		},
+		"github_identities": {
+			"type": "array",
+			"items": %v
+		},
+		"status": %v,
+		"created_by": %v,
+		"local_auth": %v%v
+	}
+}`
 
 // CreatedBySchema is JSON schema for CreatedBy
 const CreatedBySchema = `{
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-	   "connector": {
-		 "additionalProperties": false,
-		 "type": "object",
-		 "properties": {
+		"connector": {
+			"additionalProperties": false,
+			"type": "object",
+			"properties": {
 			"type": {"type": "string"},
 			"id": {"type": "string"},
 			"identity": {"type": "string"}
-		 }
+			}
 		},
-	   "time": {"type": "string"},
-	   "user": {
-		 "type": "object",
-		 "additionalProperties": false,
-		 "properties": {"name": {"type": "string"}}
-	   }
-	 }
-  }`
+		"time": {"type": "string"},
+		"user": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {"name": {"type": "string"}}
+		}
+	}
+}`
+
+// ExternalIdentitySchema is JSON schema for ExternalIdentity
+const ExternalIdentitySchema = `{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"connector_id": {"type": "string"},
+		"username": {"type": "string"}
+	}
+}`
 
 // LoginStatusSchema is JSON schema for LoginStatus
 const LoginStatusSchema = `{
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-	   "is_locked": {"type": "boolean"},
-	   "locked_message": {"type": "string"},
-	   "locked_time": {"type": "string"},
-	   "lock_expires": {"type": "string"}
-	 }
-  }`
+		"is_locked": {"type": "boolean"},
+		"locked_message": {"type": "string"},
+		"locked_time": {"type": "string"},
+		"lock_expires": {"type": "string"}
+	}
+}`
 
 // GetUserSchema returns role schema with optionally injected
 // schema for extensions
@@ -460,11 +492,11 @@ func (*TeleportUserMarshaler) UnmarshalUser(bytes []byte, opts ...MarshalOption)
 	case constants.V2:
 		var u UserV2
 		if cfg.SkipValidation {
-			if err := FastUnmarshal(bytes, &u); err != nil {
+			if err := utils.FastUnmarshal(bytes, &u); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		} else {
-			if err := UnmarshalWithSchema(GetUserSchema(""), &u, bytes); err != nil {
+			if err := utils.UnmarshalWithSchema(GetUserSchema(""), &u, bytes); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		}
@@ -500,7 +532,7 @@ func (*TeleportUserMarshaler) MarshalUser(u User, opts ...MarshalOption) ([]byte
 			copy.SetResourceID(0)
 			user = &copy
 		}
-		return FastMarshal(user)
+		return utils.FastMarshal(user)
 	default:
 		return nil, trace.BadParameter("unrecognized user version %T", u)
 	}

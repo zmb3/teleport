@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/gravitational/teleport/lib/utils"
-
 	"github.com/stretchr/testify/require"
 )
 

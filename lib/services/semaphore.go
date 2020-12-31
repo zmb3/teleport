@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -16,14 +15,14 @@ import (
 type SemaphoreLockConfig struct {
 	// Service is the service against which all semaphore
 	// operations are performed.
-	Service types.Semaphores
+	Service Semaphores
 	// Expiry is an optional lease expiry parameter.
 	Expiry time.Duration
 	// TickRate is the rate at which lease renewals are attempted
 	// and defaults to 1/2 expiry.  Used to accelerate tests.
 	TickRate time.Duration
 	// Params holds the semaphore lease acquisition parameters.
-	Params types.AcquireSemaphoreRequest
+	Params AcquireSemaphoreRequest
 }
 
 // CheckAndSetDefaults checks and sets default parameters
@@ -56,7 +55,7 @@ func (l *SemaphoreLockConfig) CheckAndSetDefaults() error {
 // semaphore lease keepalive operations.
 type SemaphoreLock struct {
 	cfg       SemaphoreLockConfig
-	lease0    types.SemaphoreLease
+	lease0    SemaphoreLease
 	retry     utils.Retry
 	ticker    *time.Ticker
 	doneC     chan struct{}

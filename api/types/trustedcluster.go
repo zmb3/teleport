@@ -24,6 +24,7 @@ import (
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/modules"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -302,7 +303,7 @@ func (c *TrustedClusterV2) CanChangeStateTo(t TrustedCluster) error {
 	if c.GetReverseTunnelAddress() != t.GetReverseTunnelAddress() {
 		return immutableFieldErr("tunnel_addr")
 	}
-	if !StringSlicesEqual(c.GetRoles(), t.GetRoles()) {
+	if !utils.StringSlicesEqual(c.GetRoles(), t.GetRoles()) {
 		return immutableFieldErr("roles")
 	}
 	if !c.GetRoleMap().Equals(t.GetRoleMap()) {
@@ -330,7 +331,7 @@ func (r RoleMapping) Equals(o RoleMapping) bool {
 	if r.Remote != o.Remote {
 		return false
 	}
-	if !StringSlicesEqual(r.Local, r.Local) {
+	if !utils.StringSlicesEqual(r.Local, r.Local) {
 		return false
 	}
 	return true
@@ -371,7 +372,7 @@ func (r RoleMap) parse() (map[string][]string, error) {
 		if roleMap.Remote == "" {
 			return nil, trace.BadParameter("missing 'remote' parameter for role_map")
 		}
-		_, err := ReplaceRegexp(roleMap.Remote, "", "")
+		_, err := utils.ReplaceRegexp(roleMap.Remote, "", "")
 		if trace.IsBadParameter(err) {
 			return nil, trace.BadParameter("failed to parse 'remote' parameter for role_map: %v", err.Error())
 		}
@@ -416,7 +417,7 @@ func (r RoleMap) Map(remoteRoles []string) ([]string, error) {
 				continue
 			}
 			for _, replacementRole := range mapping.Local {
-				replacement, err := ReplaceRegexp(expression, replacementRole, remoteRole)
+				replacement, err := utils.ReplaceRegexp(expression, replacementRole, remoteRole)
 				switch {
 				case err == nil:
 					// empty replacement can occur when $2 expand refers
@@ -531,11 +532,11 @@ func (t *TeleportTrustedClusterMarshaler) Unmarshal(bytes []byte, opts ...Marsha
 	}
 
 	if cfg.SkipValidation {
-		if err := FastUnmarshal(bytes, &trustedCluster); err != nil {
+		if err := utils.FastUnmarshal(bytes, &trustedCluster); err != nil {
 			return nil, trace.BadParameter(err.Error())
 		}
 	} else {
-		err := UnmarshalWithSchema(GetTrustedClusterSchema(""), &trustedCluster, bytes)
+		err := utils.UnmarshalWithSchema(GetTrustedClusterSchema(""), &trustedCluster, bytes)
 		if err != nil {
 			return nil, trace.BadParameter(err.Error())
 		}
@@ -569,7 +570,7 @@ func (t *TeleportTrustedClusterMarshaler) Marshal(c TrustedCluster, opts ...Mars
 			copy.SetResourceID(0)
 			resource = &copy
 		}
-		return FastMarshal(resource)
+		return utils.FastMarshal(resource)
 	default:
 		return nil, trace.BadParameter("unrecognized resource version %T", c)
 	}

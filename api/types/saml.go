@@ -31,6 +31,7 @@ import (
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -281,7 +282,7 @@ func (o *SAMLConnectorV2) Equals(other SAMLConnector) bool {
 	}
 	for i := range mappings {
 		a, b := mappings[i], otherMappings[i]
-		if a.Name != b.Name || a.Value != b.Value || !StringSlicesEqual(a.Roles, b.Roles) {
+		if a.Name != b.Name || a.Value != b.Value || !utils.StringSlicesEqual(a.Roles, b.Roles) {
 			return false
 		}
 	}
@@ -372,7 +373,7 @@ func (o *SAMLConnectorV2) GetAttributes() []string {
 	for _, mapping := range o.Spec.AttributesToRoles {
 		out = append(out, mapping.Name)
 	}
-	return Deduplicate(out)
+	return utils.Deduplicate(out)
 }
 
 // GetTraitMappings returns the SAMLConnector's TraitMappingSet
@@ -468,7 +469,7 @@ func (o *SAMLConnectorV2) GetServiceProvider(clock clockwork.Clock) (*saml2.SAML
 			"no identity provider certificate provided, either set certificate as a parameter or via entity_descriptor")
 	}
 	if o.Spec.SigningKeyPair == nil {
-		keyPEM, certPEM, err := GenerateSelfSignedSigningCert(pkix.Name{
+		keyPEM, certPEM, err := utils.GenerateSelfSignedSigningCert(pkix.Name{
 			Organization: []string{"Teleport OSS"},
 			CommonName:   "teleport.localhost.localdomain",
 		}, nil, 10*365*24*time.Hour)
@@ -480,7 +481,7 @@ func (o *SAMLConnectorV2) GetServiceProvider(clock clockwork.Clock) (*saml2.SAML
 			Cert:       string(certPEM),
 		}
 	}
-	keyStore, err := ParseSigningKeyStorePEM(o.Spec.SigningKeyPair.PrivateKey, o.Spec.SigningKeyPair.Cert)
+	keyStore, err := utils.ParseSigningKeyStorePEM(o.Spec.SigningKeyPair.PrivateKey, o.Spec.SigningKeyPair.Cert)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -627,67 +628,67 @@ type SigningKeyPair struct {
 
 // SAMLConnectorV2SchemaTemplate is a template JSON Schema for user
 const SAMLConnectorV2SchemaTemplate = `{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["kind", "spec", "metadata", "version"],
-	"properties": {
-	  "kind": {"type": "string"},
-	  "version": {"type": "string", "default": "v1"},
-	  "metadata": %v,
-	  "spec": %v
-	}
-  }`
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "spec", "metadata", "version"],
+  "properties": {
+	"kind": {"type": "string"},
+	"version": {"type": "string", "default": "v1"},
+	"metadata": %v,
+	"spec": %v
+  }
+}`
 
 // SAMLConnectorSpecV2Schema is a JSON Schema for SAML Connector
 var SAMLConnectorSpecV2Schema = fmt.Sprintf(`{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["acs"],
-	"properties": {
-	  "issuer": {"type": "string"},
-	  "sso": {"type": "string"},
-	  "cert": {"type": "string"},
-	  "provider": {"type": "string"},
-	  "display": {"type": "string"},
-	  "acs": {"type": "string"},
-	  "audience": {"type": "string"},
-	  "service_provider_issuer": {"type": "string"},
-	  "entity_descriptor": {"type": "string"},
-	  "entity_descriptor_url": {"type": "string"},
-	  "attributes_to_roles": {
-		"type": "array",
-		"items": %v
-	  },
-	  "signing_key_pair": %v
-	}
-  }`, AttributeMappingSchema, SigningKeyPairSchema)
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["acs"],
+  "properties": {
+    "issuer": {"type": "string"},
+    "sso": {"type": "string"},
+    "cert": {"type": "string"},
+    "provider": {"type": "string"},
+    "display": {"type": "string"},
+    "acs": {"type": "string"},
+    "audience": {"type": "string"},
+    "service_provider_issuer": {"type": "string"},
+    "entity_descriptor": {"type": "string"},
+    "entity_descriptor_url": {"type": "string"},
+    "attributes_to_roles": {
+      "type": "array",
+	  "items": %v
+	},
+	"signing_key_pair": %v
+  }
+}`, AttributeMappingSchema, SigningKeyPairSchema)
 
 // AttributeMappingSchema is JSON schema for claim mapping
 var AttributeMappingSchema = `{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["name", "value" ],
-	"properties": {
-	  "name": {"type": "string"},
-	  "value": {"type": "string"},
-	  "roles": {
-		"type": "array",
-		"items": {
-		  "type": "string"
-		}
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "value" ],
+  "properties": {
+	"name": {"type": "string"},
+	"value": {"type": "string"},
+	"roles": {
+	  "type": "array",
+	  "items": {
+		"type": "string"
 	  }
 	}
-  }`
+  }
+}`
 
 // SigningKeyPairSchema is the JSON schema for signing key pair.
 var SigningKeyPairSchema = `{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-	  "private_key": {"type": "string"},
-	  "cert": {"type": "string"}
-	}
-  }`
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+	"private_key": {"type": "string"},
+	"cert": {"type": "string"}
+  }
+}`
 
 // SAMLConnectorMarshaler implements marshal/unmarshal of User implementations
 // mostly adds support for extended versions
@@ -712,7 +713,7 @@ func (*teleportSAMLConnectorMarshaler) UnmarshalSAMLConnector(bytes []byte, opts
 		return nil, trace.Wrap(err)
 	}
 	var h ResourceHeader
-	err = FastUnmarshal(bytes, &h)
+	err = utils.FastUnmarshal(bytes, &h)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -720,11 +721,11 @@ func (*teleportSAMLConnectorMarshaler) UnmarshalSAMLConnector(bytes []byte, opts
 	case constants.V2:
 		var c SAMLConnectorV2
 		if cfg.SkipValidation {
-			if err := FastUnmarshal(bytes, &c); err != nil {
+			if err := utils.FastUnmarshal(bytes, &c); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		} else {
-			if err := UnmarshalWithSchema(GetSAMLConnectorSchema(), &c, bytes); err != nil {
+			if err := utils.UnmarshalWithSchema(GetSAMLConnectorSchema(), &c, bytes); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		}
@@ -770,7 +771,7 @@ func (*teleportSAMLConnectorMarshaler) MarshalSAMLConnector(c SAMLConnector, opt
 			copy.SetResourceID(0)
 			v2 = &copy
 		}
-		return FastMarshal(v2)
+		return utils.FastMarshal(v2)
 	default:
 		return nil, trace.BadParameter("version %v is not supported", version)
 	}

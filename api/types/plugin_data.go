@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -290,7 +291,7 @@ func (m *pluginDataMarshaler) MarshalPluginData(data PluginData, opts ...Marshal
 			cp.SetResourceID(0)
 			r = &cp
 		}
-		return FastMarshal(r)
+		return utils.FastMarshal(r)
 	default:
 		return nil, trace.BadParameter("unrecognized plugin data type: %T", data)
 	}
@@ -303,11 +304,11 @@ func (m *pluginDataMarshaler) UnmarshalPluginData(raw []byte, opts ...MarshalOpt
 	}
 	var data PluginDataV3
 	if cfg.SkipValidation {
-		if err := FastUnmarshal(raw, &data); err != nil {
+		if err := utils.FastUnmarshal(raw, &data); err != nil {
 			return nil, trace.Wrap(err)
 		}
 	} else {
-		if err := UnmarshalWithSchema(GetPluginDataSchema(), &data, raw); err != nil {
+		if err := utils.UnmarshalWithSchema(GetPluginDataSchema(), &data, raw); err != nil {
 			return nil, trace.Wrap(err)
 		}
 	}

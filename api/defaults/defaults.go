@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package defaults holds a number of Teleport default values
 package defaults
 
 import (

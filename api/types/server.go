@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/gravitational/trace"
@@ -365,7 +366,7 @@ func (c *CommandLabelV2) Equals(other CommandLabel) bool {
 	if c.GetResult() != other.GetResult() {
 		return false
 	}
-	if !StringSlicesEqual(c.GetCommand(), other.GetCommand()) {
+	if !utils.StringSlicesEqual(c.GetCommand(), other.GetCommand()) {
 		return false
 	}
 	return true
@@ -432,117 +433,117 @@ func LabelsToV2(labels map[string]CommandLabel) map[string]CommandLabelV2 {
 
 // ServerSpecV2Schema is JSON schema for server
 const ServerSpecV2Schema = `{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-	  "version": {"type": "string"},
-	  "addr": {"type": "string"},
-	  "protocol": {"type": "integer"},
-	  "public_addr": {"type": "string"},
-	  "apps":  {
-		"type": ["array"],
-		"items": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {"type": "string"},
+    "addr": {"type": "string"},
+    "protocol": {"type": "integer"},
+    "public_addr": {"type": "string"},
+    "apps":  {
+	  "type": ["array"],
+	  "items": {
+	    "type": "object",
+	    "additionalProperties": false,
+	    "properties": {
+	  	  "name": {"type": "string"},
+	  	  "uri": {"type": "string"},
+	  	  "public_addr": {"type": "string"},
+	  	  "insecure_skip_verify": {"type": "boolean"},
+	  	  "rewrite": {
+		    "type": "object",
+		    "additionalProperties": false,
+		    "properties": {
+			  "redirect": {"type": ["array"], "items": {"type": "string"}}
+		    }
+		  },
+		  "labels": {
+		    "type": "object",
+		    "additionalProperties": false,
+		    "patternProperties": {
+			  "^.*$":  { "type": "string" }
+		    }
+		  },
+		  "commands": {
+		    "type": "object",
+		    "additionalProperties": false,
+		    "patternProperties": {
+			  "^.*$": {
+			    "type": "object",
+			    "additionalProperties": false,
+			    "required": ["command"],
+			    "properties": {
+			  	  "command": {"type": "array", "items": {"type": "string"}},
+				  "period": {"type": "string"},
+				  "result": {"type": "string"}
+			    }
+			  }
+		    }
+		  }
+	    }
+	  }
+    },
+    "hostname": {"type": "string"},
+    "use_tunnel": {"type": "boolean"},
+    "labels": {
+  	  "type": "object",
+  	  "additionalProperties": false,
+	  "patternProperties": {
+	    "^.*$":  { "type": "string" }
+	  }
+    },
+    "cmd_labels": {
+	  "type": "object",
+	  "additionalProperties": false,
+	  "patternProperties": {
+	    "^.*$": {
 		  "type": "object",
 		  "additionalProperties": false,
+		  "required": ["command"],
 		  "properties": {
-			"name": {"type": "string"},
-			"uri": {"type": "string"},
-			"public_addr": {"type": "string"},
-			"insecure_skip_verify": {"type": "boolean"},
-			"rewrite": {
-			   "type": "object",
-			   "additionalProperties": false,
-			   "properties": {
-				  "redirect": {"type": ["array"], "items": {"type": "string"}}
-			   }
-			},
-			"labels": {
-			   "type": "object",
-			   "additionalProperties": false,
-			   "patternProperties": {
-				 "^.*$":  { "type": "string" }
-			   }
-			},
-			"commands": {
+		    "command": {"type": "array", "items": {"type": "string"}},
+		    "period": {"type": "string"},
+		    "result": {"type": "string"}
+		  }
+	    }
+	  }
+    },
+    "kube_clusters": {
+	  "type": "array",
+	  "items": {
+	    "type": "object",
+	    "required": ["name"],
+	    "properties": {
+		"name": {"type": "string"},
+		"static_labels": {
+		  "type": "object",
+		  "additionalProperties": false,
+		  "patternProperties": {
+		    "^.*$":  { "type": "string" }
+		  }
+		},
+		"dynamic_labels": {
+		  "type": "object",
+		  "additionalProperties": false,
+		  "patternProperties": {
+			"^.*$": {
 			  "type": "object",
 			  "additionalProperties": false,
-			  "patternProperties": {
-				"^.*$": {
-				  "type": "object",
-				  "additionalProperties": false,
-				  "required": ["command"],
-				  "properties": {
-					"command": {"type": "array", "items": {"type": "string"}},
-					"period": {"type": "string"},
-					"result": {"type": "string"}
-				  }
-				}
+			  "required": ["command"],
+			  "properties": {
+				"command": {"type": "array", "items": {"type": "string"}},
+				"period": {"type": "string"},
+				"result": {"type": "string"}
 			  }
 			}
 		  }
 		}
-	  },
-	  "hostname": {"type": "string"},
-	  "use_tunnel": {"type": "boolean"},
-	  "labels": {
-		"type": "object",
-		"additionalProperties": false,
-		"patternProperties": {
-		  "^.*$":  { "type": "string" }
-		}
-	  },
-	  "cmd_labels": {
-		"type": "object",
-		"additionalProperties": false,
-		"patternProperties": {
-		  "^.*$": {
-			"type": "object",
-			"additionalProperties": false,
-			"required": ["command"],
-			"properties": {
-			  "command": {"type": "array", "items": {"type": "string"}},
-			  "period": {"type": "string"},
-			  "result": {"type": "string"}
-			}
-		  }
-		}
-	  },
-	  "kube_clusters": {
-		"type": "array",
-		"items": {
-		  "type": "object",
-		   "required": ["name"],
-		   "properties": {
-			 "name": {"type": "string"},
-			 "static_labels": {
-			   "type": "object",
-			   "additionalProperties": false,
-			   "patternProperties": {
-				 "^.*$":  { "type": "string" }
-			   }
-			 },
-			 "dynamic_labels": {
-			   "type": "object",
-			   "additionalProperties": false,
-			   "patternProperties": {
-				 "^.*$": {
-				   "type": "object",
-				   "additionalProperties": false,
-				   "required": ["command"],
-				   "properties": {
-					 "command": {"type": "array", "items": {"type": "string"}},
-					 "period": {"type": "string"},
-					 "result": {"type": "string"}
-				   }
-				 }
-			   }
-			 }
-		   }
-		 }
-	  },
-	  "rotation": %v
+	  }
 	}
-  }`
+  },
+  "rotation": %v
+}
+}`
 
 // GetServerSchema returns role schema with optionally injected
 // schema for extensions
@@ -558,7 +559,7 @@ func UnmarshalServerResource(data []byte, kind string, cfg *MarshalConfig) (Serv
 	}
 
 	var h ResourceHeader
-	err := FastUnmarshal(data, &h)
+	err := utils.FastUnmarshal(data, &h)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -568,11 +569,11 @@ func UnmarshalServerResource(data []byte, kind string, cfg *MarshalConfig) (Serv
 		var s ServerV2
 
 		if cfg.SkipValidation {
-			if err := FastUnmarshal(data, &s); err != nil {
+			if err := utils.FastUnmarshal(data, &s); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		} else {
-			if err := UnmarshalWithSchema(GetServerSchema(), &s, data); err != nil {
+			if err := utils.UnmarshalWithSchema(GetServerSchema(), &s, data); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		}
@@ -641,7 +642,7 @@ func (*TeleportServerMarshaler) MarshalServer(s Server, opts ...MarshalOption) (
 			copy.SetResourceID(0)
 			server = &copy
 		}
-		return FastMarshal(server)
+		return utils.FastMarshal(server)
 	default:
 		return nil, trace.BadParameter("unrecognized server version %T", s)
 	}
@@ -652,7 +653,7 @@ func (*TeleportServerMarshaler) MarshalServer(s Server, opts ...MarshalOption) (
 func (*TeleportServerMarshaler) UnmarshalServers(bytes []byte) ([]Server, error) {
 	var servers []ServerV2
 
-	err := FastUnmarshal(bytes, &servers)
+	err := utils.FastUnmarshal(bytes, &servers)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -667,7 +668,7 @@ func (*TeleportServerMarshaler) UnmarshalServers(bytes []byte) ([]Server, error)
 // MarshalServers is used to marshal multiple servers to their binary
 // representation.
 func (*TeleportServerMarshaler) MarshalServers(s []Server) ([]byte, error) {
-	bytes, err := FastMarshal(s)
+	bytes, err := utils.FastMarshal(s)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

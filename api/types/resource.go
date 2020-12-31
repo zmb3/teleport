@@ -25,6 +25,7 @@ import (
 
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/gravitational/trace"
@@ -182,9 +183,9 @@ func (m *Metadata) CheckAndSetDefaults() error {
 		m.Namespace = defaults.Namespace
 	}
 
-	// adjust expires time to utc if it's set
+	// adjust expires time to utils.UTC if it's set
 	if m.Expires != nil {
-		UTC(m.Expires)
+		utils.UTC(m.Expires)
 	}
 
 	for key := range m.Labels {
@@ -477,25 +478,25 @@ func (u *UnknownResource) UnmarshalJSON(raw []byte) error {
 }
 
 const baseMetadataSchema = `{
-	"type": "object",
-	"additionalProperties": false,
-	"default": {},
-	"required": ["name"],
-	"properties": {
-	  "name": {"type": "string"},
-	  "namespace": {"type": "string", "default": "default"},
-	  "description": {"type": "string"},
-	  "expires": {"type": "string"},
-	  "id": {"type": "integer"},
-	  "labels": {
-		"type": "object",
-		"additionalProperties": false,
-		"patternProperties": {
-		   "%s":  { "type": "string" }
-		}
-	  }
-	}
-  }`
+  "type": "object",
+  "additionalProperties": false,
+  "default": {},
+  "required": ["name"],
+  "properties": {
+	"name": {"type": "string"},
+	"namespace": {"type": "string", "default": "default"},
+	"description": {"type": "string"},
+	"expires": {"type": "string"},
+	"id": {"type": "integer"},
+	"labels": {
+	  "type": "object",
+	  "additionalProperties": false,
+	  "patternProperties": {
+  	    "%s":  { "type": "string" }
+  	  }
+    }
+  }
+}`
 
 // V2SchemaTemplate is a template JSON Schema for V2 style objects
 const V2SchemaTemplate = `{
@@ -503,11 +504,11 @@ const V2SchemaTemplate = `{
   "additionalProperties": false,
   "required": ["kind", "spec", "metadata", "version"],
   "properties": {
-  "kind": {"type": "string"},
-  "sub_kind": {"type": "string"},
-  "version": {"type": "string", "default": "v2"},
-  "metadata": %v,
-  "spec": %v
+    "kind": {"type": "string"},
+    "sub_kind": {"type": "string"},
+    "version": {"type": "string", "default": "v2"},
+    "metadata": %v,
+    "spec": %v
   }%v
 }`
 

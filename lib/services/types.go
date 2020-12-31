@@ -5,9 +5,9 @@ import (
 	"github.com/gravitational/teleport/api/types"
 )
 
-// The following types are implemented in /api/types, and imported/wrapped here.
-// The new structs are used to wrap the imported types with additional methods.
-// The other types are basic imports and can be removed if their references are updated.
+// The following types, functions, and constants have been moved to /api/types, and are now imported here
+// for backwards compatibility. These can be removed in a future version.
+// DELETE IN 7.0.0
 
 // types.pb.go
 type (
@@ -420,12 +420,13 @@ type (
 )
 
 var (
-	CombineLabels      = types.CombineLabels
-	LabelsAsString     = types.LabelsAsString
-	V2ToLabels         = types.V2ToLabels
-	LabelsToV2         = types.LabelsToV2
-	SetServerMarshaler = types.SetServerMarshaler
-	GetServerMarshaler = types.GetServerMarshaler
+	CombineLabels           = types.CombineLabels
+	LabelsAsString          = types.LabelsAsString
+	V2ToLabels              = types.V2ToLabels
+	LabelsToV2              = types.LabelsToV2
+	UnmarshalServerResource = types.UnmarshalServerResource
+	SetServerMarshaler      = types.SetServerMarshaler
+	GetServerMarshaler      = types.GetServerMarshaler
 )
 
 // session.go

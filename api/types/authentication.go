@@ -29,6 +29,7 @@ import (
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/pquerna/otp/totp"
@@ -370,52 +371,52 @@ const AuthPreferenceSpecSchemaTemplate = `{
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-	  "type": {
-		  "type": "string"
-	  },
-	  "second_factor": {
-		  "type": "string"
-	  },
-	  "connector_name": {
-		  "type": "string"
-	  },
-	  "u2f": {
-		  "type": "object",
-		  "additionalProperties": false,
-		  "properties": {
-			  "app_id": {
-				  "type": "string"
-			  },
-			  "facets": {
-				  "type": "array",
-				  "items": {
-					  "type": "string"
-				  }
-			  }
-		  }
-	  }%v
+		"type": {
+			"type": "string"
+		},
+		"second_factor": {
+			"type": "string"
+		},
+		"connector_name": {
+			"type": "string"
+		},
+		"u2f": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"app_id": {
+					"type": "string"
+				},
+				"facets": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				}
+			}
+		}%v
 	}
-  }`
+}`
 
 // LocalAuthSecretsSchema is a JSON schema for LocalAuthSecrets
 const LocalAuthSecretsSchema = `{
-	  "type": "object",
-	  "additionalProperties": false,
-	  "properties": {
-		  "password_hash": {"type": "string"},
-		  "totp_key": {"type": "string"},
-		  "u2f_registration": {
-			  "type": "object",
-			  "additionalProperties": false,
-			  "properties": {
-				  "raw": {"type": "string"},
-				  "key_handle": {"type": "string"},
-				  "pubkey": {"type": "string"}
-			  }
-		  },
-		  "u2f_counter": {"type": "number"}
-	  }
-  }`
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"password_hash": {"type": "string"},
+		"totp_key": {"type": "string"},
+		"u2f_registration": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"raw": {"type": "string"},
+				"key_handle": {"type": "string"},
+				"pubkey": {"type": "string"}
+			}
+		},
+		"u2f_counter": {"type": "number"}
+	}
+}`
 
 // GetAuthPreferenceSchema returns the schema with optionally injected
 // schema for extensions.
@@ -453,11 +454,11 @@ func (t *teleportAuthPreferenceMarshaler) Unmarshal(bytes []byte, opts ...Marsha
 	}
 
 	if cfg.SkipValidation {
-		if err := FastUnmarshal(bytes, &authPreference); err != nil {
+		if err := utils.FastUnmarshal(bytes, &authPreference); err != nil {
 			return nil, trace.BadParameter(err.Error())
 		}
 	} else {
-		err := UnmarshalWithSchema(GetAuthPreferenceSchema(""), &authPreference, bytes)
+		err := utils.UnmarshalWithSchema(GetAuthPreferenceSchema(""), &authPreference, bytes)
 		if err != nil {
 			return nil, trace.BadParameter(err.Error())
 		}

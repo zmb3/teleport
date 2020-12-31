@@ -26,7 +26,6 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/modules"
 	"github.com/gravitational/teleport/lib/tlsca"
@@ -112,9 +111,9 @@ func NewAdminRole() Role {
 	// DELETE IN: 5.1.0
 	//
 	// Only needed until 5.1 when user and token management will be added to OSS.
-	adminRules := types.CopyRulesSlice(AdminUserRules)
+	adminRules := CopyRulesSlice(AdminUserRules)
 	if modules.GetModules().ExtendAdminUserRules() {
-		adminRules = types.CopyRulesSlice(ExtendedAdminUserRules)
+		adminRules = CopyRulesSlice(ExtendedAdminUserRules)
 	}
 
 	role := &RoleV3{
@@ -167,7 +166,7 @@ func NewImplicitRole() Role {
 			},
 			Allow: RoleConditions{
 				Namespaces: []string{defaults.Namespace},
-				Rules:      types.CopyRulesSlice(DefaultImplicitRules),
+				Rules:      CopyRulesSlice(DefaultImplicitRules),
 			},
 		},
 	}
@@ -195,7 +194,7 @@ func RoleForUser(u User) Role {
 				NodeLabels:       Labels{Wildcard: []string{Wildcard}},
 				AppLabels:        Labels{Wildcard: []string{Wildcard}},
 				KubernetesLabels: Labels{Wildcard: []string{Wildcard}},
-				Rules:            types.CopyRulesSlice(AdminUserRules),
+				Rules:            CopyRulesSlice(AdminUserRules),
 			},
 		},
 	}
@@ -219,7 +218,7 @@ func RoleForCertAuthority(ca CertAuthority) Role {
 				NodeLabels:       Labels{Wildcard: []string{Wildcard}},
 				AppLabels:        Labels{Wildcard: []string{Wildcard}},
 				KubernetesLabels: Labels{Wildcard: []string{Wildcard}},
-				Rules:            types.CopyRulesSlice(DefaultCertAuthorityRules),
+				Rules:            CopyRulesSlice(DefaultCertAuthorityRules),
 			},
 		},
 	}

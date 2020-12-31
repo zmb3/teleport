@@ -23,6 +23,7 @@ import (
 
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -270,61 +271,61 @@ func (c *GithubConnectorV3) MapClaims(claims GithubClaims) ([]string, []string, 
 			}
 		}
 	}
-	return Deduplicate(logins), Deduplicate(kubeGroups), Deduplicate(kubeUsers)
+	return utils.Deduplicate(logins), utils.Deduplicate(kubeGroups), utils.Deduplicate(kubeUsers)
 }
 
 // GithubConnectorV3SchemaTemplate is the JSON schema for a Github connector
 const GithubConnectorV3SchemaTemplate = `{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["kind", "spec", "metadata", "version"],
-	"properties": {
-	  "kind": {"type": "string"},
-	  "version": {"type": "string", "default": "v3"},
-	  "metadata": %v,
-	  "spec": %v
-	}
-  }`
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "spec", "metadata", "version"],
+  "properties": {
+	"kind": {"type": "string"},
+	"version": {"type": "string", "default": "v3"},
+	"metadata": %v,
+	"spec": %v
+  }
+}`
 
 // GithubConnectorSpecV3Schema is the JSON schema for Github connector spec
 var GithubConnectorSpecV3Schema = fmt.Sprintf(`{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["client_id", "client_secret", "redirect_url"],
-	"properties": {
-	  "client_id": {"type": "string"},
-	  "client_secret": {"type": "string"},
-	  "redirect_url": {"type": "string"},
-	  "display": {"type": "string"},
-	  "teams_to_logins": {
-		"type": "array",
-		"items": %v
-	  }
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["client_id", "client_secret", "redirect_url"],
+  "properties": {
+	"client_id": {"type": "string"},
+	"client_secret": {"type": "string"},
+	"redirect_url": {"type": "string"},
+	"display": {"type": "string"},
+	"teams_to_logins": {
+	  "type": "array",
+	  "items": %v
 	}
-  }`, TeamMappingSchema)
+  }
+}`, TeamMappingSchema)
 
 // TeamMappingSchema is the JSON schema for team membership mapping
 var TeamMappingSchema = `{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["organization", "team"],
-	"properties": {
-	  "organization": {"type": "string"},
-	  "team": {"type": "string"},
-	  "logins": {
-		"type": "array",
-		"items": {
-		  "type": "string"
-		}
-	  },
-	  "kubernetes_groups": {
-		"type": "array",
-		"items": {
-		  "type": "string"
-		}
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["organization", "team"],
+  "properties": {
+	"organization": {"type": "string"},
+	"team": {"type": "string"},
+	"logins": {
+	  "type": "array",
+	  "items": {
+	  	"type": "string"
 	  }
-	}
-  }`
+	},
+	"kubernetes_groups": {
+	  "type": "array",
+	  "items": {
+		"type": "string"
+	  }
+    }
+  }
+}`
 
 // GetGithubConnectorSchema returns schema for Github connector
 func GetGithubConnectorSchema() string {
@@ -351,7 +352,7 @@ func (*teleportGithubConnectorMarshaler) Unmarshal(bytes []byte) (GithubConnecto
 	switch h.Version {
 	case constants.V3:
 		var c GithubConnectorV3
-		if err := UnmarshalWithSchema(GetGithubConnectorSchema(), &c, bytes); err != nil {
+		if err := utils.UnmarshalWithSchema(GetGithubConnectorSchema(), &c, bytes); err != nil {
 			return nil, trace.Wrap(err)
 		}
 		if err := c.CheckAndSetDefaults(); err != nil {
@@ -378,7 +379,7 @@ func (*teleportGithubConnectorMarshaler) Marshal(c GithubConnector, opts ...Mars
 			copy.SetResourceID(0)
 			resource = &copy
 		}
-		return FastMarshal(resource)
+		return utils.FastMarshal(resource)
 	default:
 		return nil, trace.BadParameter("unrecognized resource version %T", c)
 	}

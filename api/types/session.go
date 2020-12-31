@@ -23,6 +23,7 @@ import (
 
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -285,19 +286,19 @@ type DeleteAppSessionRequest struct {
 
 // WebSessionSpecV2Schema is JSON schema for cert authority V2
 const WebSessionSpecV2Schema = `{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["pub", "bearer_token", "bearer_token_expires", "expires", "user"],
-	"properties": {
-	  "user": {"type": "string"},
-	  "pub": {"type": "string"},
-	  "priv": {"type": "string"},
-	  "tls_cert": {"type": "string"},
-	  "bearer_token": {"type": "string"},
-	  "bearer_token_expires": {"type": "string"},
-	  "expires": {"type": "string"}%v
-	}
-  }`
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pub", "bearer_token", "bearer_token_expires", "expires", "user"],
+  "properties": {
+    "user": {"type": "string"},
+    "pub": {"type": "string"},
+    "priv": {"type": "string"},
+    "tls_cert": {"type": "string"},
+    "bearer_token": {"type": "string"},
+    "bearer_token_expires": {"type": "string"},
+    "expires": {"type": "string"}%v
+  }
+}`
 
 // GetWebSessionSchema returns JSON Schema for web session
 func GetWebSessionSchema() string {
@@ -354,11 +355,11 @@ func (*TeleportWebSessionMarshaler) UnmarshalWebSession(bytes []byte, opts ...Ma
 	switch h.Version {
 	case constants.V2:
 		var ws WebSessionV2
-		if err := UnmarshalWithSchema(GetWebSessionSchema(), &ws, bytes); err != nil {
+		if err := utils.UnmarshalWithSchema(GetWebSessionSchema(), &ws, bytes); err != nil {
 			return nil, trace.BadParameter(err.Error())
 		}
-		UTC(&ws.Spec.BearerTokenExpires)
-		UTC(&ws.Spec.Expires)
+		utils.UTC(&ws.Spec.BearerTokenExpires)
+		utils.UTC(&ws.Spec.Expires)
 
 		if err := ws.CheckAndSetDefaults(); err != nil {
 			return nil, trace.Wrap(err)
@@ -392,7 +393,7 @@ func (*TeleportWebSessionMarshaler) MarshalWebSession(ws WebSession, opts ...Mar
 			copy.SetResourceID(0)
 			webSession = &copy
 		}
-		return FastMarshal(webSession)
+		return utils.FastMarshal(webSession)
 	default:
 		return nil, trace.BadParameter("unrecognized web session version %T", ws)
 	}

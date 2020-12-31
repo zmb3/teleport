@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -111,8 +110,8 @@ func CompareApps(a []*App, b []*App) int {
 			return Different
 		}
 		if !CmdLabelMapsEqual(
-			types.V2ToLabels(a[i].DynamicLabels),
-			types.V2ToLabels(b[i].DynamicLabels)) {
+			V2ToLabels(a[i].DynamicLabels),
+			V2ToLabels(b[i].DynamicLabels)) {
 			return Different
 		}
 		if (a[i].Rewrite == nil && b[i].Rewrite != nil) ||
@@ -182,7 +181,7 @@ func (s SortedServers) Swap(i, j int) {
 }
 
 // SortedReverseTunnels sorts reverse tunnels by cluster name
-type SortedReverseTunnels []types.ReverseTunnel
+type SortedReverseTunnels []ReverseTunnel
 
 func (s SortedReverseTunnels) Len() int {
 	return len(s)

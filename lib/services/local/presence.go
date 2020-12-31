@@ -1087,7 +1087,7 @@ func (s *PresenceService) UpsertAppServer(ctx context.Context, server services.S
 	if server.Expiry().IsZero() {
 		return &services.KeepAlive{}, nil
 	}
-	return &types.KeepAlive{
+	return &services.KeepAlive{
 		Type:    types.KeepAlive_APP,
 		LeaseID: lease.ID,
 		Name:    server.GetName(),

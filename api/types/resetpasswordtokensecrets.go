@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -145,20 +146,20 @@ func (u *ResetPasswordTokenSecretsV3) String() string {
 
 // ResetPasswordTokenSecretsSpecV3Template is a template for V3 ResetPasswordTokenSecrets JSON schema
 const ResetPasswordTokenSecretsSpecV3Template = `{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		  "opt_key": {
-			  "type": ["string"]
-		  },
-		  "qr_code": {
-			  "type": ["string"]
-		  },
-		  "created": {
-			  "type": ["string"]
-		  }
-	}
-  }`
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "opt_key": {
+      "type": ["string"]
+    },
+    "qr_code": {
+      "type": ["string"]
+    },
+    "created": {
+      "type": ["string"]
+    }
+  }
+}`
 
 // UnmarshalResetPasswordTokenSecrets unmarshals ResetPasswordTokenSecrets
 func UnmarshalResetPasswordTokenSecrets(bytes []byte) (ResetPasswordTokenSecrets, error) {
@@ -169,7 +170,7 @@ func UnmarshalResetPasswordTokenSecrets(bytes []byte) (ResetPasswordTokenSecrets
 	schema := fmt.Sprintf(V2SchemaTemplate, MetadataSchema, ResetPasswordTokenSecretsSpecV3Template, DefaultDefinitions)
 
 	var secrets ResetPasswordTokenSecretsV3
-	err := UnmarshalWithSchema(schema, &secrets, bytes)
+	err := utils.UnmarshalWithSchema(schema, &secrets, bytes)
 	if err != nil {
 		return nil, trace.BadParameter(err.Error())
 	}
@@ -179,7 +180,7 @@ func UnmarshalResetPasswordTokenSecrets(bytes []byte) (ResetPasswordTokenSecrets
 
 // MarshalResetPasswordTokenSecrets marshals role to JSON or YAML.
 func MarshalResetPasswordTokenSecrets(secrets ResetPasswordTokenSecrets, opts ...MarshalOption) ([]byte, error) {
-	return FastMarshal(secrets)
+	return utils.FastMarshal(secrets)
 }
 
 // ResetPasswordTokenSecretsMarshaler implements marshal/unmarshal of ResetPasswordTokenSecrets implementations
@@ -202,7 +203,7 @@ func (t *TeleportResetPasswordTokenSecretsMarshaler) Unmarshal(bytes []byte, opt
 
 	var secrets ResetPasswordTokenSecretsV3
 	schema := fmt.Sprintf(V2SchemaTemplate, MetadataSchema, ResetPasswordTokenSecretsSpecV3Template, DefaultDefinitions)
-	err := UnmarshalWithSchema(schema, &secrets, bytes)
+	err := utils.UnmarshalWithSchema(schema, &secrets, bytes)
 	if err != nil {
 		return nil, trace.BadParameter(err.Error())
 	}
@@ -212,7 +213,7 @@ func (t *TeleportResetPasswordTokenSecretsMarshaler) Unmarshal(bytes []byte, opt
 
 // Marshal marshals role to JSON or YAML.
 func (t *TeleportResetPasswordTokenSecretsMarshaler) Marshal(secrets ResetPasswordTokenSecrets, opts ...MarshalOption) ([]byte, error) {
-	return FastMarshal(secrets)
+	return utils.FastMarshal(secrets)
 }
 
 var resetPasswordTokenSecretsMarshaler ResetPasswordTokenSecretsMarshaler = &TeleportResetPasswordTokenSecretsMarshaler{}

@@ -32,10 +32,10 @@ func TestAccessRequestMarshaling(t *testing.T) {
 	req1, err := NewAccessRequest("some-user", "role-1", "role-2")
 	require.NoError(t, err)
 
-	marshaled, err := types.GetAccessRequestMarshaler().MarshalAccessRequest(req1)
+	marshaled, err := GetAccessRequestMarshaler().MarshalAccessRequest(req1)
 	require.NoError(t, err)
 
-	req2, err := types.GetAccessRequestMarshaler().UnmarshalAccessRequest(marshaled)
+	req2, err := GetAccessRequestMarshaler().UnmarshalAccessRequest(marshaled)
 	require.NoError(t, err)
 
 	require.True(t, req1.Equals(req2))

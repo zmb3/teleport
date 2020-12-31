@@ -28,7 +28,9 @@ import (
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/jwt"
+	"github.com/gravitational/teleport/lib/sshutils"
 	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/gravitational/trace"
@@ -188,21 +190,21 @@ func (ca *CertAuthorityV2) SetSubKind(s string) {
 // Clone returns a copy of the cert authority object.
 func (ca *CertAuthorityV2) Clone() CertAuthority {
 	out := *ca
-	out.Spec.CheckingKeys = CopyByteSlices(ca.Spec.CheckingKeys)
-	out.Spec.SigningKeys = CopyByteSlices(ca.Spec.SigningKeys)
+	out.Spec.CheckingKeys = utils.CopyByteSlices(ca.Spec.CheckingKeys)
+	out.Spec.SigningKeys = utils.CopyByteSlices(ca.Spec.SigningKeys)
 	for i, kp := range ca.Spec.TLSKeyPairs {
 		out.Spec.TLSKeyPairs[i] = TLSKeyPair{
-			Key:  CopyByteSlice(kp.Key),
-			Cert: CopyByteSlice(kp.Cert),
+			Key:  utils.CopyByteSlice(kp.Key),
+			Cert: utils.CopyByteSlice(kp.Cert),
 		}
 	}
 	for i, kp := range ca.Spec.JWTKeyPairs {
 		out.Spec.JWTKeyPairs[i] = JWTKeyPair{
-			PublicKey:  CopyByteSlice(kp.PublicKey),
-			PrivateKey: CopyByteSlice(kp.PrivateKey),
+			PublicKey:  utils.CopyByteSlice(kp.PublicKey),
+			PrivateKey: utils.CopyByteSlice(kp.PrivateKey),
 		}
 	}
-	out.Spec.Roles = CopyStrings(ca.Spec.Roles)
+	out.Spec.Roles = utils.CopyStrings(ca.Spec.Roles)
 	return &out
 }
 
@@ -242,7 +244,7 @@ func (ca *CertAuthorityV2) JWTSigner() (*jwt.Key, error) {
 	if len(ca.Spec.JWTKeyPairs) == 0 {
 		return nil, trace.BadParameter("no JWT keypairs found")
 	}
-	privateKey, err := ParsePrivateKey(ca.Spec.JWTKeyPairs[0].PrivateKey)
+	privateKey, err := utils.ParsePrivateKey(ca.Spec.JWTKeyPairs[0].PrivateKey)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -466,7 +468,7 @@ func (ca *CertAuthorityV2) Signers() ([]ssh.Signer, error) {
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
-		signer = AlgSigner(signer, ca.GetSigningAlg())
+		signer = sshutils.AlgSigner(signer, ca.GetSigningAlg())
 		out = append(out, signer)
 	}
 	return out, nil
@@ -572,12 +574,12 @@ func (ca *CertAuthorityV2) checkJWTKeys() error {
 	// Check that the JWT keys set are valid.
 	for _, pair := range ca.Spec.JWTKeyPairs {
 		if len(pair.PrivateKey) > 0 {
-			privateKey, err = ParsePrivateKey(pair.PrivateKey)
+			privateKey, err = utils.ParsePrivateKey(pair.PrivateKey)
 			if err != nil {
 				return trace.Wrap(err)
 			}
 		}
-		publicKey, err := ParsePublicKey(pair.PublicKey)
+		publicKey, err := utils.ParsePublicKey(pair.PublicKey)
 		if err != nil {
 			return trace.Wrap(err)
 		}
@@ -876,17 +878,17 @@ type CertRoles struct {
 
 // CertRolesSchema defines cert roles schema
 const CertRolesSchema = `{
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "version": {"type": "string"},
-    "roles": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    }
-  }
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"version": {"type": "string"},
+			"roles": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		}
+	}
 }`
 
 // MarshalCertRoles marshal roles list to OpenSSH
@@ -901,7 +903,7 @@ func MarshalCertRoles(roles []string) (string, error) {
 // UnmarshalCertRoles marshals roles list to OpenSSH
 func UnmarshalCertRoles(data string) ([]string, error) {
 	var certRoles CertRoles
-	if err := UnmarshalWithSchema(CertRolesSchema, &certRoles, []byte(data)); err != nil {
+	if err := utils.UnmarshalWithSchema(CertRolesSchema, &certRoles, []byte(data)); err != nil {
 		return nil, trace.BadParameter(err.Error())
 	}
 	return certRoles.Roles, nil
@@ -913,76 +915,76 @@ const CertAuthoritySpecV2Schema = `{
 	"additionalProperties": false,
 	"required": ["type", "cluster_name"],
 	"properties": {
-	  "type": {"type": "string"},
-	  "cluster_name": {"type": "string"},
-	  "checking_keys": {
-		"type": "array",
-		"items": {
-		  "type": "string"
-		}
-	  },
-	  "signing_keys": {
-		"type": "array",
-		"items": {
-		  "type": "string"
-		}
-	  },
-	  "roles": {
-		"type": "array",
-		"items": {
-		  "type": "string"
-		}
-	  },
-	  "tls_key_pairs":  {
-		"type": "array",
-		"items": {
-		  "type": "object",
-		  "additionalProperties": false,
-		  "properties": {
-			 "cert": {"type": "string"},
-			 "key": {"type": "string"}
-		  }
-		}
-	  },
-	  "jwt_key_pairs":  {
-		"type": "array",
-		"items": {
-		  "type": "object",
-		  "additionalProperties": false,
-		  "properties": {
-			 "public_key": {"type": "string"},
-			 "private_key": {"type": "string"}
-		  }
-		}
-	  },
-	  "signing_alg": {"type": "integer"},
-	  "rotation": %v,
-	  "role_map": %v
+		"type": {"type": "string"},
+		"cluster_name": {"type": "string"},
+		"checking_keys": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"signing_keys": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"roles": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"tls_key_pairs":  {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"cert": {"type": "string"},
+					"key": {"type": "string"}
+				}
+			}
+		},
+		"jwt_key_pairs":  {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"public_key": {"type": "string"},
+					"private_key": {"type": "string"}
+				}
+			}
+		},
+		"signing_alg": {"type": "integer"},
+		"rotation": %v,
+		"role_map": %v
 	}
-  }`
+}`
 
 // RotationSchema is a JSON validation schema of the CA rotation state object.
 const RotationSchema = `{
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-	  "state": {"type": "string"},
-	  "phase": {"type": "string"},
-	  "mode": {"type": "string"},
-	  "current_id": {"type": "string"},
-	  "started": {"type": "string"},
-	  "grace_period": {"type": "string"},
-	  "last_rotated": {"type": "string"},
-	  "schedule": {
-		"type": "object",
-		"properties": {
-		  "update_clients": {"type": "string"},
-		  "update_servers": {"type": "string"},
-		  "standby": {"type": "string"}
+		"state": {"type": "string"},
+		"phase": {"type": "string"},
+		"mode": {"type": "string"},
+		"current_id": {"type": "string"},
+		"started": {"type": "string"},
+		"grace_period": {"type": "string"},
+		"last_rotated": {"type": "string"},
+		"schedule": {
+			"type": "object",
+			"properties": {
+				"update_clients": {"type": "string"},
+				"update_servers": {"type": "string"},
+				"standby": {"type": "string"}
+			}
 		}
-	  }
 	}
-  }`
+}`
 
 // GetCertAuthoritySchema returns JSON Schema for cert authorities
 func GetCertAuthoritySchema() string {
@@ -1018,7 +1020,7 @@ func (*teleportCertAuthorityMarshaler) UnmarshalCertAuthority(bytes []byte, opts
 		return nil, trace.Wrap(err)
 	}
 	var h ResourceHeader
-	err = FastUnmarshal(bytes, &h)
+	err = utils.FastUnmarshal(bytes, &h)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -1033,11 +1035,11 @@ func (*teleportCertAuthorityMarshaler) UnmarshalCertAuthority(bytes []byte, opts
 	case constants.V2:
 		var ca CertAuthorityV2
 		if cfg.SkipValidation {
-			if err := FastUnmarshal(bytes, &ca); err != nil {
+			if err := utils.FastUnmarshal(bytes, &ca); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		} else {
-			if err := UnmarshalWithSchema(GetCertAuthoritySchema(), &ca, bytes); err != nil {
+			if err := utils.UnmarshalWithSchema(GetCertAuthoritySchema(), &ca, bytes); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		}
@@ -1073,7 +1075,7 @@ func (*teleportCertAuthorityMarshaler) MarshalCertAuthority(ca CertAuthority, op
 		if !ok {
 			return nil, trace.BadParameter("don't know how to marshal %v", constants.V1)
 		}
-		return FastMarshal(v.V1())
+		return utils.FastMarshal(v.V1())
 	case constants.V2:
 		v, ok := ca.(cav2)
 		if !ok {
@@ -1087,7 +1089,7 @@ func (*teleportCertAuthorityMarshaler) MarshalCertAuthority(ca CertAuthority, op
 			copy.SetResourceID(0)
 			v2 = &copy
 		}
-		return FastMarshal(v2)
+		return utils.FastMarshal(v2)
 	default:
 		return nil, trace.BadParameter("version %v is not supported", version)
 	}

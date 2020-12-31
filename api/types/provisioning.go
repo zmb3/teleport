@@ -23,6 +23,7 @@ import (
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -271,12 +272,12 @@ func (p ProvisionTokenV1) String() string {
 
 // ProvisionTokenSpecV2Schema is a JSON schema for provision token
 const ProvisionTokenSpecV2Schema = `{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-	  "roles": {"type": "array", "items": {"type": "string"}}
-	}
-  }`
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "roles": {"type": "array", "items": {"type": "string"}}
+  }
+}`
 
 // GetProvisionTokenSchema returns provision token schema
 func GetProvisionTokenSchema() string {
@@ -296,7 +297,7 @@ func UnmarshalProvisionToken(data []byte, opts ...MarshalOption) (ProvisionToken
 	}
 
 	var h ResourceHeader
-	err = FastUnmarshal(data, &h)
+	err = utils.FastUnmarshal(data, &h)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -304,7 +305,7 @@ func UnmarshalProvisionToken(data []byte, opts ...MarshalOption) (ProvisionToken
 	switch h.Version {
 	case "":
 		var p ProvisionTokenV1
-		err := FastUnmarshal(data, &p)
+		err := utils.FastUnmarshal(data, &p)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
@@ -316,11 +317,11 @@ func UnmarshalProvisionToken(data []byte, opts ...MarshalOption) (ProvisionToken
 	case constants.V2:
 		var p ProvisionTokenV2
 		if cfg.SkipValidation {
-			if err := FastUnmarshal(data, &p); err != nil {
+			if err := utils.FastUnmarshal(data, &p); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		} else {
-			if err := UnmarshalWithSchema(GetProvisionTokenSchema(), &p, data); err != nil {
+			if err := utils.UnmarshalWithSchema(GetProvisionTokenSchema(), &p, data); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		}
@@ -347,6 +348,7 @@ func MarshalProvisionToken(t ProvisionToken, opts ...MarshalOption) ([]byte, err
 	type token2 interface {
 		V2() *ProvisionTokenV2
 	}
+
 	version := cfg.GetVersion()
 	switch version {
 	case constants.V1:
@@ -354,13 +356,13 @@ func MarshalProvisionToken(t ProvisionToken, opts ...MarshalOption) ([]byte, err
 		if !ok {
 			return nil, trace.BadParameter("don't know how to marshal %v", constants.V1)
 		}
-		return FastMarshal(v.V1())
+		return utils.FastMarshal(v.V1())
 	case constants.V2:
 		v, ok := t.(token2)
 		if !ok {
 			return nil, trace.BadParameter("don't know how to marshal %v", constants.V2)
 		}
-		return FastMarshal(v.V2())
+		return utils.FastMarshal(v.V2())
 	default:
 		return nil, trace.BadParameter("version %v is not supported", version)
 	}

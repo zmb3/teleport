@@ -19,7 +19,6 @@ package services
 import (
 	"context"
 
-	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/utils/parse"
 
@@ -66,7 +65,7 @@ type DynamicAccess interface {
 	// CreateAccessRequest stores a new access request.
 	CreateAccessRequest(ctx context.Context, req AccessRequest) error
 	// SetAccessRequestState updates the state of an existing access request.
-	SetAccessRequestState(ctx context.Context, params types.AccessRequestUpdate) error
+	SetAccessRequestState(ctx context.Context, params AccessRequestUpdate) error
 	// GetAccessRequests gets all currently active access requests.
 	GetAccessRequests(ctx context.Context, filter AccessRequestFilter) ([]AccessRequest, error)
 	// DeleteAccessRequest deletes an access request.

@@ -22,6 +22,7 @@ import (
 
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -163,31 +164,31 @@ func (c *StaticTokensV2) String() string {
 
 // StaticTokensSpecSchemaTemplate is a template for StaticTokens schema.
 const StaticTokensSpecSchemaTemplate = `{
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-	"static_tokens": {
-		"type": "array",
-		"items": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"expires": {
-					"type": "string"
-				},
-				"roles": {
-					"type": "array",
-					"items": {
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"static_tokens": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"expires": {
+						"type": "string"
+					},
+					"roles": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"token": {
 						"type": "string"
 					}
-				},
-				"token": {
-					"type": "string"
 				}
 			}
-		}
-	}%v
-  }
+		}%v
+  	}
 }`
 
 // GetStaticTokensSchema returns the schema with optionally injected
@@ -226,11 +227,11 @@ func (t *TeleportStaticTokensMarshaler) Unmarshal(bytes []byte, opts ...MarshalO
 	}
 
 	if cfg.SkipValidation {
-		if err := FastUnmarshal(bytes, &staticTokens); err != nil {
+		if err := utils.FastUnmarshal(bytes, &staticTokens); err != nil {
 			return nil, trace.BadParameter(err.Error())
 		}
 	} else {
-		err = UnmarshalWithSchema(GetStaticTokensSchema(""), &staticTokens, bytes)
+		err = utils.UnmarshalWithSchema(GetStaticTokensSchema(""), &staticTokens, bytes)
 		if err != nil {
 			return nil, trace.BadParameter(err.Error())
 		}
@@ -265,7 +266,7 @@ func (t *TeleportStaticTokensMarshaler) Marshal(c StaticTokens, opts ...MarshalO
 			copy.SetResourceID(0)
 			resource = &copy
 		}
-		return FastMarshal(resource)
+		return utils.FastMarshal(resource)
 	default:
 		return nil, trace.BadParameter("unrecognized resource version %T", c)
 	}

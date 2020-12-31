@@ -22,6 +22,7 @@ import (
 
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -147,20 +148,20 @@ func (u *ResetPasswordTokenV3) String() string {
 
 // ResetPasswordTokenSpecV3Template is a template for V3 ResetPasswordToken JSON schema
 const ResetPasswordTokenSpecV3Template = `{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		  "user": {
-			  "type": ["string"]
-		  },
-		  "created": {
-			  "type": ["string"]
-		  },
-		  "url": {
-			  "type": ["string"]
-		  }
-	}
-  }`
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "user": {
+      "type": ["string"]
+    },
+    "created": {
+      "type": ["string"]
+    },
+    "url": {
+      "type": ["string"]
+    }
+  }
+}`
 
 // ResetPasswordTokenMarshaler implements marshal/unmarshal of ResetPasswordToken implementations
 // mostly adds support for extended versions
@@ -182,7 +183,7 @@ func (t *TeleportResetPasswordTokenMarshaler) Unmarshal(bytes []byte, opts ...Ma
 
 	var token ResetPasswordTokenV3
 	schema := fmt.Sprintf(V2SchemaTemplate, MetadataSchema, ResetPasswordTokenSpecV3Template, DefaultDefinitions)
-	err := UnmarshalWithSchema(schema, &token, bytes)
+	err := utils.UnmarshalWithSchema(schema, &token, bytes)
 	if err != nil {
 		return nil, trace.BadParameter(err.Error())
 	}
@@ -192,7 +193,7 @@ func (t *TeleportResetPasswordTokenMarshaler) Unmarshal(bytes []byte, opts ...Ma
 
 // Marshal marshals role to JSON or YAML.
 func (t *TeleportResetPasswordTokenMarshaler) Marshal(token ResetPasswordToken, opts ...MarshalOption) ([]byte, error) {
-	return FastMarshal(token)
+	return utils.FastMarshal(token)
 }
 
 var resetPasswordTokenMarshaler ResetPasswordTokenMarshaler = &TeleportResetPasswordTokenMarshaler{}

@@ -24,6 +24,7 @@ import (
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -328,22 +329,22 @@ func (f *SemaphoreFilter) Match(sem Semaphore) bool {
 
 // SemaphoreSpecSchemaTemplate is a template for Semaphore schema.
 const SemaphoreSpecSchemaTemplate = `{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-	  "leases": {
-		"type": "array",
-		"items": {
-		  "type": "object",
-		  "properties": {
-			"lease_id": { "type": "string" },
-			"expires": { "type": "string" },
-			"holder": { "type": "string" }
-		  }
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+	"leases": {
+	  "type": "array",
+	  "items": {
+	  "type": "object",
+	  "properties": {
+		"lease_id": { "type": "string" },
+		"expires": { "type": "string" },
+		"holder": { "type": "string" }
 		}
 	  }
 	}
-  }`
+  }
+}`
 
 // GetSemaphoreSchema returns the validation schema for this object
 func GetSemaphoreSchema() string {
@@ -374,11 +375,11 @@ func (t *TeleportSemaphoreMarshaler) Unmarshal(bytes []byte, opts ...MarshalOpti
 	}
 
 	if cfg.SkipValidation {
-		if err := FastUnmarshal(bytes, &semaphore); err != nil {
+		if err := utils.FastUnmarshal(bytes, &semaphore); err != nil {
 			return nil, trace.BadParameter(err.Error())
 		}
 	} else {
-		err = UnmarshalWithSchema(GetSemaphoreSchema(), &semaphore, bytes)
+		err = utils.UnmarshalWithSchema(GetSemaphoreSchema(), &semaphore, bytes)
 		if err != nil {
 			return nil, trace.BadParameter(err.Error())
 		}
@@ -413,7 +414,7 @@ func (t *TeleportSemaphoreMarshaler) Marshal(c Semaphore, opts ...MarshalOption)
 			copy.SetResourceID(0)
 			resource = &copy
 		}
-		return FastMarshal(resource)
+		return utils.FastMarshal(resource)
 	default:
 		return nil, trace.BadParameter("unrecognized resource version %T", c)
 	}

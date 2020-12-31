@@ -121,10 +121,10 @@ func (r *RoleV3) Equals(other Role) bool {
 	}
 
 	for _, condition := range []RoleConditionType{Allow, Deny} {
-		if !StringSlicesEqual(r.GetLogins(condition), other.GetLogins(condition)) {
+		if !utils.StringSlicesEqual(r.GetLogins(condition), other.GetLogins(condition)) {
 			return false
 		}
-		if !StringSlicesEqual(r.GetNamespaces(condition), other.GetNamespaces(condition)) {
+		if !utils.StringSlicesEqual(r.GetNamespaces(condition), other.GetNamespaces(condition)) {
 			return false
 		}
 		if !r.GetNodeLabels(condition).Equals(other.GetNodeLabels(condition)) {
@@ -227,7 +227,7 @@ func (r *RoleV3) GetLogins(rct RoleConditionType) []string {
 
 // SetLogins sets system logins for allow or deny condition.
 func (r *RoleV3) SetLogins(rct RoleConditionType, logins []string) {
-	lcopy := CopyStrings(logins)
+	lcopy := utils.CopyStrings(logins)
 
 	if rct == Allow {
 		r.Spec.Allow.Logins = lcopy
@@ -246,7 +246,7 @@ func (r *RoleV3) GetKubeGroups(rct RoleConditionType) []string {
 
 // SetKubeGroups sets kubernetes groups for allow or deny condition.
 func (r *RoleV3) SetKubeGroups(rct RoleConditionType, groups []string) {
-	lcopy := CopyStrings(groups)
+	lcopy := utils.CopyStrings(groups)
 
 	if rct == Allow {
 		r.Spec.Allow.KubeGroups = lcopy
@@ -265,7 +265,7 @@ func (r *RoleV3) GetKubeUsers(rct RoleConditionType) []string {
 
 // SetKubeUsers sets kubernetes user for allow or deny condition.
 func (r *RoleV3) SetKubeUsers(rct RoleConditionType, users []string) {
-	lcopy := CopyStrings(users)
+	lcopy := utils.CopyStrings(users)
 
 	if rct == Allow {
 		r.Spec.Allow.KubeUsers = lcopy
@@ -305,7 +305,7 @@ func (r *RoleV3) GetNamespaces(rct RoleConditionType) []string {
 
 // SetNamespaces sets a list of namespaces this role is allowed or denied access to.
 func (r *RoleV3) SetNamespaces(rct RoleConditionType, namespaces []string) {
-	ncopy := CopyStrings(namespaces)
+	ncopy := utils.CopyStrings(namespaces)
 
 	if rct == Allow {
 		r.Spec.Allow.Namespaces = ncopy
@@ -523,16 +523,16 @@ func (o RoleOptions) Equals(other RoleOptions) bool {
 		o.CertificateFormat == other.CertificateFormat &&
 		o.ClientIdleTimeout.Value() == other.ClientIdleTimeout.Value() &&
 		o.DisconnectExpiredCert.Value() == other.DisconnectExpiredCert.Value() &&
-		StringSlicesEqual(o.BPF, other.BPF))
+		utils.StringSlicesEqual(o.BPF, other.BPF))
 }
 
 // Equals returns true if the role conditions (logins, namespaces, labels,
 // and rules) are equal and false if they are not.
 func (r *RoleConditions) Equals(o RoleConditions) bool {
-	if !StringSlicesEqual(r.Logins, o.Logins) {
+	if !utils.StringSlicesEqual(r.Logins, o.Logins) {
 		return false
 	}
-	if !StringSlicesEqual(r.Namespaces, o.Namespaces) {
+	if !utils.StringSlicesEqual(r.Namespaces, o.Namespaces) {
 		return false
 	}
 	if !r.NodeLabels.Equals(o.NodeLabels) {
@@ -601,7 +601,7 @@ func (r *Rule) CheckAndSetDefaults() error {
 func (r *Rule) score() int {
 	score := 0
 	// wilcard rules are less specific
-	if SliceContainsStr(r.Resources, constants.Wildcard) {
+	if utils.SliceContainsStr(r.Resources, constants.Wildcard) {
 		score -= 4
 	} else if len(r.Resources) == 1 {
 		// rules that match specific resource are more specific than
@@ -609,7 +609,7 @@ func (r *Rule) score() int {
 		score += 2
 	}
 	// rules that have wilcard verbs are less specific
-	if SliceContainsStr(r.Verbs, constants.Wildcard) {
+	if utils.SliceContainsStr(r.Verbs, constants.Wildcard) {
 		score -= 2
 	}
 	// rules that supply 'where' or 'actions' are more specific
@@ -703,13 +703,13 @@ func (r *Rule) HasVerb(verb string) bool {
 
 // Equals returns true if the rule equals to another
 func (r *Rule) Equals(other Rule) bool {
-	if !StringSlicesEqual(r.Resources, other.Resources) {
+	if !utils.StringSlicesEqual(r.Resources, other.Resources) {
 		return false
 	}
-	if !StringSlicesEqual(r.Verbs, other.Verbs) {
+	if !utils.StringSlicesEqual(r.Verbs, other.Verbs) {
 		return false
 	}
-	if !StringSlicesEqual(r.Actions, other.Actions) {
+	if !utils.StringSlicesEqual(r.Actions, other.Actions) {
 		return false
 	}
 	if r.Where != other.Where {
@@ -809,7 +809,7 @@ func (l Labels) Equals(o Labels) bool {
 		return false
 	}
 	for key := range l {
-		if !StringSlicesEqual(l[key], o[key]) {
+		if !utils.StringSlicesEqual(l[key], o[key]) {
 			return false
 		}
 	}
@@ -851,7 +851,7 @@ func (b *Bool) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &stringVar); err != nil {
 		return trace.Wrap(err)
 	}
-	v, err := ParseBool(stringVar)
+	v, err := utils.ParseBool(stringVar)
 	if err != nil {
 		*b = false
 		return nil
@@ -876,7 +876,7 @@ func (b *Bool) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&stringVar); err != nil {
 		return trace.Wrap(err)
 	}
-	v, err := ParseBool(stringVar)
+	v, err := utils.ParseBool(stringVar)
 	if err != nil {
 		*b = Bool(v)
 		return nil
@@ -982,36 +982,35 @@ func ProcessNamespace(namespace string) string {
 
 // RoleSpecV3SchemaTemplate is JSON schema for RoleSpecV3
 const RoleSpecV3SchemaTemplate = `{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-	  "max_session_ttl": { "type": "string" },
-	  "options": {
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-		  "forward_agent": { "type": ["boolean", "string"] },
-		  "permit_x11_forwarding": { "type": ["boolean", "string"] },
-		  "max_session_ttl": { "type": "string" },
-		  "port_forwarding": { "type": ["boolean", "string"] },
-		  "cert_format": { "type": "string" },
-		  "client_idle_timeout": { "type": "string" },
-		  "disconnect_expired_cert": { "type": ["boolean", "string"] },
-		  "enhanced_recording": {
-			"type": "array",
-			"items": { "type": "string" }
-		  },
-		  "max_connections": { "type": "number" },
-		  "max_sessions": {"type": "number"},
-		  "request_access": { "type": "string" },
-		  "request_prompt": { "type": "string" }
-		}
-	  },
-	  "allow": { "$ref": "#/definitions/role_condition" },
-	  "deny": { "$ref": "#/definitions/role_condition" }%v
-	}
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+	"max_session_ttl": { "type": "string" },
+	"options": {
+	  "type": "object",
+	  "additionalProperties": false,
+	  "properties": {
+		"forward_agent": { "type": ["boolean", "string"] },
+		"permit_x11_forwarding": { "type": ["boolean", "string"] },
+		"max_session_ttl": { "type": "string" },
+		"port_forwarding": { "type": ["boolean", "string"] },
+		"cert_format": { "type": "string" },
+		"client_idle_timeout": { "type": "string" },
+		"disconnect_expired_cert": { "type": ["boolean", "string"] },
+		"enhanced_recording": {
+		  "type": "array",
+		  "items": { "type": "string" }
+		},
+		"max_connections": { "type": "number" },
+		"max_sessions": {"type": "number"},
+		"request_access": { "type": "string" },
+		"request_prompt": { "type": "string" }
+	  }
+	},
+	"allow": { "$ref": "#/definitions/role_condition" },
+	"deny": { "$ref": "#/definitions/role_condition" }%v
   }
-  `
+}`
 
 // RoleSpecV3SchemaDefinitions is JSON schema for RoleSpecV3 definitions
 const RoleSpecV3SchemaDefinitions = `
@@ -1126,11 +1125,11 @@ func UnmarshalRole(data []byte, opts ...MarshalOption) (*RoleV3, error) {
 	case constants.V3:
 		var role RoleV3
 		if cfg.SkipValidation {
-			if err := FastUnmarshal(data, &role); err != nil {
+			if err := utils.FastUnmarshal(data, &role); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		} else {
-			if err := UnmarshalWithSchema(GetRoleSchema(constants.V3, ""), &role, data); err != nil {
+			if err := utils.UnmarshalWithSchema(GetRoleSchema(constants.V3, ""), &role, data); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		}
@@ -1182,7 +1181,7 @@ func (*teleportRoleMarshaler) MarshalRole(r Role, opts ...MarshalOption) ([]byte
 			copy.SetResourceID(0)
 			role = &copy
 		}
-		return FastMarshal(role)
+		return utils.FastMarshal(role)
 	default:
 		return nil, trace.BadParameter("unrecognized role version %T", r)
 	}

@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package types contains all types and logic required by the Teleport API.
 package types
 
 import (
@@ -21,6 +22,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -334,6 +336,7 @@ type AccessRequestUpdate struct {
 	Roles []string
 }
 
+// Check validates the request's fields
 func (u *AccessRequestUpdate) Check() error {
 	if u.RequestID == "" {
 		return trace.BadParameter("missing request id")
@@ -561,7 +564,7 @@ func (r *accessRequestMarshaler) MarshalAccessRequest(req AccessRequest, opts ..
 			cp.SetResourceID(0)
 			r = &cp
 		}
-		return FastMarshal(r)
+		return utils.FastMarshal(r)
 	default:
 		return nil, trace.BadParameter("unrecognized access request type: %T", req)
 	}
@@ -574,11 +577,11 @@ func (r *accessRequestMarshaler) UnmarshalAccessRequest(data []byte, opts ...Mar
 	}
 	var req AccessRequestV3
 	if cfg.SkipValidation {
-		if err := FastUnmarshal(data, &req); err != nil {
+		if err := utils.FastUnmarshal(data, &req); err != nil {
 			return nil, trace.Wrap(err)
 		}
 	} else {
-		if err := UnmarshalWithSchema(GetAccessRequestSchema(), &req, data); err != nil {
+		if err := utils.UnmarshalWithSchema(GetAccessRequestSchema(), &req, data); err != nil {
 			return nil, trace.Wrap(err)
 		}
 	}

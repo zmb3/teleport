@@ -14,8 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// constants holds a number of Teleport constatns and default values
-
+// Package constants holds a number of Teleport constant values
 package constants
 
 const (
