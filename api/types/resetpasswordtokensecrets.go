@@ -33,16 +33,22 @@ type ResetPasswordTokenSecrets interface {
 	Resource
 	// GetCreated returns Created
 	GetCreated() time.Time
+	// SetCreated sets Created
+	SetCreated(time.Time)
 	// GetQRCode returns QRCode
 	GetQRCode() []byte
+	// SetQRCode sets QRCode
+	SetQRCode([]byte)
 	// GetOTPKey returns OTP key
 	GetOTPKey() string
+	// SetOTPKey sets OTP Key
+	SetOTPKey(string)
 	// CheckAndSetDefaults checks and set default values for any missing fields.
 	CheckAndSetDefaults() error
 }
 
-// NewResetPasswordTokenSecrets creates an instance of ResetPasswordTokenSecrets
-func NewResetPasswordTokenSecrets(tokenID string) (ResetPasswordTokenSecretsV3, error) {
+// NewResetPasswordTokenSecrets creates an instance of ResetPasswordTokenSecrets.
+func NewResetPasswordTokenSecrets(tokenID string) (ResetPasswordTokenSecrets, error) {
 	secrets := ResetPasswordTokenSecretsV3{
 		Kind:    constants.KindResetPasswordTokenSecrets,
 		Version: constants.V3,
@@ -53,10 +59,10 @@ func NewResetPasswordTokenSecrets(tokenID string) (ResetPasswordTokenSecretsV3, 
 
 	err := secrets.CheckAndSetDefaults()
 	if err != nil {
-		return ResetPasswordTokenSecretsV3{}, trace.Wrap(err)
+		return &ResetPasswordTokenSecretsV3{}, trace.Wrap(err)
 	}
 
-	return secrets, nil
+	return &secrets, nil
 }
 
 // GetName returns Name
@@ -69,14 +75,29 @@ func (u *ResetPasswordTokenSecretsV3) GetCreated() time.Time {
 	return u.Spec.Created
 }
 
+// SetCreated sets Created
+func (u *ResetPasswordTokenSecretsV3) SetCreated(t time.Time) {
+	u.Spec.Created = t
+}
+
 // GetOTPKey returns OTP Key
 func (u *ResetPasswordTokenSecretsV3) GetOTPKey() string {
 	return u.Spec.OTPKey
 }
 
+// SetOTPKey sets OTP Key
+func (u *ResetPasswordTokenSecretsV3) SetOTPKey(key string) {
+	u.Spec.OTPKey = key
+}
+
 // GetQRCode returns QRCode
 func (u *ResetPasswordTokenSecretsV3) GetQRCode() []byte {
 	return []byte(u.Spec.QRCode)
+}
+
+// SetQRCode sets QRCode
+func (u *ResetPasswordTokenSecretsV3) SetQRCode(code []byte) {
+	u.Spec.QRCode = string(code)
 }
 
 // Expiry returns object expiry setting
@@ -192,11 +213,10 @@ type ResetPasswordTokenSecretsMarshaler interface {
 	Unmarshal(bytes []byte, opts ...MarshalOption) (ResetPasswordTokenSecrets, error)
 }
 
-// TeleportResetPasswordTokenSecretsMarshaler implements ResetPasswordTokenSecretsMarshaler
-type TeleportResetPasswordTokenSecretsMarshaler struct{}
+type teleportResetPasswordTokenSecretsMarshaler struct{}
 
 // Unmarshal unmarshals ResetPasswordTokenSecrets
-func (t *TeleportResetPasswordTokenSecretsMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (ResetPasswordTokenSecrets, error) {
+func (t *teleportResetPasswordTokenSecretsMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (ResetPasswordTokenSecrets, error) {
 	if len(bytes) == 0 {
 		return nil, trace.BadParameter("missing resource data")
 	}
@@ -212,11 +232,11 @@ func (t *TeleportResetPasswordTokenSecretsMarshaler) Unmarshal(bytes []byte, opt
 }
 
 // Marshal marshals role to JSON or YAML.
-func (t *TeleportResetPasswordTokenSecretsMarshaler) Marshal(secrets ResetPasswordTokenSecrets, opts ...MarshalOption) ([]byte, error) {
+func (t *teleportResetPasswordTokenSecretsMarshaler) Marshal(secrets ResetPasswordTokenSecrets, opts ...MarshalOption) ([]byte, error) {
 	return utils.FastMarshal(secrets)
 }
 
-var resetPasswordTokenSecretsMarshaler ResetPasswordTokenSecretsMarshaler = &TeleportResetPasswordTokenSecretsMarshaler{}
+var resetPasswordTokenSecretsMarshaler ResetPasswordTokenSecretsMarshaler = &teleportResetPasswordTokenSecretsMarshaler{}
 
 // SetResetTokenSecretsMarshaler sets global ResetPasswordTokenSecrets marshaler
 func SetResetTokenSecretsMarshaler(m ResetPasswordTokenSecretsMarshaler) {

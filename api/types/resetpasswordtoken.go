@@ -34,8 +34,12 @@ type ResetPasswordToken interface {
 	Resource
 	// GetUser returns User
 	GetUser() string
+	// SetUser sets User
+	SetUser(string)
 	// GetCreated returns Created
 	GetCreated() time.Time
+	// SetCreated sets Created
+	SetCreated(time.Time)
 	// GetURL returns URL
 	GetURL() string
 	// SetURL returns URL
@@ -44,9 +48,9 @@ type ResetPasswordToken interface {
 	CheckAndSetDefaults() error
 }
 
-// NewResetPasswordToken is a convenience wa to create a RemoteCluster resource.
-func NewResetPasswordToken(tokenID string) ResetPasswordTokenV3 {
-	return ResetPasswordTokenV3{
+// NewResetPasswordToken creates an instance of ResetPasswordToken.
+func NewResetPasswordToken(tokenID string) ResetPasswordToken {
+	return &ResetPasswordTokenV3{
 		Kind:    constants.KindResetPasswordToken,
 		Version: constants.V3,
 		Metadata: Metadata{
@@ -61,14 +65,29 @@ func (u *ResetPasswordTokenV3) GetName() string {
 	return u.Metadata.Name
 }
 
+// SetName sets the name of the resource
+func (u *ResetPasswordTokenV3) SetName(name string) {
+	u.Metadata.Name = name
+}
+
 // GetUser returns User
 func (u *ResetPasswordTokenV3) GetUser() string {
 	return u.Spec.User
 }
 
+// SetUser sets the name of the resource
+func (u *ResetPasswordTokenV3) SetUser(name string) {
+	u.Spec.User = name
+}
+
 // GetCreated returns Created
 func (u *ResetPasswordTokenV3) GetCreated() time.Time {
 	return u.Spec.Created
+}
+
+// SetCreated sets the name of the resource
+func (u *ResetPasswordTokenV3) SetCreated(t time.Time) {
+	u.Spec.Created = t
 }
 
 // GetURL returns URL
@@ -109,11 +128,6 @@ func (u *ResetPasswordTokenV3) GetVersion() string {
 // GetKind returns resource kind
 func (u *ResetPasswordTokenV3) GetKind() string {
 	return u.Kind
-}
-
-// SetName sets the name of the resource
-func (u *ResetPasswordTokenV3) SetName(name string) {
-	u.Metadata.Name = name
 }
 
 // GetResourceID returns resource ID
@@ -172,11 +186,10 @@ type ResetPasswordTokenMarshaler interface {
 	Unmarshal(bytes []byte, opts ...MarshalOption) (ResetPasswordToken, error)
 }
 
-// TeleportResetPasswordTokenMarshaler implements ResetPasswordTokenMarshaler
-type TeleportResetPasswordTokenMarshaler struct{}
+type teleportResetPasswordTokenMarshaler struct{}
 
 // Unmarshal unmarshals ResetPasswordToken
-func (t *TeleportResetPasswordTokenMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (ResetPasswordToken, error) {
+func (t *teleportResetPasswordTokenMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (ResetPasswordToken, error) {
 	if len(bytes) == 0 {
 		return nil, trace.BadParameter("missing resource data")
 	}
@@ -192,11 +205,11 @@ func (t *TeleportResetPasswordTokenMarshaler) Unmarshal(bytes []byte, opts ...Ma
 }
 
 // Marshal marshals role to JSON or YAML.
-func (t *TeleportResetPasswordTokenMarshaler) Marshal(token ResetPasswordToken, opts ...MarshalOption) ([]byte, error) {
+func (t *teleportResetPasswordTokenMarshaler) Marshal(token ResetPasswordToken, opts ...MarshalOption) ([]byte, error) {
 	return utils.FastMarshal(token)
 }
 
-var resetPasswordTokenMarshaler ResetPasswordTokenMarshaler = &TeleportResetPasswordTokenMarshaler{}
+var resetPasswordTokenMarshaler ResetPasswordTokenMarshaler = &teleportResetPasswordTokenMarshaler{}
 
 // SetResetTokenMarshaler sets global ResetPasswordToken marshaler
 func SetResetTokenMarshaler(m ResetPasswordTokenMarshaler) {

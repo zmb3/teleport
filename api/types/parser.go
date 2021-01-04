@@ -41,7 +41,7 @@ type RuleContext interface {
 	// String returns human friendly representation of a context
 	String() string
 	// GetResource returns resource if specified in the context,
-	// if unpecified, returns error.
+	// if unspecified, returns error.
 	GetResource() (Resource, error)
 }
 

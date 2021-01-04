@@ -57,7 +57,7 @@ type AccessRequest interface {
 	GetRequestReason() string
 	// SetRequestReason sets the reason for the request's creation.
 	SetRequestReason(string)
-	// GetResolveReason gets the reasson for the request's resolution.
+	// GetResolveReason gets the reason for the request's resolution.
 	GetResolveReason() string
 	// SetResolveReason sets the reason for the request's resolution.
 	SetResolveReason(string)
@@ -297,7 +297,7 @@ func (r *AccessRequestV3) SetResourceID(id int64) {
 	r.Metadata.SetID(id)
 }
 
-// String returns a Stringified AccessRequest
+// String returns a text representation of this AccessRequest
 func (r *AccessRequestV3) String() string {
 	return fmt.Sprintf("AccessRequest(user=%v,roles=%+v)", r.Spec.User, r.Spec.Roles)
 }
@@ -435,7 +435,7 @@ func (s RequestState) IsResolved() bool {
 	return s.IsApproved() || s.IsDenied()
 }
 
-// Equals compares two AccessReuqestSpecs
+// Equals compares two AccessRequestSpecs
 func (s *AccessRequestSpecV3) Equals(other *AccessRequestSpecV3) bool {
 	if s.User != other.User {
 		return false
@@ -479,7 +479,7 @@ func (f *AccessRequestFilter) IntoMap() map[string]string {
 	return m
 }
 
-// FromMap copies values from a map into the AccessRequestFilter
+// FromMap copies values from a map into this AccessRequestFilter value
 func (f *AccessRequestFilter) FromMap(m map[string]string) error {
 	for key, val := range m {
 		switch key {

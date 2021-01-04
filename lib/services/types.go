@@ -525,7 +525,7 @@ var (
 	GetUserMarshaler = types.GetUserMarshaler
 )
 
-// The following Constants are imported from api/constants to simplify
+// The following constants are imported from api/constants to simplify
 // refactoring. These could be removed and their references updated.
 const (
 	DefaultAPIGroup               = constants.DefaultAPIGroup

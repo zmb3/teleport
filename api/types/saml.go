@@ -289,11 +289,6 @@ func (o *SAMLConnectorV2) Equals(other SAMLConnector) bool {
 	return o.GetSSO() == other.GetSSO()
 }
 
-// V2 returns V2 version of the resource
-func (o *SAMLConnectorV2) V2() *SAMLConnectorV2 {
-	return o
-}
-
 // SetDisplay sets friendly name for this provider.
 func (o *SAMLConnectorV2) SetDisplay(display string) {
 	o.Spec.Display = display
@@ -753,27 +748,19 @@ func (*teleportSAMLConnectorMarshaler) MarshalSAMLConnector(c SAMLConnector, opt
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	type connv2 interface {
-		V2() *SAMLConnectorV2
-	}
-	version := cfg.GetVersion()
-	switch version {
-	case constants.V2:
-		v, ok := c.(connv2)
-		if !ok {
-			return nil, trace.BadParameter("don't know how to marshal %v", constants.V2)
-		}
-		v2 := v.V2()
+
+	switch connector := c.(type) {
+	case *SAMLConnectorV2:
 		if !cfg.PreserveResourceID {
 			// avoid modifying the original object
 			// to prevent unexpected data races
-			copy := *v2
+			copy := *connector
 			copy.SetResourceID(0)
-			v2 = &copy
+			connector = &copy
 		}
-		return utils.FastMarshal(v2)
+		return utils.FastMarshal(connector)
 	default:
-		return nil, trace.BadParameter("version %v is not supported", version)
+		return nil, trace.BadParameter("unrecognized SAMLConnector version %T", c)
 	}
 }
 

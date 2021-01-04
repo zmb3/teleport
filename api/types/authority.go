@@ -474,7 +474,7 @@ func (ca *CertAuthorityV2) Signers() ([]ssh.Signer, error) {
 	return out, nil
 }
 
-// GetSigningAlg returns the CA's signing argorithm type
+// GetSigningAlg returns the CA's signing algorithm type
 func (ca *CertAuthorityV2) GetSigningAlg() string {
 	switch ca.Spec.SigningAlg {
 	// UNKNOWN algorithm can come from a cluster that existed before SigningAlg
@@ -700,7 +700,7 @@ const (
 	// it means no operations have started.
 	RotationPhaseStandby = "standby"
 	// RotationPhaseInit = is a phase of the rotation
-	// when new certificate authoirty is issued, but not used
+	// when new certificate authority is issued, but not used
 	// It is necessary for remote trusted clusters to fetch the
 	// new certificate authority, otherwise the new clients
 	// will reject it

@@ -600,7 +600,7 @@ func (r *Rule) CheckAndSetDefaults() error {
 // specific the rule is
 func (r *Rule) score() int {
 	score := 0
-	// wilcard rules are less specific
+	// wildcard rules are less specific
 	if utils.SliceContainsStr(r.Resources, constants.Wildcard) {
 		score -= 4
 	} else if len(r.Resources) == 1 {
@@ -608,7 +608,7 @@ func (r *Rule) score() int {
 		// fields that match several resources
 		score += 2
 	}
-	// rules that have wilcard verbs are less specific
+	// rules that have wildcard verbs are less specific
 	if utils.SliceContainsStr(r.Verbs, constants.Wildcard) {
 		score -= 2
 	}

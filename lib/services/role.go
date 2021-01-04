@@ -1326,7 +1326,9 @@ func (set RoleSet) String() string {
 	return fmt.Sprintf("roles %v", strings.Join(roleNames, ","))
 }
 
-// CheckAccessToRule checks if the RoleSet provides access
+// CheckAccessToRule checks if the RoleSet provides access in the given
+// namespace to the specified resource and verb.
+// silent controls whether the access violations are logged.
 func (set RoleSet) CheckAccessToRule(ctx RuleContext, namespace string, resource string, verb string, silent bool) error {
 	whereParser, err := GetWhereParserFn()(ctx)
 	if err != nil {

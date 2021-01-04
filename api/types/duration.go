@@ -55,13 +55,13 @@ func (d *Duration) UnmarshalJSON(data []byte) error {
 	}
 	if stringVar == teleport.DurationNever {
 		*d = Duration(0)
-	} else {
-		out, err := time.ParseDuration(stringVar)
-		if err != nil {
-			return trace.BadParameter(err.Error())
-		}
-		*d = Duration(out)
+		return nil
 	}
+	out, err := time.ParseDuration(stringVar)
+	if err != nil {
+		return trace.BadParameter(err.Error())
+	}
+	*d = Duration(out)
 	return nil
 }
 
@@ -79,13 +79,13 @@ func (d *Duration) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	if stringVar == teleport.DurationNever {
 		*d = Duration(0)
-	} else {
-		out, err := time.ParseDuration(stringVar)
-		if err != nil {
-			return trace.BadParameter(err.Error())
-		}
-		*d = Duration(out)
+		return nil
 	}
+	out, err := time.ParseDuration(stringVar)
+	if err != nil {
+		return trace.BadParameter(err.Error())
+	}
+	*d = Duration(out)
 	return nil
 }
 
