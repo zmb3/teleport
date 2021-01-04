@@ -194,7 +194,7 @@ type Presence interface {
 	DeleteAllKubeServices(context.Context) error
 }
 
-// ProxyGetter is an service that gets proxies
+// ProxyGetter is a service that gets proxies
 type ProxyGetter interface {
 	// GetProxies returns a list of registered proxies
 	GetProxies() ([]Server, error)
@@ -229,7 +229,7 @@ func (s *KeepAlive) GetType() string {
 	}
 }
 
-// CheckAndSetDefaults checks and sets default values
+// CheckAndSetDefaults validates this KeepAlive value and sets default values
 func (s *KeepAlive) CheckAndSetDefaults() error {
 	if s.IsEmpty() {
 		return trace.BadParameter("invalid keep alive, missing lease ID and resource name")

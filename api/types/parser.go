@@ -309,7 +309,7 @@ type NewParserFn func(ctx RuleContext) (predicate.Parser, error)
 var whereParser = NewWhereParser
 var actionsParser = NewActionsParser
 
-// GetWhereParserFn returns global function that creates where parsers
+// GetWhereParserFn returns the global function that constructs WHERE predicate parsers
 // this function is used in external tools to override and extend 'where' in rules
 func GetWhereParserFn() NewParserFn {
 	marshalerMutex.RLock()
@@ -317,7 +317,7 @@ func GetWhereParserFn() NewParserFn {
 	return whereParser
 }
 
-// SetWhereParserFn sets global function that creates where parsers
+// SetWhereParserFn sets the global function that creates WHERE predicate parsers
 // this function is used in external tools to override and extend 'where' in rules
 func SetWhereParserFn(fn NewParserFn) {
 	marshalerMutex.Lock()

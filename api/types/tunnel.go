@@ -193,7 +193,7 @@ func (r *ReverseTunnelV2) Check() error {
 	return nil
 }
 
-// TunnelType is the type of tunnel. Either node or proxy.
+// TunnelType is the type of tunnel.
 type TunnelType string
 
 const (

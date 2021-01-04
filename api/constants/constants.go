@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package constants holds a number of Teleport constant values
+// Package constants defines all Teleport-specific constants
 package constants
 
 const (
@@ -52,7 +52,7 @@ const (
 	// KindRole is a role resource
 	KindRole = "role"
 
-	// KindAccessRequest is an AccessReqeust resource
+	// KindAccessRequest is an AccessRequest resource
 	KindAccessRequest = "access_request"
 
 	// KindPluginData is a PluginData resource

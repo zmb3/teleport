@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package defaults holds a number of Teleport default values
+// Package defaults defines Teleport-specific defaults
 package defaults
 
 import (
@@ -29,8 +29,8 @@ const (
 	// Namespace is default namespace
 	Namespace = "default"
 
-	// ServerKeepAliveTTL is a period between server keep alives,
-	// when servers announce only presence withough sending full data
+	// ServerKeepAliveTTL is a period between server keep-alives,
+	// when servers announce only presence without sending full data
 	ServerKeepAliveTTL = 60 * time.Second
 
 	// DefaultDialTimeout is a default TCP dial timeout we set for our

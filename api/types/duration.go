@@ -41,10 +41,10 @@ func (d Duration) Value() time.Duration {
 
 // MarshalJSON marshals Duration to string
 func (d Duration) MarshalJSON() ([]byte, error) {
-	return json.Marshal(fmt.Sprintf("%v", d.Duration()))
+	return json.Marshal(d.Duration().String())
 }
 
-// UnmarshalJSON marshals Duration to string
+// UnmarshalJSON interprets the given bytes as a Duration value
 func (d *Duration) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 {
 		return nil
@@ -89,12 +89,12 @@ func (d *Duration) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-// MaxDuration returns maximum duration that is possible
+// MaxDuration returns the maximum duration value
 func MaxDuration() Duration {
 	return NewDuration(1<<63 - 1)
 }
 
-// NewDuration returns Duration struct based on time.Duration
+// NewDuration converts the given time.Duration value to a duration
 func NewDuration(d time.Duration) Duration {
 	return Duration(d)
 }
