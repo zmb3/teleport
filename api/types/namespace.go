@@ -119,7 +119,7 @@ const NamespaceSpecSchema = `{
   "default": {}
 }`
 
-// NamespaceSchemaTemplate is JSON schema for NameSpace
+// NamespaceSchemaTemplate is JSON schema for the Namespace resource
 const NamespaceSchemaTemplate = `{
   "type": "object",
   "additionalProperties": false,

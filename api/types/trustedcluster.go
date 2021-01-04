@@ -68,7 +68,7 @@ type TrustedCluster interface {
 	CanChangeStateTo(TrustedCluster) error
 }
 
-// NewTrustedCluster is a convenience wa to create a TrustedCluster resource.
+// NewTrustedCluster is a convenience way to create a TrustedCluster resource.
 func NewTrustedCluster(name string, spec TrustedClusterSpecV2) (TrustedCluster, error) {
 	return &TrustedClusterV2{
 		Kind:    constants.KindTrustedCluster,
@@ -384,7 +384,7 @@ func (r RoleMap) parse() (map[string][]string, error) {
 				return nil, trace.BadParameter("missing 'local' property of 'role_map' entry")
 			}
 			if local == constants.Wildcard {
-				return nil, trace.BadParameter("wilcard value is not supported for 'local' property of 'role_map' entry")
+				return nil, trace.BadParameter("wildcard value is not supported for 'local' property of 'role_map' entry")
 			}
 		}
 		_, ok := directMatch[roleMap.Remote]
@@ -403,7 +403,7 @@ func (r RoleMap) Map(remoteRoles []string) ([]string, error) {
 		return nil, trace.Wrap(err)
 	}
 	var outRoles []string
-	// when no remote roles is specified, assume that
+	// when no remote roles are specified, assume that
 	// there is a single empty remote role (that should match wildcards)
 	if len(remoteRoles) == 0 {
 		remoteRoles = []string{""}
