@@ -34,7 +34,6 @@ import (
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/events"
 	"github.com/gravitational/teleport/lib/jwt"
-	"github.com/gravitational/teleport/lib/services"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/gravitational/trace"
@@ -389,7 +388,7 @@ func (c *Client) SetAccessRequestState(ctx context.Context, params types.AccessR
 }
 
 // GetAccessCapabilities requests the access capabilities of a user.
-func (c *Client) GetAccessCapabilities(ctx context.Context, req services.AccessCapabilitiesRequest) (*services.AccessCapabilities, error) {
+func (c *Client) GetAccessCapabilities(ctx context.Context, req types.AccessCapabilitiesRequest) (*types.AccessCapabilities, error) {
 	caps, err := c.grpc.GetAccessCapabilities(ctx, &req)
 	if err != nil {
 		return nil, trail.FromGRPC(err)
