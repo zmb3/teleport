@@ -874,13 +874,17 @@ func parseKnownHosts(bytes []byte, allowedLogins []string) (services.CertAuthori
 	const prefix = "*."
 	domainName := strings.TrimPrefix(options[0], prefix)
 
-	v1 := &services.CertAuthorityV1{
-		AllowedLogins: utils.CopyStrings(allowedLogins),
-		DomainName:    domainName,
-		Type:          authType,
-		CheckingKeys:  [][]byte{ssh.MarshalAuthorizedKey(pubKey)},
-	}
-	ca, role := services.ConvertV1CertAuthority(v1)
+	ca := types.NewCertAuthority(types.CertAuthoritySpecV2{
+		Type:         authType,
+		ClusterName:  domainName,
+		CheckingKeys: [][]byte{ssh.MarshalAuthorizedKey(pubKey)},
+	})
+
+	// transform old allowed logins into roles
+	role := services.RoleForCertAuthority(ca)
+	role.SetLogins(services.Allow, utils.CopyStrings(allowedLogins))
+	ca.AddRole(role.GetName())
+
 	return ca, role, nil
 }
 

@@ -82,10 +82,6 @@ type CertAuthority interface {
 	Checkers() ([]ssh.PublicKey, error)
 	// Signers returns a list of signers that could be used to sign keys
 	Signers() ([]ssh.Signer, error)
-	// V1 returns V1 version of the resource
-	V1() *CertAuthorityV1
-	// V2 returns V2 version of the resource
-	V2() *CertAuthorityV2
 	// String returns human readable version of the CertAuthority
 	String() string
 	// TLSCA returns first TLS certificate authority from the list of key pairs
@@ -311,24 +307,9 @@ func RemoveCASecrets(ca CertAuthority) {
 	ca.SetJWTKeyPairs(jwtKeyPairs)
 }
 
-// V2 returns V2 version of the resource - itself
-func (ca *CertAuthorityV2) V2() *CertAuthorityV2 {
-	return ca
-}
-
 // String returns human readable version of the CertAuthorityV2.
 func (ca *CertAuthorityV2) String() string {
 	return fmt.Sprintf("CA(name=%v, type=%v)", ca.GetClusterName(), ca.GetType())
-}
-
-// V1 returns V1 version of the object
-func (ca *CertAuthorityV2) V1() *CertAuthorityV1 {
-	return &CertAuthorityV1{
-		Type:         ca.Spec.Type,
-		DomainName:   ca.Spec.ClusterName,
-		CheckingKeys: ca.Spec.CheckingKeys,
-		SigningKeys:  ca.Spec.SigningKeys,
-	}
 }
 
 // AddRole adds a role to ca role list
@@ -596,84 +577,6 @@ func (ca *CertAuthorityV2) CheckAndSetDefaults() error {
 	}
 
 	return nil
-}
-
-// CertAuthorityV1 is a host or user certificate authority that
-// can check and if it has private key stored as well, sign it too
-type CertAuthorityV1 struct {
-	// Type is either user or host certificate authority
-	Type CertAuthType `json:"type"`
-	// DomainName identifies domain name this authority serves,
-	// for host authorities that means base hostname of all servers,
-	// for user authorities that means organization name
-	DomainName string `json:"domain_name"`
-	// Checkers is a list of SSH public keys that can be used to check
-	// certificate signatures
-	CheckingKeys [][]byte `json:"checking_keys"`
-	// SigningKeys is a list of private keys used for signing
-	SigningKeys [][]byte `json:"signing_keys"`
-	// AllowedLogins is a list of allowed logins for users within
-	// this certificate authority
-	AllowedLogins []string `json:"allowed_logins"`
-}
-
-// CertAuthoritiesToV1 converts list of cert authorities to V1 slice
-func CertAuthoritiesToV1(in []CertAuthority) ([]CertAuthorityV1, error) {
-	out := make([]CertAuthorityV1, len(in))
-	type cav1 interface {
-		V1() *CertAuthorityV1
-	}
-	for i, ca := range in {
-		v1, ok := ca.(cav1)
-		if !ok {
-			return nil, trace.BadParameter("could not transform object to V1")
-		}
-		out[i] = *(v1.V1())
-	}
-	return out, nil
-}
-
-// CombinedMapping is used to specify combined mapping from legacy property Roles
-// and new property RoleMap
-func (ca *CertAuthorityV1) CombinedMapping() RoleMap {
-	return []RoleMapping{}
-}
-
-// GetRoleMap returns role map property
-func (ca *CertAuthorityV1) GetRoleMap() RoleMap {
-	return nil
-}
-
-// SetRoleMap sets role map
-func (ca *CertAuthorityV1) SetRoleMap(m RoleMap) {
-}
-
-// V1 returns V1 version of the resource
-func (ca *CertAuthorityV1) V1() *CertAuthorityV1 {
-	return ca
-}
-
-// V2 returns V2 version of the resource
-func (ca *CertAuthorityV1) V2() *CertAuthorityV2 {
-	return &CertAuthorityV2{
-		Kind:    constants.KindCertAuthority,
-		Version: constants.V2,
-		Metadata: Metadata{
-			Name:      ca.DomainName,
-			Namespace: defaults.Namespace,
-		},
-		Spec: CertAuthoritySpecV2{
-			Type:         ca.Type,
-			ClusterName:  ca.DomainName,
-			CheckingKeys: ca.CheckingKeys,
-			SigningKeys:  ca.SigningKeys,
-		},
-	}
-}
-
-// String returns human readable version of the CertAuthorityV1.
-func (ca *CertAuthorityV1) String() string {
-	return fmt.Sprintf("CA(name=%v, type=%v)", ca.DomainName, ca.Type)
 }
 
 const (
@@ -1011,13 +914,6 @@ func (*teleportCertAuthorityMarshaler) UnmarshalCertAuthority(bytes []byte, opts
 		return nil, trace.Wrap(err)
 	}
 	switch h.Version {
-	case "":
-		var ca CertAuthorityV1
-		err := json.Unmarshal(bytes, &ca)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		return ca.V2(), nil
 	case constants.V2:
 		var ca CertAuthorityV2
 		if cfg.SkipValidation {
@@ -1047,37 +943,19 @@ func (*teleportCertAuthorityMarshaler) MarshalCertAuthority(ca CertAuthority, op
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	type cav1 interface {
-		V1() *CertAuthorityV1
-	}
 
-	type cav2 interface {
-		V2() *CertAuthorityV2
-	}
-	version := cfg.GetVersion()
-	switch version {
-	case constants.V1:
-		v, ok := ca.(cav1)
-		if !ok {
-			return nil, trace.BadParameter("don't know how to marshal %v", constants.V1)
-		}
-		return utils.FastMarshal(v.V1())
-	case constants.V2:
-		v, ok := ca.(cav2)
-		if !ok {
-			return nil, trace.BadParameter("don't know how to marshal %v", constants.V2)
-		}
-		v2 := v.V2()
+	switch authority := ca.(type) {
+	case *CertAuthorityV2:
 		if !cfg.PreserveResourceID {
 			// avoid modifying the original object
 			// to prevent unexpected data races
-			copy := *v2
+			copy := *authority
 			copy.SetResourceID(0)
-			v2 = &copy
+			authority = &copy
 		}
-		return utils.FastMarshal(v2)
+		return utils.FastMarshal(authority)
 	default:
-		return nil, trace.BadParameter("version %v is not supported", version)
+		return nil, trace.BadParameter("unrecognized certificate authority version %T", ca)
 	}
 }
 

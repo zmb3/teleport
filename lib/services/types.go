@@ -117,9 +117,8 @@ var (
 
 // authority.go
 type (
-	CertAuthority   = types.CertAuthority
-	CertAuthorityV1 = types.CertAuthorityV1
-	CertRoles       = types.CertRoles
+	CertAuthority = types.CertAuthority
+	CertRoles     = types.CertRoles
 )
 
 var (
