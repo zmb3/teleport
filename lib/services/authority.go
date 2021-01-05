@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/tlsca"
 	"github.com/gravitational/teleport/lib/wrappers"
@@ -28,6 +29,26 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/tstranex/u2f"
 )
+
+// NewCertAuthority returns new cert authority
+// DELETE in 7.0.0
+func NewCertAuthority(
+	caType CertAuthType,
+	clusterName string,
+	signingKeys [][]byte,
+	checkingKeys [][]byte,
+	roles []string,
+	signingAlg types.CertAuthoritySpecV2_SigningAlgType,
+) CertAuthority {
+	return types.NewCertAuthority(types.CertAuthoritySpecV2{
+		Type:         caType,
+		ClusterName:  clusterName,
+		SigningKeys:  signingKeys,
+		CheckingKeys: checkingKeys,
+		Roles:        roles,
+		SigningAlg:   signingAlg,
+	})
+}
 
 // HostCertParams defines all parameters needed to generate a host certificate
 type HostCertParams struct {

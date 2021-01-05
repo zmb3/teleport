@@ -210,11 +210,10 @@ type StaticTokensMarshaler interface {
 	Unmarshal(bytes []byte, opts ...MarshalOption) (StaticTokens, error)
 }
 
-// TeleportStaticTokensMarshaler is used to marshal and unmarshal StaticTokens.
-type TeleportStaticTokensMarshaler struct{}
+type teleportStaticTokensMarshaler struct{}
 
 // Unmarshal unmarshals StaticTokens from JSON.
-func (t *TeleportStaticTokensMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (StaticTokens, error) {
+func (t *teleportStaticTokensMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (StaticTokens, error) {
 	var staticTokens StaticTokensV2
 
 	if len(bytes) == 0 {
@@ -252,7 +251,7 @@ func (t *TeleportStaticTokensMarshaler) Unmarshal(bytes []byte, opts ...MarshalO
 }
 
 // Marshal marshals StaticTokens to JSON.
-func (t *TeleportStaticTokensMarshaler) Marshal(c StaticTokens, opts ...MarshalOption) ([]byte, error) {
+func (t *teleportStaticTokensMarshaler) Marshal(c StaticTokens, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -272,7 +271,7 @@ func (t *TeleportStaticTokensMarshaler) Marshal(c StaticTokens, opts ...MarshalO
 	}
 }
 
-var staticTokensMarshaler StaticTokensMarshaler = &TeleportStaticTokensMarshaler{}
+var staticTokensMarshaler StaticTokensMarshaler = &teleportStaticTokensMarshaler{}
 
 // SetStaticTokensMarshaler sets the marshaler.
 func SetStaticTokensMarshaler(m StaticTokensMarshaler) {

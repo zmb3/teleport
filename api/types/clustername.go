@@ -181,7 +181,6 @@ type ClusterNameMarshaler interface {
 	Unmarshal(bytes []byte, opts ...MarshalOption) (ClusterName, error)
 }
 
-// teleportClusterNameMarshaler is used to marshal and unmarshal ClusterName.
 type teleportClusterNameMarshaler struct{}
 
 // Unmarshal unmarshals ClusterName from JSON.

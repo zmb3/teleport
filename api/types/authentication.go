@@ -437,7 +437,6 @@ type AuthPreferenceMarshaler interface {
 	Unmarshal(bytes []byte, opts ...MarshalOption) (AuthPreference, error)
 }
 
-// teleportAuthPreferenceMarshaler implements AuthPreferenceMarshaler
 type teleportAuthPreferenceMarshaler struct{}
 
 // Unmarshal unmarshals role from JSON or YAML.

@@ -833,14 +833,14 @@ func parseAuthorizedKeys(bytes []byte, allowedLogins []string) (services.CertAut
 	}
 
 	// create a new certificate authority
-	ca := services.NewCertAuthority(
-		services.UserCA,
-		clusterName,
-		nil,
-		[][]byte{ssh.MarshalAuthorizedKey(pubkey)},
-		nil,
-		types.CertAuthoritySpecV2_UNKNOWN,
-	)
+	ca := types.NewCertAuthority(types.CertAuthoritySpecV2{
+		Type:         services.UserCA,
+		ClusterName:  clusterName,
+		SigningKeys:  nil,
+		CheckingKeys: [][]byte{ssh.MarshalAuthorizedKey(pubkey)},
+		Roles:        nil,
+		SigningAlg:   types.CertAuthoritySpecV2_UNKNOWN,
+	})
 
 	// transform old allowed logins into roles
 	role := services.RoleForCertAuthority(ca)

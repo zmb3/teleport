@@ -268,24 +268,24 @@ func (s *InstanceSecrets) GetRoles() []services.Role {
 // case we always return hard-coded userCA + hostCA (and they share keys
 // for simplicity)
 func (s *InstanceSecrets) GetCAs() []services.CertAuthority {
-	hostCA := services.NewCertAuthority(
-		services.HostCA,
-		s.SiteName,
-		[][]byte{s.PrivKey},
-		[][]byte{s.PubKey},
-		[]string{},
-		types.CertAuthoritySpecV2_RSA_SHA2_512,
-	)
+	hostCA := types.NewCertAuthority(types.CertAuthoritySpecV2{
+		Type:         services.HostCA,
+		ClusterName:  s.SiteName,
+		SigningKeys:  [][]byte{s.PrivKey},
+		CheckingKeys: [][]byte{s.PubKey},
+		Roles:        []string{},
+		SigningAlg:   types.CertAuthoritySpecV2_RSA_SHA2_512,
+	})
 	hostCA.SetTLSKeyPairs([]services.TLSKeyPair{{Cert: s.TLSCACert, Key: s.PrivKey}})
 
-	userCA := services.NewCertAuthority(
-		services.UserCA,
-		s.SiteName,
-		[][]byte{s.PrivKey},
-		[][]byte{s.PubKey},
-		[]string{services.RoleNameForCertAuthority(s.SiteName)},
-		types.CertAuthoritySpecV2_RSA_SHA2_512,
-	)
+	userCA := types.NewCertAuthority(types.CertAuthoritySpecV2{
+		Type:         services.UserCA,
+		ClusterName:  s.SiteName,
+		SigningKeys:  [][]byte{s.PrivKey},
+		CheckingKeys: [][]byte{s.PubKey},
+		Roles:        []string{services.RoleNameForCertAuthority(s.SiteName)},
+		SigningAlg:   types.CertAuthoritySpecV2_RSA_SHA2_512,
+	})
 	userCA.SetTLSKeyPairs([]services.TLSKeyPair{{Cert: s.TLSCACert, Key: s.PrivKey}})
 
 	return []services.CertAuthority{hostCA, userCA}

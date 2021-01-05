@@ -325,23 +325,22 @@ type WebSessionMarshaler interface {
 	ExtendWebSession(WebSession) (WebSession, error)
 }
 
-// TeleportWebSessionMarshaler implements WebSessionMarshaler
-type TeleportWebSessionMarshaler struct{}
+type teleportWebSessionMarshaler struct{}
 
 // GenerateWebSession generates new web session and is used to
 // inject additional data in extenstions
-func (*TeleportWebSessionMarshaler) GenerateWebSession(ws WebSession) (WebSession, error) {
+func (*teleportWebSessionMarshaler) GenerateWebSession(ws WebSession) (WebSession, error) {
 	return ws, nil
 }
 
 // ExtendWebSession renews web session and is used to
 // inject additional data in extenstions when session is getting renewed
-func (*TeleportWebSessionMarshaler) ExtendWebSession(ws WebSession) (WebSession, error) {
+func (*teleportWebSessionMarshaler) ExtendWebSession(ws WebSession) (WebSession, error) {
 	return ws, nil
 }
 
 // UnmarshalWebSession unmarshals web session from on-disk byte format
-func (*TeleportWebSessionMarshaler) UnmarshalWebSession(bytes []byte, opts ...MarshalOption) (WebSession, error) {
+func (*teleportWebSessionMarshaler) UnmarshalWebSession(bytes []byte, opts ...MarshalOption) (WebSession, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -378,7 +377,7 @@ func (*TeleportWebSessionMarshaler) UnmarshalWebSession(bytes []byte, opts ...Ma
 }
 
 // MarshalWebSession marshals web session into on-disk representation
-func (*TeleportWebSessionMarshaler) MarshalWebSession(ws WebSession, opts ...MarshalOption) ([]byte, error) {
+func (*teleportWebSessionMarshaler) MarshalWebSession(ws WebSession, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -399,7 +398,7 @@ func (*TeleportWebSessionMarshaler) MarshalWebSession(ws WebSession, opts ...Mar
 	}
 }
 
-var webSessionMarshaler WebSessionMarshaler = &TeleportWebSessionMarshaler{}
+var webSessionMarshaler WebSessionMarshaler = &teleportWebSessionMarshaler{}
 
 // SetWebSessionMarshaler sets global WebSessionMarshaler
 func SetWebSessionMarshaler(u WebSessionMarshaler) {

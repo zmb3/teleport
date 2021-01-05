@@ -340,7 +340,6 @@ type GithubConnectorMarshaler interface {
 	Marshal(c GithubConnector, opts ...MarshalOption) ([]byte, error)
 }
 
-// teleportGithubConnectorMarshaler is the default Github connector marshaler
 type teleportGithubConnectorMarshaler struct{}
 
 // Unmarshal unmarshals Github connector from JSON

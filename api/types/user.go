@@ -472,11 +472,10 @@ type UserMarshaler interface {
 	GenerateUser(User) (User, error)
 }
 
-// TeleportUserMarshaler implements UserMarshaler
-type TeleportUserMarshaler struct{}
+type teleportUserMarshaler struct{}
 
 // UnmarshalUser unmarshals user from JSON
-func (*TeleportUserMarshaler) UnmarshalUser(bytes []byte, opts ...MarshalOption) (User, error) {
+func (*teleportUserMarshaler) UnmarshalUser(bytes []byte, opts ...MarshalOption) (User, error) {
 	var h ResourceHeader
 	err := json.Unmarshal(bytes, &h)
 	if err != nil {
@@ -517,7 +516,7 @@ func (*TeleportUserMarshaler) UnmarshalUser(bytes []byte, opts ...MarshalOption)
 }
 
 // MarshalUser marshalls user into JSON
-func (*TeleportUserMarshaler) MarshalUser(u User, opts ...MarshalOption) ([]byte, error) {
+func (*teleportUserMarshaler) MarshalUser(u User, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -539,11 +538,11 @@ func (*TeleportUserMarshaler) MarshalUser(u User, opts ...MarshalOption) ([]byte
 }
 
 // GenerateUser generates new user
-func (*TeleportUserMarshaler) GenerateUser(in User) (User, error) {
+func (*teleportUserMarshaler) GenerateUser(in User) (User, error) {
 	return in, nil
 }
 
-var userMarshaler UserMarshaler = &TeleportUserMarshaler{}
+var userMarshaler UserMarshaler = &teleportUserMarshaler{}
 
 // SetUserMarshaler sets global user marshaler
 func SetUserMarshaler(u UserMarshaler) {

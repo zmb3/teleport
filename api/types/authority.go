@@ -113,30 +113,16 @@ type CertAuthority interface {
 }
 
 // NewCertAuthority returns new cert authority
-func NewCertAuthority(
-	caType CertAuthType,
-	clusterName string,
-	signingKeys [][]byte,
-	checkingKeys [][]byte,
-	roles []string,
-	signingAlg CertAuthoritySpecV2_SigningAlgType,
-) CertAuthority {
+func NewCertAuthority(spec CertAuthoritySpecV2) CertAuthority {
 	return &CertAuthorityV2{
 		Kind:    constants.KindCertAuthority,
 		Version: constants.V2,
-		SubKind: string(caType),
+		SubKind: string(spec.Type),
 		Metadata: Metadata{
-			Name:      clusterName,
+			Name:      spec.ClusterName,
 			Namespace: defaults.Namespace,
 		},
-		Spec: CertAuthoritySpecV2{
-			Roles:        roles,
-			Type:         caType,
-			ClusterName:  clusterName,
-			CheckingKeys: checkingKeys,
-			SigningKeys:  signingKeys,
-			SigningAlg:   signingAlg,
-		},
+		Spec: spec,
 	}
 }
 

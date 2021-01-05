@@ -516,11 +516,10 @@ type TrustedClusterMarshaler interface {
 	Unmarshal(bytes []byte, opts ...MarshalOption) (TrustedCluster, error)
 }
 
-// TeleportTrustedClusterMarshaler implements TrustedClusterMarshaler
-type TeleportTrustedClusterMarshaler struct{}
+type teleportTrustedClusterMarshaler struct{}
 
 // Unmarshal unmarshals role from JSON or YAML.
-func (t *TeleportTrustedClusterMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (TrustedCluster, error) {
+func (t *teleportTrustedClusterMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (TrustedCluster, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -556,7 +555,7 @@ func (t *TeleportTrustedClusterMarshaler) Unmarshal(bytes []byte, opts ...Marsha
 }
 
 // Marshal marshals role to JSON or YAML.
-func (t *TeleportTrustedClusterMarshaler) Marshal(c TrustedCluster, opts ...MarshalOption) ([]byte, error) {
+func (t *teleportTrustedClusterMarshaler) Marshal(c TrustedCluster, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -576,7 +575,7 @@ func (t *TeleportTrustedClusterMarshaler) Marshal(c TrustedCluster, opts ...Mars
 	}
 }
 
-var trustedClusterMarshaler TrustedClusterMarshaler = &TeleportTrustedClusterMarshaler{}
+var trustedClusterMarshaler TrustedClusterMarshaler = &teleportTrustedClusterMarshaler{}
 
 // SetTrustedClusterMarshaler sets global TrustedClusterMarshaler
 func SetTrustedClusterMarshaler(m TrustedClusterMarshaler) {

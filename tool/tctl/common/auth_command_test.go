@@ -40,14 +40,14 @@ func TestAuthSignKubeconfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ca := services.NewCertAuthority(
-		services.HostCA,
-		"example.com",
-		nil,
-		[][]byte{[]byte("SSH CA cert")},
-		nil,
-		types.CertAuthoritySpecV2_RSA_SHA2_512,
-	)
+	ca := types.NewCertAuthority(types.CertAuthoritySpecV2{
+		Type:         services.HostCA,
+		ClusterName:  "example.com",
+		SigningKeys:  nil,
+		CheckingKeys: [][]byte{[]byte("SSH CA cert")},
+		Roles:        nil,
+		SigningAlg:   types.CertAuthoritySpecV2_RSA_SHA2_512,
+	})
 	ca.SetTLSKeyPairs([]services.TLSKeyPair{{Cert: []byte("TLS CA cert")}})
 
 	client := mockClient{

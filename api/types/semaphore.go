@@ -358,11 +358,10 @@ type SemaphoreMarshaler interface {
 	Unmarshal(bytes []byte, opts ...MarshalOption) (Semaphore, error)
 }
 
-// TeleportSemaphoreMarshaler is used to marshal and unmarshal Semaphore.
-type TeleportSemaphoreMarshaler struct{}
+type teleportSemaphoreMarshaler struct{}
 
 // Unmarshal unmarshals Semaphore from JSON.
-func (t *TeleportSemaphoreMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (Semaphore, error) {
+func (t *teleportSemaphoreMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (Semaphore, error) {
 	var semaphore SemaphoreV3
 
 	if len(bytes) == 0 {
@@ -400,7 +399,7 @@ func (t *TeleportSemaphoreMarshaler) Unmarshal(bytes []byte, opts ...MarshalOpti
 }
 
 // Marshal marshals Semaphore to JSON.
-func (t *TeleportSemaphoreMarshaler) Marshal(c Semaphore, opts ...MarshalOption) ([]byte, error) {
+func (t *teleportSemaphoreMarshaler) Marshal(c Semaphore, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -420,7 +419,7 @@ func (t *TeleportSemaphoreMarshaler) Marshal(c Semaphore, opts ...MarshalOption)
 	}
 }
 
-var semaphoreMarshaler SemaphoreMarshaler = &TeleportSemaphoreMarshaler{}
+var semaphoreMarshaler SemaphoreMarshaler = &teleportSemaphoreMarshaler{}
 
 // SetSemaphoreMarshaler sets the marshaler.
 func SetSemaphoreMarshaler(m SemaphoreMarshaler) {

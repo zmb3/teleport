@@ -123,7 +123,6 @@ type (
 )
 
 var (
-	NewCertAuthority          = types.NewCertAuthority
 	NewJWTAuthority           = types.NewJWTAuthority
 	SetCertAuthorityMarshaler = types.SetCertAuthorityMarshaler
 	GetCertAuthorityMarshaler = types.GetCertAuthorityMarshaler

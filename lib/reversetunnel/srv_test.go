@@ -40,14 +40,16 @@ func TestServerKeyAuth(t *testing.T) {
 
 	s := &server{
 		log: testlog.FailureOnly(t),
-		localAccessPoint: mockAccessPoint{ca: services.NewCertAuthority(
-			services.HostCA,
-			"cluster-name",
-			[][]byte{priv},
-			[][]byte{pub},
-			nil,
-			types.CertAuthoritySpecV2_RSA_SHA2_256,
-		)},
+		localAccessPoint: mockAccessPoint{
+			ca: types.NewCertAuthority(types.CertAuthoritySpecV2{
+				Type:         services.HostCA,
+				ClusterName:  "cluster-name",
+				SigningKeys:  [][]byte{priv},
+				CheckingKeys: [][]byte{pub},
+				Roles:        nil,
+				SigningAlg:   types.CertAuthoritySpecV2_RSA_SHA2_256,
+			}),
+		},
 	}
 	con := mockSSHConnMetadata{}
 	tests := []struct {

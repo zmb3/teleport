@@ -499,7 +499,6 @@ type ClusterConfigMarshaler interface {
 	Unmarshal(bytes []byte, opts ...MarshalOption) (ClusterConfig, error)
 }
 
-// teleportClusterConfigMarshaler is used to marshal and unmarshal ClusterConfig.
 type teleportClusterConfigMarshaler struct{}
 
 // Unmarshal unmarshals ClusterConfig from JSON.

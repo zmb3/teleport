@@ -610,11 +610,10 @@ type ServerMarshaler interface {
 	MarshalServers([]Server) ([]byte, error)
 }
 
-// TeleportServerMarshaler implements ServerMarshaler
-type TeleportServerMarshaler struct{}
+type teleportServerMarshaler struct{}
 
 // UnmarshalServer unmarshals server from JSON
-func (*TeleportServerMarshaler) UnmarshalServer(bytes []byte, kind string, opts ...MarshalOption) (Server, error) {
+func (*teleportServerMarshaler) UnmarshalServer(bytes []byte, kind string, opts ...MarshalOption) (Server, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -624,7 +623,7 @@ func (*TeleportServerMarshaler) UnmarshalServer(bytes []byte, kind string, opts 
 }
 
 // MarshalServer marshals server into JSON.
-func (*TeleportServerMarshaler) MarshalServer(s Server, opts ...MarshalOption) ([]byte, error) {
+func (*teleportServerMarshaler) MarshalServer(s Server, opts ...MarshalOption) ([]byte, error) {
 	if err := s.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -650,7 +649,7 @@ func (*TeleportServerMarshaler) MarshalServer(s Server, opts ...MarshalOption) (
 
 // UnmarshalServers is used to unmarshal multiple servers from their
 // binary representation.
-func (*TeleportServerMarshaler) UnmarshalServers(bytes []byte) ([]Server, error) {
+func (*teleportServerMarshaler) UnmarshalServers(bytes []byte) ([]Server, error) {
 	var servers []ServerV2
 
 	err := utils.FastUnmarshal(bytes, &servers)
@@ -667,7 +666,7 @@ func (*TeleportServerMarshaler) UnmarshalServers(bytes []byte) ([]Server, error)
 
 // MarshalServers is used to marshal multiple servers to their binary
 // representation.
-func (*TeleportServerMarshaler) MarshalServers(s []Server) ([]byte, error) {
+func (*teleportServerMarshaler) MarshalServers(s []Server) ([]byte, error) {
 	bytes, err := utils.FastMarshal(s)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -676,7 +675,7 @@ func (*TeleportServerMarshaler) MarshalServers(s []Server) ([]byte, error) {
 	return bytes, nil
 }
 
-var serverMarshaler ServerMarshaler = &TeleportServerMarshaler{}
+var serverMarshaler ServerMarshaler = &teleportServerMarshaler{}
 
 // SetServerMarshaler sets global ServerMarshaler
 func SetServerMarshaler(m ServerMarshaler) {
