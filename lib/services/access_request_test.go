@@ -19,6 +19,7 @@ package services
 import (
 	"testing"
 
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/fixtures"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -204,7 +205,7 @@ func TestRequestFilterConversion(t *testing.T) {
 		m map[string]string
 	}{
 		{
-			AccessRequestFilter{User: "alice", ID: "foo", State: RequestState_PENDING},
+			AccessRequestFilter{User: "alice", ID: "foo", State: types.RequestState_PENDING},
 			map[string]string{"user": "alice", "id": "foo", "state": "PENDING"},
 		},
 		{

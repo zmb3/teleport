@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
@@ -254,7 +255,7 @@ func (s *PresenceService) UpsertNode(server services.Server) (*services.KeepAliv
 		return &services.KeepAlive{}, nil
 	}
 	return &services.KeepAlive{
-		Type:    services.KeepAlive_NODE,
+		Type:    types.KeepAlive_NODE,
 		LeaseID: lease.ID,
 		Name:    server.GetName(),
 	}, nil
@@ -1087,7 +1088,7 @@ func (s *PresenceService) UpsertAppServer(ctx context.Context, server services.S
 		return &services.KeepAlive{}, nil
 	}
 	return &services.KeepAlive{
-		Type:    services.KeepAlive_APP,
+		Type:    types.KeepAlive_APP,
 		LeaseID: lease.ID,
 		Name:    server.GetName(),
 	}, nil

@@ -21,6 +21,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/fixtures"
 	"github.com/gravitational/teleport/lib/utils"
@@ -42,8 +43,8 @@ func (s *ServerSuite) SetUpSuite(c *check.C) {
 // TestServersCompare tests comparing two servers
 func (s *ServerSuite) TestServersCompare(c *check.C) {
 	node := &ServerV2{
-		Kind:    KindNode,
-		Version: V2,
+		Kind:    constants.KindNode,
+		Version: constants.V2,
 		Metadata: Metadata{
 			Name:      "node1",
 			Namespace: defaults.Namespace,
@@ -51,7 +52,7 @@ func (s *ServerSuite) TestServersCompare(c *check.C) {
 		},
 		Spec: ServerSpecV2{
 			Addr:      "localhost:3022",
-			CmdLabels: map[string]CommandLabelV2{"a": CommandLabelV2{Period: Duration(time.Minute), Command: []string{"ls", "-l"}}},
+			CmdLabels: map[string]CommandLabelV2{"a": {Period: Duration(time.Minute), Command: []string{"ls", "-l"}}},
 			Version:   "4.0.0",
 		},
 	}
@@ -71,7 +72,7 @@ func (s *ServerSuite) TestServersCompare(c *check.C) {
 
 	// Command labels are different
 	node2 = *node
-	node2.Spec.CmdLabels = map[string]CommandLabelV2{"a": CommandLabelV2{Period: Duration(time.Minute), Command: []string{"ls", "-lR"}}}
+	node2.Spec.CmdLabels = map[string]CommandLabelV2{"a": {Period: Duration(time.Minute), Command: []string{"ls", "-lR"}}}
 	c.Assert(CompareServers(node, &node2), check.Equals, Different)
 
 	// Address has changed

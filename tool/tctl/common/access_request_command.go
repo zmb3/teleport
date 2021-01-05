@@ -27,6 +27,7 @@ import (
 
 	"github.com/gravitational/kingpin"
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/asciitable"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/service"
@@ -172,7 +173,7 @@ func (c *AccessRequestCommand) Approve(client auth.ClientI) error {
 	for _, reqID := range strings.Split(c.reqIDs, ",") {
 		if err := client.SetAccessRequestState(ctx, services.AccessRequestUpdate{
 			RequestID:   reqID,
-			State:       services.RequestState_APPROVED,
+			State:       types.RequestState_APPROVED,
 			Reason:      c.reason,
 			Annotations: annotations,
 			Roles:       c.splitRoles(),
@@ -195,7 +196,7 @@ func (c *AccessRequestCommand) Deny(client auth.ClientI) error {
 	for _, reqID := range strings.Split(c.reqIDs, ",") {
 		if err := client.SetAccessRequestState(ctx, services.AccessRequestUpdate{
 			RequestID:   reqID,
-			State:       services.RequestState_DENIED,
+			State:       types.RequestState_DENIED,
 			Reason:      c.reason,
 			Annotations: annotations,
 		}); err != nil {

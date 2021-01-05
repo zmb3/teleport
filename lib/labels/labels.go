@@ -25,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
@@ -54,7 +55,7 @@ func (c *DynamicConfig) CheckAndSetDefaults() error {
 			return trace.BadParameter("command missing")
 
 		}
-		if !services.IsValidLabelKey(name) {
+		if !types.IsValidLabelKey(name) {
 			return trace.BadParameter("invalid label key: %q", name)
 		}
 
