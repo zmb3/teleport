@@ -21,7 +21,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
@@ -31,8 +30,8 @@ import (
 // NewNamespace returns new namespace
 func NewNamespace(name string) Namespace {
 	return Namespace{
-		Kind:    constants.KindNamespace,
-		Version: constants.V2,
+		Kind:    KindNamespace,
+		Version: V2,
 		Metadata: Metadata{
 			Name: name,
 		},

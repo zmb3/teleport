@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/modules"
 	"github.com/gravitational/teleport/lib/utils"
@@ -71,8 +70,8 @@ type TrustedCluster interface {
 // NewTrustedCluster is a convenience way to create a TrustedCluster resource.
 func NewTrustedCluster(name string, spec TrustedClusterSpecV2) (TrustedCluster, error) {
 	return &TrustedClusterV2{
-		Kind:    constants.KindTrustedCluster,
-		Version: constants.V2,
+		Kind:    KindTrustedCluster,
+		Version: V2,
 		Metadata: Metadata{
 			Name:      name,
 			Namespace: defaults.Namespace,
@@ -193,7 +192,7 @@ func (c *TrustedClusterV2) SetResourceID(id int64) {
 // and new property RoleMap
 func (c *TrustedClusterV2) CombinedMapping() RoleMap {
 	if len(c.Spec.Roles) != 0 {
-		return []RoleMapping{{Remote: constants.Wildcard, Local: c.Spec.Roles}}
+		return []RoleMapping{{Remote: Wildcard, Local: c.Spec.Roles}}
 	}
 	return c.Spec.RoleMap
 }
@@ -383,7 +382,7 @@ func (r RoleMap) parse() (map[string][]string, error) {
 			if local == "" {
 				return nil, trace.BadParameter("missing 'local' property of 'role_map' entry")
 			}
-			if local == constants.Wildcard {
+			if local == Wildcard {
 				return nil, trace.BadParameter("wildcard value is not supported for 'local' property of 'role_map' entry")
 			}
 		}

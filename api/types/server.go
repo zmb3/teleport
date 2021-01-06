@@ -23,7 +23,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gogo/protobuf/proto"
@@ -565,7 +564,7 @@ func UnmarshalServerResource(data []byte, kind string, cfg *MarshalConfig) (Serv
 	}
 
 	switch h.Version {
-	case constants.V2:
+	case V2:
 		var s ServerV2
 
 		if cfg.SkipValidation {

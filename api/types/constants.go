@@ -14,8 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package constants defines all Teleport-specific constants
-package constants
+package types
 
 const (
 	// DefaultAPIGroup is a default group of permissions API,
@@ -52,7 +51,7 @@ const (
 	// KindRole is a role resource
 	KindRole = "role"
 
-	// KindAccessRequest is an AccessRequest resource
+	// KindAccessRequest is an AccessReqeust resource
 	KindAccessRequest = "access_request"
 
 	// KindPluginData is a PluginData resource
@@ -121,7 +120,7 @@ const (
 	// KindGithubConnector is Github OAuth2 connector resource
 	KindGithubConnector = "github"
 
-	// KindConnectors is a shortcut for all authentication connector types.
+	// KindConnectors is a shortcut for all authentication connector
 	KindConnectors = "connectors"
 
 	// KindClusterAuthPreference is the type of authentication for this cluster.

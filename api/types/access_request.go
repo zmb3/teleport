@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
@@ -81,8 +80,8 @@ type AccessRequest interface {
 // NewAccessRequest assembled an AccessReqeust resource.
 func NewAccessRequest(user string, roles ...string) (AccessRequest, error) {
 	req := AccessRequestV3{
-		Kind:    constants.KindAccessRequest,
-		Version: constants.V3,
+		Kind:    KindAccessRequest,
+		Version: V3,
 		Metadata: Metadata{
 			Name: uuid.New(),
 		},

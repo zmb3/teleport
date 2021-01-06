@@ -18,7 +18,6 @@ package client
 
 import (
 	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/backend"
 
@@ -91,8 +90,8 @@ func EventToGRPC(in types.Event) (*proto.Event, error) {
 			AccessRequest: r,
 		}
 	case *types.WebSessionV2:
-		if r.GetSubKind() != constants.KindAppSession {
-			return nil, trace.BadParameter("only %v supported", constants.KindAppSession)
+		if r.GetSubKind() != types.KindAppSession {
+			return nil, trace.BadParameter("only %v supported", types.KindAppSession)
 		}
 		out.Resource = &proto.Event_AppSession{
 			AppSession: r,

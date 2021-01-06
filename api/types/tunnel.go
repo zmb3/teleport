@@ -22,7 +22,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -55,8 +54,8 @@ type ReverseTunnel interface {
 // NewReverseTunnel returns new version of reverse tunnel
 func NewReverseTunnel(clusterName string, dialAddrs []string) ReverseTunnel {
 	return &ReverseTunnelV2{
-		Kind:    constants.KindReverseTunnel,
-		Version: constants.V2,
+		Kind:    KindReverseTunnel,
+		Version: V2,
 		Metadata: Metadata{
 			Name:      clusterName,
 			Namespace: defaults.Namespace,
@@ -250,7 +249,7 @@ func UnmarshalReverseTunnel(data []byte, opts ...MarshalOption) (ReverseTunnel, 
 	}
 
 	switch h.Version {
-	case constants.V2:
+	case V2:
 		var r ReverseTunnelV2
 		if cfg.SkipValidation {
 			if err := utils.FastUnmarshal(data, &r); err != nil {
@@ -309,7 +308,7 @@ func (*teleportTunnelMarshaler) MarshalReverseTunnel(rt ReverseTunnel, opts ...M
 		}
 		return utils.FastMarshal(reverseTunnel)
 	default:
-		return nil, trace.BadParameter("unrecognized user version %T", rt)
+		return nil, trace.BadParameter("unrecognized reversetunnel version %T", rt)
 	}
 }
 

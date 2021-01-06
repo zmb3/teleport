@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -69,8 +68,8 @@ type ProvisionToken interface {
 // NewProvisionToken returns a new instance of provision token resource
 func NewProvisionToken(token string, roles teleport.Roles, expires time.Time) (ProvisionToken, error) {
 	t := &ProvisionTokenV2{
-		Kind:    constants.KindToken,
-		Version: constants.V2,
+		Kind:    KindToken,
+		Version: V2,
 		Metadata: Metadata{
 			Name:      token,
 			Expires:   &expires,
@@ -98,7 +97,7 @@ func MustCreateProvisionToken(token string, roles teleport.Roles, expires time.T
 
 // CheckAndSetDefaults checks and set default values for any missing fields.
 func (p *ProvisionTokenV2) CheckAndSetDefaults() error {
-	p.Kind = constants.KindToken
+	p.Kind = KindToken
 	err := p.Metadata.CheckAndSetDefaults()
 	if err != nil {
 		return trace.Wrap(err)
@@ -244,8 +243,8 @@ func (p *ProvisionTokenV1) V1() *ProvisionTokenV1 {
 // V2 returns V2 version of the resource
 func (p *ProvisionTokenV1) V2() *ProvisionTokenV2 {
 	t := &ProvisionTokenV2{
-		Kind:    constants.KindToken,
-		Version: constants.V2,
+		Kind:    KindToken,
+		Version: V2,
 		Metadata: Metadata{
 			Name:      p.Token,
 			Namespace: defaults.Namespace,
@@ -314,7 +313,7 @@ func UnmarshalProvisionToken(data []byte, opts ...MarshalOption) (ProvisionToken
 			v2.SetResourceID(cfg.ID)
 		}
 		return v2, nil
-	case constants.V2:
+	case V2:
 		var p ProvisionTokenV2
 		if cfg.SkipValidation {
 			if err := utils.FastUnmarshal(data, &p); err != nil {
@@ -351,16 +350,16 @@ func MarshalProvisionToken(t ProvisionToken, opts ...MarshalOption) ([]byte, err
 
 	version := cfg.GetVersion()
 	switch version {
-	case constants.V1:
+	case V1:
 		v, ok := t.(token1)
 		if !ok {
-			return nil, trace.BadParameter("don't know how to marshal %v", constants.V1)
+			return nil, trace.BadParameter("don't know how to marshal %v", V1)
 		}
 		return utils.FastMarshal(v.V1())
-	case constants.V2:
+	case V2:
 		v, ok := t.(token2)
 		if !ok {
-			return nil, trace.BadParameter("don't know how to marshal %v", constants.V2)
+			return nil, trace.BadParameter("don't know how to marshal %v", V2)
 		}
 		return utils.FastMarshal(v.V2())
 	default:

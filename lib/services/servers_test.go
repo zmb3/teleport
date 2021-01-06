@@ -21,7 +21,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/fixtures"
 	"github.com/gravitational/teleport/lib/utils"
@@ -43,8 +42,8 @@ func (s *ServerSuite) SetUpSuite(c *check.C) {
 // TestServersCompare tests comparing two servers
 func (s *ServerSuite) TestServersCompare(c *check.C) {
 	node := &ServerV2{
-		Kind:    constants.KindNode,
-		Version: constants.V2,
+		Kind:    KindNode,
+		Version: V2,
 		Metadata: Metadata{
 			Name:      "node1",
 			Namespace: defaults.Namespace,

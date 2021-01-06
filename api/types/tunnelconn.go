@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -60,9 +59,9 @@ type TunnelConnection interface {
 // NewTunnelConnection returns new connection from V2 spec
 func NewTunnelConnection(name string, spec TunnelConnectionSpecV2) (TunnelConnection, error) {
 	conn := &TunnelConnectionV2{
-		Kind:    constants.KindTunnelConnection,
+		Kind:    KindTunnelConnection,
 		SubKind: spec.ClusterName,
-		Version: constants.V2,
+		Version: V2,
 		Metadata: Metadata{
 			Name:      name,
 			Namespace: defaults.Namespace,
@@ -251,7 +250,7 @@ func UnmarshalTunnelConnection(data []byte, opts ...MarshalOption) (TunnelConnec
 		return nil, trace.Wrap(err)
 	}
 	switch h.Version {
-	case constants.V2:
+	case V2:
 		var r TunnelConnectionV2
 
 		if cfg.SkipValidation {

@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/utils/parse"
@@ -429,16 +428,16 @@ func (r *RoleV3) CheckAndSetDefaults() error {
 			// no logins implies no node access
 			r.Spec.Allow.NodeLabels = Labels{}
 		} else {
-			r.Spec.Allow.NodeLabels = Labels{constants.Wildcard: []string{constants.Wildcard}}
+			r.Spec.Allow.NodeLabels = Labels{Wildcard: []string{Wildcard}}
 		}
 	}
 
 	if r.Spec.Allow.AppLabels == nil {
-		r.Spec.Allow.AppLabels = Labels{constants.Wildcard: []string{constants.Wildcard}}
+		r.Spec.Allow.AppLabels = Labels{Wildcard: []string{Wildcard}}
 	}
 
 	if r.Spec.Allow.KubernetesLabels == nil {
-		r.Spec.Allow.KubernetesLabels = Labels{constants.Wildcard: []string{constants.Wildcard}}
+		r.Spec.Allow.KubernetesLabels = Labels{Wildcard: []string{Wildcard}}
 	}
 
 	if r.Spec.Deny.Namespaces == nil {
@@ -474,22 +473,22 @@ func (r *RoleV3) CheckAndSetDefaults() error {
 
 	// restrict wildcards
 	for _, login := range r.Spec.Allow.Logins {
-		if login == constants.Wildcard {
+		if login == Wildcard {
 			return trace.BadParameter("wildcard matcher is not allowed in logins")
 		}
 	}
 	for key, val := range r.Spec.Allow.NodeLabels {
-		if key == constants.Wildcard && !(len(val) == 1 && val[0] == constants.Wildcard) {
+		if key == Wildcard && !(len(val) == 1 && val[0] == Wildcard) {
 			return trace.BadParameter("selector *:<val> is not supported")
 		}
 	}
 	for key, val := range r.Spec.Allow.AppLabels {
-		if key == constants.Wildcard && !(len(val) == 1 && val[0] == constants.Wildcard) {
+		if key == Wildcard && !(len(val) == 1 && val[0] == Wildcard) {
 			return trace.BadParameter("selector *:<val> is not supported")
 		}
 	}
 	for key, val := range r.Spec.Allow.KubernetesLabels {
-		if key == constants.Wildcard && !(len(val) == 1 && val[0] == constants.Wildcard) {
+		if key == Wildcard && !(len(val) == 1 && val[0] == Wildcard) {
 			return trace.BadParameter("selector *:<val> is not supported")
 		}
 	}
@@ -601,7 +600,7 @@ func (r *Rule) CheckAndSetDefaults() error {
 func (r *Rule) score() int {
 	score := 0
 	// wildcard rules are less specific
-	if utils.SliceContainsStr(r.Resources, constants.Wildcard) {
+	if utils.SliceContainsStr(r.Resources, Wildcard) {
 		score -= 4
 	} else if len(r.Resources) == 1 {
 		// rules that match specific resource are more specific than
@@ -609,7 +608,7 @@ func (r *Rule) score() int {
 		score += 2
 	}
 	// rules that have wildcard verbs are less specific
-	if utils.SliceContainsStr(r.Verbs, constants.Wildcard) {
+	if utils.SliceContainsStr(r.Verbs, Wildcard) {
 		score -= 2
 	}
 	// rules that supply 'where' or 'actions' are more specific
@@ -688,8 +687,8 @@ func (r *Rule) HasResource(resource string) bool {
 func (r *Rule) HasVerb(verb string) bool {
 	for _, v := range r.Verbs {
 		// readnosecrets can be satisfied by having readnosecrets or read
-		if verb == constants.VerbReadNoSecrets {
-			if v == constants.VerbReadNoSecrets || v == constants.VerbRead {
+		if verb == VerbReadNoSecrets {
+			if v == VerbReadNoSecrets || v == VerbRead {
 				return true
 			}
 			continue
@@ -1122,14 +1121,14 @@ func UnmarshalRole(data []byte, opts ...MarshalOption) (*RoleV3, error) {
 	}
 
 	switch h.Version {
-	case constants.V3:
+	case V3:
 		var role RoleV3
 		if cfg.SkipValidation {
 			if err := utils.FastUnmarshal(data, &role); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		} else {
-			if err := utils.UnmarshalWithSchema(GetRoleSchema(constants.V3, ""), &role, data); err != nil {
+			if err := utils.UnmarshalWithSchema(GetRoleSchema(V3, ""), &role, data); err != nil {
 				return nil, trace.BadParameter(err.Error())
 			}
 		}

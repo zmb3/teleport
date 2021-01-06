@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -56,8 +55,8 @@ func (s *UserSuite) TestTraits(c *check.C) {
 
 	for _, tt := range tests {
 		user := &UserV2{
-			Kind:    constants.KindUser,
-			Version: constants.V2,
+			Kind:    KindUser,
+			Version: V2,
 			Metadata: Metadata{
 				Name:      "foo",
 				Namespace: defaults.Namespace,

@@ -20,7 +20,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/fixtures"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -64,8 +63,8 @@ func (s *ResetPasswordTokenSuite) TestUnmarshal(c *check.C) {
         }
       `,
 			expected: &ResetPasswordTokenV3{
-				Kind:    constants.KindResetPasswordToken,
-				Version: constants.V3,
+				Kind:    KindResetPasswordToken,
+				Version: V3,
 				Metadata: Metadata{
 					Name: "tokenId",
 				},

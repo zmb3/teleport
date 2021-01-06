@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -46,10 +45,10 @@ type ClusterName interface {
 // NewClusterName is a convenience wrapper to create a ClusterName resource.
 func NewClusterName(spec ClusterNameSpecV2) (ClusterName, error) {
 	cn := ClusterNameV2{
-		Kind:    constants.KindClusterName,
-		Version: constants.V2,
+		Kind:    KindClusterName,
+		Version: V2,
 		Metadata: Metadata{
-			Name:      constants.MetaNameClusterName,
+			Name:      MetaNameClusterName,
 			Namespace: defaults.Namespace,
 		},
 		Spec: spec,

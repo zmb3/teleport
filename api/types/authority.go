@@ -25,7 +25,6 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/jwt"
 	"github.com/gravitational/teleport/lib/sshutils"
@@ -111,8 +110,8 @@ type CertAuthority interface {
 // NewCertAuthority returns new cert authority
 func NewCertAuthority(spec CertAuthoritySpecV2) CertAuthority {
 	return &CertAuthorityV2{
-		Kind:    constants.KindCertAuthority,
-		Version: constants.V2,
+		Kind:    KindCertAuthority,
+		Version: V2,
 		SubKind: string(spec.Type),
 		Metadata: Metadata{
 			Name:      spec.ClusterName,
@@ -130,8 +129,8 @@ func NewJWTAuthority(clusterName string) (CertAuthority, error) {
 		return nil, trace.Wrap(err)
 	}
 	return &CertAuthorityV2{
-		Kind:    constants.KindCertAuthority,
-		Version: constants.V2,
+		Kind:    KindCertAuthority,
+		Version: V2,
 		Metadata: Metadata{
 			Name:      clusterName,
 			Namespace: defaults.Namespace,
@@ -385,7 +384,7 @@ func (ca *CertAuthorityV2) SetRoles(roles []string) {
 // and new property RoleMap
 func (ca *CertAuthorityV2) CombinedMapping() RoleMap {
 	if len(ca.Spec.Roles) != 0 {
-		return RoleMap([]RoleMapping{{Remote: constants.Wildcard, Local: ca.Spec.Roles}})
+		return RoleMap([]RoleMapping{{Remote: Wildcard, Local: ca.Spec.Roles}})
 	}
 	return RoleMap(ca.Spec.RoleMap)
 }
@@ -461,7 +460,7 @@ func (ca *CertAuthorityV2) GetSigningAlg() string {
 // ParseSigningAlg converts the SSH signature algorithm strings to the
 // corresponding proto enum value.
 //
-// alg should be one of ssh.SigAlgo* constants. If it's not one of those
+// alg should be one of ssh.SigAlgo*  If it's not one of those
 // constants, CertAuthoritySpecV2_UNKNOWN is returned.
 func ParseSigningAlg(alg string) CertAuthoritySpecV2_SigningAlgType {
 	switch alg {
@@ -782,7 +781,7 @@ const CertRolesSchema = `{
 
 // MarshalCertRoles marshal roles list to OpenSSH
 func MarshalCertRoles(roles []string) (string, error) {
-	out, err := json.Marshal(CertRoles{Version: constants.V1, Roles: roles})
+	out, err := json.Marshal(CertRoles{Version: V1, Roles: roles})
 	if err != nil {
 		return "", trace.Wrap(err)
 	}
@@ -914,7 +913,7 @@ func (*teleportCertAuthorityMarshaler) UnmarshalCertAuthority(bytes []byte, opts
 		return nil, trace.Wrap(err)
 	}
 	switch h.Version {
-	case constants.V2:
+	case V2:
 		var ca CertAuthorityV2
 		if cfg.SkipValidation {
 			if err := utils.FastUnmarshal(bytes, &ca); err != nil {

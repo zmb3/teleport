@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -45,10 +44,10 @@ type StaticTokens interface {
 // NewStaticTokens is a convenience wrapper to create a StaticTokens resource.
 func NewStaticTokens(spec StaticTokensSpecV2) (StaticTokens, error) {
 	st := StaticTokensV2{
-		Kind:    constants.KindStaticTokens,
-		Version: constants.V2,
+		Kind:    KindStaticTokens,
+		Version: V2,
 		Metadata: Metadata{
-			Name:      constants.MetaNameStaticTokens,
+			Name:      MetaNameStaticTokens,
 			Namespace: defaults.Namespace,
 		},
 		Spec: spec,
@@ -64,10 +63,10 @@ func NewStaticTokens(spec StaticTokensSpecV2) (StaticTokens, error) {
 // when nothing is specified in file configuration.
 func DefaultStaticTokens() StaticTokens {
 	return &StaticTokensV2{
-		Kind:    constants.KindStaticTokens,
-		Version: constants.V2,
+		Kind:    KindStaticTokens,
+		Version: V2,
 		Metadata: Metadata{
-			Name:      constants.MetaNameStaticTokens,
+			Name:      MetaNameStaticTokens,
 			Namespace: defaults.Namespace,
 		},
 		Spec: StaticTokensSpecV2{

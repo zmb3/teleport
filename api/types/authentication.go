@@ -27,7 +27,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -84,10 +83,10 @@ type AuthPreference interface {
 // NewAuthPreference is a convenience method to to create AuthPreferenceV2.
 func NewAuthPreference(spec AuthPreferenceSpecV2) (AuthPreference, error) {
 	return &AuthPreferenceV2{
-		Kind:    constants.KindClusterAuthPreference,
-		Version: constants.V2,
+		Kind:    KindClusterAuthPreference,
+		Version: V2,
 		Metadata: Metadata{
-			Name:      constants.MetaNameClusterAuthPreference,
+			Name:      MetaNameClusterAuthPreference,
 			Namespace: defaults.Namespace,
 		},
 		Spec: spec,

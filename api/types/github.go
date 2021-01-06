@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -63,8 +62,8 @@ type GithubConnector interface {
 // NewGithubConnector creates a new Github connector from name and spec
 func NewGithubConnector(name string, spec GithubConnectorSpecV3) GithubConnector {
 	return &GithubConnectorV3{
-		Kind:    constants.KindGithubConnector,
-		Version: constants.V3,
+		Kind:    KindGithubConnector,
+		Version: V3,
 		Metadata: Metadata{
 			Name:      name,
 			Namespace: defaults.Namespace,
@@ -349,7 +348,7 @@ func (*teleportGithubConnectorMarshaler) Unmarshal(bytes []byte) (GithubConnecto
 		return nil, trace.Wrap(err)
 	}
 	switch h.Version {
-	case constants.V3:
+	case V3:
 		var c GithubConnectorV3
 		if err := utils.UnmarshalWithSchema(GetGithubConnectorSchema(), &c, bytes); err != nil {
 			return nil, trace.Wrap(err)

@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -109,10 +108,10 @@ type ClusterConfig interface {
 // NewClusterConfig is a convenience wrapper to create a ClusterConfig resource.
 func NewClusterConfig(spec ClusterConfigSpecV3) (ClusterConfig, error) {
 	cc := ClusterConfigV3{
-		Kind:    constants.KindClusterConfig,
-		Version: constants.V3,
+		Kind:    KindClusterConfig,
+		Version: V3,
 		Metadata: Metadata{
-			Name:      constants.MetaNameClusterConfig,
+			Name:      MetaNameClusterConfig,
 			Namespace: defaults.Namespace,
 		},
 		Spec: spec,
@@ -128,10 +127,10 @@ func NewClusterConfig(spec ClusterConfigSpecV3) (ClusterConfig, error) {
 // one is not specified (record at node).
 func DefaultClusterConfig() ClusterConfig {
 	return &ClusterConfigV3{
-		Kind:    constants.KindClusterConfig,
-		Version: constants.V3,
+		Kind:    KindClusterConfig,
+		Version: V3,
 		Metadata: Metadata{
-			Name:      constants.MetaNameClusterConfig,
+			Name:      MetaNameClusterConfig,
 			Namespace: defaults.Namespace,
 		},
 		Spec: ClusterConfigSpecV3{

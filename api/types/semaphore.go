@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -61,9 +60,9 @@ type Semaphore interface {
 // these acquire parameters.
 func (s *AcquireSemaphoreRequest) ConfigureSemaphore() (Semaphore, error) {
 	sem := SemaphoreV3{
-		Kind:    constants.KindSemaphore,
+		Kind:    KindSemaphore,
 		SubKind: s.SemaphoreKind,
-		Version: constants.V3,
+		Version: V3,
 		Metadata: Metadata{
 			Name:      s.SemaphoreName,
 			Namespace: defaults.Namespace,

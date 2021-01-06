@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -78,7 +77,7 @@ func NewWebSession(name string, kind string, subkind string, spec WebSessionSpec
 	return &WebSessionV2{
 		Kind:    kind,
 		SubKind: subkind,
-		Version: constants.V2,
+		Version: V2,
 		Metadata: Metadata{
 			Name:      name,
 			Namespace: defaults.Namespace,
@@ -352,7 +351,7 @@ func (*teleportWebSessionMarshaler) UnmarshalWebSession(bytes []byte, opts ...Ma
 		return nil, trace.Wrap(err)
 	}
 	switch h.Version {
-	case constants.V2:
+	case V2:
 		var ws WebSessionV2
 		if err := utils.UnmarshalWithSchema(GetWebSessionSchema(), &ws, bytes); err != nil {
 			return nil, trace.BadParameter(err.Error())

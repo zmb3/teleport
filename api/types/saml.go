@@ -28,7 +28,6 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/tlsca"
 	"github.com/gravitational/teleport/lib/utils"
@@ -109,8 +108,8 @@ type SAMLConnector interface {
 // NewSAMLConnector returns a new SAMLConnector based off a name and SAMLConnectorSpecV2.
 func NewSAMLConnector(name string, spec SAMLConnectorSpecV2) SAMLConnector {
 	return &SAMLConnectorV2{
-		Kind:    constants.KindSAMLConnector,
-		Version: constants.V2,
+		Kind:    KindSAMLConnector,
+		Version: V2,
 		Metadata: Metadata{
 			Name:      name,
 			Namespace: defaults.Namespace,
@@ -713,7 +712,7 @@ func (*teleportSAMLConnectorMarshaler) UnmarshalSAMLConnector(bytes []byte, opts
 		return nil, trace.Wrap(err)
 	}
 	switch h.Version {
-	case constants.V2:
+	case V2:
 		var c SAMLConnectorV2
 		if cfg.SkipValidation {
 			if err := utils.FastUnmarshal(bytes, &c); err != nil {

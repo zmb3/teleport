@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -74,8 +73,8 @@ type User interface {
 // NewUser creates new empty user
 func NewUser(name string) (User, error) {
 	u := &UserV2{
-		Kind:    constants.KindUser,
-		Version: constants.V2,
+		Kind:    KindUser,
+		Version: V2,
 		Metadata: Metadata{
 			Name:      name,
 			Namespace: defaults.Namespace,
@@ -488,7 +487,7 @@ func (*teleportUserMarshaler) UnmarshalUser(bytes []byte, opts ...MarshalOption)
 	}
 
 	switch h.Version {
-	case constants.V2:
+	case V2:
 		var u UserV2
 		if cfg.SkipValidation {
 			if err := utils.FastUnmarshal(bytes, &u); err != nil {

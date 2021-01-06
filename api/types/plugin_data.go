@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
@@ -49,8 +48,8 @@ type PluginData interface {
 // name of an access request).
 func NewPluginData(resourceName string, resourceKind string) (PluginData, error) {
 	data := PluginDataV3{
-		Kind:    constants.KindPluginData,
-		Version: constants.V3,
+		Kind:    KindPluginData,
+		Version: V3,
 		// If additional resource kinds become supported, make
 		// this a parameter.
 		SubKind: resourceKind,

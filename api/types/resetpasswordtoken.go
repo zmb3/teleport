@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -51,8 +50,8 @@ type ResetPasswordToken interface {
 // NewResetPasswordToken creates an instance of ResetPasswordToken.
 func NewResetPasswordToken(tokenID string) ResetPasswordToken {
 	return &ResetPasswordTokenV3{
-		Kind:    constants.KindResetPasswordToken,
-		Version: constants.V3,
+		Kind:    KindResetPasswordToken,
+		Version: V3,
 		Metadata: Metadata{
 			Name:      tokenID,
 			Namespace: defaults.Namespace,

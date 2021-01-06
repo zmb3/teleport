@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -99,8 +98,8 @@ type OIDCConnector interface {
 // NewOIDCConnector returns a new OIDCConnector based off a name and OIDCConnectorSpecV2.
 func NewOIDCConnector(name string, spec OIDCConnectorSpecV2) OIDCConnector {
 	return &OIDCConnectorV2{
-		Kind:    constants.KindOIDCConnector,
-		Version: constants.V2,
+		Kind:    KindOIDCConnector,
+		Version: V2,
 		Metadata: Metadata{
 			Name:      name,
 			Namespace: defaults.Namespace,
@@ -578,7 +577,7 @@ func (*teleportOIDCConnectorMarshaler) UnmarshalOIDCConnector(bytes []byte, opts
 		return nil, trace.Wrap(err)
 	}
 	switch h.Version {
-	case constants.V2:
+	case V2:
 		var c OIDCConnectorV2
 		if cfg.SkipValidation {
 			if err := utils.FastUnmarshal(bytes, &c); err != nil {

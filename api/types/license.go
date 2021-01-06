@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -79,8 +78,8 @@ type License interface {
 // NewLicense is a convenience method to to create LicenseV3.
 func NewLicense(name string, spec LicenseSpecV3) (License, error) {
 	return &LicenseV3{
-		Kind:    constants.KindLicense,
-		Version: constants.V3,
+		Kind:    KindLicense,
+		Version: V3,
 		Metadata: Metadata{
 			Name:      name,
 			Namespace: defaults.Namespace,
@@ -327,8 +326,8 @@ func UnmarshalLicense(bytes []byte) (License, error) {
 		return nil, trace.BadParameter(err.Error())
 	}
 
-	if license.Version != constants.V3 {
-		return nil, trace.BadParameter("unsupported version %v, expected version %v", license.Version, constants.V3)
+	if license.Version != V3 {
+		return nil, trace.BadParameter("unsupported version %v, expected version %v", license.Version, V3)
 	}
 
 	if err := license.CheckAndSetDefaults(); err != nil {

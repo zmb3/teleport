@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -53,8 +52,8 @@ type RemoteCluster interface {
 // NewRemoteCluster is a convenience way to create a RemoteCluster resource.
 func NewRemoteCluster(name string) (RemoteCluster, error) {
 	return &RemoteClusterV3{
-		Kind:    constants.KindRemoteCluster,
-		Version: constants.V3,
+		Kind:    KindRemoteCluster,
+		Version: V3,
 		Metadata: Metadata{
 			Name:      name,
 			Namespace: defaults.Namespace,
