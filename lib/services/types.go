@@ -128,6 +128,7 @@ type (
 
 var (
 	NewAuthPreference          = types.NewAuthPreference
+	DefaultAuthPreference      = types.DefaultAuthPreference
 	GetAuthPreferenceMarshaler = types.GetAuthPreferenceMarshaler
 	SetAuthPreferenceMarshaler = types.SetAuthPreferenceMarshaler
 )
