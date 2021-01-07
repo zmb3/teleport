@@ -591,7 +591,7 @@ message AccessRequestV3 {
     string Version = 3 [ (gogoproto.jsontag) = "version" ];
     // Metadata is AccessRequest metadata
     Metadata Metadata = 4 [ (gogoproto.nullable) = false, (gogoproto.jsontag) = "metadata" ];
-    // Spec is an AccessReqeust specification
+    // Spec is an AccessRequest specification
     AccessRequestSpecV3 Spec = 5 [ (gogoproto.nullable) = false, (gogoproto.jsontag) = "spec" ];
 }
 

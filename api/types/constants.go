@@ -51,7 +51,7 @@ const (
 	// KindRole is a role resource
 	KindRole = "role"
 
-	// KindAccessRequest is an AccessReqeust resource
+	// KindAccessRequest is an AccessRequest resource
 	KindAccessRequest = "access_request"
 
 	// KindPluginData is a PluginData resource

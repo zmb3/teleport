@@ -620,7 +620,7 @@ type SigningKeyPair struct {
 	Cert string `json:"cert"`
 }
 
-// SAMLConnectorV2SchemaTemplate is a template JSON Schema for user
+// SAMLConnectorV2SchemaTemplate is a template JSON Schema for SAMLConnector
 const SAMLConnectorV2SchemaTemplate = `{
   "type": "object",
   "additionalProperties": false,
@@ -684,7 +684,7 @@ var SigningKeyPairSchema = `{
   }
 }`
 
-// SAMLConnectorMarshaler implements marshal/unmarshal of User implementations
+// SAMLConnectorMarshaler implements marshal/unmarshal of SAMLConnector implementations
 // mostly adds support for extended versions
 type SAMLConnectorMarshaler interface {
 	// UnmarshalSAMLConnector unmarshals connector from binary representation
@@ -765,14 +765,14 @@ func (*teleportSAMLConnectorMarshaler) MarshalSAMLConnector(c SAMLConnector, opt
 
 var samlConnectorMarshaler SAMLConnectorMarshaler = &teleportSAMLConnectorMarshaler{}
 
-// SetSAMLConnectorMarshaler sets global user marshaler
+// SetSAMLConnectorMarshaler sets global SAMLConnectorMarshaler
 func SetSAMLConnectorMarshaler(m SAMLConnectorMarshaler) {
 	marshalerMutex.Lock()
 	defer marshalerMutex.Unlock()
 	samlConnectorMarshaler = m
 }
 
-// GetSAMLConnectorMarshaler returns currently set user marshaler
+// GetSAMLConnectorMarshaler returns currently set SAMLConnectorMarshaler
 func GetSAMLConnectorMarshaler() SAMLConnectorMarshaler {
 	marshalerMutex.RLock()
 	defer marshalerMutex.RUnlock()

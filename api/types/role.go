@@ -595,7 +595,7 @@ func (r *Rule) CheckAndSetDefaults() error {
 	return nil
 }
 
-// score is a sorting score of the rule, the more the score, the more
+// score is a sorting score of the rule, the larger the score, the more
 // specific the rule is
 func (r *Rule) score() int {
 	score := 0

@@ -503,7 +503,7 @@ var OIDCConnectorSpecV2Schema = fmt.Sprintf(`{
   }
 }`, ClaimMappingSchema)
 
-// OIDCConnectorV2SchemaTemplate is a template JSON Schema for user
+// OIDCConnectorV2SchemaTemplate is a template JSON Schema for OIDC connector
 const OIDCConnectorV2SchemaTemplate = `{
   "type": "object",
   "additionalProperties": false,
@@ -535,21 +535,21 @@ var ClaimMappingSchema = `{
 
 var connectorMarshaler OIDCConnectorMarshaler = &teleportOIDCConnectorMarshaler{}
 
-// SetOIDCConnectorMarshaler sets global user marshaler
+// SetOIDCConnectorMarshaler sets global OIDCConnector marshaler
 func SetOIDCConnectorMarshaler(m OIDCConnectorMarshaler) {
 	marshalerMutex.Lock()
 	defer marshalerMutex.Unlock()
 	connectorMarshaler = m
 }
 
-// GetOIDCConnectorMarshaler returns currently set user marshaler
+// GetOIDCConnectorMarshaler returns currently set OIDCConnector marshaler
 func GetOIDCConnectorMarshaler() OIDCConnectorMarshaler {
 	marshalerMutex.RLock()
 	defer marshalerMutex.RUnlock()
 	return connectorMarshaler
 }
 
-// OIDCConnectorMarshaler implements marshal/unmarshal of User implementations
+// OIDCConnectorMarshaler implements marshal/unmarshal of OIDCConnector implementations
 // mostly adds support for extended versions
 type OIDCConnectorMarshaler interface {
 	// UnmarshalOIDCConnector unmarshals connector from binary representation

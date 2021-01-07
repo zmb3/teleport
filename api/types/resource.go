@@ -441,7 +441,7 @@ func MarshalResource(resource Resource, opts ...MarshalOption) ([]byte, error) {
 }
 
 // UnmarshalResource attempts to unmarshal a resource dynamically, returning NotImplementedError
-// if not unmarshaler has been registered.
+// if no unmarshaler has been registered.
 //
 // NOTE: This function only supports the subset of resources which may be imported/exported
 // by users (e.g. via `tctl get`).

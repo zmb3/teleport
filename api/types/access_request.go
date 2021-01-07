@@ -77,7 +77,7 @@ type AccessRequest interface {
 	Equals(AccessRequest) bool
 }
 
-// NewAccessRequest assembled an AccessReqeust resource.
+// NewAccessRequest assembled an AccessRequest resource.
 func NewAccessRequest(user string, roles ...string) (AccessRequest, error) {
 	req := AccessRequestV3{
 		Kind:    KindAccessRequest,
