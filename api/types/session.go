@@ -309,37 +309,20 @@ func GetWebSessionSchemaWithExtensions(extension string) string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, fmt.Sprintf(WebSessionSpecV2Schema, extension), DefaultDefinitions)
 }
 
-// WebSessionMarshaler implements marshal/unmarshal of User implementations
-// mostly adds support for extended versions
-type WebSessionMarshaler interface {
-	// UnmarshalWebSession unmarhsals cert authority from binary representation
-	UnmarshalWebSession(bytes []byte, opts ...MarshalOption) (WebSession, error)
-	// MarshalWebSession to binary representation
-	MarshalWebSession(c WebSession, opts ...MarshalOption) ([]byte, error)
-	// GenerateWebSession generates new web session and is used to
-	// inject additional data in extenstions
-	GenerateWebSession(WebSession) (WebSession, error)
-	// ExtendWebSession extends web session and is used to
-	// inject additional data in extenstions when session is getting renewed
-	ExtendWebSession(WebSession) (WebSession, error)
-}
-
-type teleportWebSessionMarshaler struct{}
-
 // GenerateWebSession generates new web session and is used to
 // inject additional data in extenstions
-func (*teleportWebSessionMarshaler) GenerateWebSession(ws WebSession) (WebSession, error) {
+func GenerateWebSession(ws WebSession) (WebSession, error) {
 	return ws, nil
 }
 
 // ExtendWebSession renews web session and is used to
 // inject additional data in extenstions when session is getting renewed
-func (*teleportWebSessionMarshaler) ExtendWebSession(ws WebSession) (WebSession, error) {
+func ExtendWebSession(ws WebSession) (WebSession, error) {
 	return ws, nil
 }
 
 // UnmarshalWebSession unmarshals web session from on-disk byte format
-func (*teleportWebSessionMarshaler) UnmarshalWebSession(bytes []byte, opts ...MarshalOption) (WebSession, error) {
+func UnmarshalWebSession(bytes []byte, opts ...MarshalOption) (WebSession, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -376,7 +359,7 @@ func (*teleportWebSessionMarshaler) UnmarshalWebSession(bytes []byte, opts ...Ma
 }
 
 // MarshalWebSession marshals web session into on-disk representation
-func (*teleportWebSessionMarshaler) MarshalWebSession(ws WebSession, opts ...MarshalOption) ([]byte, error) {
+func MarshalWebSession(ws WebSession, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -395,20 +378,4 @@ func (*teleportWebSessionMarshaler) MarshalWebSession(ws WebSession, opts ...Mar
 	default:
 		return nil, trace.BadParameter("unrecognized web session version %T", ws)
 	}
-}
-
-var webSessionMarshaler WebSessionMarshaler = &teleportWebSessionMarshaler{}
-
-// SetWebSessionMarshaler sets global WebSessionMarshaler
-func SetWebSessionMarshaler(u WebSessionMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	webSessionMarshaler = u
-}
-
-// GetWebSessionMarshaler returns currently set WebSessionMarshaler
-func GetWebSessionMarshaler() WebSessionMarshaler {
-	marshalerMutex.RLock()
-	defer marshalerMutex.RUnlock()
-	return webSessionMarshaler
 }

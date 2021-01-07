@@ -343,14 +343,14 @@ func init() {
 		if !ok {
 			return nil, trace.BadParameter("expected User, got %T", r)
 		}
-		raw, err := GetUserMarshaler().MarshalUser(rsc, opts...)
+		raw, err := MarshalUser(rsc, opts...)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		return raw, nil
 	})
 	RegisterResourceUnmarshaler(KindUser, func(b []byte, opts ...MarshalOption) (Resource, error) {
-		rsc, err := GetUserMarshaler().UnmarshalUser(b, opts...)
+		rsc, err := UnmarshalUser(b, opts...)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
@@ -362,14 +362,14 @@ func init() {
 		if !ok {
 			return nil, trace.BadParameter("expected CertAuthority, got %T", r)
 		}
-		raw, err := GetCertAuthorityMarshaler().MarshalCertAuthority(rsc, opts...)
+		raw, err := MarshalCertAuthority(rsc, opts...)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		return raw, nil
 	})
 	RegisterResourceUnmarshaler(KindCertAuthority, func(b []byte, opts ...MarshalOption) (Resource, error) {
-		rsc, err := GetCertAuthorityMarshaler().UnmarshalCertAuthority(b, opts...)
+		rsc, err := UnmarshalCertAuthority(b, opts...)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
@@ -381,14 +381,14 @@ func init() {
 		if !ok {
 			return nil, trace.BadParameter("expected TrustedCluster, got %T", r)
 		}
-		raw, err := GetTrustedClusterMarshaler().Marshal(rsc, opts...)
+		raw, err := MarshalTrustedCluster(rsc, opts...)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		return raw, nil
 	})
 	RegisterResourceUnmarshaler(KindTrustedCluster, func(b []byte, opts ...MarshalOption) (Resource, error) {
-		rsc, err := GetTrustedClusterMarshaler().Unmarshal(b, opts...)
+		rsc, err := UnmarshalTrustedCluster(b, opts...)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
@@ -400,14 +400,14 @@ func init() {
 		if !ok {
 			return nil, trace.BadParameter("expected GithubConnector, got %T", r)
 		}
-		raw, err := GetGithubConnectorMarshaler().Marshal(rsc, opts...)
+		raw, err := MarshalGithubConnector(rsc, opts...)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		return raw, nil
 	})
 	RegisterResourceUnmarshaler(KindGithubConnector, func(b []byte, opts ...MarshalOption) (Resource, error) {
-		rsc, err := GetGithubConnectorMarshaler().Unmarshal(b) // XXX: Does not support marshal options.
+		rsc, err := UnmarshalGithubConnector(b) // XXX: Does not support marshal options.
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}

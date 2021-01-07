@@ -173,17 +173,29 @@ func GetClusterNameSchema(extensionSchema string) string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, clusterNameSchema, DefaultDefinitions)
 }
 
-// ClusterNameMarshaler implements marshal/unmarshal of ClusterName implementations
-// mostly adds support for extended versions.
-type ClusterNameMarshaler interface {
-	Marshal(c ClusterName, opts ...MarshalOption) ([]byte, error)
-	Unmarshal(bytes []byte, opts ...MarshalOption) (ClusterName, error)
+// MarshalClusterName marshals cluster name to JSON or YAML.
+func MarshalClusterName(c ClusterName, opts ...MarshalOption) ([]byte, error) {
+	cfg, err := CollectOptions(opts)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	switch resource := c.(type) {
+	case *ClusterNameV2:
+		if !cfg.PreserveResourceID {
+			// avoid modifying the original object
+			// to prevent unexpected data races
+			copy := *resource
+			copy.SetResourceID(0)
+			resource = &copy
+		}
+		return utils.FastMarshal(resource)
+	default:
+		return nil, trace.BadParameter("unrecognized resource version %T", c)
+	}
 }
 
-type teleportClusterNameMarshaler struct{}
-
-// Unmarshal unmarshals ClusterName from JSON.
-func (t *teleportClusterNameMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (ClusterName, error) {
+// UnmarshalClusterName unmarshals cluster name from JSON or YAML.
+func UnmarshalClusterName(bytes []byte, opts ...MarshalOption) (ClusterName, error) {
 	var clusterName ClusterNameV2
 
 	if len(bytes) == 0 {
@@ -219,41 +231,4 @@ func (t *teleportClusterNameMarshaler) Unmarshal(bytes []byte, opts ...MarshalOp
 	}
 
 	return &clusterName, nil
-}
-
-// Marshal marshals ClusterName to JSON.
-func (t *teleportClusterNameMarshaler) Marshal(c ClusterName, opts ...MarshalOption) ([]byte, error) {
-	cfg, err := CollectOptions(opts)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	switch resource := c.(type) {
-	case *ClusterNameV2:
-		if !cfg.PreserveResourceID {
-			// avoid modifying the original object
-			// to prevent unexpected data races
-			copy := *resource
-			copy.SetResourceID(0)
-			resource = &copy
-		}
-		return utils.FastMarshal(resource)
-	default:
-		return nil, trace.BadParameter("unrecognized resource version %T", c)
-	}
-}
-
-var clusterNameMarshaler ClusterNameMarshaler = &teleportClusterNameMarshaler{}
-
-// SetClusterNameMarshaler sets the marshaler.
-func SetClusterNameMarshaler(m ClusterNameMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	clusterNameMarshaler = m
-}
-
-// GetClusterNameMarshaler gets the marshaler.
-func GetClusterNameMarshaler() ClusterNameMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return clusterNameMarshaler
 }

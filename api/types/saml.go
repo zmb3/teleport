@@ -684,24 +684,13 @@ var SigningKeyPairSchema = `{
   }
 }`
 
-// SAMLConnectorMarshaler implements marshal/unmarshal of SAMLConnector implementations
-// mostly adds support for extended versions
-type SAMLConnectorMarshaler interface {
-	// UnmarshalSAMLConnector unmarshals connector from binary representation
-	UnmarshalSAMLConnector(bytes []byte, opts ...MarshalOption) (SAMLConnector, error)
-	// MarshalSAMLConnector marshals connector to binary representation
-	MarshalSAMLConnector(c SAMLConnector, opts ...MarshalOption) ([]byte, error)
-}
-
 // GetSAMLConnectorSchema returns schema for SAMLConnector
 func GetSAMLConnectorSchema() string {
 	return fmt.Sprintf(SAMLConnectorV2SchemaTemplate, MetadataSchema, SAMLConnectorSpecV2Schema)
 }
 
-type teleportSAMLConnectorMarshaler struct{}
-
-// UnmarshalSAMLConnector unmarshals connector from
-func (*teleportSAMLConnectorMarshaler) UnmarshalSAMLConnector(bytes []byte, opts ...MarshalOption) (SAMLConnector, error) {
+// UnmarshalSAMLConnector unmarshals SAMLConnector from JSON or YAML.
+func UnmarshalSAMLConnector(bytes []byte, opts ...MarshalOption) (SAMLConnector, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -741,8 +730,8 @@ func (*teleportSAMLConnectorMarshaler) UnmarshalSAMLConnector(bytes []byte, opts
 	return nil, trace.BadParameter("SAML connector resource version %v is not supported", h.Version)
 }
 
-// MarshalSAMLConnector marshals SAML connector into JSON
-func (*teleportSAMLConnectorMarshaler) MarshalSAMLConnector(c SAMLConnector, opts ...MarshalOption) ([]byte, error) {
+// MarshalSAMLConnector marshals SAMLConnector to JSON or YAML.
+func MarshalSAMLConnector(c SAMLConnector, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -761,20 +750,4 @@ func (*teleportSAMLConnectorMarshaler) MarshalSAMLConnector(c SAMLConnector, opt
 	default:
 		return nil, trace.BadParameter("unrecognized SAMLConnector version %T", c)
 	}
-}
-
-var samlConnectorMarshaler SAMLConnectorMarshaler = &teleportSAMLConnectorMarshaler{}
-
-// SetSAMLConnectorMarshaler sets global SAMLConnectorMarshaler
-func SetSAMLConnectorMarshaler(m SAMLConnectorMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	samlConnectorMarshaler = m
-}
-
-// GetSAMLConnectorMarshaler returns currently set SAMLConnectorMarshaler
-func GetSAMLConnectorMarshaler() SAMLConnectorMarshaler {
-	marshalerMutex.RLock()
-	defer marshalerMutex.RUnlock()
-	return samlConnectorMarshaler
 }

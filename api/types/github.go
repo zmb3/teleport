@@ -331,39 +331,8 @@ func GetGithubConnectorSchema() string {
 	return fmt.Sprintf(GithubConnectorV3SchemaTemplate, MetadataSchema, GithubConnectorSpecV3Schema)
 }
 
-// GithubConnectorMarshaler defines interface for Github connector marshaler
-type GithubConnectorMarshaler interface {
-	// Unmarshal unmarshals connector from binary representation
-	Unmarshal(bytes []byte) (GithubConnector, error)
-	// Marshal marshals connector to binary representation
-	Marshal(c GithubConnector, opts ...MarshalOption) ([]byte, error)
-}
-
-type teleportGithubConnectorMarshaler struct{}
-
-// Unmarshal unmarshals Github connector from JSON
-func (*teleportGithubConnectorMarshaler) Unmarshal(bytes []byte) (GithubConnector, error) {
-	var h ResourceHeader
-	if err := json.Unmarshal(bytes, &h); err != nil {
-		return nil, trace.Wrap(err)
-	}
-	switch h.Version {
-	case V3:
-		var c GithubConnectorV3
-		if err := utils.UnmarshalWithSchema(GetGithubConnectorSchema(), &c, bytes); err != nil {
-			return nil, trace.Wrap(err)
-		}
-		if err := c.CheckAndSetDefaults(); err != nil {
-			return nil, trace.Wrap(err)
-		}
-		return &c, nil
-	}
-	return nil, trace.BadParameter(
-		"Github connector resource version %q is not supported", h.Version)
-}
-
-// Marshal marshals Github connector to JSON
-func (*teleportGithubConnectorMarshaler) Marshal(c GithubConnector, opts ...MarshalOption) ([]byte, error) {
+// MarshalGithubConnector marshals cluster name to JSON or YAML.
+func MarshalGithubConnector(c GithubConnector, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -383,18 +352,23 @@ func (*teleportGithubConnectorMarshaler) Marshal(c GithubConnector, opts ...Mars
 	}
 }
 
-var githubConnectorMarshaler GithubConnectorMarshaler = &teleportGithubConnectorMarshaler{}
-
-// SetGithubConnectorMarshaler sets Github connector marshaler
-func SetGithubConnectorMarshaler(m GithubConnectorMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	githubConnectorMarshaler = m
-}
-
-// GetGithubConnectorMarshaler returns currently set Github connector marshaler
-func GetGithubConnectorMarshaler() GithubConnectorMarshaler {
-	marshalerMutex.RLock()
-	defer marshalerMutex.RUnlock()
-	return githubConnectorMarshaler
+// UnmarshalGithubConnector unmarshals cluster name from JSON or YAML.
+func UnmarshalGithubConnector(bytes []byte) (GithubConnector, error) {
+	var h ResourceHeader
+	if err := json.Unmarshal(bytes, &h); err != nil {
+		return nil, trace.Wrap(err)
+	}
+	switch h.Version {
+	case V3:
+		var c GithubConnectorV3
+		if err := utils.UnmarshalWithSchema(GetGithubConnectorSchema(), &c, bytes); err != nil {
+			return nil, trace.Wrap(err)
+		}
+		if err := c.CheckAndSetDefaults(); err != nil {
+			return nil, trace.Wrap(err)
+		}
+		return &c, nil
+	}
+	return nil, trace.BadParameter(
+		"Github connector resource version %q is not supported", h.Version)
 }

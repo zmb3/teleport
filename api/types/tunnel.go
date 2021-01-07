@@ -274,24 +274,8 @@ func UnmarshalReverseTunnel(data []byte, opts ...MarshalOption) (ReverseTunnel, 
 	return nil, trace.BadParameter("reverse tunnel version %v is not supported", h.Version)
 }
 
-// ReverseTunnelMarshaler implements marshal/unmarshal of reverse tunnel implementations
-type ReverseTunnelMarshaler interface {
-	// UnmarshalReverseTunnel unmarshals reverse tunnel from binary representation
-	UnmarshalReverseTunnel(bytes []byte, opts ...MarshalOption) (ReverseTunnel, error)
-	// MarshalReverseTunnel marshals reverse tunnel to binary representation
-	MarshalReverseTunnel(ReverseTunnel, ...MarshalOption) ([]byte, error)
-}
-
-// teleportTunnelMarshaler implements ReverseTunnelMarshaler
-type teleportTunnelMarshaler struct{}
-
-// UnmarshalReverseTunnel unmarshals reverse tunnel from JSON or YAML
-func (*teleportTunnelMarshaler) UnmarshalReverseTunnel(bytes []byte, opts ...MarshalOption) (ReverseTunnel, error) {
-	return UnmarshalReverseTunnel(bytes, opts...)
-}
-
 // MarshalReverseTunnel marshalls role into JSON
-func (*teleportTunnelMarshaler) MarshalReverseTunnel(rt ReverseTunnel, opts ...MarshalOption) ([]byte, error) {
+func MarshalReverseTunnel(rt ReverseTunnel, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -310,20 +294,4 @@ func (*teleportTunnelMarshaler) MarshalReverseTunnel(rt ReverseTunnel, opts ...M
 	default:
 		return nil, trace.BadParameter("unrecognized reversetunnel version %T", rt)
 	}
-}
-
-var tunnelMarshaler ReverseTunnelMarshaler = &teleportTunnelMarshaler{}
-
-// SetReverseTunnelMarshaler sets global ReverseTunnelMarshaler
-func SetReverseTunnelMarshaler(m ReverseTunnelMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	tunnelMarshaler = m
-}
-
-// GetReverseTunnelMarshaler returns currently set ReverseTunnelMarshaler
-func GetReverseTunnelMarshaler() ReverseTunnelMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return tunnelMarshaler
 }

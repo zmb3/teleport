@@ -3,6 +3,7 @@ package local
 import (
 	"context"
 
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/services"
 
@@ -33,7 +34,7 @@ func (s *CA) CreateCertAuthority(ca services.CertAuthority) error {
 	if err := ca.Check(); err != nil {
 		return trace.Wrap(err)
 	}
-	value, err := services.GetCertAuthorityMarshaler().MarshalCertAuthority(ca)
+	value, err := types.MarshalCertAuthority(ca)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -58,7 +59,7 @@ func (s *CA) UpsertCertAuthority(ca services.CertAuthority) error {
 	if err := ca.Check(); err != nil {
 		return trace.Wrap(err)
 	}
-	value, err := services.GetCertAuthorityMarshaler().MarshalCertAuthority(ca)
+	value, err := types.MarshalCertAuthority(ca)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -83,7 +84,7 @@ func (s *CA) CompareAndSwapCertAuthority(new, existing services.CertAuthority) e
 	if err := new.Check(); err != nil {
 		return trace.Wrap(err)
 	}
-	newValue, err := services.GetCertAuthorityMarshaler().MarshalCertAuthority(new)
+	newValue, err := types.MarshalCertAuthority(new)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -93,7 +94,7 @@ func (s *CA) CompareAndSwapCertAuthority(new, existing services.CertAuthority) e
 		Expires: new.Expiry(),
 	}
 
-	existingValue, err := services.GetCertAuthorityMarshaler().MarshalCertAuthority(existing)
+	existingValue, err := types.MarshalCertAuthority(existing)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -144,7 +145,7 @@ func (s *CA) ActivateCertAuthority(id services.CertAuthID) error {
 		return trace.Wrap(err)
 	}
 
-	certAuthority, err := services.GetCertAuthorityMarshaler().UnmarshalCertAuthority(
+	certAuthority, err := types.UnmarshalCertAuthority(
 		item.Value, services.WithResourceID(item.ID), services.WithExpires(item.Expires))
 	if err != nil {
 		return trace.Wrap(err)
@@ -179,7 +180,7 @@ func (s *CA) DeactivateCertAuthority(id services.CertAuthID) error {
 		return trace.Wrap(err)
 	}
 
-	value, err := services.GetCertAuthorityMarshaler().MarshalCertAuthority(certAuthority)
+	value, err := types.MarshalCertAuthority(certAuthority)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -208,7 +209,7 @@ func (s *CA) GetCertAuthority(id services.CertAuthID, loadSigningKeys bool, opts
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	ca, err := services.GetCertAuthorityMarshaler().UnmarshalCertAuthority(
+	ca, err := types.UnmarshalCertAuthority(
 		item.Value, services.AddOptions(opts, services.WithResourceID(item.ID), services.WithExpires(item.Expires))...)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -244,7 +245,7 @@ func (s *CA) GetCertAuthorities(caType services.CertAuthType, loadSigningKeys bo
 	// Marshal values into a []services.CertAuthority slice.
 	cas := make([]services.CertAuthority, len(result.Items))
 	for i, item := range result.Items {
-		ca, err := services.GetCertAuthorityMarshaler().UnmarshalCertAuthority(
+		ca, err := types.UnmarshalCertAuthority(
 			item.Value, services.AddOptions(opts,
 				services.WithResourceID(item.ID),
 				services.WithExpires(item.Expires))...)

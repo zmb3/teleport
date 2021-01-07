@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -202,7 +203,7 @@ func (rc *ResourceCommand) GetMany(client auth.ClientI) error {
 
 func (rc *ResourceCommand) GetAll(client auth.ClientI) error {
 	rc.withSecrets = true
-	allKinds := services.GetResourceMarshalerKinds()
+	allKinds := types.GetResourceMarshalerKinds()
 	allRefs := make([]services.Ref, 0, len(allKinds))
 	for _, kind := range allKinds {
 		ref := services.Ref{
@@ -265,7 +266,7 @@ func (rc *ResourceCommand) Create(client auth.ClientI) (err error) {
 
 // createTrustedCluster implements `tctl create cluster.yaml` command
 func (rc *ResourceCommand) createTrustedCluster(client auth.ClientI, raw services.UnknownResource) error {
-	tc, err := services.GetTrustedClusterMarshaler().Unmarshal(raw.Raw)
+	tc, err := types.UnmarshalTrustedCluster(raw.Raw)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -303,7 +304,7 @@ func (rc *ResourceCommand) createTrustedCluster(client auth.ClientI, raw service
 
 // createCertAuthority creates certificate authority
 func (rc *ResourceCommand) createCertAuthority(client auth.ClientI, raw services.UnknownResource) error {
-	certAuthority, err := services.GetCertAuthorityMarshaler().UnmarshalCertAuthority(raw.Raw)
+	certAuthority, err := types.UnmarshalCertAuthority(raw.Raw)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -316,7 +317,7 @@ func (rc *ResourceCommand) createCertAuthority(client auth.ClientI, raw services
 
 // createGithubConnector creates a Github connector
 func (rc *ResourceCommand) createGithubConnector(client auth.ClientI, raw services.UnknownResource) error {
-	connector, err := services.GetGithubConnectorMarshaler().Unmarshal(raw.Raw)
+	connector, err := types.UnmarshalGithubConnector(raw.Raw)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -340,7 +341,7 @@ func (rc *ResourceCommand) createGithubConnector(client auth.ClientI, raw servic
 
 // createUser implements 'tctl create user.yaml' command.
 func (rc *ResourceCommand) createUser(client auth.ClientI, raw services.UnknownResource) error {
-	user, err := services.GetUserMarshaler().UnmarshalUser(raw.Raw)
+	user, err := types.UnmarshalUser(raw.Raw)
 	if err != nil {
 		return trace.Wrap(err)
 	}

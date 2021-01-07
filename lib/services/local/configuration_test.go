@@ -22,6 +22,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/backend/lite"
 	"github.com/gravitational/teleport/lib/fixtures"
@@ -167,10 +168,10 @@ func (s *ClusterConfigurationSuite) TestClusterConfigMarshal(c *check.C) {
 	})
 	c.Assert(err, check.IsNil)
 
-	data, err := services.GetClusterConfigMarshaler().Marshal(clusterConfig)
+	data, err := types.MarshalClusterConfig(clusterConfig)
 	c.Assert(err, check.IsNil)
 
-	out, err := services.GetClusterConfigMarshaler().Unmarshal(data)
+	out, err := types.UnmarshalClusterConfig(data)
 	c.Assert(err, check.IsNil)
 	fixtures.DeepCompare(c, clusterConfig, out)
 
@@ -190,10 +191,10 @@ func (s *ClusterConfigurationSuite) TestClusterConfigMarshal(c *check.C) {
 	})
 	c.Assert(err, check.IsNil)
 
-	data, err = services.GetClusterConfigMarshaler().Marshal(clusterConfig)
+	data, err = types.MarshalClusterConfig(clusterConfig)
 	c.Assert(err, check.IsNil)
 
-	out, err = services.GetClusterConfigMarshaler().Unmarshal(data)
+	out, err = types.UnmarshalClusterConfig(data)
 	c.Assert(err, check.IsNil)
 	fixtures.DeepCompare(c, clusterConfig, out)
 }

@@ -202,17 +202,8 @@ func GetStaticTokensSchema(extensionSchema string) string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, staticTokensSchema, DefaultDefinitions)
 }
 
-// StaticTokensMarshaler implements marshal/unmarshal of StaticTokens implementations
-// mostly adds support for extended versions.
-type StaticTokensMarshaler interface {
-	Marshal(c StaticTokens, opts ...MarshalOption) ([]byte, error)
-	Unmarshal(bytes []byte, opts ...MarshalOption) (StaticTokens, error)
-}
-
-type teleportStaticTokensMarshaler struct{}
-
-// Unmarshal unmarshals StaticTokens from JSON.
-func (t *teleportStaticTokensMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (StaticTokens, error) {
+// UnmarshalStaticTokens unmarshals StaticTokens from JSON.
+func UnmarshalStaticTokens(bytes []byte, opts ...MarshalOption) (StaticTokens, error) {
 	var staticTokens StaticTokensV2
 
 	if len(bytes) == 0 {
@@ -249,8 +240,8 @@ func (t *teleportStaticTokensMarshaler) Unmarshal(bytes []byte, opts ...MarshalO
 	return &staticTokens, nil
 }
 
-// Marshal marshals StaticTokens to JSON.
-func (t *teleportStaticTokensMarshaler) Marshal(c StaticTokens, opts ...MarshalOption) ([]byte, error) {
+// MarshalStaticTokens marshals StaticTokens to JSON.
+func MarshalStaticTokens(c StaticTokens, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -268,20 +259,4 @@ func (t *teleportStaticTokensMarshaler) Marshal(c StaticTokens, opts ...MarshalO
 	default:
 		return nil, trace.BadParameter("unrecognized resource version %T", c)
 	}
-}
-
-var staticTokensMarshaler StaticTokensMarshaler = &teleportStaticTokensMarshaler{}
-
-// SetStaticTokensMarshaler sets the marshaler.
-func SetStaticTokensMarshaler(m StaticTokensMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	staticTokensMarshaler = m
-}
-
-// GetStaticTokensMarshaler gets the marshaler.
-func GetStaticTokensMarshaler() StaticTokensMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return staticTokensMarshaler
 }

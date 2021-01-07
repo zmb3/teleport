@@ -491,17 +491,29 @@ func GetClusterConfigSchema(extensionSchema string) string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, clusterConfigSchema, DefaultDefinitions)
 }
 
-// ClusterConfigMarshaler implements marshal/unmarshal of ClusterConfig implementations
-// mostly adds support for extended versions.
-type ClusterConfigMarshaler interface {
-	Marshal(c ClusterConfig, opts ...MarshalOption) ([]byte, error)
-	Unmarshal(bytes []byte, opts ...MarshalOption) (ClusterConfig, error)
+// MarshalClusterConfig marshals cluster config to JSON or YAML.
+func MarshalClusterConfig(c ClusterConfig, opts ...MarshalOption) ([]byte, error) {
+	cfg, err := CollectOptions(opts)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	switch resource := c.(type) {
+	case *ClusterConfigV3:
+		if !cfg.PreserveResourceID {
+			// avoid modifying the original object
+			// to prevent unexpected data races
+			copy := *resource
+			copy.SetResourceID(0)
+			resource = &copy
+		}
+		return utils.FastMarshal(resource)
+	default:
+		return nil, trace.BadParameter("unrecognized resource version %T", c)
+	}
 }
 
-type teleportClusterConfigMarshaler struct{}
-
-// Unmarshal unmarshals ClusterConfig from JSON.
-func (t *teleportClusterConfigMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (ClusterConfig, error) {
+// UnmarshalClusterConfig unmarshals cluster config from JSON or YAML.
+func UnmarshalClusterConfig(bytes []byte, opts ...MarshalOption) (ClusterConfig, error) {
 	var clusterConfig ClusterConfigV3
 
 	if len(bytes) == 0 {
@@ -536,41 +548,4 @@ func (t *teleportClusterConfigMarshaler) Unmarshal(bytes []byte, opts ...Marshal
 		clusterConfig.SetExpiry(cfg.Expires)
 	}
 	return &clusterConfig, nil
-}
-
-// Marshal marshals ClusterConfig to JSON.
-func (t *teleportClusterConfigMarshaler) Marshal(c ClusterConfig, opts ...MarshalOption) ([]byte, error) {
-	cfg, err := CollectOptions(opts)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	switch resource := c.(type) {
-	case *ClusterConfigV3:
-		if !cfg.PreserveResourceID {
-			// avoid modifying the original object
-			// to prevent unexpected data races
-			copy := *resource
-			copy.SetResourceID(0)
-			resource = &copy
-		}
-		return utils.FastMarshal(resource)
-	default:
-		return nil, trace.BadParameter("unrecognized resource version %T", c)
-	}
-}
-
-var clusterConfigMarshaler ClusterConfigMarshaler = &teleportClusterConfigMarshaler{}
-
-// SetClusterConfigMarshaler sets the marshaler.
-func SetClusterConfigMarshaler(m ClusterConfigMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	clusterConfigMarshaler = m
-}
-
-// GetClusterConfigMarshaler gets the marshaler.
-func GetClusterConfigMarshaler() ClusterConfigMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return clusterConfigMarshaler
 }

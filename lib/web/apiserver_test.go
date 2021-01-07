@@ -44,6 +44,7 @@ import (
 	"golang.org/x/text/encoding/unicode"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/auth/mocku2f"
 	"github.com/gravitational/teleport/lib/backend"
@@ -417,7 +418,7 @@ func (s *WebSuite) TestSAMLSuccess(c *C) {
 	err := decoder.Decode(&raw)
 	c.Assert(err, IsNil)
 
-	connector, err := services.GetSAMLConnectorMarshaler().UnmarshalSAMLConnector(raw.Raw)
+	connector, err := types.UnmarshalSAMLConnector(raw.Raw)
 	c.Assert(err, IsNil)
 	err = connector.CheckAndSetDefaults()
 	c.Assert(err, IsNil)

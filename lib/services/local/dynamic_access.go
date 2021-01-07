@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
@@ -367,7 +368,7 @@ func (s *DynamicAccessService) updateAccessRequestPluginData(ctx context.Context
 }
 
 func itemFromAccessRequest(req services.AccessRequest) (backend.Item, error) {
-	value, err := services.GetAccessRequestMarshaler().MarshalAccessRequest(req)
+	value, err := types.MarshalAccessRequest(req)
 	if err != nil {
 		return backend.Item{}, trace.Wrap(err)
 	}
@@ -385,7 +386,7 @@ func itemToAccessRequest(item backend.Item, opts ...services.MarshalOption) (ser
 		services.WithResourceID(item.ID),
 		services.WithExpires(item.Expires),
 	)
-	req, err := services.GetAccessRequestMarshaler().UnmarshalAccessRequest(
+	req, err := types.UnmarshalAccessRequest(
 		item.Value,
 		opts...,
 	)
@@ -396,7 +397,7 @@ func itemToAccessRequest(item backend.Item, opts ...services.MarshalOption) (ser
 }
 
 func itemFromPluginData(data services.PluginData) (backend.Item, error) {
-	value, err := services.GetPluginDataMarshaler().MarshalPluginData(data)
+	value, err := types.MarshalPluginData(data)
 	if err != nil {
 		return backend.Item{}, trace.Wrap(err)
 	}
@@ -414,7 +415,7 @@ func itemFromPluginData(data services.PluginData) (backend.Item, error) {
 }
 
 func itemToPluginData(item backend.Item) (services.PluginData, error) {
-	data, err := services.GetPluginDataMarshaler().UnmarshalPluginData(
+	data, err := types.UnmarshalPluginData(
 		item.Value,
 		services.WithResourceID(item.ID),
 		services.WithExpires(item.Expires),

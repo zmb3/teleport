@@ -36,6 +36,7 @@ import (
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/events"
@@ -858,7 +859,7 @@ func (a *Server) ExtendWebSession(user, prevSessionID, accessRequestID string, i
 		return nil, trace.Wrap(err)
 	}
 
-	sess, err = services.GetWebSessionMarshaler().ExtendWebSession(sess)
+	sess, err = types.ExtendWebSession(sess)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -915,7 +916,7 @@ func (a *Server) CreateWebSession(user string) (services.WebSession, error) {
 	if err := a.UpsertWebSession(user, sess); err != nil {
 		return nil, trace.Wrap(err)
 	}
-	sess, err = services.GetWebSessionMarshaler().GenerateWebSession(sess)
+	sess, err = types.GenerateWebSession(sess)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

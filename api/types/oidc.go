@@ -533,40 +533,13 @@ var ClaimMappingSchema = `{
   }
 }`
 
-var connectorMarshaler OIDCConnectorMarshaler = &teleportOIDCConnectorMarshaler{}
-
-// SetOIDCConnectorMarshaler sets global OIDCConnector marshaler
-func SetOIDCConnectorMarshaler(m OIDCConnectorMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	connectorMarshaler = m
-}
-
-// GetOIDCConnectorMarshaler returns currently set OIDCConnector marshaler
-func GetOIDCConnectorMarshaler() OIDCConnectorMarshaler {
-	marshalerMutex.RLock()
-	defer marshalerMutex.RUnlock()
-	return connectorMarshaler
-}
-
-// OIDCConnectorMarshaler implements marshal/unmarshal of OIDCConnector implementations
-// mostly adds support for extended versions
-type OIDCConnectorMarshaler interface {
-	// UnmarshalOIDCConnector unmarshals connector from binary representation
-	UnmarshalOIDCConnector(bytes []byte, opts ...MarshalOption) (OIDCConnector, error)
-	// MarshalOIDCConnector marshals connector to binary representation
-	MarshalOIDCConnector(c OIDCConnector, opts ...MarshalOption) ([]byte, error)
-}
-
 // GetOIDCConnectorSchema returns schema for OIDCConnector
 func GetOIDCConnectorSchema() string {
 	return fmt.Sprintf(OIDCConnectorV2SchemaTemplate, MetadataSchema, OIDCConnectorSpecV2Schema)
 }
 
-type teleportOIDCConnectorMarshaler struct{}
-
-// UnmarshalOIDCConnector unmarshals connector from the specified byte payload
-func (*teleportOIDCConnectorMarshaler) UnmarshalOIDCConnector(bytes []byte, opts ...MarshalOption) (OIDCConnector, error) {
+// UnmarshalOIDCConnector unmarshals OIDC connector from JSON or YAML.
+func UnmarshalOIDCConnector(bytes []byte, opts ...MarshalOption) (OIDCConnector, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -604,8 +577,8 @@ func (*teleportOIDCConnectorMarshaler) UnmarshalOIDCConnector(bytes []byte, opts
 	return nil, trace.BadParameter("OIDC connector resource version %v is not supported", h.Version)
 }
 
-// MarshalOIDCConnector marshals OIDC connector into JSON
-func (*teleportOIDCConnectorMarshaler) MarshalOIDCConnector(c OIDCConnector, opts ...MarshalOption) ([]byte, error) {
+// MarshalOIDCConnector marshals OIDC connector to JSON or YAML.
+func MarshalOIDCConnector(c OIDCConnector, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)

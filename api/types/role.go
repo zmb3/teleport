@@ -1107,7 +1107,7 @@ func GetRoleSchema(version string, extensionSchema string) string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, schema, schemaDefinitions)
 }
 
-// UnmarshalRole unmarshals role from JSON, sets defaults, and checks schema.
+// UnmarshalRole unmarshals Role from JSON, sets defaults, and checks schema.
 func UnmarshalRole(data []byte, opts ...MarshalOption) (*RoleV3, error) {
 	var h ResourceHeader
 	err := json.Unmarshal(data, &h)
@@ -1149,24 +1149,8 @@ func UnmarshalRole(data []byte, opts ...MarshalOption) (*RoleV3, error) {
 	return nil, trace.BadParameter("role version %q is not supported", h.Version)
 }
 
-// RoleMarshaler implements marshal/unmarshal of Role implementations
-// mostly adds support for extended versions
-type RoleMarshaler interface {
-	// UnmarshalRole from binary representation
-	UnmarshalRole(bytes []byte, opts ...MarshalOption) (Role, error)
-	// MarshalRole to binary representation
-	MarshalRole(u Role, opts ...MarshalOption) ([]byte, error)
-}
-
-type teleportRoleMarshaler struct{}
-
-// UnmarshalRole unmarshals role from JSON.
-func (*teleportRoleMarshaler) UnmarshalRole(bytes []byte, opts ...MarshalOption) (Role, error) {
-	return UnmarshalRole(bytes, opts...)
-}
-
-// MarshalRole marshals role into JSON.
-func (*teleportRoleMarshaler) MarshalRole(r Role, opts ...MarshalOption) ([]byte, error) {
+// MarshalRole marshals Role into JSON.
+func MarshalRole(r Role, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -1184,20 +1168,4 @@ func (*teleportRoleMarshaler) MarshalRole(r Role, opts ...MarshalOption) ([]byte
 	default:
 		return nil, trace.BadParameter("unrecognized role version %T", r)
 	}
-}
-
-var roleMarshaler RoleMarshaler = &teleportRoleMarshaler{}
-
-// SetRoleMarshaler sets the global RoleMarshaler
-func SetRoleMarshaler(m RoleMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	roleMarshaler = m
-}
-
-// GetRoleMarshaler returns currently set RoleMarshaler
-func GetRoleMarshaler() RoleMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return roleMarshaler
 }

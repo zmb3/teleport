@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -210,7 +211,7 @@ func Init(cfg InitConfig, opts ...ServerOption) (*Server, error) {
 	}
 	for i := range cfg.Authorities {
 		ca := cfg.Authorities[i]
-		ca, err = services.GetCertAuthorityMarshaler().GenerateCertAuthority(ca)
+		ca, err = types.GenerateCertAuthority(ca)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}

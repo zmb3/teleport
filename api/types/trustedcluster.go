@@ -508,17 +508,8 @@ func GetTrustedClusterSchema(extensionSchema string) string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, trustedClusterSchema, DefaultDefinitions)
 }
 
-// TrustedClusterMarshaler implements marshal/unmarshal of TrustedCluster implementations
-// mostly adds support for extended versions.
-type TrustedClusterMarshaler interface {
-	Marshal(c TrustedCluster, opts ...MarshalOption) ([]byte, error)
-	Unmarshal(bytes []byte, opts ...MarshalOption) (TrustedCluster, error)
-}
-
-type teleportTrustedClusterMarshaler struct{}
-
-// Unmarshal unmarshals role from JSON or YAML.
-func (t *teleportTrustedClusterMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (TrustedCluster, error) {
+// UnmarshalTrustedCluster unmarshals role from JSON or YAML.
+func UnmarshalTrustedCluster(bytes []byte, opts ...MarshalOption) (TrustedCluster, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -553,8 +544,8 @@ func (t *teleportTrustedClusterMarshaler) Unmarshal(bytes []byte, opts ...Marsha
 	return &trustedCluster, nil
 }
 
-// Marshal marshals role to JSON or YAML.
-func (t *teleportTrustedClusterMarshaler) Marshal(c TrustedCluster, opts ...MarshalOption) ([]byte, error) {
+// MarshalTrustedCluster marshals role to JSON or YAML.
+func MarshalTrustedCluster(c TrustedCluster, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -572,20 +563,4 @@ func (t *teleportTrustedClusterMarshaler) Marshal(c TrustedCluster, opts ...Mars
 	default:
 		return nil, trace.BadParameter("unrecognized resource version %T", c)
 	}
-}
-
-var trustedClusterMarshaler TrustedClusterMarshaler = &teleportTrustedClusterMarshaler{}
-
-// SetTrustedClusterMarshaler sets global TrustedClusterMarshaler
-func SetTrustedClusterMarshaler(m TrustedClusterMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	trustedClusterMarshaler = m
-}
-
-// GetTrustedClusterMarshaler returns currently set TrustedClusterMarshaler
-func GetTrustedClusterMarshaler() TrustedClusterMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return trustedClusterMarshaler
 }

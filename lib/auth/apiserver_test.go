@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/services"
 
@@ -107,7 +108,7 @@ func TestUpsertServer(t *testing.T) {
 			s := newTestServices(t)
 
 			// Create a fake HTTP request.
-			inSrv, err := services.GetServerMarshaler().MarshalServer(tt.reqServer)
+			inSrv, err := types.MarshalServer(tt.reqServer)
 			require.NoError(t, err)
 			body, err := json.Marshal(upsertServerRawReq{Server: inSrv})
 			require.NoError(t, err)

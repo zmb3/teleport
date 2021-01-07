@@ -176,19 +176,13 @@ const ResetPasswordTokenSpecV3Template = `{
   }
 }`
 
-// ResetPasswordTokenMarshaler implements marshal/unmarshal of ResetPasswordToken implementations
-// mostly adds support for extended versions
-type ResetPasswordTokenMarshaler interface {
-	// Marshal marshals token to binary representation
-	Marshal(t ResetPasswordToken, opts ...MarshalOption) ([]byte, error)
-	// Unmarshal unmarshals token from binary representation
-	Unmarshal(bytes []byte, opts ...MarshalOption) (ResetPasswordToken, error)
+// MarshalResetPasswordToken marshals plugin data to JSON or YAML.
+func MarshalResetPasswordToken(token ResetPasswordToken, opts ...MarshalOption) ([]byte, error) {
+	return utils.FastMarshal(token)
 }
 
-type teleportResetPasswordTokenMarshaler struct{}
-
-// Unmarshal unmarshals ResetPasswordToken
-func (t *teleportResetPasswordTokenMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (ResetPasswordToken, error) {
+// UnmarshalResetPasswordToken unmarshals plugin data from JSON or YAML.
+func UnmarshalResetPasswordToken(bytes []byte, opts ...MarshalOption) (ResetPasswordToken, error) {
 	if len(bytes) == 0 {
 		return nil, trace.BadParameter("missing resource data")
 	}
@@ -201,25 +195,4 @@ func (t *teleportResetPasswordTokenMarshaler) Unmarshal(bytes []byte, opts ...Ma
 	}
 
 	return &token, nil
-}
-
-// Marshal marshals role to JSON or YAML.
-func (t *teleportResetPasswordTokenMarshaler) Marshal(token ResetPasswordToken, opts ...MarshalOption) ([]byte, error) {
-	return utils.FastMarshal(token)
-}
-
-var resetPasswordTokenMarshaler ResetPasswordTokenMarshaler = &teleportResetPasswordTokenMarshaler{}
-
-// SetResetTokenMarshaler sets global ResetPasswordToken marshaler
-func SetResetTokenMarshaler(m ResetPasswordTokenMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	resetPasswordTokenMarshaler = m
-}
-
-// GetResetPasswordTokenMarshaler returns ResetPasswordToken marshaler
-func GetResetPasswordTokenMarshaler() ResetPasswordTokenMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return resetPasswordTokenMarshaler
 }

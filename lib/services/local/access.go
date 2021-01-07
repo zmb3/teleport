@@ -20,6 +20,7 @@ import (
 	"context"
 	"sort"
 
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/services"
 
@@ -49,7 +50,7 @@ func (s *AccessService) GetRoles() ([]services.Role, error) {
 	}
 	out := make([]services.Role, 0, len(result.Items))
 	for _, item := range result.Items {
-		role, err := services.GetRoleMarshaler().UnmarshalRole(item.Value,
+		role, err := types.UnmarshalRole(item.Value,
 			services.WithResourceID(item.ID), services.WithExpires(item.Expires))
 		if err != nil {
 			return nil, trace.Wrap(err)
@@ -62,7 +63,7 @@ func (s *AccessService) GetRoles() ([]services.Role, error) {
 
 // CreateRole creates a role on the backend.
 func (s *AccessService) CreateRole(role services.Role) error {
-	value, err := services.GetRoleMarshaler().MarshalRole(role)
+	value, err := types.MarshalRole(role)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -82,7 +83,7 @@ func (s *AccessService) CreateRole(role services.Role) error {
 
 // UpsertRole updates parameters about role
 func (s *AccessService) UpsertRole(ctx context.Context, role services.Role) error {
-	value, err := services.GetRoleMarshaler().MarshalRole(role)
+	value, err := types.MarshalRole(role)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -113,7 +114,7 @@ func (s *AccessService) GetRole(name string) (services.Role, error) {
 		}
 		return nil, trace.Wrap(err)
 	}
-	return services.GetRoleMarshaler().UnmarshalRole(item.Value,
+	return types.UnmarshalRole(item.Value,
 		services.WithResourceID(item.ID), services.WithExpires(item.Expires))
 }
 

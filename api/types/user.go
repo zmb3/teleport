@@ -458,23 +458,8 @@ func GetUserSchema(extensionSchema string) string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, userSchema, DefaultDefinitions)
 }
 
-// UserMarshaler implements marshal/unmarshal of User implementations
-// mostly adds support for extended versions
-type UserMarshaler interface {
-	// UnmarshalUser from binary representation
-	UnmarshalUser(bytes []byte, opts ...MarshalOption) (User, error)
-	// MarshalUser to binary representation
-	MarshalUser(u User, opts ...MarshalOption) ([]byte, error)
-	// GenerateUser generates new user based on standard teleport user
-	// it gives external implementations to add more app-specific
-	// data to the user
-	GenerateUser(User) (User, error)
-}
-
-type teleportUserMarshaler struct{}
-
 // UnmarshalUser unmarshals user from JSON
-func (*teleportUserMarshaler) UnmarshalUser(bytes []byte, opts ...MarshalOption) (User, error) {
+func UnmarshalUser(bytes []byte, opts ...MarshalOption) (User, error) {
 	var h ResourceHeader
 	err := json.Unmarshal(bytes, &h)
 	if err != nil {
@@ -515,7 +500,7 @@ func (*teleportUserMarshaler) UnmarshalUser(bytes []byte, opts ...MarshalOption)
 }
 
 // MarshalUser marshalls user into JSON
-func (*teleportUserMarshaler) MarshalUser(u User, opts ...MarshalOption) ([]byte, error) {
+func MarshalUser(u User, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -537,22 +522,6 @@ func (*teleportUserMarshaler) MarshalUser(u User, opts ...MarshalOption) ([]byte
 }
 
 // GenerateUser generates new user
-func (*teleportUserMarshaler) GenerateUser(in User) (User, error) {
+func GenerateUser(in User) (User, error) {
 	return in, nil
-}
-
-var userMarshaler UserMarshaler = &teleportUserMarshaler{}
-
-// SetUserMarshaler sets global user marshaler
-func SetUserMarshaler(u UserMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	userMarshaler = u
-}
-
-// GetUserMarshaler returns currently set user marshaler
-func GetUserMarshaler() UserMarshaler {
-	marshalerMutex.RLock()
-	defer marshalerMutex.RUnlock()
-	return userMarshaler
 }

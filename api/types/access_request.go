@@ -541,15 +541,8 @@ func GetAccessRequestSchema() string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, AccessRequestSpecSchema, DefaultDefinitions)
 }
 
-// AccessRequestMarshaler implements marshal/unmarshal of AccessRequest implementations
-type AccessRequestMarshaler interface {
-	MarshalAccessRequest(req AccessRequest, opts ...MarshalOption) ([]byte, error)
-	UnmarshalAccessRequest(bytes []byte, opts ...MarshalOption) (AccessRequest, error)
-}
-
-type accessRequestMarshaler struct{}
-
-func (r *accessRequestMarshaler) MarshalAccessRequest(req AccessRequest, opts ...MarshalOption) ([]byte, error) {
+// MarshalAccessRequest marshals access request to JSON or YAML.
+func MarshalAccessRequest(req AccessRequest, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -569,7 +562,8 @@ func (r *accessRequestMarshaler) MarshalAccessRequest(req AccessRequest, opts ..
 	}
 }
 
-func (r *accessRequestMarshaler) UnmarshalAccessRequest(data []byte, opts ...MarshalOption) (AccessRequest, error) {
+// UnmarshalAccessRequest unmarshals access request from JSON or YAML.
+func UnmarshalAccessRequest(data []byte, opts ...MarshalOption) (AccessRequest, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -594,13 +588,4 @@ func (r *accessRequestMarshaler) UnmarshalAccessRequest(data []byte, opts ...Mar
 		req.SetExpiry(cfg.Expires)
 	}
 	return &req, nil
-}
-
-var accessRequestMarshalerInstance AccessRequestMarshaler = &accessRequestMarshaler{}
-
-// GetAccessRequestMarshaler returns currently set AccessRequestMarshaler
-func GetAccessRequestMarshaler() AccessRequestMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return accessRequestMarshalerInstance
 }

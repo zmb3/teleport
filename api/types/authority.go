@@ -879,30 +879,37 @@ func GetCertAuthoritySchema() string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, fmt.Sprintf(CertAuthoritySpecV2Schema, RotationSchema, RoleMapSchema), DefaultDefinitions)
 }
 
-// CertAuthorityMarshaler implements marshal/unmarshal of User implementations
-// mostly adds support for extended versions
-type CertAuthorityMarshaler interface {
-	// UnmarshalCertAuthority unmarhsals cert authority from binary representation
-	UnmarshalCertAuthority(bytes []byte, opts ...MarshalOption) (CertAuthority, error)
-	// MarshalCertAuthority to binary representation
-	MarshalCertAuthority(c CertAuthority, opts ...MarshalOption) ([]byte, error)
-	// GenerateCertAuthority is used to generate new cert authority
-	// based on standard teleport one and is used to add custom
-	// parameters and extend it in extensions of teleport
-	GenerateCertAuthority(CertAuthority) (CertAuthority, error)
-}
-
-type teleportCertAuthorityMarshaler struct{}
-
 // GenerateCertAuthority is used to generate new cert authority
 // based on standard teleport one and is used to add custom
 // parameters and extend it in extensions of teleport
-func (*teleportCertAuthorityMarshaler) GenerateCertAuthority(ca CertAuthority) (CertAuthority, error) {
+func GenerateCertAuthority(ca CertAuthority) (CertAuthority, error) {
 	return ca, nil
 }
 
-// UnmarshalCertAuthority unmarshals cert authority from JSON
-func (*teleportCertAuthorityMarshaler) UnmarshalCertAuthority(bytes []byte, opts ...MarshalOption) (CertAuthority, error) {
+// MarshalCertAuthority marshals cert authority to JSON or YAML.
+func MarshalCertAuthority(ca CertAuthority, opts ...MarshalOption) ([]byte, error) {
+	cfg, err := CollectOptions(opts)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	switch authority := ca.(type) {
+	case *CertAuthorityV2:
+		if !cfg.PreserveResourceID {
+			// avoid modifying the original object
+			// to prevent unexpected data races
+			copy := *authority
+			copy.SetResourceID(0)
+			authority = &copy
+		}
+		return utils.FastMarshal(authority)
+	default:
+		return nil, trace.BadParameter("unrecognized certificate authority version %T", ca)
+	}
+}
+
+// UnmarshalCertAuthority unmarshals cert authority from JSON or YAML.
+func UnmarshalCertAuthority(bytes []byte, opts ...MarshalOption) (CertAuthority, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -934,42 +941,4 @@ func (*teleportCertAuthorityMarshaler) UnmarshalCertAuthority(bytes []byte, opts
 	}
 
 	return nil, trace.BadParameter("cert authority resource version %v is not supported", h.Version)
-}
-
-// MarshalCertAuthority marshalls cert authority into JSON
-func (*teleportCertAuthorityMarshaler) MarshalCertAuthority(ca CertAuthority, opts ...MarshalOption) ([]byte, error) {
-	cfg, err := CollectOptions(opts)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	switch authority := ca.(type) {
-	case *CertAuthorityV2:
-		if !cfg.PreserveResourceID {
-			// avoid modifying the original object
-			// to prevent unexpected data races
-			copy := *authority
-			copy.SetResourceID(0)
-			authority = &copy
-		}
-		return utils.FastMarshal(authority)
-	default:
-		return nil, trace.BadParameter("unrecognized certificate authority version %T", ca)
-	}
-}
-
-var certAuthorityMarshaler CertAuthorityMarshaler = &teleportCertAuthorityMarshaler{}
-
-// SetCertAuthorityMarshaler sets global user marshaler
-func SetCertAuthorityMarshaler(u CertAuthorityMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	certAuthorityMarshaler = u
-}
-
-// GetCertAuthorityMarshaler returns currently set user marshaler
-func GetCertAuthorityMarshaler() CertAuthorityMarshaler {
-	marshalerMutex.RLock()
-	defer marshalerMutex.RUnlock()
-	return certAuthorityMarshaler
 }

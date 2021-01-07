@@ -268,15 +268,8 @@ func GetPluginDataSchema() string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, PluginDataSpecSchema, DefaultDefinitions)
 }
 
-// PluginDataMarshaler implements marshal/unmarshal of PluginData implementations
-type PluginDataMarshaler interface {
-	MarshalPluginData(req PluginData, opts ...MarshalOption) ([]byte, error)
-	UnmarshalPluginData(bytes []byte, opts ...MarshalOption) (PluginData, error)
-}
-
-type pluginDataMarshaler struct{}
-
-func (m *pluginDataMarshaler) MarshalPluginData(data PluginData, opts ...MarshalOption) ([]byte, error) {
+// MarshalPluginData marshals plugin data to JSON or YAML.
+func MarshalPluginData(data PluginData, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -296,7 +289,8 @@ func (m *pluginDataMarshaler) MarshalPluginData(data PluginData, opts ...Marshal
 	}
 }
 
-func (m *pluginDataMarshaler) UnmarshalPluginData(raw []byte, opts ...MarshalOption) (PluginData, error) {
+// UnmarshalPluginData unmarshals plugin data from JSON or YAML.
+func UnmarshalPluginData(raw []byte, opts ...MarshalOption) (PluginData, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -321,13 +315,4 @@ func (m *pluginDataMarshaler) UnmarshalPluginData(raw []byte, opts ...MarshalOpt
 		data.SetExpiry(cfg.Expires)
 	}
 	return &data, nil
-}
-
-var pluginDataMarshalerInstance PluginDataMarshaler = &pluginDataMarshaler{}
-
-// GetPluginDataMarshaler gets the global
-func GetPluginDataMarshaler() PluginDataMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return pluginDataMarshalerInstance
 }

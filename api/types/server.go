@@ -591,28 +591,8 @@ func UnmarshalServerResource(data []byte, kind string, cfg *MarshalConfig) (Serv
 	return nil, trace.BadParameter("server resource version %q is not supported", h.Version)
 }
 
-// ServerMarshaler implements marshal/unmarshal of Role implementations
-// mostly adds support for extended versions
-type ServerMarshaler interface {
-	// UnmarshalServer from binary representation.
-	UnmarshalServer(bytes []byte, kind string, opts ...MarshalOption) (Server, error)
-
-	// MarshalServer to binary representation.
-	MarshalServer(Server, ...MarshalOption) ([]byte, error)
-
-	// UnmarshalServers is used to unmarshal multiple servers from their
-	// binary representation.
-	UnmarshalServers(bytes []byte) ([]Server, error)
-
-	// MarshalServers is used to marshal multiple servers to their binary
-	// representation.
-	MarshalServers([]Server) ([]byte, error)
-}
-
-type teleportServerMarshaler struct{}
-
 // UnmarshalServer unmarshals server from JSON
-func (*teleportServerMarshaler) UnmarshalServer(bytes []byte, kind string, opts ...MarshalOption) (Server, error) {
+func UnmarshalServer(bytes []byte, kind string, opts ...MarshalOption) (Server, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -622,7 +602,7 @@ func (*teleportServerMarshaler) UnmarshalServer(bytes []byte, kind string, opts 
 }
 
 // MarshalServer marshals server into JSON.
-func (*teleportServerMarshaler) MarshalServer(s Server, opts ...MarshalOption) ([]byte, error) {
+func MarshalServer(s Server, opts ...MarshalOption) ([]byte, error) {
 	if err := s.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -648,7 +628,7 @@ func (*teleportServerMarshaler) MarshalServer(s Server, opts ...MarshalOption) (
 
 // UnmarshalServers is used to unmarshal multiple servers from their
 // binary representation.
-func (*teleportServerMarshaler) UnmarshalServers(bytes []byte) ([]Server, error) {
+func UnmarshalServers(bytes []byte) ([]Server, error) {
 	var servers []ServerV2
 
 	err := utils.FastUnmarshal(bytes, &servers)
@@ -665,29 +645,13 @@ func (*teleportServerMarshaler) UnmarshalServers(bytes []byte) ([]Server, error)
 
 // MarshalServers is used to marshal multiple servers to their binary
 // representation.
-func (*teleportServerMarshaler) MarshalServers(s []Server) ([]byte, error) {
+func MarshalServers(s []Server) ([]byte, error) {
 	bytes, err := utils.FastMarshal(s)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
 	return bytes, nil
-}
-
-var serverMarshaler ServerMarshaler = &teleportServerMarshaler{}
-
-// SetServerMarshaler sets global ServerMarshaler
-func SetServerMarshaler(m ServerMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	serverMarshaler = m
-}
-
-// GetServerMarshaler returns currently set ServerMarshaler
-func GetServerMarshaler() ServerMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return serverMarshaler
 }
 
 // validKubeClusterName filters the allowed characters in kubernetes cluster

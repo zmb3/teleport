@@ -475,17 +475,13 @@ func GetAuthPreferenceSchema(extensionSchema string) string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, authPreferenceSchema, DefaultDefinitions)
 }
 
-// AuthPreferenceMarshaler implements marshal/unmarshal of AuthPreference implementations
-// mostly adds support for extended versions.
-type AuthPreferenceMarshaler interface {
-	Marshal(c AuthPreference, opts ...MarshalOption) ([]byte, error)
-	Unmarshal(bytes []byte, opts ...MarshalOption) (AuthPreference, error)
+// MarshalAuthPreference marshals auth preference to JSON or YAML.
+func MarshalAuthPreference(c AuthPreference, opts ...MarshalOption) ([]byte, error) {
+	return json.Marshal(c)
 }
 
-type teleportAuthPreferenceMarshaler struct{}
-
-// Unmarshal unmarshals role from JSON or YAML.
-func (t *teleportAuthPreferenceMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (AuthPreference, error) {
+// UnmarshalAuthPreference unmarshals auth preference from JSON or YAML.
+func UnmarshalAuthPreference(bytes []byte, opts ...MarshalOption) (AuthPreference, error) {
 	var authPreference AuthPreferenceV2
 
 	if len(bytes) == 0 {
@@ -514,25 +510,4 @@ func (t *teleportAuthPreferenceMarshaler) Unmarshal(bytes []byte, opts ...Marsha
 		authPreference.SetExpiry(cfg.Expires)
 	}
 	return &authPreference, nil
-}
-
-// Marshal marshals role to JSON or YAML.
-func (t *teleportAuthPreferenceMarshaler) Marshal(c AuthPreference, opts ...MarshalOption) ([]byte, error) {
-	return json.Marshal(c)
-}
-
-var authPreferenceMarshaler AuthPreferenceMarshaler = &teleportAuthPreferenceMarshaler{}
-
-// SetAuthPreferenceMarshaler sets global AuthPreferenceMarshaler
-func SetAuthPreferenceMarshaler(m AuthPreferenceMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	authPreferenceMarshaler = m
-}
-
-// GetAuthPreferenceMarshaler returns currently set AuthPreferenceMarshaler
-func GetAuthPreferenceMarshaler() AuthPreferenceMarshaler {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	return authPreferenceMarshaler
 }

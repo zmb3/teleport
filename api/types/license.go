@@ -337,7 +337,7 @@ func UnmarshalLicense(bytes []byte) (License, error) {
 	return &license, nil
 }
 
-// MarshalLicense marshals role to JSON or YAML.
+// MarshalLicense marshals license to JSON or YAML.
 func MarshalLicense(license License, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {

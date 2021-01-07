@@ -350,17 +350,8 @@ func GetSemaphoreSchema() string {
 	return fmt.Sprintf(V2SchemaTemplate, MetadataSchema, SemaphoreSpecSchemaTemplate, DefaultDefinitions)
 }
 
-// SemaphoreMarshaler implements marshal/unmarshal of Semaphore implementations
-// mostly adds support for extended versions.
-type SemaphoreMarshaler interface {
-	Marshal(c Semaphore, opts ...MarshalOption) ([]byte, error)
-	Unmarshal(bytes []byte, opts ...MarshalOption) (Semaphore, error)
-}
-
-type teleportSemaphoreMarshaler struct{}
-
-// Unmarshal unmarshals Semaphore from JSON.
-func (t *teleportSemaphoreMarshaler) Unmarshal(bytes []byte, opts ...MarshalOption) (Semaphore, error) {
+// UnmarshalSemaphore unmarshals Semaphore from JSON.
+func UnmarshalSemaphore(bytes []byte, opts ...MarshalOption) (Semaphore, error) {
 	var semaphore SemaphoreV3
 
 	if len(bytes) == 0 {
@@ -397,8 +388,8 @@ func (t *teleportSemaphoreMarshaler) Unmarshal(bytes []byte, opts ...MarshalOpti
 	return &semaphore, nil
 }
 
-// Marshal marshals Semaphore to JSON.
-func (t *teleportSemaphoreMarshaler) Marshal(c Semaphore, opts ...MarshalOption) ([]byte, error) {
+// MarshalSemaphore marshals Semaphore to JSON.
+func MarshalSemaphore(c Semaphore, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -416,20 +407,4 @@ func (t *teleportSemaphoreMarshaler) Marshal(c Semaphore, opts ...MarshalOption)
 	default:
 		return nil, trace.BadParameter("unrecognized resource version %T", c)
 	}
-}
-
-var semaphoreMarshaler SemaphoreMarshaler = &teleportSemaphoreMarshaler{}
-
-// SetSemaphoreMarshaler sets the marshaler.
-func SetSemaphoreMarshaler(m SemaphoreMarshaler) {
-	marshalerMutex.Lock()
-	defer marshalerMutex.Unlock()
-	semaphoreMarshaler = m
-}
-
-// GetSemaphoreMarshaler gets the marshaler.
-func GetSemaphoreMarshaler() SemaphoreMarshaler {
-	marshalerMutex.RLock()
-	defer marshalerMutex.RUnlock()
-	return semaphoreMarshaler
 }
