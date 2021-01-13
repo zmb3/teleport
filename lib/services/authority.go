@@ -33,57 +33,55 @@ import (
 	"github.com/tstranex/u2f"
 )
 
-// NewJWTAuthority creates and returns a services.CertAuthority with a new
-// key pair.
-func NewJWTAuthority(clusterName string) (CertAuthority, error) {
-	var err error
-	var keyPair JWTKeyPair
-	if keyPair.PublicKey, keyPair.PrivateKey, err = jwt.GenerateKeyPair(); err != nil {
+// CertAuthorityService is a CertAuthority with additional service methods.
+type CertAuthorityService interface {
+	types.CertAuthority
+	// Validate validates the CertAuthority
+	Validate() error
+	// JWTSigner returns the active JWT key used to sign tokens.
+	JWTSigner(config jwt.Config) (*jwt.Key, error)
+	// TLSCerts returns TLS certificates from CA
+	TLSCerts() [][]byte
+}
+
+type certAuthorityService struct {
+	CertAuthority
+}
+
+// UnmarshalCertAuthorityService unmarshals CertAuthorityService from JSON
+func UnmarshalCertAuthorityService(bytes []byte, opts ...MarshalOption) (CertAuthorityService, error) {
+	ca, err := types.GetCertAuthorityMarshaler().UnmarshalCertAuthority(bytes, opts...)
+	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return types.NewCertAuthority(types.CertAuthoritySpecV2{
-		Type:        types.JWTSigner,
-		ClusterName: clusterName,
-		JWTKeyPairs: []JWTKeyPair{keyPair},
-	}), nil
+	return certAuthorityService{CertAuthority: ca}, nil
 }
 
-// NewCertAuthority returns new cert authority.
-// Replaced by types.NewCertAuthority.
-// DELETE in 7.0.0
-func NewCertAuthority(
-	caType CertAuthType,
-	clusterName string,
-	signingKeys [][]byte,
-	checkingKeys [][]byte,
-	roles []string,
-	signingAlg CertAuthoritySpecV2_SigningAlgType,
-) CertAuthority {
-	return types.NewCertAuthority(types.CertAuthoritySpecV2{
-		Type:         caType,
-		ClusterName:  clusterName,
-		SigningKeys:  signingKeys,
-		CheckingKeys: checkingKeys,
-		Roles:        roles,
-		SigningAlg:   signingAlg,
-	})
+// MarshalCertAuthorityService marshalls CertAuthorityService into JSON
+func MarshalCertAuthorityService(ca CertAuthorityService, opts ...MarshalOption) ([]byte, error) {
+	bytes, err := types.GetCertAuthorityMarshaler().MarshalCertAuthority(ca, opts...)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return bytes, nil
 }
 
-// ValidateCertAuthority validates the CertAuthority
-func ValidateCertAuthority(ca CertAuthority) (err error) {
+// Validate validates the CertAuthority
+func (ca certAuthorityService) Validate() (err error) {
 	if err = ca.CheckAndSetDefaults(); err != nil {
 		return trace.Wrap(err)
 	}
 	switch ca.GetType() {
 	case UserCA, HostCA:
-		err = checkUserOrHostCA(ca)
+		err = ca.checkUserOrHostCA()
 	case types.JWTSigner:
-		err = checkJWTKeys(ca)
+		err = ca.checkJWTKeys()
 	}
 	return trace.Wrap(err)
 }
 
-func checkUserOrHostCA(ca CertAuthority) error {
+func (ca certAuthorityService) checkUserOrHostCA() error {
 	if len(ca.GetCheckingKeys()) == 0 {
 		return trace.BadParameter("certificate authority missing SSH public keys")
 	}
@@ -104,7 +102,7 @@ func checkUserOrHostCA(ca CertAuthority) error {
 	return trace.Wrap(err)
 }
 
-func checkJWTKeys(ca CertAuthority) error {
+func (ca certAuthorityService) checkJWTKeys() error {
 	// Check that some JWT keys have been set on the CA.
 	if len(ca.GetJWTKeyPairs()) == 0 {
 		return trace.BadParameter("missing JWT CA")
@@ -139,8 +137,8 @@ func checkJWTKeys(ca CertAuthority) error {
 	return nil
 }
 
-// GetJWTSigner returns the active JWT key used to sign tokens.
-func GetJWTSigner(ca CertAuthority, config jwt.Config) (*jwt.Key, error) {
+// JWTSigner returns the active JWT key used to sign tokens.
+func (ca certAuthorityService) JWTSigner(config jwt.Config) (*jwt.Key, error) {
 	if len(ca.GetJWTKeyPairs()) == 0 {
 		return nil, trace.BadParameter("no JWT keypairs found")
 	}
@@ -158,14 +156,50 @@ func GetJWTSigner(ca CertAuthority, config jwt.Config) (*jwt.Key, error) {
 	return key, nil
 }
 
-// GetTLSCerts returns TLS certificates from CA
-func GetTLSCerts(ca CertAuthority) [][]byte {
+// TLSCerts returns TLS certificates from CA
+func (ca certAuthorityService) TLSCerts() [][]byte {
 	pairs := ca.GetTLSKeyPairs()
 	out := make([][]byte, len(pairs))
 	for i, pair := range pairs {
 		out[i] = append([]byte{}, pair.Cert...)
 	}
 	return out
+}
+
+// NewJWTAuthority creates and returns a services.CertAuthority with a new
+// key pair.
+func NewJWTAuthority(clusterName string) (CertAuthority, error) {
+	var err error
+	var keyPair JWTKeyPair
+	if keyPair.PublicKey, keyPair.PrivateKey, err = jwt.GenerateKeyPair(); err != nil {
+		return nil, trace.Wrap(err)
+	}
+	return types.NewCertAuthority(types.CertAuthoritySpecV2{
+		Type:        types.JWTSigner,
+		ClusterName: clusterName,
+		JWTKeyPairs: []JWTKeyPair{keyPair},
+	}), nil
+}
+
+// NewCertAuthority returns new cert authority.
+// Replaced by types.NewCertAuthority.
+// DELETE in 7.0.0
+func NewCertAuthority(
+	caType CertAuthType,
+	clusterName string,
+	signingKeys [][]byte,
+	checkingKeys [][]byte,
+	roles []string,
+	signingAlg CertAuthoritySpecV2_SigningAlgType,
+) CertAuthority {
+	return types.NewCertAuthority(types.CertAuthoritySpecV2{
+		Type:         caType,
+		ClusterName:  clusterName,
+		SigningKeys:  signingKeys,
+		CheckingKeys: checkingKeys,
+		Roles:        roles,
+		SigningAlg:   signingAlg,
+	})
 }
 
 // CertPoolFromCertAuthorities returns certificate pools from TLS certificates
