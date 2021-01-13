@@ -414,7 +414,7 @@ func (c *Client) RotateCertAuthority(req RotateRequest) error {
 // this method is used to update only public keys and certificates of the
 // the certificate authorities of trusted clusters.
 func (c *Client) RotateExternalCertAuthority(ca services.CertAuthority) error {
-	if err := ca.Check(); err != nil {
+	if err := services.ValidateCertAuthority(ca); err != nil {
 		return trace.Wrap(err)
 	}
 	data, err := services.GetCertAuthorityMarshaler().MarshalCertAuthority(ca)
@@ -428,7 +428,7 @@ func (c *Client) RotateExternalCertAuthority(ca services.CertAuthority) error {
 
 // UpsertCertAuthority updates or inserts new cert authority
 func (c *Client) UpsertCertAuthority(ca services.CertAuthority) error {
-	if err := ca.Check(); err != nil {
+	if err := services.ValidateCertAuthority(ca); err != nil {
 		return trace.Wrap(err)
 	}
 	data, err := services.GetCertAuthorityMarshaler().MarshalCertAuthority(ca)
@@ -2093,11 +2093,17 @@ func (c *Client) DeleteTrustedCluster(ctx context.Context, name string) error {
 
 // CreateResetPasswordToken creates reset password token
 func (c *Client) CreateResetPasswordToken(ctx context.Context, req CreateResetPasswordTokenRequest) (services.ResetPasswordToken, error) {
-	return c.APIClient.CreateResetPasswordToken(ctx, &proto.CreateResetPasswordTokenRequest{
+	resp, err := c.APIClient.CreateResetPasswordToken(ctx, &proto.CreateResetPasswordTokenRequest{
 		Name: req.Name,
 		TTL:  proto.Duration(req.TTL),
 		Type: req.Type,
 	})
+
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return resp, err
 }
 
 // UpsertAppSession not implemented: can only be called locally.
