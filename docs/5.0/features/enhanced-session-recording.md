@@ -97,7 +97,13 @@ Run the following script to download the prerequisites to build BCC tools, build
 
 ### Script to Install BCC Tools
 
-=== "Ubuntu and Debian"
+=== "Ubuntu 20.04+ (from package)"
+
+    ```
+    apt -y install bpfcc-tools
+    ```
+
+=== "Ubuntu and Debian (from source)"
 
     ```sh
     #!/bin/bash
@@ -132,7 +138,13 @@ Run the following script to download the prerequisites to build BCC tools, build
     echo "Install is complete, try running /usr/share/bcc/tools/execsnoop to verify install."
     ```
 
-=== "CentOS"
+=== "CentOS 8 (from package)"
+
+    ```
+    yum -y install bcc-tools
+    ```
+
+=== "CentOS (from source)"
 
     **Example Script to install relevant bcc packages for CentOS**
 
@@ -150,7 +162,7 @@ Run the following script to download the prerequisites to build BCC tools, build
 
     # Create a temporary to build tooling in.
     BUILD_DIR=$(mktemp -d)
-    cd $BUILD_DIR
+    pushd $BUILD_DIR
     echo "Building in $BUILD_DIR."
 
     # Install Extra Packages for Enterprise Linux (EPEL)
@@ -187,12 +199,13 @@ Run the following script to download the prerequisites to build BCC tools, build
     # Install BCC.
     git clone https://github.com/iovisor/bcc.git
     cd bcc && git checkout v0.11.0
-    mkdir bcc/build; cd bcc/build
+    mkdir build; cd build
     cmake3 .. -DCMAKE_INSTALL_PREFIX=/usr
     make
     make install
 
     # Install is done.
+    popd
     rm -fr $BUILD_DIR
     echo "Install is complete, try running /usr/share/bcc/tools/execsnoop to verify install."
     ```
