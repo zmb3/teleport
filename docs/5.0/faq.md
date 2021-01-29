@@ -129,3 +129,8 @@ of their license. The reporting library code is [on Github](https://github.com/g
 
 Reach out to `sales@goteleport.com` if you have questions about the commercial
 edition of Teleport.
+
+
+### Hello world!
+
+This is an update to the FAQ docs page.
