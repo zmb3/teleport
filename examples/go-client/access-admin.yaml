@@ -10,6 +10,7 @@ metadata:
   name: access-admin
 spec:
   allow:
+    logins: [access-admin]
     rules:
       - resources: ['access_request']
         verbs: ['create', 'update']

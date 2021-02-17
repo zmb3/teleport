@@ -35,11 +35,16 @@ func main() {
 	var tlsConfig *tls.Config
 	// Create valid tlsConfig here to load TLS credentials.
 
+	cfg, err := connectToProxy(ctx)
+	if err != nil {
+		log.Fatalf("Failed to connect to Proxy: %v", err)
+	}
+
+	// clt, err := client.New(*cfg)
 	clt, err := client.New(ctx, client.Config{
-		// Addrs is the Auth Server address, must be local.
-		Addrs: []string{"localhost:3025"},
-		// Multiple credentials can be provided, and the first credentials to
-		// successfully authenticate an open connection to the client will be used.
+		Dialer: cfg.Dialer,
+		// Multiple credentials can be tried by providing credentialProviders. The first
+		// provider to provide valid credentials will be used to authenticate the client.
 		Credentials: []client.Credentials{
 			client.LoadKeyPair(
 				"certs/access-admin.crt",

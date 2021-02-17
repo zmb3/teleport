@@ -49,7 +49,7 @@ type TunnelAuthDialer struct {
 }
 
 // DialContext dials auth server via SSH tunnel
-func (t *TunnelAuthDialer) DialContext(ctx context.Context, network string, addr string) (net.Conn, error) {
+func (t *TunnelAuthDialer) DialContext(ctx context.Context, network string, _ string) (net.Conn, error) {
 	// Connect to the reverse tunnel server.
 	dialer := proxy.DialerFromEnvironment(t.ProxyAddr)
 	sconn, err := dialer.Dial("tcp", t.ProxyAddr, t.ClientConfig)

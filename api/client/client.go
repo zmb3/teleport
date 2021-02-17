@@ -112,7 +112,7 @@ func (c *Client) grpcDialer() grpcDialer {
 		}
 		conn, err := c.dialer.DialContext(ctx, "tcp", addr)
 		if err != nil {
-			return nil, trace.ConnectionProblem(err, "failed to dial")
+			return nil, trace.ConnectionProblem(err, err.Error())
 		}
 		return conn, nil
 	}
