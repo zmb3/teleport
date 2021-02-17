@@ -25,6 +25,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -453,7 +454,7 @@ func (s *localSite) getRemoteConn(dreq *dialReq) (*remoteConn, error) {
 func (s *localSite) chanTransportConn(rconn *remoteConn, dreq *dialReq) (net.Conn, error) {
 	s.log.Debugf("Connecting to %v through tunnel.", rconn.conn.RemoteAddr())
 
-	conn, markInvalid, err := connectProxyTransport(rconn.sconn, dreq, false)
+	conn, markInvalid, err := client.ConnectProxyTransport(rconn.sconn, dreq, false)
 	if err != nil {
 		if markInvalid {
 			rconn.markInvalid(err)

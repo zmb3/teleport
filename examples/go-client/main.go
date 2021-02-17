@@ -28,6 +28,15 @@ import (
 	"github.com/pborman/uuid"
 )
 
+var (
+	crtPath    = "certs/access-admin.crt"
+	keyPath    = "certs/access-admin.key"
+	casPath    = "certs/access-admin.cas"
+	idFilePath = "certs/access-admin-identity"
+	// Create valid tlsConfig here to use TLS Provider
+	tlsConfig *tls.Config
+)
+
 func main() {
 	ctx := context.Background()
 	log.Printf("Starting Teleport client...")

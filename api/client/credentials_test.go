@@ -34,7 +34,7 @@ func TestLoadTLS(t *testing.T) {
 	require.NoError(t, err)
 
 	// Load and build tls.Config.
-	config, err := LoadTLS(expectedConfig).Config()
+	config, err := LoadTLS(expectedConfig).TLSConfig()
 	require.NoError(t, err)
 
 	// Compare built and expected tls.Config.
@@ -64,7 +64,7 @@ func TestLoadIdentityFile(t *testing.T) {
 	require.NoError(t, err)
 
 	// Load identity file and build tls.Config.
-	config, err := LoadIdentityFile(path).Config()
+	config, err := LoadIdentityFile(path).TLSConfig()
 	require.NoError(t, err)
 
 	// Compare built and expected tls.Config.
@@ -90,7 +90,7 @@ func TestLoadKeyPair(t *testing.T) {
 	require.NoError(t, err)
 
 	// Load key pair from disk and build tls.Config.
-	config, err := LoadKeyPair(certPath, keyPath, caPath).Config()
+	config, err := LoadKeyPair(certPath, keyPath, caPath).TLSConfig()
 	require.NoError(t, err)
 
 	// Compare built and expected tls.Config.

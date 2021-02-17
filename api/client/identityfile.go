@@ -60,8 +60,8 @@ type CACerts struct {
 	TLS [][]byte
 }
 
-// TLS returns the identity file's associated TLS config.
-func (i *IdentityFile) TLS() (*tls.Config, error) {
+// TLSConfig returns the identity file's associated TLSConfig config.
+func (i *IdentityFile) TLSConfig() (*tls.Config, error) {
 	cert, err := tls.X509KeyPair(i.Certs.TLS, i.PrivateKey)
 	if err != nil {
 		return nil, trace.Wrap(err)

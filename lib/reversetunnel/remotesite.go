@@ -638,7 +638,7 @@ func (s *remoteSite) chanTransportConn(req *dialReq) (*utils.ChConn, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	conn, markInvalid, err := connectProxyTransport(rconn.sconn, req, false)
+	conn, markInvalid, err := client.ConnectProxyTransport(rconn.sconn, req, false)
 	if err != nil {
 		if markInvalid {
 			rconn.markInvalid(err)

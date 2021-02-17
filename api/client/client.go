@@ -31,6 +31,7 @@ import (
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/types/events"
+	"golang.org/x/crypto/ssh"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/gravitational/trace"
@@ -55,6 +56,9 @@ type Client struct {
 
 	// tlsConfig is the *tls.Config for a successfully connected client.
 	tlsConfig *tls.Config
+
+	// sshConfig is the *ssh.ClientConfig for a successfully connected proxy client.
+	sshConfig *ssh.ClientConfig
 
 	// dialer is the ContextDialer for a successfully connected client.
 	dialer ContextDialer
@@ -122,10 +126,11 @@ func (c *Client) connect(ctx context.Context) error {
 	// Loop over credentials and use first successfull one.
 	var err error
 	var errs []error
-	for _, creds := range c.c.Credentials {
+	for i, creds := range c.c.Credentials {
 		// Load *tls.Config from the provided credentials.
-		c.tlsConfig, err = creds.Config()
+		c.tlsConfig, err = creds.TLSConfig()
 		if err != nil {
+			trace.Errorf("Credentials[%v]: failed to set TLS config: %v", i, err)
 			errs = append(errs, trace.Wrap(err))
 			continue
 		}
@@ -133,6 +138,7 @@ func (c *Client) connect(ctx context.Context) error {
 		// Build a dialer, prefer a dialer from credentials. If no fallback to the
 		// passed in dialer and then list of addresses.
 		if err = c.setDialer(creds); err != nil {
+			trace.Errorf("Credentials[%v]: failed to set auth dialer: %v", i, err)
 			errs = append(errs, trace.Wrap(err))
 			continue
 		}
@@ -148,7 +154,7 @@ func (c *Client) connect(ctx context.Context) error {
 			}),
 		)
 		if err != nil {
-			errs = append(errs, trace.Wrap(err))
+			errs = append(errs, trace.Errorf("Credentials[%v]: failed to dial through auth: %v", i, err))
 			continue
 		}
 		c.grpc = proto.NewAuthServiceClient(c.conn)
@@ -157,10 +163,73 @@ func (c *Client) connect(ctx context.Context) error {
 			return nil
 		}
 
-		if _, err := c.Ping(ctx); err != nil {
-			errs = append(errs, trace.Wrap(err))
+		_, err := c.Ping(ctx)
+		if err == nil {
+			// TODO (Joerger): Check the server version with Ping response.
+			return nil
+		}
+		errs = append(errs, trace.Errorf("Credentials[%v]: failed to connect through auth: %v", i, err))
+
+		// if connecting to auth fails, try connecting via proxy
+		if c.sshConfig, err = creds.SSHConfig(); err == nil {
+			// No identity file was provided, don't try dialing via a reverse
+			// tunnel on the proxy.
 			continue
 		}
+
+		var tunAddr string
+		tunAddr = "proxy.example.com:3024"
+		// // Figure out the reverse tunnel address on the proxy first.
+		// tunAddr, err := findReverseTunnel(ctx, cfg.AuthServers, clientConfig.TLS.InsecureSkipVerify)
+		// if err != nil {
+		// 	errs = append(errs, trace.Wrap(err, "failed lookup of proxy reverse tunnel address: %v", err))
+		// 	return nil, trace.NewAggregate(errs...)
+		// }
+
+		dialer := &TunnelAuthDialer{
+			ProxyAddr:    tunAddr,
+			ClientConfig: c.sshConfig,
+		}
+
+		proxyDialer := grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
+			if c.isClosed() {
+				return nil, trace.ConnectionProblem(nil, "client is closed")
+			}
+			conn, err := dialer.DialContext(ctx, "tcp", addr)
+			if err != nil {
+				return nil, trace.ConnectionProblem(err, err.Error())
+			}
+			return conn, nil
+		})
+
+		c.conn, err = grpc.Dial(
+			constants.APIDomain,
+			proxyDialer,
+			grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
+			grpc.WithKeepaliveParams(keepalive.ClientParameters{
+				Time:                c.c.KeepAlivePeriod,
+				Timeout:             c.c.KeepAlivePeriod * time.Duration(c.c.KeepAliveCount),
+				PermitWithoutStream: true,
+			}),
+		)
+		if err != nil {
+			errs = append(errs, trace.Errorf("Credentials[%v]: failed to create dialer: %v", i, err))
+			continue
+		}
+		c.grpc = proto.NewAuthServiceClient(c.conn)
+
+		if c.c.NoPingCheck {
+			return nil
+		}
+
+		_, err = c.Ping(context.TODO())
+		if err == nil {
+			// TODO (Joerger): Check the server version with Ping response.
+			return nil
+		}
+		errs = append(errs, trace.Errorf("Credentials[%v]: failed to connect through auth: %v", i, err))
+
+		// TODO (Joerger): start goroutine to detect provider reloads asynchronously.
 
 		return nil
 	}

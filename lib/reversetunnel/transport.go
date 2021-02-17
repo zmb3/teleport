@@ -17,83 +17,31 @@ limitations under the License.
 package reversetunnel
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"time"
 
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
-	"github.com/gravitational/teleport/lib/utils/proxy"
 
 	"github.com/gravitational/trace"
 
 	"github.com/sirupsen/logrus"
 )
 
-// TunnelAuthDialer connects to the Auth Server through the reverse tunnel.
-type TunnelAuthDialer struct {
-	// ProxyAddr is the address of the proxy
-	ProxyAddr string
-	// ClientConfig is SSH tunnel client config
-	ClientConfig *ssh.ClientConfig
-}
-
-// DialContext dials auth server via SSH tunnel
-func (t *TunnelAuthDialer) DialContext(ctx context.Context, network string, _ string) (net.Conn, error) {
-	// Connect to the reverse tunnel server.
-	dialer := proxy.DialerFromEnvironment(t.ProxyAddr)
-	sconn, err := dialer.Dial("tcp", t.ProxyAddr, t.ClientConfig)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	// Build a net.Conn over the tunnel. Make this an exclusive connection:
-	// close the net.Conn as well as the channel upon close.
-	conn, _, err := connectProxyTransport(sconn.Conn, &dialReq{
-		Address: RemoteAuthServer,
-	}, true)
-	if err != nil {
-		err2 := sconn.Close()
-		return nil, trace.NewAggregate(err, err2)
-	}
-	return conn, nil
-}
-
-// dialReq is a request for the address to connect to. Supports special
-// non-resolvable addresses and search names if connection over a tunnel.
-type dialReq struct {
-	// Address is the target host to make a connection to.
-	Address string `json:"address,omitempty"`
-
-	// ServerID is the hostUUID.clusterName of the node. ServerID is used when
-	// dialing through a tunnel to SSH and application nodes.
-	ServerID string `json:"server_id,omitempty"`
-
-	// ConnType is the type of connection requested, either node or application.
-	ConnType services.TunnelType `json:"conn_type"`
-}
-
-// CheckAndSetDefaults verifies all the values are valid.
-func (d *dialReq) CheckAndSetDefaults() error {
-	if d.ConnType == "" {
-		d.ConnType = services.NodeTunnel
-	}
-
-	if d.Address == "" && d.ServerID == "" {
-		return trace.BadParameter("serverID or address required")
-	}
-	return nil
-}
+type (
+	dialReq          = client.DialReq
+	TunnelAuthDialer = client.TunnelAuthDialer
+)
 
 // parseDialReq parses the dial request. Is backward compatible with legacy
 // payload.
@@ -108,55 +56,6 @@ func parseDialReq(payload []byte) *dialReq {
 		}
 	}
 	return &req
-}
-
-// marshalDialReq marshals the dial request to send over the wire.
-func marshalDialReq(req *dialReq) ([]byte, error) {
-	bytes, err := json.Marshal(req)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return bytes, nil
-}
-
-// connectProxyTransport opens a channel over the remote tunnel and connects
-// to the requested host.
-func connectProxyTransport(sconn ssh.Conn, req *dialReq, exclusive bool) (*utils.ChConn, bool, error) {
-	channel, _, err := sconn.OpenChannel(chanTransport, nil)
-	if err != nil {
-		return nil, false, trace.Wrap(err)
-	}
-
-	payload, err := marshalDialReq(req)
-	if err != nil {
-		return nil, false, trace.Wrap(err)
-	}
-
-	// Send a special SSH out-of-band request called "teleport-transport"
-	// the agent on the other side will create a new TCP/IP connection to
-	// 'addr' on its network and will start proxying that connection over
-	// this SSH channel.
-	ok, err := channel.SendRequest(chanTransportDialReq, true, payload)
-	if err != nil {
-		return nil, true, trace.Wrap(err)
-	}
-	if !ok {
-		defer channel.Close()
-
-		// Pull the error message from the tunnel client (remote cluster)
-		// passed to us via stderr.
-		errMessage, _ := ioutil.ReadAll(channel.Stderr())
-		errMessage = bytes.TrimSpace(errMessage)
-		if len(errMessage) == 0 {
-			errMessage = []byte(fmt.Sprintf("failed connecting to %v [%v]", req.Address, req.ServerID))
-		}
-		return nil, false, trace.Errorf(string(errMessage))
-	}
-
-	if exclusive {
-		return utils.NewExclusiveChConn(sconn, channel), false, nil
-	}
-	return utils.NewChConn(sconn, channel), false, nil
 }
 
 // transport is used to build a connection to the target host.

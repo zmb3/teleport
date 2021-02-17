@@ -22,7 +22,9 @@ import (
 	"io/ioutil"
 
 	"github.com/gravitational/teleport/api/constants"
+
 	"github.com/gravitational/trace"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/http2"
 )
 
@@ -30,8 +32,10 @@ import (
 type Credentials interface {
 	// Dialer is used to connect to Auth.
 	Dialer() (ContextDialer, error)
-	// Config returns TLS configuration used to connect to Auth.
-	Config() (*tls.Config, error)
+	// TLSConfig returns TLS configuration used to connect to Auth.
+	TLSConfig() (*tls.Config, error)
+	// SSHConfig returns SSH configuration used to connect to Auth.
+	SSHConfig() (*ssh.ClientConfig, error)
 }
 
 // LoadTLS is used to load credentials directly from another *tls.Config.
@@ -49,8 +53,12 @@ func (c *tlsConfigCreds) Dialer() (ContextDialer, error) {
 	return nil, trace.NotImplemented("no dialer")
 }
 
-func (c *tlsConfigCreds) Config() (*tls.Config, error) {
+func (c *tlsConfigCreds) TLSConfig() (*tls.Config, error) {
 	return configure(c.tlsConfig), nil
+}
+
+func (c *tlsConfigCreds) SSHConfig() (*ssh.ClientConfig, error) {
+	return nil, trace.NotImplemented("no ssh config")
 }
 
 // LoadKeyPair is used to load credentials from files on disk.
@@ -72,7 +80,7 @@ func (c *keyPairCreds) Dialer() (ContextDialer, error) {
 	return nil, trace.NotImplemented("no dialer")
 }
 
-func (c *keyPairCreds) Config() (*tls.Config, error) {
+func (c *keyPairCreds) TLSConfig() (*tls.Config, error) {
 	cert, err := tls.LoadX509KeyPair(c.certFile, c.keyFile)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -94,6 +102,10 @@ func (c *keyPairCreds) Config() (*tls.Config, error) {
 	}), nil
 }
 
+func (c *keyPairCreds) SSHConfig() (*ssh.ClientConfig, error) {
+	return nil, trace.NotImplemented("no ssh config")
+}
+
 // LoadIdentityFile is used to load credentials from an identity file on disk.
 func LoadIdentityFile(path string) *identityCreds {
 	return &identityCreds{
@@ -109,18 +121,22 @@ func (c *identityCreds) Dialer() (ContextDialer, error) {
 	return nil, trace.NotImplemented("no dialer")
 }
 
-func (c *identityCreds) Config() (*tls.Config, error) {
+func (c *identityCreds) TLSConfig() (*tls.Config, error) {
 	identityFile, err := ReadIdentityFile(c.path)
 	if err != nil {
 		return nil, trace.BadParameter("identity file could not be decoded: %v", err)
 	}
 
-	tlsConfig, err := identityFile.TLS()
+	tlsConfig, err := identityFile.TLSConfig()
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
 	return configure(tlsConfig), nil
+}
+
+func (c *identityCreds) SSHConfig() (*ssh.ClientConfig, error) {
+	return nil, trace.NotImplemented("no ssh config")
 }
 
 func configure(c *tls.Config) *tls.Config {

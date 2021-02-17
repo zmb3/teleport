@@ -100,3 +100,19 @@ const (
 	// is required only for users that have MFA devices registered.
 	SecondFactorOptional = SecondFactorType("optional")
 )
+
+const (
+	// ChanTransport is a channel type that can be used to open a net.Conn
+	// through the reverse tunnel server. Used for trusted clusters and dial back
+	// nodes.
+	ChanTransport = "teleport-transport"
+
+	// ChanTransportDialReq is the first (and only) request sent on a
+	// chanTransport channel. It's payload is the address of the host a
+	// connection should be established to.
+	ChanTransportDialReq = "teleport-transport-dial"
+
+	// RemoteAuthServer is a special non-resolvable address that indicates client
+	// requests a connection to the remote auth server.
+	RemoteAuthServer = "@remote-auth-server"
+)

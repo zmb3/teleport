@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/reversetunnel/track"
@@ -511,12 +512,12 @@ const (
 	// chanTransport is a channel type that can be used to open a net.Conn
 	// through the reverse tunnel server. Used for trusted clusters and dial back
 	// nodes.
-	chanTransport = "teleport-transport"
+	chanTransport = constants.ChanTransport
 
 	// chanTransportDialReq is the first (and only) request sent on a
 	// chanTransport channel. It's payload is the address of the host a
 	// connection should be established to.
-	chanTransportDialReq = "teleport-transport-dial"
+	chanTransportDialReq = constants.ChanTransportDialReq
 
 	chanHeartbeat    = "teleport-heartbeat"
 	chanDiscovery    = "teleport-discovery"
@@ -529,7 +530,7 @@ const (
 	LocalNode = "@local-node"
 	// RemoteAuthServer is a special non-resolvable address that indicates client
 	// requests a connection to the remote auth server.
-	RemoteAuthServer = "@remote-auth-server"
+	RemoteAuthServer = constants.RemoteAuthServer
 	// LocalKubernetes is a special non-resolvable address that indicates that clients
 	// requests a connection to the kubernetes endpoint of the local proxy.
 	// This has to be a valid domain name, so it lacks @
