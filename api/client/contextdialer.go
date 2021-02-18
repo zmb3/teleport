@@ -19,7 +19,6 @@ package client
 import (
 	"context"
 	"net"
-	"time"
 
 	"github.com/gravitational/trace"
 )
@@ -38,23 +37,46 @@ func (f ContextDialerFunc) DialContext(ctx context.Context, network, addr string
 	return f(ctx, network, addr)
 }
 
-// NewAddrDialer makes a new dialer from a list of addresses
-func NewAddrDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
-	if len(addrs) == 0 {
+// NewClientDialer makes a new dialer from a client Config. This dialer
+// will try dialing the address as both auth and proxy.
+func NewClientDialer(c *Config) (ContextDialer, error) {
+	if len(c.Addrs) == 0 {
 		return nil, trace.BadParameter("no addreses to dial")
 	}
-	dialer := net.Dialer{
-		Timeout:   dialTimeout,
-		KeepAlive: keepAliveInterval,
+	authDialer := net.Dialer{
+		Timeout:   c.DialTimeout,
+		KeepAlive: c.KeepAlivePeriod,
 	}
 	return ContextDialerFunc(func(ctx context.Context, network, _ string) (conn net.Conn, err error) {
-		for _, addr := range addrs {
-			conn, err = dialer.DialContext(ctx, network, addr)
+		var errs []error
+		for _, addr := range c.Addrs {
+			// try dialing directly to auth server
+			conn, err = authDialer.DialContext(ctx, network, addr)
 			if err == nil {
 				return conn, nil
 			}
+			errs = append(errs, trace.Errorf("failed to dial %v as auth: %v", addr, err))
+
+			// if connecting to auth fails and SSH is defined, try connecting via proxy
+			if c.Credentials.SSH == nil {
+				continue
+			}
+			// // Figure out the reverse tunnel address on the proxy first.
+			// tunAddr, err := findReverseTunnel(ctx, cfg.AuthServers, clientConfig.TLS.InsecureSkipVerify)
+			// if err != nil {
+			// 	errs = append(errs, trace.Wrap(err, "failed lookup of proxy reverse tunnel address: %v", err))
+			// 	return nil, trace.NewAggregate(errs...)
+			// }
+			proxyDialer := &TunnelAuthDialer{
+				ProxyAddr:    addr,
+				ClientConfig: c.Credentials.SSH,
+			}
+			conn, err = proxyDialer.DialContext(ctx, network, addr)
+			if err == nil {
+				return conn, nil
+			}
+			errs = append(errs, trace.Errorf("failed to dial %v as proxy: %v", addr, err))
 		}
-		// not wrapping on purpose to preserve the original error
-		return nil, err
+		return nil, trace.NewAggregate(errs...)
 	}), nil
 }

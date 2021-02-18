@@ -163,72 +163,13 @@ func (c *Client) connect(ctx context.Context) error {
 			return nil
 		}
 
-		_, err := c.Ping(ctx)
-		if err == nil {
-			// TODO (Joerger): Check the server version with Ping response.
-			return nil
-		}
-		errs = append(errs, trace.Errorf("Credentials[%v]: failed to connect through auth: %v", i, err))
-
-		// if connecting to auth fails, try connecting via proxy
-		if c.sshConfig, err = creds.SSHConfig(); err == nil {
-			// No identity file was provided, don't try dialing via a reverse
-			// tunnel on the proxy.
-			continue
-		}
-
-		var tunAddr string
-		tunAddr = "proxy.example.com:3024"
-		// // Figure out the reverse tunnel address on the proxy first.
-		// tunAddr, err := findReverseTunnel(ctx, cfg.AuthServers, clientConfig.TLS.InsecureSkipVerify)
-		// if err != nil {
-		// 	errs = append(errs, trace.Wrap(err, "failed lookup of proxy reverse tunnel address: %v", err))
-		// 	return nil, trace.NewAggregate(errs...)
-		// }
-
-		dialer := &TunnelAuthDialer{
-			ProxyAddr:    tunAddr,
-			ClientConfig: c.sshConfig,
-		}
-
-		proxyDialer := grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
-			if c.isClosed() {
-				return nil, trace.ConnectionProblem(nil, "client is closed")
-			}
-			conn, err := dialer.DialContext(ctx, "tcp", addr)
-			if err != nil {
-				return nil, trace.ConnectionProblem(err, err.Error())
-			}
-			return conn, nil
-		})
-
-		c.conn, err = grpc.Dial(
-			constants.APIDomain,
-			proxyDialer,
-			grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
-			grpc.WithKeepaliveParams(keepalive.ClientParameters{
-				Time:                c.c.KeepAlivePeriod,
-				Timeout:             c.c.KeepAlivePeriod * time.Duration(c.c.KeepAliveCount),
-				PermitWithoutStream: true,
-			}),
-		)
+		_, err := c.Ping(context.TODO())
 		if err != nil {
-			errs = append(errs, trace.Errorf("Credentials[%v]: failed to create dialer: %v", i, err))
+			errs = append(errs, trace.Errorf("CredentialsProvider[%v]: failed to connect through auth: %v", i, err))
 			continue
 		}
-		c.grpc = proto.NewAuthServiceClient(c.conn)
 
-		if c.c.NoPingCheck {
-			return nil
-		}
-
-		_, err = c.Ping(context.TODO())
-		if err == nil {
-			// TODO (Joerger): Check the server version with Ping response.
-			return nil
-		}
-		errs = append(errs, trace.Errorf("Credentials[%v]: failed to connect through auth: %v", i, err))
-
+		// TODO (Joerger): Check the server version with Ping response.
 		// TODO (Joerger): start goroutine to detect provider reloads asynchronously.
 
 		return nil
@@ -241,7 +182,7 @@ func (c *Client) connect(ctx context.Context) error {
 type Config struct {
 	// Addrs is a list of teleport auth/proxy server addresses to dial
 	Addrs []string
-	// Dialer is a custom dialer that is used instead of Addrs when provided
+	// Dialer is a custom dialer used to dial the auth server
 	Dialer ContextDialer
 	// DialTimeout defines how long to attempt dialing before timing out
 	DialTimeout time.Duration
