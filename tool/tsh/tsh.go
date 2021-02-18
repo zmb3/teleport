@@ -36,6 +36,7 @@ import (
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/types"
+	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/asciitable"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/backend"
@@ -52,7 +53,6 @@ import (
 	"github.com/gravitational/teleport/lib/sshutils/scp"
 	"github.com/gravitational/teleport/lib/tlsca"
 	"github.com/gravitational/teleport/lib/utils"
-	"github.com/gravitational/teleport/tool/tsh/common"
 
 	"github.com/gravitational/kingpin"
 	"github.com/gravitational/trace"
@@ -824,7 +824,7 @@ func setupNoninteractiveClient(tc *client.TeleportClient, key *client.Key) error
 						return false
 					}
 					for _, caKey := range caKeys {
-						if sshutils.KeysEqual(caKey, hostCAKey) {
+						if apiutils.KeysEqual(caKey, hostCAKey) {
 							return true
 						}
 					}
@@ -1488,7 +1488,7 @@ func makeClient(cf *CLIConf, useProfileLogin bool) (*client.TeleportClient, erro
 			hostAuthFunc ssh.HostKeyCallback
 		)
 		// read the ID file and create an "auth method" from it:
-		key, err = common.LoadIdentity(cf.IdentityFileIn)
+		key, err = client.KeyFromIdentityFile(cf.IdentityFileIn)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
@@ -1700,12 +1700,12 @@ func authFromIdentity(k *client.Key) (ssh.AuthMethod, error) {
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return client.NewAuthMethodForCert(signer), nil
+	return apiutils.NewAuthMethodForCert(signer), nil
 }
 
 // onShow reads an identity file (a public SSH key or a cert) and dumps it to stdout
 func onShow(cf *CLIConf) error {
-	key, err := common.LoadIdentity(cf.IdentityFileIn)
+	key, err := client.KeyFromIdentityFile(cf.IdentityFileIn)
 	if err != nil {
 		return trace.Wrap(err)
 	}

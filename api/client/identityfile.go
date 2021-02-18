@@ -26,7 +26,10 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/gravitational/teleport/api/utils"
+
 	"github.com/gravitational/trace"
+	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -80,6 +83,16 @@ func (i *IdentityFile) TLSConfig() (*tls.Config, error) {
 	}, nil
 }
 
+// SSHClientConfig returns an ssh.ClientConfig with SSH credentials from this
+// Key and HostKeyCallback matching SSH CAs in the Key.
+func (i *IdentityFile) SSHClientConfig() (*ssh.ClientConfig, error) {
+	ssh, err := utils.SSHClientConfig(i.Certs.SSH, i.PrivateKey, i.CACerts.SSH)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	return ssh, nil
+}
+
 // WriteIdentityFile writes the given identityFile to the specified path.
 func WriteIdentityFile(idFile *IdentityFile, path string) error {
 	buf := new(bytes.Buffer)
@@ -99,7 +112,23 @@ func ReadIdentityFile(path string) (*IdentityFile, error) {
 		return nil, trace.Wrap(err)
 	}
 	defer r.Close()
-	return decodeIdentityFile(r)
+
+	ident, err := decodeIdentityFile(r)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	// did not find the SSH certificate in the file? look in a
+	// separate file with -cert.pub prefix
+	if len(ident.Certs.SSH) == 0 {
+		certFn := path + "-cert.pub"
+		ident.Certs.SSH, err = ioutil.ReadFile(certFn)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+	}
+
+	return ident, nil
 }
 
 // encodeIdentityFile combines the components of an identity file in its file format.

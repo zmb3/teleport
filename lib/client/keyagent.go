@@ -28,8 +28,8 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 
 	"github.com/gravitational/teleport"
+	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/sshutils"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/utils/prompt"
 	"github.com/gravitational/trace"
@@ -81,7 +81,7 @@ func NewKeyStoreCertChecker(keyStore LocalKeyStore) ssh.HostKeyCallback {
 						return false
 					}
 					for i := range keys {
-						if sshutils.KeysEqual(key, keys[i]) {
+						if apiutils.KeysEqual(key, keys[i]) {
 							return true
 						}
 					}
@@ -334,7 +334,7 @@ func (a *LocalKeyAgent) checkHostCertificate(key ssh.PublicKey, addr string) boo
 		return false
 	}
 	for i := range keys {
-		if sshutils.KeysEqual(key, keys[i]) {
+		if apiutils.KeysEqual(key, keys[i]) {
 			return true
 		}
 	}
@@ -353,7 +353,7 @@ func (a *LocalKeyAgent) checkHostKey(addr string, remote net.Addr, key ssh.Publi
 
 	// Check if this exact host is in the local cache.
 	keys, _ := a.keyStore.GetKnownHostKeys(addr)
-	if len(keys) > 0 && sshutils.KeysEqual(key, keys[0]) {
+	if len(keys) > 0 && apiutils.KeysEqual(key, keys[0]) {
 		a.log.Debugf("Verified host %s.", addr)
 		return nil
 	}
@@ -474,28 +474,8 @@ func (a *LocalKeyAgent) AuthMethods() (m []ssh.AuthMethod) {
 		// filter out non-certificates (like regular public SSH keys stored in the SSH agent):
 		_, ok := signers[i].PublicKey().(*ssh.Certificate)
 		if ok {
-			m = append(m, NewAuthMethodForCert(signers[i]))
+			m = append(m, apiutils.NewAuthMethodForCert(signers[i]))
 		}
 	}
 	return m
-}
-
-// CertAuthMethod is a wrapper around ssh.Signer (certificate signer) object.
-// CertAuthMethod then implements ssh.Authmethod interface around this one certificate signer.
-//
-// We need this wrapper because Golang's SSH library's unfortunate API design. It uses
-// callbacks with 'authMethod' interfaces and without this wrapper it is impossible to
-// tell which certificate an 'authMethod' passed via a callback had succeeded authenticating with.
-type CertAuthMethod struct {
-	ssh.AuthMethod
-	Cert ssh.Signer
-}
-
-func NewAuthMethodForCert(cert ssh.Signer) *CertAuthMethod {
-	return &CertAuthMethod{
-		Cert: cert,
-		AuthMethod: ssh.PublicKeysCallback(func() ([]ssh.Signer, error) {
-			return []ssh.Signer{cert}, nil
-		}),
-	}
 }

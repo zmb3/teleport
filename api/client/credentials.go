@@ -136,7 +136,17 @@ func (c *identityCreds) TLSConfig() (*tls.Config, error) {
 }
 
 func (c *identityCreds) SSHConfig() (*ssh.ClientConfig, error) {
-	return nil, trace.NotImplemented("no ssh config")
+	identityFile, err := ReadIdentityFile(c.path)
+	if err != nil {
+		return nil, trace.BadParameter("identity file could not be decoded: %v", err)
+	}
+
+	sshConfig, err := identityFile.SSHClientConfig()
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return sshConfig, nil
 }
 
 func configure(c *tls.Config) *tls.Config {

@@ -19,8 +19,10 @@ package client
 import (
 	"context"
 	"net"
+	"time"
 
 	"github.com/gravitational/trace"
+	"golang.org/x/crypto/ssh"
 )
 
 // ContextDialer represents network dialer interface that uses context
@@ -37,28 +39,71 @@ func (f ContextDialerFunc) DialContext(ctx context.Context, network, addr string
 	return f(ctx, network, addr)
 }
 
-// NewClientDialer makes a new dialer from a client Config. This dialer
-// will try dialing the address as both auth and proxy.
-func NewClientDialer(c *Config) (ContextDialer, error) {
-	if len(c.Addrs) == 0 {
+// NewAddrDialer makes a new dialer from a list of addresses
+func NewAddrDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
+	if len(addrs) == 0 {
 		return nil, trace.BadParameter("no addreses to dial")
 	}
-	authDialer := net.Dialer{
-		Timeout:   c.DialTimeout,
-		KeepAlive: c.KeepAlivePeriod,
+	dialer := net.Dialer{
+		Timeout:   dialTimeout,
+		KeepAlive: keepAliveInterval,
 	}
 	return ContextDialerFunc(func(ctx context.Context, network, _ string) (conn net.Conn, err error) {
-		var errs []error
-		for _, addr := range c.Addrs {
-			// try dialing directly to auth server
-			conn, err = authDialer.DialContext(ctx, network, addr)
+		for _, addr := range addrs {
+			conn, err = dialer.DialContext(ctx, network, addr)
 			if err == nil {
 				return conn, nil
 			}
-			errs = append(errs, trace.Errorf("failed to dial %v as auth: %v", addr, err))
+		}
+		// not wrapping on purpose to preserve the original error
+		return nil, err
+	}), nil
+}
+
+func NewProxyDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration, ssh *ssh.ClientConfig) (ContextDialer, error) {
+	if len(addrs) == 0 {
+		return nil, trace.BadParameter("no addreses to dial")
+	}
+	if ssh == nil {
+		return nil, trace.BadParameter("no ssh config")
+	}
+	proxyDialer := &TunnelAuthDialer{
+		ClientConfig: ssh,
+	}
+	return ContextDialerFunc(func(ctx context.Context, network, _ string) (conn net.Conn, err error) {
+		for _, addr := range addrs {
+			proxyDialer.ProxyAddr = addr
+			conn, err = proxyDialer.DialContext(ctx, network, addr)
+			if err == nil {
+				return conn, nil
+			}
+		}
+		return nil, err
+	}), nil
+}
+
+// NewClientDialer makes a new dialer from a client Config. This dialer
+// will try dialing the address as both auth and proxy.
+func NewClientDialer(c *Client) (ContextDialer, error) {
+	if len(c.c.Addrs) == 0 {
+		return nil, trace.BadParameter("no addreses to dial")
+	}
+	return ContextDialerFunc(func(ctx context.Context, network, _ string) (conn net.Conn, err error) {
+		// authDialer := net.Dialer{
+		// 	Timeout:   c.DialTimeout,
+		// 	KeepAlive: c.KeepAlivePeriod,
+		// }
+		var errs []error
+		for _, addr := range c.c.Addrs {
+			// try dialing directly to auth server
+			// conn, err = authDialer.DialContext(ctx, network, addr)
+			// if err == nil {
+			// 	return conn, nil
+			// }
+			// errs = append(errs, trace.Errorf("failed to dial %v as auth: %v", addr, err))
 
 			// if connecting to auth fails and SSH is defined, try connecting via proxy
-			if c.Credentials.SSH == nil {
+			if c.sshConfig == nil {
 				continue
 			}
 			// // Figure out the reverse tunnel address on the proxy first.
@@ -66,10 +111,10 @@ func NewClientDialer(c *Config) (ContextDialer, error) {
 			// if err != nil {
 			// 	errs = append(errs, trace.Wrap(err, "failed lookup of proxy reverse tunnel address: %v", err))
 			// 	return nil, trace.NewAggregate(errs...)
-			// }
+			// // }
 			proxyDialer := &TunnelAuthDialer{
 				ProxyAddr:    addr,
-				ClientConfig: c.Credentials.SSH,
+				ClientConfig: c.sshConfig,
 			}
 			conn, err = proxyDialer.DialContext(ctx, network, addr)
 			if err == nil {

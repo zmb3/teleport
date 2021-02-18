@@ -79,6 +79,9 @@ const (
 
 	// KeepAliveDatabase is the keep alive type for database server.
 	KeepAliveDatabase = "db"
+
+	// WindowsOS is the GOOS constant used for Microsoft Windows.
+	WindowsOS = "windows"
 )
 
 // SecondFactorType is the type of 2FA authentication.

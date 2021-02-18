@@ -41,17 +41,8 @@ func main() {
 	ctx := context.Background()
 	log.Printf("Starting Teleport client...")
 
-	var tlsConfig *tls.Config
-	// Create valid tlsConfig here to load TLS credentials.
-
-	cfg, err := connectToProxy(ctx)
-	if err != nil {
-		log.Fatalf("Failed to connect to Proxy: %v", err)
-	}
-
-	// clt, err := client.New(*cfg)
 	clt, err := client.New(ctx, client.Config{
-		Dialer: cfg.Dialer,
+		Addrs: []string{"proxy.example.com:3024"},
 		// Multiple credentials can be tried by providing credentialProviders. The first
 		// provider to provide valid credentials will be used to authenticate the client.
 		Credentials: []client.Credentials{

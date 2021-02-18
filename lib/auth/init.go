@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
+	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib"
 	"github.com/gravitational/teleport/lib/auth/u2f"
 	"github.com/gravitational/teleport/lib/backend"
@@ -715,7 +716,7 @@ func (i *Identity) hostKeyCallback(hostname string, remote net.Addr, key ssh.Pub
 		if err != nil {
 			return trace.Wrap(err)
 		}
-		if sshutils.KeysEqual(cert.SignatureKey, pubkey) {
+		if apiutils.KeysEqual(cert.SignatureKey, pubkey) {
 			return nil
 		}
 	}

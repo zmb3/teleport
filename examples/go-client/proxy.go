@@ -13,7 +13,6 @@ import (
 	"github.com/gravitational/teleport/lib/service"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/tool/tctl/common"
-	tshcommon "github.com/gravitational/teleport/tool/tsh/common"
 
 	"github.com/gravitational/trace"
 )
@@ -40,7 +39,7 @@ func connectToProxy(ctx context.Context) (*client.Config, error) {
 	// Load clientConfig
 	identityFilePath := "certs/access-admin-identity"
 	clientConfig := new(common.AuthServiceClientConfig)
-	key, err := tshcommon.LoadIdentity(identityFilePath)
+	key, err := libclient.KeyFromIdentityFile(identityFilePath)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

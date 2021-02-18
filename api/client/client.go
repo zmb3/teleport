@@ -165,7 +165,7 @@ func (c *Client) connect(ctx context.Context) error {
 
 		_, err := c.Ping(context.TODO())
 		if err != nil {
-			errs = append(errs, trace.Errorf("CredentialsProvider[%v]: failed to connect through auth: %v", i, err))
+			errs = append(errs, trace.Errorf("CredentialsProvider[%v]: failed to dial connection: %v", i, err))
 			continue
 		}
 
