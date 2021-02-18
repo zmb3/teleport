@@ -28,6 +28,7 @@ import (
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/services"
@@ -127,7 +128,7 @@ func (p *transport) start() {
 	// Handle special non-resolvable addresses first.
 	switch dreq.Address {
 	// Connect to an Auth Server.
-	case RemoteAuthServer:
+	case constants.RemoteAuthServer:
 		authServers, err := p.authClient.GetAuthServers()
 		if err != nil {
 			p.reply(req, false, []byte("connection rejected: failed to connect to auth server"))

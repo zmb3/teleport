@@ -27,6 +27,7 @@ import (
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/srv/forward"
@@ -496,7 +497,7 @@ func (s *remoteSite) periodicUpdateCertAuthorities() {
 
 func (s *remoteSite) DialAuthServer() (net.Conn, error) {
 	return s.connThroughTunnel(&dialReq{
-		Address: RemoteAuthServer,
+		Address: constants.RemoteAuthServer,
 	})
 }
 
@@ -624,7 +625,7 @@ func (s *remoteSite) connThroughTunnel(req *dialReq) (*utils.ChConn, error) {
 		// Return the appropriate message if the user is trying to connect to a
 		// cluster or a node.
 		message := fmt.Sprintf("cluster %v is offline", s.GetName())
-		if req.Address != RemoteAuthServer {
+		if req.Address != constants.RemoteAuthServer {
 			message = fmt.Sprintf("node %v is offline", req.Address)
 		}
 		err = trace.ConnectionProblem(nil, message)

@@ -404,7 +404,7 @@ func (a *Agent) processRequests(conn *ssh.Client) error {
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	newTransportC := conn.HandleChannelOpen(chanTransport)
+	newTransportC := conn.HandleChannelOpen(constants.ChanTransport)
 	newDiscoveryC := conn.HandleChannelOpen(chanDiscovery)
 
 	// send first ping right away, then start a ping timer:
@@ -510,16 +510,6 @@ func (a *Agent) handleDiscovery(ch ssh.Channel, reqC <-chan *ssh.Request) {
 }
 
 const (
-	// chanTransport is a channel type that can be used to open a net.Conn
-	// through the reverse tunnel server. Used for trusted clusters and dial back
-	// nodes.
-	chanTransport = constants.ChanTransport
-
-	// chanTransportDialReq is the first (and only) request sent on a
-	// chanTransport channel. It's payload is the address of the host a
-	// connection should be established to.
-	chanTransportDialReq = constants.ChanTransportDialReq
-
 	chanHeartbeat    = "teleport-heartbeat"
 	chanDiscovery    = "teleport-discovery"
 	chanDiscoveryReq = "discovery"
@@ -529,9 +519,6 @@ const (
 	// LocalNode is a special non-resolvable address that indicates the request
 	// wants to connect to a dialed back node.
 	LocalNode = "@local-node"
-	// RemoteAuthServer is a special non-resolvable address that indicates client
-	// requests a connection to the remote auth server.
-	RemoteAuthServer = constants.RemoteAuthServer
 	// LocalKubernetes is a special non-resolvable address that indicates that clients
 	// requests a connection to the kubernetes endpoint of the local proxy.
 	// This has to be a valid domain name, so it lacks @

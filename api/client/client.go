@@ -106,7 +106,7 @@ func (c *Client) setDialer(creds Credentials) error {
 }
 
 func (c *Client) getProxyDialer() (ContextDialer, error) {
-	proxyDialer, err := NewProxyDialer(c.c.Addrs, c.c.KeepAlivePeriod, c.c.DialTimeout, c.sshConfig)
+	proxyDialer, err := NewProxyDialer(c.sshConfig, c.c.Addrs, c.c.KeepAlivePeriod, c.c.DialTimeout)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
