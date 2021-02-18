@@ -105,11 +105,19 @@ func (c *Client) setDialer(creds Credentials) error {
 	return trace.Wrap(err)
 }
 
+func (c *Client) getProxyDialer() (ContextDialer, error) {
+	proxyDialer, err := NewProxyDialer(c.c.Addrs, c.c.KeepAlivePeriod, c.c.DialTimeout, c.sshConfig)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	return proxyDialer, nil
+}
+
 type grpcDialer func(ctx context.Context, addr string) (net.Conn, error)
 
 // grpcDialer wraps the given ContextDialer with a grpcDialer, which
 // can be used with a grpc.DialOption.
-func (c *Client) grpcDialer() grpcDialer {
+func (c *Client) grpcDialer(dialer ContextDialer) grpcDialer {
 	return func(ctx context.Context, addr string) (net.Conn, error) {
 		if c.isClosed() {
 			return nil, trace.ConnectionProblem(nil, "client is closed")
@@ -143,9 +151,13 @@ func (c *Client) connect(ctx context.Context) error {
 			continue
 		}
 
+		proxyDialer, _ := c.getProxyDialer()
+
 		c.conn, err = grpc.Dial(
 			constants.APIDomain,
-			grpc.WithContextDialer(c.grpcDialer()),
+			grpc.WithContextDialer(c.grpcDialer(c.dialer)),
+			grpc.WithContextDialer(c.grpcDialer(proxyDialer)),
+			//TODO
 			grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
 			grpc.WithKeepaliveParams(keepalive.ClientParameters{
 				Time:                c.c.KeepAlivePeriod,
@@ -168,9 +180,6 @@ func (c *Client) connect(ctx context.Context) error {
 			errs = append(errs, trace.Errorf("CredentialsProvider[%v]: failed to dial connection: %v", i, err))
 			continue
 		}
-
-		// TODO (Joerger): Check the server version with Ping response.
-		// TODO (Joerger): start goroutine to detect provider reloads asynchronously.
 
 		return nil
 	}

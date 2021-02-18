@@ -42,7 +42,7 @@ func main() {
 	log.Printf("Starting Teleport client...")
 
 	clt, err := client.New(ctx, client.Config{
-		Addrs: []string{"proxy.example.com:3024"},
+		Addrs: []string{"localhost:3025", "localhost:3024", "proxy.example.com:3080"},
 		// Multiple credentials can be tried by providing credentialProviders. The first
 		// provider to provide valid credentials will be used to authenticate the client.
 		Credentials: []client.Credentials{
