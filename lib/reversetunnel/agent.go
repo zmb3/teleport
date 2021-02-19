@@ -28,8 +28,8 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/constants"
-	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/reversetunnel/track"
@@ -241,7 +241,7 @@ func (a *Agent) checkHostSignature(hostport string, remote net.Addr, key ssh.Pub
 			return trace.BadParameter("error parsing key: %v", err)
 		}
 		for _, checker := range checkers {
-			if apiutils.KeysEqual(checker, cert.SignatureKey) {
+			if client.KeysEqual(checker, cert.SignatureKey) {
 				a.setPrincipals(cert.ValidPrincipals)
 				return nil
 			}
