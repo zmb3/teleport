@@ -34,7 +34,7 @@ var (
 	casPath    = "certs/access-admin.cas"
 	idFilePath = "certs/access-admin-identity"
 	// Create valid tlsConfig here to use TLS Provider
-	tlsConfig *tls.Config
+	tlsConfig = &tls.Config{}
 )
 
 func main() {

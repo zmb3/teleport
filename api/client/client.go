@@ -171,9 +171,7 @@ func (c *Client) connectDialer(ctx context.Context) error {
 }
 
 func (c *Client) grpcDial(ctx context.Context, addr string) error {
-	var err error
-	if c.conn, err = grpc.Dial(
-		addr,
+	dialOptions := []grpc.DialOption{
 		grpc.WithContextDialer(c.grpcDialer(c.dialer)),
 		grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
@@ -181,18 +179,20 @@ func (c *Client) grpcDial(ctx context.Context, addr string) error {
 			Timeout:             c.c.KeepAlivePeriod * time.Duration(c.c.KeepAliveCount),
 			PermitWithoutStream: true,
 		}),
-	); err != nil {
+	}
+
+	if !c.c.WithoutDialBlock {
+		dialOptions = append(dialOptions, grpc.WithBlock())
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, c.c.DialTimeout)
+	defer cancel()
+
+	var err error
+	if c.conn, err = grpc.DialContext(ctx, addr, dialOptions...); err != nil {
 		return trace.Wrap(err)
 	}
 	c.grpc = proto.NewAuthServiceClient(c.conn)
-
-	if c.c.NoPingCheck {
-		return nil
-	}
-
-	if _, err = c.Ping(ctx); err != nil {
-		return trace.Wrap(err)
-	}
 
 	return nil
 }
@@ -230,9 +230,9 @@ type Config struct {
 	// to Auth.
 	Credentials []Credentials
 
-	// NoPingCheck disables the ping check on client initialization for cases
-	// where the connection isn't expected to be immediately usable (auth client)
-	NoPingCheck bool
+	// WithoutDialBlock does not wait for the dialed connection to be established,
+	// which can be done in the background.
+	WithoutDialBlock bool
 }
 
 // CheckAndSetDefaults checks and sets default config values
