@@ -57,7 +57,7 @@ func TestLoadIdentityFile(t *testing.T) {
 		},
 		CACerts: CACerts{
 			TLS: [][]byte{caCertPEM},
-			SSH: [][]byte{sshCert},
+			SSH: [][]byte{sshCACert},
 		},
 	}
 	err := WriteIdentityFile(idFile, path)
@@ -81,11 +81,11 @@ func TestLoadKeyPair(t *testing.T) {
 	// Write key pair and CAs files from bytes.
 	path := t.TempDir() + "username"
 	certPath, keyPath, caPath := path+".crt", path+".key", path+".cas"
-	err := ioutil.WriteFile(certPath, []byte(certPEM), 0600)
+	err := ioutil.WriteFile(certPath, certPEM, 0600)
 	require.NoError(t, err)
 	err = ioutil.WriteFile(keyPath, keyPEM, 0600)
 	require.NoError(t, err)
-	err = ioutil.WriteFile(caPath, []byte(caCertPEM), 0600)
+	err = ioutil.WriteFile(caPath, caCertPEM, 0600)
 	require.NoError(t, err)
 
 	// Load key pair from disk and build tls.Config.
@@ -98,7 +98,7 @@ func TestLoadKeyPair(t *testing.T) {
 }
 
 func getExpectedConfig(t *testing.T) *tls.Config {
-	cert, err := tls.X509KeyPair([]byte(certPEM), []byte(keyPEM))
+	cert, err := tls.X509KeyPair(certPEM, keyPEM)
 	require.NoError(t, err)
 
 	pool := x509.NewCertPool()

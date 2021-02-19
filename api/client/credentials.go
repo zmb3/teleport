@@ -34,7 +34,7 @@ type Credentials interface {
 	Dialer() (ContextDialer, error)
 	// TLSConfig returns TLS configuration used to connect to Auth.
 	TLSConfig() (*tls.Config, error)
-	// SSHConfig returns SSH configuration used to connect to Auth.
+	// SSHConfig returns SSH configuration used to connect to Proxy, may be nil.
 	SSHConfig() (*ssh.ClientConfig, error)
 }
 
@@ -54,11 +54,14 @@ func (c *TLSConfigCreds) Dialer() (ContextDialer, error) {
 }
 
 func (c *TLSConfigCreds) TLSConfig() (*tls.Config, error) {
+	if c.tlsConfig == nil {
+		return nil, trace.BadParameter("tls config is nil")
+	}
 	return configure(c.tlsConfig), nil
 }
 
 func (c *TLSConfigCreds) SSHConfig() (*ssh.ClientConfig, error) {
-	return nil, trace.NotImplemented("no ssh config")
+	return nil, nil
 }
 
 // LoadKeyPair is used to load credentials from files on disk.
@@ -103,7 +106,7 @@ func (c *KeyPairCreds) TLSConfig() (*tls.Config, error) {
 }
 
 func (c *KeyPairCreds) SSHConfig() (*ssh.ClientConfig, error) {
-	return nil, trace.NotImplemented("no ssh config")
+	return nil, nil
 }
 
 // LoadIdentityFile is used to load credentials from an identity file on disk.

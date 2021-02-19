@@ -44,13 +44,13 @@ func main() {
 	clt, err := client.New(ctx, client.Config{
 		// Addrs can be auth, proxy, or webproxy addresses. Each will be dialed until one
 		// provides a successful connection.
-		Addrs: []string{"localhost:3025", "localhost:3024", "proxy.example.com:3080"},
+		Addrs: []string{"localhost:3080", "localhost:3024", "localhost:3025"},
 		// Multiple credentials can be tried by providing credentialProviders. The first
 		// provider to provide valid credentials will be used to authenticate the client.
 		Credentials: []client.Credentials{
 			client.LoadIdentityFile(idFilePath),
-			client.LoadKeyPair(crtPath, keyPath, casPath),
-			client.LoadTLS(tlsConfig),
+			// client.LoadKeyPair(crtPath, keyPath, casPath),
+			// client.LoadTLS(tlsConfig),
 		},
 	})
 	if err != nil {

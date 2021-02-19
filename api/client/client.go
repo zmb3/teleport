@@ -105,14 +105,6 @@ func (c *Client) setDialer(creds Credentials) error {
 	return trace.Wrap(err)
 }
 
-func (c *Client) getProxyDialer() (ContextDialer, error) {
-	proxyDialer, err := NewProxyDialer(c.sshConfig, c.c.Addrs, c.c.KeepAlivePeriod, c.c.DialTimeout)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return proxyDialer, nil
-}
-
 type grpcDialer func(ctx context.Context, addr string) (net.Conn, error)
 
 // grpcDialer wraps the given ContextDialer with a grpcDialer, which
@@ -134,11 +126,16 @@ func (c *Client) connect(ctx context.Context) error {
 	// Loop over credentials and use first successful one.
 	var err error
 	var errs []error
-	for i, creds := range c.c.Credentials {
+	for _, creds := range c.c.Credentials {
 		// Load *tls.Config from the provided credentials.
 		c.tlsConfig, err = creds.TLSConfig()
 		if err != nil {
-			trace.Errorf("Credentials[%v]: failed to set TLS config: %v", i, err)
+			errs = append(errs, trace.Wrap(err))
+			continue
+		}
+
+		c.sshConfig, err = creds.SSHConfig()
+		if err != nil {
 			errs = append(errs, trace.Wrap(err))
 			continue
 		}
@@ -146,17 +143,13 @@ func (c *Client) connect(ctx context.Context) error {
 		// Build a dialer, prefer a dialer from credentials. If no fallback to the
 		// passed in dialer and then list of addresses.
 		if err = c.setDialer(creds); err != nil {
-			trace.Errorf("Credentials[%v]: failed to set auth dialer: %v", i, err)
 			errs = append(errs, trace.Wrap(err))
 			continue
 		}
 
-		proxyDialer, _ := c.getProxyDialer()
-
 		c.conn, err = grpc.Dial(
 			constants.APIDomain,
 			grpc.WithContextDialer(c.grpcDialer(c.dialer)),
-			grpc.WithContextDialer(c.grpcDialer(proxyDialer)),
 			grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
 			grpc.WithKeepaliveParams(keepalive.ClientParameters{
 				Time:                c.c.KeepAlivePeriod,
@@ -165,7 +158,7 @@ func (c *Client) connect(ctx context.Context) error {
 			}),
 		)
 		if err != nil {
-			errs = append(errs, trace.Errorf("Credentials[%v]: failed to dial through auth: %v", i, err))
+			errs = append(errs, trace.Wrap(err))
 			continue
 		}
 		c.grpc = proto.NewAuthServiceClient(c.conn)
@@ -174,9 +167,9 @@ func (c *Client) connect(ctx context.Context) error {
 			return nil
 		}
 
-		_, err := c.Ping(context.TODO())
+		_, err := c.Ping(ctx)
 		if err != nil {
-			errs = append(errs, trace.Errorf("CredentialsProvider[%v]: failed to dial connection: %v", i, err))
+			errs = append(errs, trace.Wrap(err))
 			continue
 		}
 

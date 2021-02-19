@@ -35,8 +35,8 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 
 	"github.com/gravitational/teleport"
+	apiclient "github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/asciitable"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/backend"
@@ -824,7 +824,7 @@ func setupNoninteractiveClient(tc *client.TeleportClient, key *client.Key) error
 						return false
 					}
 					for _, caKey := range caKeys {
-						if apiutils.KeysEqual(caKey, hostCAKey) {
+						if apiclient.KeysEqual(caKey, hostCAKey) {
 							return true
 						}
 					}
@@ -1700,7 +1700,7 @@ func authFromIdentity(k *client.Key) (ssh.AuthMethod, error) {
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return apiutils.NewAuthMethodForCert(signer), nil
+	return apiclient.NewAuthMethodForCert(signer), nil
 }
 
 // onShow reads an identity file (a public SSH key or a cert) and dumps it to stdout
