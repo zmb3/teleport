@@ -39,8 +39,8 @@ func (f ContextDialerFunc) DialContext(ctx context.Context, network, addr string
 	return f(ctx, network, addr)
 }
 
-// NewAddrDialer makes a new dialer from a list of addresses
-func NewAddrDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
+// NewAddrsDialer makes a new dialer from a list of addresses
+func NewAddrsDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
 	if len(addrs) == 0 {
 		return nil, trace.BadParameter("no addreses to dial")
 	}
@@ -60,27 +60,38 @@ func NewAddrDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration)
 	}), nil
 }
 
-// NewProxyDialer make a new dialer from a list of addresses over ssh
-func NewProxyDialer(ssh *ssh.ClientConfig, addrs []string, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
-	if len(addrs) == 0 {
-		return nil, trace.BadParameter("no addreses to dial")
+// NewAuthDialer makes a new dialer from a single address
+func NewAuthDialer(keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
+	dialer := net.Dialer{
+		Timeout:   dialTimeout,
+		KeepAlive: keepAliveInterval,
 	}
+	return ContextDialerFunc(func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+		conn, err = dialer.DialContext(ctx, network, addr)
+		if err == nil {
+			return conn, nil
+		}
+		// not wrapping on purpose to preserve the original error
+		return nil, err
+	}), nil
+}
+
+// NewProxyDialer make a new dialer from a list of addresses over ssh
+func NewProxyDialer(ssh *ssh.ClientConfig, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
 	if ssh == nil {
 		return nil, trace.BadParameter("no ssh config")
 	}
-	proxyDialer := &TunnelAuthDialer{
-		ClientConfig: ssh,
-	}
-	return ContextDialerFunc(func(ctx context.Context, network, _ string) (conn net.Conn, err error) {
-		for _, addr := range addrs {
-			proxyDialer.ProxyAddr = addr
-			conn, err = proxyDialer.DialContext(ctx, network, addr)
-			if err == nil {
-				return conn, nil
-			}
-			// TODO: try dialing it as a web-proxy addr, by looking
-			// for the tunaddr - tctl.findReverseTunnel
+	return ContextDialerFunc(func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+		proxyDialer := &TunnelAuthDialer{
+			ClientConfig: ssh,
+			ProxyAddr:    addr,
 		}
+		conn, err = proxyDialer.DialContext(ctx, network, addr)
+		if err == nil {
+			return conn, nil
+		}
+		// TODO: try dialing it as a web-proxy addr, by looking
+		// for the tunaddr - tctl.findReverseTunnel
 		return nil, err
 	}), nil
 }

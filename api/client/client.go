@@ -27,7 +27,6 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/types/events"
@@ -101,7 +100,7 @@ func (c *Client) setDialer(creds Credentials) error {
 	if len(c.c.Addrs) == 0 {
 		return trace.BadParameter("no dialer in credentials, configuration, or addresses provided")
 	}
-	c.dialer, err = NewAddrDialer(c.c.Addrs, c.c.KeepAlivePeriod, c.c.DialTimeout)
+	c.dialer, err = NewAddrsDialer(c.c.Addrs, c.c.KeepAlivePeriod, c.c.DialTimeout)
 	return trace.Wrap(err)
 }
 
@@ -147,33 +146,79 @@ func (c *Client) connect(ctx context.Context) error {
 			continue
 		}
 
-		c.conn, err = grpc.Dial(
-			constants.APIDomain,
-			grpc.WithContextDialer(c.grpcDialer(c.dialer)),
-			grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
-			grpc.WithKeepaliveParams(keepalive.ClientParameters{
-				Time:                c.c.KeepAlivePeriod,
-				Timeout:             c.c.KeepAlivePeriod * time.Duration(c.c.KeepAliveCount),
-				PermitWithoutStream: true,
-			}),
-		)
-		if err != nil {
-			errs = append(errs, trace.Wrap(err))
-			continue
-		}
-		c.grpc = proto.NewAuthServiceClient(c.conn)
+		// Try connecting to each address as auth.
+		for _, addr := range c.c.Addrs {
+			authDialer, err := NewAuthDialer(c.c.KeepAlivePeriod, c.c.DialTimeout)
+			if err != nil {
+				errs = append(errs, trace.Wrap(err))
+				continue
+			}
+			if c.conn, err = grpc.Dial(
+				addr,
+				grpc.WithContextDialer(c.grpcDialer(authDialer)),
+				grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
+				grpc.WithKeepaliveParams(keepalive.ClientParameters{
+					Time:                c.c.KeepAlivePeriod,
+					Timeout:             c.c.KeepAlivePeriod * time.Duration(c.c.KeepAliveCount),
+					PermitWithoutStream: true,
+				}),
+			); err != nil {
+				errs = append(errs, trace.Wrap(err))
+				continue
+			}
+			c.grpc = proto.NewAuthServiceClient(c.conn)
 
-		if c.c.NoPingCheck {
+			if c.c.NoPingCheck {
+				return nil
+			}
+
+			if _, err = c.Ping(ctx); err != nil {
+				errs = append(errs, trace.Wrap(err))
+				continue
+			}
+
 			return nil
 		}
 
-		_, err := c.Ping(ctx)
-		if err != nil {
-			errs = append(errs, trace.Wrap(err))
+		// Try connecting to each address as proxy,
+		// which needs ssh config to connect.
+		if c.sshConfig == nil {
 			continue
 		}
 
-		return nil
+		for _, addr := range c.c.Addrs {
+			proxyDialer, err := NewProxyDialer(c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout)
+			if err != nil {
+				errs = append(errs, trace.Wrap(err))
+				continue
+			}
+
+			if c.conn, err = grpc.Dial(
+				addr,
+				grpc.WithContextDialer(c.grpcDialer(proxyDialer)),
+				grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
+				grpc.WithKeepaliveParams(keepalive.ClientParameters{
+					Time:                c.c.KeepAlivePeriod,
+					Timeout:             c.c.KeepAlivePeriod * time.Duration(c.c.KeepAliveCount),
+					PermitWithoutStream: true,
+				}),
+			); err != nil {
+				errs = append(errs, trace.Wrap(err))
+				continue
+			}
+			c.grpc = proto.NewAuthServiceClient(c.conn)
+
+			if c.c.NoPingCheck {
+				return nil
+			}
+
+			if _, err = c.Ping(ctx); err != nil {
+				errs = append(errs, trace.Wrap(err))
+				continue
+			}
+
+			return nil
+		}
 	}
 
 	return trace.Wrap(trace.NewAggregate(errs...), "all auth methods failed")
