@@ -26,7 +26,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/gravitational/teleport/api/constants"
 
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
@@ -86,7 +86,7 @@ func (i *IdentityFile) TLSConfig() (*tls.Config, error) {
 // SSHClientConfig returns an ssh.ClientConfig with SSH credentials from this
 // Key and HostKeyCallback matching SSH CAs in the Key.
 func (i *IdentityFile) SSHClientConfig() (*ssh.ClientConfig, error) {
-	ssh, err := utils.SSHClientConfig(i.Certs.SSH, i.PrivateKey, i.CACerts.SSH)
+	ssh, err := SSHClientConfig(i.Certs.SSH, i.PrivateKey, i.CACerts.SSH)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -121,7 +121,7 @@ func ReadIdentityFile(path string) (*IdentityFile, error) {
 	// did not find the SSH certificate in the file? look in a
 	// separate file with -cert.pub prefix
 	if len(ident.Certs.SSH) == 0 {
-		certFn := path + "-cert.pub"
+		certFn := path + constants.FileExtCert
 		ident.Certs.SSH, err = ioutil.ReadFile(certFn)
 		if err != nil {
 			return nil, trace.Wrap(err)

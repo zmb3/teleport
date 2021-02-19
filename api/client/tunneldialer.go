@@ -33,7 +33,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// TunnelAuthDialer connects to the Auth Server through the reverse tunnel.
+// TunnelAuthDialer connects to the Auth Server through the proxy SSH tunnel.
 type TunnelAuthDialer struct {
 	// ProxyAddr is the address of the proxy
 	ProxyAddr string
@@ -91,12 +91,16 @@ func (d *DialReq) CheckAndSetDefaults() error {
 // ConnectProxyTransport opens a channel over the remote tunnel and connects
 // to the requested host.
 func ConnectProxyTransport(sconn ssh.Conn, req *DialReq, exclusive bool) (*utils.ChConn, bool, error) {
+	if err := req.CheckAndSetDefaults(); err != nil {
+		return nil, false, trace.Wrap(err)
+	}
+
 	channel, _, err := sconn.OpenChannel(constants.ChanTransport, nil)
 	if err != nil {
 		return nil, false, trace.Wrap(err)
 	}
 
-	payload, err := marshalDialReq(req)
+	payload, err := json.Marshal(req)
 	if err != nil {
 		return nil, false, trace.Wrap(err)
 	}
@@ -126,15 +130,6 @@ func ConnectProxyTransport(sconn ssh.Conn, req *DialReq, exclusive bool) (*utils
 		return utils.NewExclusiveChConn(sconn, channel), false, nil
 	}
 	return utils.NewChConn(sconn, channel), false, nil
-}
-
-// marshalDialReq marshals the dial request to send over the wire.
-func marshalDialReq(req *DialReq) ([]byte, error) {
-	bytes, err := json.Marshal(req)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return bytes, nil
 }
 
 // // FindReverseTunnel uses the web proxy to discover where the SSH reverse tunnel

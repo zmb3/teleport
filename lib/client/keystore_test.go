@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
-	apiutils "github.com/gravitational/teleport/api/utils"
+	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/auth/testauthority"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -183,7 +183,7 @@ func TestKnownHosts(t *testing.T) {
 	require.Equal(t, len(keys), 0)
 	keys, _ = s.store.GetKnownHostKeys("example.org")
 	require.Equal(t, len(keys), 1)
-	require.True(t, apiutils.KeysEqual(keys[0], pub2))
+	require.True(t, client.KeysEqual(keys[0], pub2))
 }
 
 // TestCheckKey makes sure Teleport clients can load non-RSA algorithms in
@@ -257,7 +257,7 @@ func TestProxySSHConfig(t *testing.T) {
 					CertChecker: ssh.CertChecker{
 						IsUserAuthority: func(cert ssh.PublicKey) bool {
 							// Makes sure that user presented key signed by or with trusted authority.
-							return apiutils.KeysEqual(caPub, cert)
+							return client.KeysEqual(caPub, cert)
 						},
 					},
 				}

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package utils
+package client
 
 import (
 	"crypto/subtle"
@@ -47,39 +47,33 @@ func SSHCert(sshCert []byte) (*ssh.Certificate, error) {
 // SSHClientConfig returns an ssh.ClientConfig with SSH credentials from this
 // Key and HostKeyCallback matching SSH CAs in the Key.
 func SSHClientConfig(sshCert, privKey []byte, caCerts [][]byte) (*ssh.ClientConfig, error) {
-	username, err := CertUsername(sshCert)
+	cert, err := SSHCert(sshCert)
 	if err != nil {
 		return nil, trace.Wrap(err, "failed to extract username from SSH certificate")
 	}
-	authMethod, err := AsAuthMethod(sshCert, privKey)
+
+	authMethod, err := AsAuthMethod(cert, privKey)
 	if err != nil {
 		return nil, trace.Wrap(err, "failed to convert identity file to auth method")
 	}
+
 	hostKeyCallback, err := HostKeyCallback(caCerts)
 	if err != nil {
 		return nil, trace.Wrap(err, "failed to convert identity file to HostKeyCallback")
 	}
+
 	return &ssh.ClientConfig{
-		User:            username,
+		User:            cert.KeyId,
 		Auth:            []ssh.AuthMethod{authMethod},
 		HostKeyCallback: hostKeyCallback,
 		Timeout:         defaults.DefaultDialTimeout,
 	}, nil
 }
 
-// CertUsername returns the name of the Teleport user encoded in the SSH certificate.
-func CertUsername(sshCert []byte) (string, error) {
-	cert, err := SSHCert(sshCert)
-	if err != nil {
-		return "", trace.Wrap(err)
-	}
-	return cert.KeyId, nil
-}
-
 // AsAuthMethod returns an "auth method" interface, a common abstraction
 // used by Golang SSH library. This is how you actually use a Key to feed
 // it into the SSH lib.
-func AsAuthMethod(sshCert []byte, privKey []byte) (ssh.AuthMethod, error) {
+func AsAuthMethod(sshCert *ssh.Certificate, privKey []byte) (ssh.AuthMethod, error) {
 	keys, err := AsAgentKeys(sshCert, privKey)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -96,13 +90,7 @@ func AsAuthMethod(sshCert []byte, privKey []byte) (ssh.AuthMethod, error) {
 
 // AsAgentKeys converts Key struct to a []*agent.AddedKey. All elements
 // of the []*agent.AddedKey slice need to be loaded into the agent!
-func AsAgentKeys(sshCert, privKey []byte) ([]agent.AddedKey, error) {
-	// unmarshal certificate bytes into a ssh.PublicKey
-	cert, err := SSHCert(sshCert)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
+func AsAgentKeys(sshCert *ssh.Certificate, privKey []byte) ([]agent.AddedKey, error) {
 	// unmarshal private key bytes into a *rsa.PrivateKey
 	privateKey, err := ssh.ParseRawPrivateKey(privKey)
 	if err != nil {
@@ -110,14 +98,14 @@ func AsAgentKeys(sshCert, privKey []byte) ([]agent.AddedKey, error) {
 	}
 
 	// put a teleport identifier along with the teleport user into the comment field
-	comment := fmt.Sprintf("teleport:%v", cert.KeyId)
+	comment := fmt.Sprintf("teleport:%v", sshCert.KeyId)
 
 	// On Windows, return the certificate with the private key embedded.
 	if runtime.GOOS == constants.WindowsOS {
 		return []agent.AddedKey{
 			{
 				PrivateKey:       privateKey,
-				Certificate:      cert,
+				Certificate:      sshCert,
 				Comment:          comment,
 				LifetimeSecs:     0,
 				ConfirmBeforeUse: false,
@@ -140,7 +128,7 @@ func AsAgentKeys(sshCert, privKey []byte) ([]agent.AddedKey, error) {
 	return []agent.AddedKey{
 		{
 			PrivateKey:       privateKey,
-			Certificate:      cert,
+			Certificate:      sshCert,
 			Comment:          comment,
 			LifetimeSecs:     0,
 			ConfirmBeforeUse: false,

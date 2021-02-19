@@ -118,4 +118,7 @@ const (
 	// RemoteAuthServer is a special non-resolvable address that indicates client
 	// requests a connection to the remote auth server.
 	RemoteAuthServer = "@remote-auth-server"
+
+	// FileExtCert is a file extension used for Certificate files
+	FileExtCert = "-cert.pub"
 )

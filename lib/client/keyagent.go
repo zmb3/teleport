@@ -28,7 +28,7 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 
 	"github.com/gravitational/teleport"
-	apiutils "github.com/gravitational/teleport/api/utils"
+	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/utils/prompt"
@@ -81,7 +81,7 @@ func NewKeyStoreCertChecker(keyStore LocalKeyStore) ssh.HostKeyCallback {
 						return false
 					}
 					for i := range keys {
-						if apiutils.KeysEqual(key, keys[i]) {
+						if client.KeysEqual(key, keys[i]) {
 							return true
 						}
 					}
@@ -334,7 +334,7 @@ func (a *LocalKeyAgent) checkHostCertificate(key ssh.PublicKey, addr string) boo
 		return false
 	}
 	for i := range keys {
-		if apiutils.KeysEqual(key, keys[i]) {
+		if client.KeysEqual(key, keys[i]) {
 			return true
 		}
 	}
@@ -353,7 +353,7 @@ func (a *LocalKeyAgent) checkHostKey(addr string, remote net.Addr, key ssh.Publi
 
 	// Check if this exact host is in the local cache.
 	keys, _ := a.keyStore.GetKnownHostKeys(addr)
-	if len(keys) > 0 && apiutils.KeysEqual(key, keys[0]) {
+	if len(keys) > 0 && client.KeysEqual(key, keys[0]) {
 		a.log.Debugf("Verified host %s.", addr)
 		return nil
 	}
@@ -474,7 +474,7 @@ func (a *LocalKeyAgent) AuthMethods() (m []ssh.AuthMethod) {
 		// filter out non-certificates (like regular public SSH keys stored in the SSH agent):
 		_, ok := signers[i].PublicKey().(*ssh.Certificate)
 		if ok {
-			m = append(m, apiutils.NewAuthMethodForCert(signers[i]))
+			m = append(m, client.NewAuthMethodForCert(signers[i]))
 		}
 	}
 	return m
