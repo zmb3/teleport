@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport/api/client/proto"
+	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/types/events"
@@ -79,49 +80,14 @@ func New(ctx context.Context, cfg Config) (*Client, error) {
 	}
 
 	c := &Client{c: cfg}
-	if err := c.connect(ctx); err != nil {
+	if err := c.connectWithAuth(ctx); err != nil {
 		return nil, trace.Wrap(err)
 	}
 
 	return c, nil
 }
 
-// getDialer builds a grpc dialer for the client from a ContextDialer.
-// The ContextDialer is chosen from available options, preferring one from
-// credentials, then from configuration, and lastly from addresses.
-func (c *Client) setDialer(creds Credentials) error {
-	var err error
-	if c.dialer, err = creds.Dialer(); err == nil {
-		return nil
-	}
-	if c.dialer = c.c.Dialer; c.dialer != nil {
-		return nil
-	}
-	if len(c.c.Addrs) == 0 {
-		return trace.BadParameter("no dialer in credentials, configuration, or addresses provided")
-	}
-	c.dialer, err = NewAddrsDialer(c.c.Addrs, c.c.KeepAlivePeriod, c.c.DialTimeout)
-	return trace.Wrap(err)
-}
-
-type grpcDialer func(ctx context.Context, addr string) (net.Conn, error)
-
-// grpcDialer wraps the given ContextDialer with a grpcDialer, which
-// can be used with a grpc.DialOption.
-func (c *Client) grpcDialer(dialer ContextDialer) grpcDialer {
-	return func(ctx context.Context, addr string) (net.Conn, error) {
-		if c.isClosed() {
-			return nil, trace.ConnectionProblem(nil, "client is closed")
-		}
-		conn, err := dialer.DialContext(ctx, "tcp", addr)
-		if err != nil {
-			return nil, trace.ConnectionProblem(err, err.Error())
-		}
-		return conn, nil
-	}
-}
-
-func (c *Client) connect(ctx context.Context) error {
+func (c *Client) connectWithAuth(ctx context.Context) error {
 	// Loop over credentials and use first successful one.
 	var err error
 	var errs []error
@@ -139,89 +105,111 @@ func (c *Client) connect(ctx context.Context) error {
 			continue
 		}
 
-		// Build a dialer, prefer a dialer from credentials. If no fallback to the
-		// passed in dialer and then list of addresses.
-		if err = c.setDialer(creds); err != nil {
+		// Try dialing with Dialer provided in credentials
+		if c.dialer, err = creds.Dialer(); err == nil {
+			err := c.grpcDial(ctx, constants.APIDomain)
+			if err == nil {
+				return nil
+			}
+			errs = append(errs, trace.Wrap(err))
+		}
+
+		// Use standard dialer configuration
+		if err := c.connectDialer(ctx); err != nil {
 			errs = append(errs, trace.Wrap(err))
 			continue
 		}
 
-		// Try connecting to each address as auth.
-		for _, addr := range c.c.Addrs {
-			authDialer, err := NewAuthDialer(c.c.KeepAlivePeriod, c.c.DialTimeout)
-			if err != nil {
-				errs = append(errs, trace.Wrap(err))
-				continue
-			}
-			if c.conn, err = grpc.Dial(
-				addr,
-				grpc.WithContextDialer(c.grpcDialer(authDialer)),
-				grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
-				grpc.WithKeepaliveParams(keepalive.ClientParameters{
-					Time:                c.c.KeepAlivePeriod,
-					Timeout:             c.c.KeepAlivePeriod * time.Duration(c.c.KeepAliveCount),
-					PermitWithoutStream: true,
-				}),
-			); err != nil {
-				errs = append(errs, trace.Wrap(err))
-				continue
-			}
-			c.grpc = proto.NewAuthServiceClient(c.conn)
+		return nil
+	}
 
-			if c.c.NoPingCheck {
-				return nil
-			}
+	return trace.Wrap(trace.NewAggregate(errs...), "all auth methods failed")
+}
 
-			if _, err = c.Ping(ctx); err != nil {
-				errs = append(errs, trace.Wrap(err))
-				continue
-			}
+func (c *Client) connectDialer(ctx context.Context) error {
+	var err error
+	var errs []error
 
+	// Try connecting with dialer provided in config.
+	if c.c.Dialer != nil {
+		c.dialer = c.c.Dialer
+		if err = c.grpcDial(ctx, constants.APIDomain); err == nil {
 			return nil
 		}
+		errs = append(errs, trace.Errorf("failed to dial with given dialer: %v", err))
+	}
 
-		// Try connecting to each address as proxy,
-		// which needs ssh config to connect.
-		if c.sshConfig == nil {
+	// Try connecting to each address as auth.
+	for _, addr := range c.c.Addrs {
+		if c.dialer, err = NewAuthDialer(c.c.KeepAlivePeriod, c.c.DialTimeout); err != nil {
+			errs = append(errs, trace.Errorf("failed to dial %v as auth: %v\n", addr, err))
 			continue
 		}
+		if err = c.grpcDial(ctx, addr); err != nil {
+			errs = append(errs, trace.Errorf("failed to dial %v as auth: %v\n", addr, err))
+			continue
+		}
+		return nil
+	}
 
+	// Try connecting to each address as proxy if ssh config is provided.
+	if c.sshConfig != nil {
 		for _, addr := range c.c.Addrs {
-			proxyDialer, err := NewProxyDialer(c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout)
-			if err != nil {
-				errs = append(errs, trace.Wrap(err))
+			if c.dialer, err = NewProxyDialer(c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout); err != nil {
+				errs = append(errs, trace.Errorf("failed to dial %v as proxy: %v\n", addr, err))
 				continue
 			}
-
-			if c.conn, err = grpc.Dial(
-				addr,
-				grpc.WithContextDialer(c.grpcDialer(proxyDialer)),
-				grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
-				grpc.WithKeepaliveParams(keepalive.ClientParameters{
-					Time:                c.c.KeepAlivePeriod,
-					Timeout:             c.c.KeepAlivePeriod * time.Duration(c.c.KeepAliveCount),
-					PermitWithoutStream: true,
-				}),
-			); err != nil {
-				errs = append(errs, trace.Wrap(err))
+			if err = c.grpcDial(ctx, addr); err != nil {
+				errs = append(errs, trace.Errorf("failed to dial %v as proxy: %v\n", addr, err))
 				continue
 			}
-			c.grpc = proto.NewAuthServiceClient(c.conn)
-
-			if c.c.NoPingCheck {
-				return nil
-			}
-
-			if _, err = c.Ping(ctx); err != nil {
-				errs = append(errs, trace.Wrap(err))
-				continue
-			}
-
 			return nil
 		}
 	}
 
-	return trace.Wrap(trace.NewAggregate(errs...), "all auth methods failed")
+	return trace.Wrap(trace.NewAggregate(errs...), "failed to dial server with given configuration")
+}
+
+func (c *Client) grpcDial(ctx context.Context, addr string) error {
+	var err error
+	if c.conn, err = grpc.Dial(
+		addr,
+		grpc.WithContextDialer(c.grpcDialer(c.dialer)),
+		grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                c.c.KeepAlivePeriod,
+			Timeout:             c.c.KeepAlivePeriod * time.Duration(c.c.KeepAliveCount),
+			PermitWithoutStream: true,
+		}),
+	); err != nil {
+		return trace.Wrap(err)
+	}
+	c.grpc = proto.NewAuthServiceClient(c.conn)
+
+	if c.c.NoPingCheck {
+		return nil
+	}
+
+	if _, err = c.Ping(ctx); err != nil {
+		return trace.Wrap(err)
+	}
+
+	return nil
+}
+
+// grpcDialer wraps the given ContextDialer with a grpcDialer, which
+// can be used with a grpc.DialOption.
+func (c *Client) grpcDialer(dialer ContextDialer) func(ctx context.Context, addr string) (net.Conn, error) {
+	return func(ctx context.Context, addr string) (net.Conn, error) {
+		if c.isClosed() {
+			return nil, trace.ConnectionProblem(nil, "client is closed")
+		}
+		conn, err := dialer.DialContext(ctx, "tcp", addr)
+		if err != nil {
+			return nil, trace.ConnectionProblem(err, err.Error())
+		}
+		return conn, nil
+	}
 }
 
 // Config contains configuration of the client
@@ -262,6 +250,20 @@ func (c *Config) CheckAndSetDefaults() error {
 		c.DialTimeout = defaults.DefaultDialTimeout
 	}
 	return nil
+}
+
+// GetHTTPDialer returns the configured dialer, or builds a dialer
+// from configured addresses.
+func (c *Config) GetHTTPDialer() (ContextDialer, error) {
+	var err error
+	if c.Dialer != nil {
+		return c.Dialer, nil
+	}
+	c.Dialer, err = NewAddrsDialer(c.Addrs, c.KeepAlivePeriod, c.DialTimeout)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	return c.Dialer, nil
 }
 
 // Config returns the tls.Config the client connected with.
