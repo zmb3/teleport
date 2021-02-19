@@ -122,7 +122,7 @@ func (c *Client) grpcDialer(dialer ContextDialer) grpcDialer {
 		if c.isClosed() {
 			return nil, trace.ConnectionProblem(nil, "client is closed")
 		}
-		conn, err := c.dialer.DialContext(ctx, "tcp", addr)
+		conn, err := dialer.DialContext(ctx, "tcp", addr)
 		if err != nil {
 			return nil, trace.ConnectionProblem(err, err.Error())
 		}
@@ -157,7 +157,6 @@ func (c *Client) connect(ctx context.Context) error {
 			constants.APIDomain,
 			grpc.WithContextDialer(c.grpcDialer(c.dialer)),
 			grpc.WithContextDialer(c.grpcDialer(proxyDialer)),
-			//TODO
 			grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
 			grpc.WithKeepaliveParams(keepalive.ClientParameters{
 				Time:                c.c.KeepAlivePeriod,
