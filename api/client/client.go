@@ -155,7 +155,7 @@ func (c *Client) connectDialer(ctx context.Context) error {
 	// Try connecting to each address as proxy if ssh config is provided.
 	if c.sshConfig != nil {
 		for _, addr := range c.c.Addrs {
-			if c.dialer, err = NewProxyDialer(c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout); err != nil {
+			if c.dialer, err = NewProxyDialer(*c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout); err != nil {
 				errs = append(errs, trace.Errorf("failed to dial %v as proxy: %v\n", addr, err))
 				continue
 			}

@@ -179,7 +179,7 @@ func HostKeyCallback(caCerts [][]byte) (ssh.HostKeyCallback, error) {
 }
 
 // CertAuthMethod is a wrapper around ssh.Signer (certificate signer) object.
-// CertAuthMethod then implements ssh.Authmethod interface around this one certificate signer.
+// CertAuthMethod then implements ssh.AuthMethod interface around this one certificate signer.
 //
 // We need this wrapper because Golang's SSH library's unfortunate API design. It uses
 // callbacks with 'authMethod' interfaces and without this wrapper it is impossible to

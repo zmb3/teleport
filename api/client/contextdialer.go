@@ -42,7 +42,7 @@ func (f ContextDialerFunc) DialContext(ctx context.Context, network, addr string
 // NewAddrsDialer makes a new dialer from a list of addresses
 func NewAddrsDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
 	if len(addrs) == 0 {
-		return nil, trace.BadParameter("no addreses to dial")
+		return nil, trace.BadParameter("no addresses to dial")
 	}
 	dialer := net.Dialer{
 		Timeout:   dialTimeout,
@@ -77,13 +77,10 @@ func NewAuthDialer(keepAliveInterval, dialTimeout time.Duration) (ContextDialer,
 }
 
 // NewProxyDialer make a new dialer from a list of addresses over ssh
-func NewProxyDialer(ssh *ssh.ClientConfig, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
-	if ssh == nil {
-		return nil, trace.BadParameter("no ssh config")
-	}
+func NewProxyDialer(ssh ssh.ClientConfig, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
 	return ContextDialerFunc(func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
 		proxyDialer := &TunnelAuthDialer{
-			ClientConfig: ssh,
+			ClientConfig: &ssh,
 			ProxyAddr:    addr,
 		}
 		conn, err = proxyDialer.DialContext(ctx, network, addr)
