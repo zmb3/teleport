@@ -510,6 +510,16 @@ func (a *Agent) handleDiscovery(ch ssh.Channel, reqC <-chan *ssh.Request) {
 }
 
 const (
+	// chanTransport is a channel type that can be used to open a net.Conn
+	// through the reverse tunnel server. Used for trusted clusters and dial back
+	// nodes.
+	chanTransport = "teleport-transport"
+
+	// chanTransportDialReq is the first (and only) request sent on a
+	// chanTransport channel. It's payload is the address of the host a
+	// connection should be established to.
+	chanTransportDialReq = "teleport-transport-dial"
+
 	chanHeartbeat    = "teleport-heartbeat"
 	chanDiscovery    = "teleport-discovery"
 	chanDiscoveryReq = "discovery"
@@ -519,6 +529,9 @@ const (
 	// LocalNode is a special non-resolvable address that indicates the request
 	// wants to connect to a dialed back node.
 	LocalNode = "@local-node"
+	// RemoteAuthServer is a special non-resolvable address that indicates client
+	// requests a connection to the remote auth server.
+	RemoteAuthServer = "@remote-auth-server"
 	// LocalKubernetes is a special non-resolvable address that indicates that clients
 	// requests a connection to the kubernetes endpoint of the local proxy.
 	// This has to be a valid domain name, so it lacks @

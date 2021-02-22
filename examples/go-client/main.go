@@ -49,8 +49,8 @@ func main() {
 		// provider to provide valid credentials will be used to authenticate the client.
 		Credentials: []client.Credentials{
 			client.LoadIdentityFile(idFilePath),
-			// client.LoadKeyPair(crtPath, keyPath, casPath),
-			// client.LoadTLS(tlsConfig),
+			client.LoadKeyPair(crtPath, keyPath, casPath),
+			client.LoadTLS(tlsConfig),
 		},
 	})
 	if err != nil {

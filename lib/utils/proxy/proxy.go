@@ -52,10 +52,10 @@ func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientCon
 	return ssh.NewClient(c, chans, reqs), nil
 }
 
-// DialWithDeadline works around the case when net.DialWithTimeout
+// dialWithDeadline works around the case when net.DialWithTimeout
 // succeeds, but key exchange hangs. Setting deadline on connection
 // prevents this case from happening
-func DialWithDeadline(network string, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
+func dialWithDeadline(network string, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
 	conn, err := net.DialTimeout(network, addr, config.Timeout)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ type directDial struct{}
 
 // Dial calls ssh.Dial directly.
 func (d directDial) Dial(network string, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
-	return DialWithDeadline(network, addr, config)
+	return dialWithDeadline(network, addr, config)
 }
 
 // DialTimeout acts like Dial but takes a timeout.

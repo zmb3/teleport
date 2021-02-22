@@ -1,12 +1,9 @@
 /*
 Copyright 2019 Gravitational, Inc.
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,31 +25,56 @@ import (
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/constants"
+	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
+	"github.com/gravitational/teleport/lib/utils/proxy"
 
 	"github.com/gravitational/trace"
 
 	"github.com/sirupsen/logrus"
 )
 
-type (
-	dialReq          = client.DialReq
-	TunnelAuthDialer = client.TunnelAuthDialer
-)
+// TunnelAuthDialer connects to the Auth Server through the reverse tunnel.
+type TunnelAuthDialer struct {
+	// ProxyAddr is the address of the proxy
+	ProxyAddr string
+	// ClientConfig is SSH tunnel client config
+	ClientConfig *ssh.ClientConfig
+}
+
+// DialContext dials auth server via SSH tunnel
+func (t *TunnelAuthDialer) DialContext(ctx context.Context, network string, addr string) (net.Conn, error) {
+	// Connect to the reverse tunnel server.
+	dialer := proxy.DialerFromEnvironment(t.ProxyAddr)
+	sconn, err := dialer.Dial("tcp", t.ProxyAddr, t.ClientConfig)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	// Build a net.Conn over the tunnel. Make this an exclusive connection:
+	// close the net.Conn as well as the channel upon close.
+	conn, _, err := client.ConnectProxyTransport(sconn.Conn, &client.DialReq{
+		Address: RemoteAuthServer,
+	}, true)
+	if err != nil {
+		err2 := sconn.Close()
+		return nil, trace.NewAggregate(err, err2)
+	}
+	return conn, nil
+}
 
 // parseDialReq parses the dial request. Is backward compatible with legacy
 // payload.
-func parseDialReq(payload []byte) *dialReq {
-	var req dialReq
+func parseDialReq(payload []byte) *client.DialReq {
+	var req client.DialReq
 	err := json.Unmarshal(payload, &req)
 	if err != nil {
-		// For backward compatibility, if the request is not a *dialReq, it is just
+		// For backward compatibility, if the request is not a *DialReq, it is just
 		// a raw string with the target host as the payload.
-		return &dialReq{
+		return &client.DialReq{
 			Address: string(payload),
 		}
 	}
@@ -128,7 +150,7 @@ func (p *transport) start() {
 	// Handle special non-resolvable addresses first.
 	switch dreq.Address {
 	// Connect to an Auth Server.
-	case constants.RemoteAuthServer:
+	case RemoteAuthServer:
 		authServers, err := p.authClient.GetAuthServers()
 		if err != nil {
 			p.reply(req, false, []byte("connection rejected: failed to connect to auth server"))
@@ -164,7 +186,7 @@ func (p *transport) start() {
 			}
 
 			p.log.Debug("Handing off connection to a local kubernetes service")
-			p.server.HandleConnection(utils.NewChConn(p.sconn, p.channel))
+			p.server.HandleConnection(apiutils.NewChConn(p.sconn, p.channel))
 			return
 		default:
 			// This must be a proxy.
@@ -198,7 +220,7 @@ func (p *transport) start() {
 			}
 
 			p.log.Debug("Handing off connection to a local SSH service")
-			p.server.HandleConnection(utils.NewChConn(p.sconn, p.channel))
+			p.server.HandleConnection(apiutils.NewChConn(p.sconn, p.channel))
 			return
 		}
 		// If this is a proxy and not an SSH node, try finding an inbound
@@ -272,7 +294,7 @@ func (p *transport) handleChannelRequests(closeContext context.Context, useTunne
 				return
 			}
 			switch req.Type {
-			case utils.ConnectionTypeRequest:
+			case apiutils.ConnectionTypeRequest:
 				p.reply(req, useTunnel, nil)
 			default:
 				p.reply(req, false, nil)
@@ -286,7 +308,7 @@ func (p *transport) handleChannelRequests(closeContext context.Context, useTunne
 // getConn checks if the local site holds a connection to the target host,
 // and if it does, attempts to dial through the tunnel. Otherwise directly
 // dials to host.
-func (p *transport) getConn(servers []string, r *dialReq) (net.Conn, bool, error) {
+func (p *transport) getConn(servers []string, r *client.DialReq) (net.Conn, bool, error) {
 	// This function doesn't attempt to dial if a host with one of the
 	// search names is not registered. It's a fast check.
 	p.log.Debugf("Attempting to dial through tunnel with server ID %v.", r.ServerID)
@@ -318,7 +340,7 @@ func (p *transport) getConn(servers []string, r *dialReq) (net.Conn, bool, error
 
 // tunnelDial looks up the search names in the local site for a matching tunnel
 // connection. If a connection exists, it's used to dial through the tunnel.
-func (p *transport) tunnelDial(r *dialReq) (net.Conn, error) {
+func (p *transport) tunnelDial(r *client.DialReq) (net.Conn, error) {
 	// Extract the local site from the tunnel server. If no tunnel server
 	// exists, then exit right away this code may be running outside of a
 	// remote site.

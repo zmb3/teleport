@@ -28,14 +28,15 @@ import (
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/srv/forward"
-	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -496,7 +497,7 @@ func (s *remoteSite) periodicUpdateCertAuthorities() {
 }
 
 func (s *remoteSite) DialAuthServer() (net.Conn, error) {
-	return s.connThroughTunnel(&dialReq{
+	return s.connThroughTunnel(&client.DialReq{
 		Address: constants.RemoteAuthServer,
 	})
 }
@@ -522,7 +523,7 @@ func (s *remoteSite) Dial(params DialParams) (net.Conn, error) {
 func (s *remoteSite) DialTCP(params DialParams) (net.Conn, error) {
 	s.Debugf("Dialing from %v to %v.", params.From, params.To)
 
-	conn, err := s.connThroughTunnel(&dialReq{
+	conn, err := s.connThroughTunnel(&client.DialReq{
 		Address:  params.To.String(),
 		ServerID: params.ServerID,
 		ConnType: params.ConnType,
@@ -553,7 +554,7 @@ func (s *remoteSite) dialWithAgent(params DialParams) (net.Conn, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	targetConn, err := s.connThroughTunnel(&dialReq{
+	targetConn, err := s.connThroughTunnel(&client.DialReq{
 		Address:  params.To.String(),
 		ServerID: params.ServerID,
 		ConnType: params.ConnType,
@@ -581,7 +582,7 @@ func (s *remoteSite) dialWithAgent(params DialParams) (net.Conn, error) {
 		MACAlgorithms:   s.srv.Config.MACAlgorithms,
 		DataDir:         s.srv.Config.DataDir,
 		Address:         params.Address,
-		UseTunnel:       targetConn.UseTunnel(),
+		UseTunnel:       UseTunnel(targetConn),
 		FIPS:            s.srv.FIPS,
 		HostUUID:        s.srv.ID,
 		Emitter:         s.srv.Config.Emitter,
@@ -602,7 +603,32 @@ func (s *remoteSite) dialWithAgent(params DialParams) (net.Conn, error) {
 	return conn, nil
 }
 
-func (s *remoteSite) connThroughTunnel(req *dialReq) (*utils.ChConn, error) {
+// UseTunnel makes a channel request asking for the type of connection. If
+// the other side does not respond (older cluster) or takes to long to
+// respond, be on the safe side and assume it's not a tunnel connection.
+func UseTunnel(c *utils.ChConn) bool {
+	responseCh := make(chan bool, 1)
+
+	go func() {
+		ok, err := c.SendRequest(utils.ConnectionTypeRequest, true, nil)
+		if err != nil {
+			responseCh <- false
+			return
+		}
+		responseCh <- ok
+	}()
+
+	select {
+	case response := <-responseCh:
+		return response
+	case <-time.After(1 * time.Second):
+		// TODO: remove logrus import
+		logrus.Debugf("Timed out waiting for response: returning false.")
+		return false
+	}
+}
+
+func (s *remoteSite) connThroughTunnel(req *client.DialReq) (*utils.ChConn, error) {
 
 	s.Debugf("Requesting connection to %v [%v] in remote cluster.",
 		req.Address, req.ServerID)
@@ -633,7 +659,7 @@ func (s *remoteSite) connThroughTunnel(req *dialReq) (*utils.ChConn, error) {
 	return nil, err
 }
 
-func (s *remoteSite) chanTransportConn(req *dialReq) (*utils.ChConn, error) {
+func (s *remoteSite) chanTransportConn(req *client.DialReq) (*utils.ChConn, error) {
 	rconn, err := s.nextConn()
 	if err != nil {
 		return nil, trace.Wrap(err)
