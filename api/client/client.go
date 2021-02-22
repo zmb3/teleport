@@ -107,7 +107,7 @@ func (c *Client) connectWithAuth(ctx context.Context) error {
 
 		// Try dialing with Dialer provided in credentials
 		if c.dialer, err = creds.Dialer(); err == nil {
-			err := c.grpcDial(ctx, constants.APIDomain)
+			err := c.setGRPC(ctx, constants.APIDomain)
 			if err == nil {
 				return nil
 			}
@@ -133,7 +133,7 @@ func (c *Client) connectDialer(ctx context.Context) error {
 	// Try connecting with dialer provided in config.
 	if c.c.Dialer != nil {
 		c.dialer = c.c.Dialer
-		if err = c.grpcDial(ctx, constants.APIDomain); err == nil {
+		if err = c.setGRPC(ctx, constants.APIDomain); err == nil {
 			return nil
 		}
 		errs = append(errs, trace.Errorf("failed to dial with given dialer: %v", err))
@@ -145,7 +145,7 @@ func (c *Client) connectDialer(ctx context.Context) error {
 			errs = append(errs, trace.Errorf("failed to dial %v as auth: %v\n", addr, err))
 			continue
 		}
-		if err = c.grpcDial(ctx, addr); err != nil {
+		if err = c.setGRPC(ctx, addr); err != nil {
 			errs = append(errs, trace.Errorf("failed to dial %v as auth: %v\n", addr, err))
 			continue
 		}
@@ -159,7 +159,7 @@ func (c *Client) connectDialer(ctx context.Context) error {
 				errs = append(errs, trace.Errorf("failed to dial %v as proxy: %v\n", addr, err))
 				continue
 			}
-			if err = c.grpcDial(ctx, addr); err != nil {
+			if err = c.setGRPC(ctx, addr); err != nil {
 				errs = append(errs, trace.Errorf("failed to dial %v as proxy: %v\n", addr, err))
 				continue
 			}
@@ -170,7 +170,7 @@ func (c *Client) connectDialer(ctx context.Context) error {
 	return trace.Wrap(trace.NewAggregate(errs...), "failed to dial server with given configuration")
 }
 
-func (c *Client) grpcDial(ctx context.Context, addr string) error {
+func (c *Client) setGRPC(ctx context.Context, addr string) error {
 	dialOptions := []grpc.DialOption{
 		grpc.WithContextDialer(c.grpcDialer(c.dialer)),
 		grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
@@ -198,7 +198,7 @@ func (c *Client) grpcDial(ctx context.Context, addr string) error {
 }
 
 // grpcDialer wraps the given ContextDialer with a grpcDialer, which
-// can be used with a grpc.DialOption.
+// can be used in the DialOption grpc.WithContextDialer.
 func (c *Client) grpcDialer(dialer ContextDialer) func(ctx context.Context, addr string) (net.Conn, error) {
 	return func(ctx context.Context, addr string) (net.Conn, error) {
 		if c.isClosed() {

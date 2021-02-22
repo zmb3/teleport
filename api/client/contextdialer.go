@@ -76,11 +76,11 @@ func NewAuthDialer(keepAliveInterval, dialTimeout time.Duration) (ContextDialer,
 	}
 	return ContextDialerFunc(func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
 		conn, err = dialer.DialContext(ctx, network, addr)
-		if err == nil {
-			return conn, nil
+		if err != nil {
+			return nil, trace.Wrap(err)
 		}
 		// not wrapping on purpose to preserve the original error
-		return nil, err
+		return conn, nil
 	}), nil
 }
 
