@@ -86,11 +86,19 @@ func NewAuthDialer(keepAliveInterval, dialTimeout time.Duration) (ContextDialer,
 
 // NewProxyDialer make a new dialer from a list of addresses over ssh
 func NewProxyDialer(ssh ssh.ClientConfig, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
+	dialer := net.Dialer{
+		Timeout:   dialTimeout,
+		KeepAlive: keepAliveInterval,
+	}
 	return ContextDialerFunc(func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
 		// TODO: try dialing as a web-proxy addr, by looking
 		// for the tunaddr - tctl.findReverseTunnel
+		conn, err = dialer.DialContext(ctx, network, addr)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
 
-		sconn, err := DialSSHWithDeadline("tcp", addr, &ssh)
+		sconn, err := NewClientConnWithDeadline(conn, addr, &ssh)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
@@ -109,19 +117,8 @@ func NewProxyDialer(ssh ssh.ClientConfig, keepAliveInterval, dialTimeout time.Du
 	}), nil
 }
 
-// DialSSHWithDeadline works around the case when net.DialWithTimeout
-// succeeds, but key exchange hangs. Setting deadline on connection
-// prevents this case from happening
-func DialSSHWithDeadline(network string, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
-	conn, err := net.DialTimeout(network, addr, config.Timeout)
-	if err != nil {
-		return nil, err
-	}
-	return NewSSHClientConnWithDeadline(conn, addr, config)
-}
-
-// NewSSHClientConnWithDeadline establishes new client connection with specified deadline
-func NewSSHClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
+// NewClientConnWithDeadline establishes new client connection with specified deadline
+func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
 	if config.Timeout > 0 {
 		conn.SetReadDeadline(time.Now().Add(config.Timeout))
 	}

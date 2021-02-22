@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/trace"
 
 	"golang.org/x/crypto/ssh"
@@ -60,7 +61,7 @@ func dialWithDeadline(network string, addr string, config *ssh.ClientConfig) (*s
 	if err != nil {
 		return nil, err
 	}
-	return NewClientConnWithDeadline(conn, addr, config)
+	return client.NewClientConnWithDeadline(conn, addr, config)
 }
 
 // A Dialer is a means for a client to establish a SSH connection.
