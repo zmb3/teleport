@@ -36,7 +36,7 @@ func TestLoadTLS(t *testing.T) {
 	config, err := LoadTLS(expectedConfig).TLSConfig()
 	require.NoError(t, err)
 
-	// Compare built and expected tls.Config.
+	// Compare built aand expected tls.Config.
 	require.Equal(t, config.Certificates, expectedConfig.Certificates)
 	require.Equal(t, config.RootCAs.Subjects(), expectedConfig.RootCAs.Subjects())
 }
