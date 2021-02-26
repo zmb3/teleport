@@ -100,7 +100,8 @@ func Open(utmpPath, wtmpPath string, username, hostname string, remote [4]int32,
 	case C.UACC_UTMP_WRITE_ERROR:
 		return trace.AccessDenied("failed to add entry to utmp database")
 	case C.UACC_UTMP_FAILED_OPEN:
-		return trace.AccessDenied("failed to open user account database")
+		code := C.get_errno()
+		return trace.AccessDenied("failed to open user account database, code: %d", code)
 	case C.UACC_UTMP_FAILED_TO_SELECT_FILE:
 		return trace.BadParameter("failed to select file")
 	default:
@@ -136,8 +137,12 @@ func Close(utmpPath, wtmpPath string, ttyName string) error {
 	cTtyName := C.CString(strings.TrimPrefix(ttyName, "/dev/"))
 	defer C.free(unsafe.Pointer(cTtyName))
 
+	timestamp := time.Now()
+	secondsElapsed := (C.int32_t)(timestamp.Unix())
+	microsFraction := (C.int32_t)((timestamp.UnixNano() % int64(time.Second)) / int64(time.Microsecond))
+
 	accountDb.Lock()
-	status := C.uacc_mark_utmp_entry_dead(cUtmpPath, cWtmpPath, cTtyName)
+	status := C.uacc_mark_utmp_entry_dead(cUtmpPath, cWtmpPath, cTtyName, secondsElapsed, microsFraction)
 	accountDb.Unlock()
 
 	switch status {
@@ -148,7 +153,8 @@ func Close(utmpPath, wtmpPath string, ttyName string) error {
 	case C.UACC_UTMP_READ_ERROR:
 		return trace.AccessDenied("failed to read and search utmp database")
 	case C.UACC_UTMP_FAILED_OPEN:
-		return trace.AccessDenied("failed to open user account database")
+		code := C.get_errno()
+		return trace.AccessDenied("failed to open user account database, code: %d", code)
 	case C.UACC_UTMP_FAILED_TO_SELECT_FILE:
 		return trace.BadParameter("failed to select file")
 	default:
@@ -181,7 +187,8 @@ func UserWithPtyInDatabase(utmpPath string, username string) error {
 
 	switch status {
 	case C.UACC_UTMP_FAILED_OPEN:
-		return trace.AccessDenied("failed to open user account database")
+		code := C.get_errno()
+		return trace.AccessDenied("failed to open user account database, code: %d", code)
 	case C.UACC_UTMP_ENTRY_DOES_NOT_EXIST:
 		return trace.NotFound("user not found")
 	case C.UACC_UTMP_FAILED_TO_SELECT_FILE:
