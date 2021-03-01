@@ -35,7 +35,7 @@ type remoteSubsystem struct {
 	log *log.Entry
 
 	serverContext *srv.ServerContext
-	subsytemName  string
+	subsystemName string
 
 	ctx     context.Context
 	errorCh chan error
@@ -51,13 +51,13 @@ func parseRemoteSubsystem(ctx context.Context, subsytemName string, serverContex
 			},
 		}),
 		serverContext: serverContext,
-		subsytemName:  subsytemName,
+		subsystemName: subsytemName,
 		ctx:           ctx,
 		errorCh:       make(chan error, 3),
 	}
 }
 
-// Start will begin execution of the remote subsytem on the passed in channel.
+// Start will begin execution of the remote subsystem on the passed in channel.
 func (r *remoteSubsystem) Start(channel ssh.Channel) error {
 	session := r.serverContext.RemoteSession
 
@@ -76,7 +76,7 @@ func (r *remoteSubsystem) Start(channel ssh.Channel) error {
 
 	// request the subsystem from the remote node. if successful, the user can
 	// interact with the remote subsystem with stdin, stdout, and stderr.
-	err = session.RequestSubsystem(r.subsytemName)
+	err = session.RequestSubsystem(r.subsystemName)
 	if err != nil {
 		// emit an event to the audit log with the reason remote execution failed
 		r.emitAuditEvent(err)
@@ -143,7 +143,7 @@ func (r *remoteSubsystem) emitAuditEvent(err error) {
 			LocalAddr:  r.serverContext.RemoteClient.LocalAddr().String(),
 			RemoteAddr: r.serverContext.RemoteClient.RemoteAddr().String(),
 		},
-		Name: r.subsytemName,
+		Name: r.subsystemName,
 	}
 
 	if err != nil {

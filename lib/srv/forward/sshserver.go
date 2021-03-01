@@ -1126,7 +1126,7 @@ func (s *Server) handleSubsystem(ch ssh.Channel, req *ssh.Request, ctx *srv.Serv
 	err = subsystem.Start(ch)
 	if err != nil {
 		ctx.SendSubsystemResult(srv.SubsystemResult{
-			Name: subsystem.subsytemName,
+			Name: subsystem.subsystemName,
 			Err:  trace.Wrap(err),
 		})
 		return trace.Wrap(err)
@@ -1136,7 +1136,7 @@ func (s *Server) handleSubsystem(ch ssh.Channel, req *ssh.Request, ctx *srv.Serv
 	go func() {
 		err := subsystem.Wait()
 		ctx.SendSubsystemResult(srv.SubsystemResult{
-			Name: subsystem.subsytemName,
+			Name: subsystem.subsystemName,
 			Err:  trace.Wrap(err),
 		})
 	}()
@@ -1183,5 +1183,6 @@ func parseSubsystemRequest(req *ssh.Request, ctx *srv.ServerContext) (*remoteSub
 		return nil, trace.BadParameter("failed to parse subsystem request: %v", err)
 	}
 
+	fmt.Println("Remote subsystem request", r.Name)
 	return parseRemoteSubsystem(context.Background(), r.Name, ctx), nil
 }

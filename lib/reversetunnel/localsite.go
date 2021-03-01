@@ -427,7 +427,7 @@ func (s *localSite) getRemoteConn(dreq *dialReq) (*remoteConn, error) {
 	s.Lock()
 	defer s.Unlock()
 
-	// Loop over all connections and remove and invalid connections from the
+	// Loop over all connections and remove any invalid connections from the
 	// connection map.
 	for key := range s.remoteConns {
 		if s.remoteConns[key].isInvalid() {
