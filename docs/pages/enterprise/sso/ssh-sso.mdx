@@ -217,3 +217,15 @@ If something is not working, we recommend to:
 * Double-check the host names, tokens and TCP ports in a connector definition.
 * Look into Teleport's audit log for claim mapping problems. It is usually stored on the
   auth server in the `/var/lib/teleport/log` directory.ad
+
+## Encrypted SAML SSO Assertions
+
+Teleport 6.1 onward supports encrypted SAML assertions in responses from SAML identity providers
+which adds additional security by preventing proxies and other middleman infrastructure with access
+to the unencrypted request from extracting assertion information. Guides can be found on the page
+for your identity provider if supported.
+
+We currently test and officially support the following identity providers for encrypted assertions
+although other providers may also work.
+
+* Azure AD

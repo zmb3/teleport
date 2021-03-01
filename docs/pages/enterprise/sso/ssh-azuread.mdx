@@ -187,6 +187,39 @@ Teleport can use multiple SAML connectors. In this case a connector name
 can be passed via `tsh login --auth=connector_name`
 </Admonition>
 
+## Encrypted SAML Assertions
+
+Teleport 6.1 and onward supports encrypted SAML assertions. These provide extra security by preventing middleman infrastructure like
+reverse proxies from accessing potentially sensitive data within the SAML response.
+
+To configure encrypted SAML assertions, first ensure that your Teleport deployment is set up and working with SAML SSO,
+then follow the steps below.
+
+1. Generate a certificate and private keypair for encryption & descryption.
+  ```bash
+  openssl req -x509 -newkey rsa:4096 -keyout private_key.pem -out certificate.cer -days 10000 -nodes
+  ```
+
+  This generates two files, `private_key.pem` and `certificate.cer` in your current directory.
+  `private_key.pem` should be treated like a password and allows the holder to decrypt the SAML response.
+  `certificate.cer` is a public certificate that allows response encryption.
+
+2. Go to the Azure portal home.
+
+3. Go to the Azure Active Directory -> Enterprise applications page.
+
+4. On the Teleport application page, go the the token encryption section.
+    ![token encryption page](../../../img/azuread/azure-token-encryption-option-small.png)
+
+5. On the token encryption page, select Import Certificate to import the `certificate.cer` file we generated in step 1.
+    ![import certificate](../../../img/azuread/azure-import-certificate-small.png)
+
+6. Login with an admin account to the Teleport web interface for your deployment.
+
+7. Navigate to Resources -> Connectors and select Edit on your Azure AD connector.
+
+8. TODO
+
 ## Troubleshooting
 
 If you get "access denied" errors the number one place to check is the audit
