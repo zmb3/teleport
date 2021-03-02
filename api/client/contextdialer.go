@@ -47,15 +47,20 @@ func (f ContextDialerFunc) DialContext(ctx context.Context, network, addr string
 	return f(ctx, network, addr)
 }
 
+// NewDialer makes a new dialer from a single address
+func NewDialer(keepAliveInterval, dialTimeout time.Duration) ContextDialer {
+	return &net.Dialer{
+		Timeout:   dialTimeout,
+		KeepAlive: keepAliveInterval,
+	}
+}
+
 // NewAddrsDialer makes a new dialer from a list of addresses
 func NewAddrsDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
 	if len(addrs) == 0 {
 		return nil, trace.BadParameter("no addresses to dial")
 	}
-	dialer := net.Dialer{
-		Timeout:   dialTimeout,
-		KeepAlive: keepAliveInterval,
-	}
+	dialer := NewDialer(keepAliveInterval, dialTimeout)
 	return ContextDialerFunc(func(ctx context.Context, network, _ string) (conn net.Conn, err error) {
 		for _, addr := range addrs {
 			conn, err = dialer.DialContext(ctx, network, addr)
@@ -68,28 +73,9 @@ func NewAddrsDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration
 	}), nil
 }
 
-// NewAuthDialer makes a new dialer from a single address
-func NewAuthDialer(keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
-	dialer := net.Dialer{
-		Timeout:   dialTimeout,
-		KeepAlive: keepAliveInterval,
-	}
-	return ContextDialerFunc(func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
-		conn, err = dialer.DialContext(ctx, network, addr)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		// not wrapping on purpose to preserve the original error
-		return conn, nil
-	}), nil
-}
-
-// NewProxyDialer make a new dialer from a list of addresses over ssh
-func NewProxyDialer(ssh ssh.ClientConfig, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
-	dialer := net.Dialer{
-		Timeout:   dialTimeout,
-		KeepAlive: keepAliveInterval,
-	}
+// NewTunnelDialer make a new dialer from a list of addresses over ssh
+func NewTunnelDialer(ssh ssh.ClientConfig, keepAliveInterval, dialTimeout time.Duration) ContextDialer {
+	dialer := NewDialer(keepAliveInterval, dialTimeout)
 	return ContextDialerFunc(func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
 		// TODO: try dialing as a web-proxy addr, by looking
 		// for the tunaddr - tctl.findReverseTunnel
@@ -113,8 +99,7 @@ func NewProxyDialer(ssh ssh.ClientConfig, keepAliveInterval, dialTimeout time.Du
 			return nil, trace.NewAggregate(err, err2)
 		}
 		return conn, nil
-
-	}), nil
+	})
 }
 
 // NewClientConnWithDeadline establishes new client connection with specified deadline

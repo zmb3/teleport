@@ -53,25 +53,25 @@ func init() {
 // Client is a gRPC Client that connects to a teleport auth server through TLS.
 type Client struct {
 	c Config
-
 	// tlsConfig is the *tls.Config for a successfully connected client.
 	tlsConfig *tls.Config
-
 	// sshConfig is the *ssh.ClientConfig for a successfully connected proxy client.
 	sshConfig *ssh.ClientConfig
-
 	// dialer is the ContextDialer for a successfully connected client.
 	dialer ContextDialer
-
 	// grpc is the gRPC client specification for the auth server.
 	grpc proto.AuthServiceClient
-
 	// conn is a grpc connection to the auth server.
 	conn *grpc.ClientConn
-
-	// closedFlag is set to indicate that the services are closed.
-	closedFlag int32
+	// atomicFlag is set to indicate whether conn is unset, set, or closed.
+	atomicFlag int32
 }
+
+const (
+	unsetFlag int32 = iota
+	openFlag
+	closedFlag
+)
 
 // New creates a new API client with a connection to a Teleport server.
 func New(ctx context.Context, cfg Config) (*Client, error) {
@@ -79,100 +79,120 @@ func New(ctx context.Context, cfg Config) (*Client, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	c := &Client{c: cfg}
-	if err := c.connectWithAuth(ctx); err != nil {
+	clt := &Client{c: cfg}
+	if err := clt.connectWithAuth(ctx); err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	return c, nil
+	return clt, nil
 }
 
 func (c *Client) connectWithAuth(ctx context.Context) error {
 	// Loop over credentials and use first successful one.
-	var err error
-	var errs []error
+	clients := make(chan *Client)
+	errs := make(chan error)
+	dialContext, cancel := context.WithTimeout(ctx, c.c.DialTimeout)
+	defer cancel()
+
+	asyncConnect := func(c Client, dialer ContextDialer, addr string) {
+		if err := c.setClientConn(dialContext, dialer, addr); err != nil {
+			errs <- err
+		}
+		clients <- &c
+		// cancel context to close all other ongoing dial attempts.
+		cancel()
+	}
+
 	for _, creds := range c.c.Credentials {
-		// Load *tls.Config from the provided credentials.
+		var err error
 		c.tlsConfig, err = creds.TLSConfig()
 		if err != nil {
-			errs = append(errs, trace.Wrap(err))
+			errs <- trace.Wrap(err)
 			continue
 		}
 
 		c.sshConfig, err = creds.SSHConfig()
 		if err != nil {
-			errs = append(errs, trace.Wrap(err))
+			errs <- trace.Wrap(err)
 			continue
 		}
 
-		// Try dialing with Dialer provided in credentials
-		if c.dialer, err = creds.Dialer(); err == nil {
-			err := c.setGRPC(ctx, constants.APIDomain)
-			if err == nil {
-				return nil
-			}
-			errs = append(errs, trace.Wrap(err))
-		}
-
-		// Use standard dialer configuration
-		if err := c.connectDialer(ctx); err != nil {
-			errs = append(errs, trace.Wrap(err))
+		// Connect with dialer provided in creds.
+		if dialer, err := creds.Dialer(); err == nil {
+			go asyncConnect(*c, dialer, constants.APIDomain)
 			continue
 		}
 
-		return nil
-	}
-
-	return trace.Wrap(trace.NewAggregate(errs...), "all auth methods failed")
-}
-
-func (c *Client) connectDialer(ctx context.Context) error {
-	var err error
-	var errs []error
-
-	// Try connecting with dialer provided in config.
-	if c.c.Dialer != nil {
-		c.dialer = c.c.Dialer
-		if err = c.setGRPC(ctx, constants.APIDomain); err == nil {
-			return nil
-		}
-		errs = append(errs, trace.Errorf("failed to dial with given dialer: %v", err))
-	}
-
-	// Try connecting to each address as auth.
-	for _, addr := range c.c.Addrs {
-		if c.dialer, err = NewAuthDialer(c.c.KeepAlivePeriod, c.c.DialTimeout); err != nil {
-			errs = append(errs, trace.Errorf("failed to dial %v as auth: %v\n", addr, err))
+		// Connect with dialer provided in config.
+		if c.c.Dialer != nil {
+			go asyncConnect(*c, c.c.Dialer, constants.APIDomain)
 			continue
 		}
-		if err = c.setGRPC(ctx, addr); err != nil {
-			errs = append(errs, trace.Errorf("failed to dial %v as auth: %v\n", addr, err))
-			continue
-		}
-		return nil
-	}
 
-	// Try connecting to each address as proxy if ssh config is provided.
-	if c.sshConfig != nil {
+		// Connect to each address as auth/web.
 		for _, addr := range c.c.Addrs {
-			if c.dialer, err = NewProxyDialer(*c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout); err != nil {
-				errs = append(errs, trace.Errorf("failed to dial %v as proxy: %v\n", addr, err))
-				continue
+			dialer := NewDialer(c.c.KeepAlivePeriod, c.c.DialTimeout)
+			go asyncConnect(*c, dialer, addr)
+		}
+
+		// Connect to each address as proxy if ssh config is provided.
+		if c.sshConfig != nil {
+			for _, addr := range c.c.Addrs {
+				dialer := NewTunnelDialer(*c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout)
+				go asyncConnect(*c, dialer, addr)
 			}
-			if err = c.setGRPC(ctx, addr); err != nil {
-				errs = append(errs, trace.Errorf("failed to dial %v as proxy: %v\n", addr, err))
-				continue
-			}
-			return nil
 		}
 	}
 
-	return trace.Wrap(trace.NewAggregate(errs...), "failed to dial server with given configuration")
+	select {
+	case c = <-clients:
+		return nil
+	case <-dialContext.Done():
+		return trace.Wrap(trace.NewAggregateFromChannel(errs, ctx), "all auth methods failed")
+	}
 }
 
-func (c *Client) setGRPC(ctx context.Context, addr string) error {
+// setClientConn uses the given dialer and addr to create a connection for an AuthServiceClient.
+// Then the AuthServiceClient is tested using ping. If the client is connected to a WebProxy server,
+// the retrieved PublicTunnelAddr is used to dial a connection through a reverse tunnel.
+func (c *Client) setClientConn(ctx context.Context, dialer ContextDialer, addr string) error {
+	conn, err := c.getClientConn(ctx, dialer, addr)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	service := proto.NewAuthServiceClient(conn)
+	resp, err := service.Ping(ctx, nil)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	// if non empty, then the current connection is to the webproxy, so we dial
+	// a new connection to the given tunnel address.
+	if resp.PublicTunnelAddr != "" && c.sshConfig != nil {
+		tunnelDialer := NewTunnelDialer(*c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout)
+		conn, err := c.getClientConn(ctx, tunnelDialer, addr)
+		if err != nil {
+			return trace.Wrap(err)
+		}
+		service = proto.NewAuthServiceClient(conn)
+		resp, err = service.Ping(ctx, nil)
+		if err != nil {
+			return trace.Wrap(err)
+		}
+	}
+	// TODO (Joerger): Add version compatibility check
+
+	if c.setOpen() {
+		c.dialer = dialer
+		c.conn = conn
+		c.grpc = service
+	}
+	return nil
+}
+
+func (c *Client) getClientConn(ctx context.Context, dialer ContextDialer, addr string) (*grpc.ClientConn, error) {
 	dialOptions := []grpc.DialOption{
-		grpc.WithContextDialer(c.grpcDialer(c.dialer)),
+		grpc.WithContextDialer(c.grpcDialer(dialer)),
 		grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
 			Time:                c.c.KeepAlivePeriod,
@@ -185,16 +205,13 @@ func (c *Client) setGRPC(ctx context.Context, addr string) error {
 		dialOptions = append(dialOptions, grpc.WithBlock())
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, c.c.DialTimeout)
-	defer cancel()
-
 	var err error
-	if c.conn, err = grpc.DialContext(ctx, addr, dialOptions...); err != nil {
-		return trace.Wrap(err)
+	conn, err := grpc.DialContext(ctx, addr, dialOptions...)
+	if err != nil {
+		return nil, trace.Wrap(err)
 	}
-	c.grpc = proto.NewAuthServiceClient(c.conn)
 
-	return nil
+	return conn, nil
 }
 
 // grpcDialer wraps the given ContextDialer with a grpcDialer, which
@@ -278,10 +295,7 @@ func (c *Client) Dialer() ContextDialer {
 
 // Close closes the Client connection to the auth server
 func (c *Client) Close() error {
-	if !c.setClosed() {
-		return nil
-	}
-	if c.conn != nil {
+	if c.setClosed() {
 		err := c.conn.Close()
 		c.conn = nil
 		return trace.Wrap(err)
@@ -290,13 +304,17 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) isClosed() bool {
-	return atomic.LoadInt32(&c.closedFlag) == 1
+	return atomic.LoadInt32(&c.atomicFlag) == closedFlag
+}
+
+func (c *Client) setOpen() bool {
+	return atomic.CompareAndSwapInt32(&c.atomicFlag, unsetFlag, openFlag)
 }
 
 // setClosed marks the client to closed and returns true
 // if the client was successfully marked as closed.
 func (c *Client) setClosed() bool {
-	return atomic.CompareAndSwapInt32(&c.closedFlag, 0, 1)
+	return atomic.CompareAndSwapInt32(&c.atomicFlag, openFlag, closedFlag)
 }
 
 // Ping gets basic info about the auth server.
