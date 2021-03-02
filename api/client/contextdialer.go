@@ -77,8 +77,6 @@ func NewAddrsDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration
 func NewTunnelDialer(ssh ssh.ClientConfig, keepAliveInterval, dialTimeout time.Duration) ContextDialer {
 	dialer := NewDialer(keepAliveInterval, dialTimeout)
 	return ContextDialerFunc(func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
-		// TODO: try dialing as a web-proxy addr, by looking
-		// for the tunaddr - tctl.findReverseTunnel
 		conn, err = dialer.DialContext(ctx, network, addr)
 		if err != nil {
 			return nil, trace.Wrap(err)

@@ -1045,9 +1045,8 @@ func (a *ServerWithRoles) Ping(ctx context.Context) (proto.PingResponse, error) 
 		return proto.PingResponse{}, trace.Wrap(err)
 	}
 	return proto.PingResponse{
-		ClusterName:      cn.GetClusterName(),
-		ServerVersion:    teleport.Version,
-		PublicTunnelAddr: "localhost:3024",
+		ClusterName:   cn.GetClusterName(),
+		ServerVersion: teleport.Version,
 	}, nil
 }
 

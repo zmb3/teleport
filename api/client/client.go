@@ -88,19 +88,55 @@ func New(ctx context.Context, cfg Config) (*Client, error) {
 }
 
 func (c *Client) connectWithAuth(ctx context.Context) error {
-	// Loop over credentials and use first successful one.
 	clients := make(chan *Client)
 	errs := make(chan error)
 	dialContext, cancel := context.WithTimeout(ctx, c.c.DialTimeout)
 	defer cancel()
 
-	asyncConnect := func(c Client, dialer ContextDialer, addr string) {
-		if err := c.setClientConn(dialContext, dialer, addr); err != nil {
-			errs <- err
+	// asyncConnect is used to try several combinations of dialers, addresses,
+	// and credentials simultaneously. The first succesful connection yields
+	// the client to be used.
+	asyncConnect := func(clt Client, dialer ContextDialer, addr string) {
+		conn, err := clt.getClientConn(dialContext, dialer, addr)
+		if err != nil {
+			errs <- trace.Wrap(err)
+			return
 		}
-		clients <- &c
-		// cancel context to close all other ongoing dial attempts.
-		cancel()
+		service := proto.NewAuthServiceClient(conn)
+		resp, err := service.Ping(dialContext, &proto.PingRequest{})
+		if err != nil {
+			errs <- trace.Wrap(err)
+			return
+		}
+
+		// if non empty, then the current connection is to the webproxy, so we dial
+		// a new connection to the given tunnel address.
+		// if resp.PublicTunnelAddr != "" && clt.sshConfig != nil {
+		if resp.PublicTunnelAddr == "" {
+		}
+		if clt.sshConfig != nil {
+			tunnelDialer := NewTunnelDialer(*clt.sshConfig, clt.c.KeepAlivePeriod, clt.c.DialTimeout)
+			// conn, err := clt.getClientConn(dialContext, tunnelDialer, resp.PublicTunnelAddr)
+			conn, err := clt.getClientConn(dialContext, tunnelDialer, "localhost:3024")
+			if err != nil {
+				errs <- trace.Wrap(err)
+				return
+			}
+			service = proto.NewAuthServiceClient(conn)
+			resp, err = service.Ping(dialContext, &proto.PingRequest{})
+			if err != nil {
+				errs <- trace.Wrap(err)
+				return
+			}
+		}
+		// TODO (Joerger): Add version compatibility check
+
+		if c.setOpen() {
+			c.dialer = dialer
+			c.conn = conn
+			c.grpc = service
+			clients <- &clt
+		}
 	}
 
 	for _, creds := range c.c.Credentials {
