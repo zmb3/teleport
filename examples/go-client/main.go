@@ -1,5 +1,5 @@
 /*
-Copyright 2018-2021 Gravitational, Inc.
+Copyright 2018 Gravitational, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,79 +18,26 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
+	"fmt"
 	"log"
-
-	"github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/types"
-
-	"github.com/gravitational/trace"
-	"github.com/pborman/uuid"
-)
-
-var (
-	crtPath    = "certs/access-admin.crt"
-	keyPath    = "certs/access-admin.key"
-	casPath    = "certs/access-admin.cas"
-	idFilePath = "certs/access-admin-identity"
-	// Create valid tlsConfig here to use TLS Provider
-	tlsConfig = &tls.Config{}
 )
 
 func main() {
-	ctx := context.Background()
 	log.Printf("Starting Teleport client...")
-
-	clt, err := client.New(ctx, client.Config{
-		// Addrs can be auth, proxy, or webproxy addresses. Each will be dialed until one
-		// provides a successful connection.
-		Addrs: []string{"localhost:3080", "localhost:3024", "localhost:3024"},
-		// Multiple credentials can be tried by providing credentialProviders. The first
-		// provider to provide valid credentials will be used to authenticate the client.
-		Credentials: []client.Credentials{
-			client.LoadIdentityFile(idFilePath),
-			client.LoadKeyPair(crtPath, keyPath, casPath),
-			client.LoadTLS(tlsConfig),
-		},
-	})
+	client, err := connectClient()
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	defer clt.Close()
+	defer client.Close()
 
-	if err := demoClient(ctx, clt); err != nil {
-		log.Printf("error(s) in demoClient: %v", err)
-	}
-}
+	ctx := context.Background()
 
-func demoClient(ctx context.Context, clt *client.Client) (err error) {
-	// Create a new access request for the `access-admin` user to use the `admin` role.
-	accessReq, err := types.NewAccessRequest(uuid.New(), "access-admin", "admin")
-	if err != nil {
-		return trace.Wrap(err, "failed to make new access request")
-	}
-	if err = clt.CreateAccessRequest(ctx, accessReq); err != nil {
-		return trace.Wrap(err, "failed to create access request")
-	}
-	log.Printf("Created access request: %v", accessReq)
+	fmt.Println("")
+	roleCRUD(ctx, client)
 
-	defer func() {
-		if err2 := clt.DeleteAccessRequest(ctx, accessReq.GetName()); err2 != nil {
-			err = trace.NewAggregate([]error{err, err2}...)
-			log.Println("Failed to delete access request")
-			return
-		}
-		log.Println("Deleted access request")
-	}()
+	fmt.Println("")
+	tokenCRUD(ctx, client)
 
-	// Approve the access request as if this was another party.
-	if err = clt.SetAccessRequestState(ctx, types.AccessRequestUpdate{
-		RequestID: accessReq.GetName(),
-		State:     types.RequestState_APPROVED,
-	}); err != nil {
-		return trace.Wrap(err, "failed to accept request")
-	}
-	log.Printf("Approved access request")
-
-	return nil
+	fmt.Println("")
+	accessWorkflow(ctx, client)
 }
