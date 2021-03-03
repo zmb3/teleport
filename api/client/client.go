@@ -88,44 +88,41 @@ func New(ctx context.Context, cfg Config) (*Client, error) {
 }
 
 func (c *Client) connectWithAuth(ctx context.Context) error {
-	clients := make(chan *Client)
-	errs := make(chan error)
-	dialContext, cancel := context.WithTimeout(ctx, c.c.DialTimeout)
+	clientChan := make(chan *Client)
+	errChan := make(chan error)
+	dialContext, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	// asyncConnect is used to try several combinations of dialers, addresses,
 	// and credentials simultaneously. The first succesful connection yields
 	// the client to be used.
-	asyncConnect := func(clt Client, dialer ContextDialer, addr string) {
-		conn, err := clt.getClientConn(dialContext, dialer, addr)
+	syncConnect := func(ctx context.Context, clt Client, dialer ContextDialer, addr string) {
+		conn, err := clt.getClientConn(ctx, dialer, addr)
 		if err != nil {
-			errs <- trace.Wrap(err)
+			errChan <- trace.Wrap(err)
 			return
 		}
 		service := proto.NewAuthServiceClient(conn)
-		resp, err := service.Ping(dialContext, &proto.PingRequest{})
+		resp, err := service.Ping(ctx, &proto.PingRequest{})
 		if err != nil {
-			errs <- trace.Wrap(err)
+			errChan <- trace.Wrap(err)
 			return
 		}
 
 		// if non empty, then the current connection is to the webproxy, so we dial
 		// a new connection to the given tunnel address.
-		// if resp.PublicTunnelAddr != "" && clt.sshConfig != nil {
-		if resp.PublicTunnelAddr == "" {
-		}
-		if clt.sshConfig != nil {
+		if resp.PublicTunnelAddr != "" && clt.sshConfig != nil {
 			tunnelDialer := NewTunnelDialer(*clt.sshConfig, clt.c.KeepAlivePeriod, clt.c.DialTimeout)
-			// conn, err := clt.getClientConn(dialContext, tunnelDialer, resp.PublicTunnelAddr)
-			conn, err := clt.getClientConn(dialContext, tunnelDialer, "localhost:3024")
+			// conn, err := clt.getClientConn(ctx, tunnelDialer, resp.PublicTunnelAddr)
+			conn, err := clt.getClientConn(ctx, tunnelDialer, "localhost:3024")
 			if err != nil {
-				errs <- trace.Wrap(err)
+				errChan <- trace.Wrap(err)
 				return
 			}
 			service = proto.NewAuthServiceClient(conn)
-			resp, err = service.Ping(dialContext, &proto.PingRequest{})
+			resp, err = service.Ping(ctx, &proto.PingRequest{})
 			if err != nil {
-				errs <- trace.Wrap(err)
+				errChan <- trace.Wrap(err)
 				return
 			}
 		}
@@ -135,7 +132,8 @@ func (c *Client) connectWithAuth(ctx context.Context) error {
 			c.dialer = dialer
 			c.conn = conn
 			c.grpc = service
-			clients <- &clt
+			clientChan <- &clt
+			close(clientChan)
 		}
 	}
 
@@ -143,48 +141,57 @@ func (c *Client) connectWithAuth(ctx context.Context) error {
 		var err error
 		c.tlsConfig, err = creds.TLSConfig()
 		if err != nil {
-			errs <- trace.Wrap(err)
+			errChan <- trace.Wrap(err)
 			continue
 		}
 
 		c.sshConfig, err = creds.SSHConfig()
 		if err != nil {
-			errs <- trace.Wrap(err)
+			errChan <- trace.Wrap(err)
 			continue
 		}
 
 		// Connect with dialer provided in creds.
 		if dialer, err := creds.Dialer(); err == nil {
-			go asyncConnect(*c, dialer, constants.APIDomain)
+			go syncConnect(ctx, *c, dialer, constants.APIDomain)
 			continue
 		}
 
 		// Connect with dialer provided in config.
 		if c.c.Dialer != nil {
-			go asyncConnect(*c, c.c.Dialer, constants.APIDomain)
+			go syncConnect(ctx, *c, c.c.Dialer, constants.APIDomain)
 			continue
 		}
 
 		// Connect to each address as auth/web.
 		for _, addr := range c.c.Addrs {
 			dialer := NewDialer(c.c.KeepAlivePeriod, c.c.DialTimeout)
-			go asyncConnect(*c, dialer, addr)
+			go syncConnect(ctx, *c, dialer, addr)
 		}
 
 		// Connect to each address as proxy if ssh config is provided.
 		if c.sshConfig != nil {
 			for _, addr := range c.c.Addrs {
 				dialer := NewTunnelDialer(*c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout)
-				go asyncConnect(*c, dialer, addr)
+				go syncConnect(ctx, *c, dialer, addr)
 			}
 		}
 	}
 
-	select {
-	case c = <-clients:
-		return nil
-	case <-dialContext.Done():
-		return trace.Wrap(trace.NewAggregateFromChannel(errs, ctx), "all auth methods failed")
+	var errs []error
+	for {
+		select {
+		case c = <-clientChan:
+			return nil
+		case err := <-errChan:
+			errs = append(errs, err)
+		case <-dialContext.Done():
+			err := trace.NewAggregate(errs...)
+			if err == nil {
+				err = dialContext.Err()
+			}
+			return trace.Wrap(err, "all auth methods failed")
+		}
 	}
 }
 
@@ -327,6 +334,11 @@ func (c *Client) Config() *tls.Config {
 // Dialer returns the ContextDialer the client connected with.
 func (c *Client) Dialer() ContextDialer {
 	return c.dialer
+}
+
+// GetConnection returns GRPC connection
+func (c *Client) GetConnection() *grpc.ClientConn {
+	return c.conn
 }
 
 // Close closes the Client connection to the auth server
