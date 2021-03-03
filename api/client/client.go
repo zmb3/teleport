@@ -21,8 +21,10 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"io"
 	"net"
+	"net/http"
 	"sync/atomic"
 	"time"
 
@@ -102,6 +104,7 @@ func (c *Client) connectWithAuth(ctx context.Context) error {
 			errChan <- trace.Wrap(err)
 			return
 		}
+
 		service := proto.NewAuthServiceClient(conn)
 		resp, err := service.Ping(ctx, &proto.PingRequest{})
 		if err != nil {
@@ -133,7 +136,6 @@ func (c *Client) connectWithAuth(ctx context.Context) error {
 			c.conn = conn
 			c.grpc = service
 			clientChan <- &clt
-			close(clientChan)
 		}
 	}
 
@@ -153,27 +155,31 @@ func (c *Client) connectWithAuth(ctx context.Context) error {
 
 		// Connect with dialer provided in creds.
 		if dialer, err := creds.Dialer(); err == nil {
-			go syncConnect(ctx, *c, dialer, constants.APIDomain)
+			go syncConnect(dialContext, *c, dialer, constants.APIDomain)
 			continue
 		}
 
 		// Connect with dialer provided in config.
 		if c.c.Dialer != nil {
-			go syncConnect(ctx, *c, c.c.Dialer, constants.APIDomain)
+			go syncConnect(dialContext, *c, c.c.Dialer, constants.APIDomain)
 			continue
 		}
 
-		// Connect to each address as auth/web.
 		for _, addr := range c.c.Addrs {
+			// Connect to auth.
 			dialer := NewDialer(c.c.KeepAlivePeriod, c.c.DialTimeout)
-			go syncConnect(ctx, *c, dialer, addr)
-		}
+			go syncConnect(dialContext, *c, dialer, addr)
 
-		// Connect to each address as proxy if ssh config is provided.
-		if c.sshConfig != nil {
-			for _, addr := range c.c.Addrs {
+			// Connect to proxy if ssh config is provided.
+			if c.sshConfig != nil {
 				dialer := NewTunnelDialer(*c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout)
-				go syncConnect(ctx, *c, dialer, addr)
+				go func(addr string) {
+					// Try connecting to web to retrieve proxy address.
+					if tunAddr, err := findTunnelAddr(addr); err == nil {
+						addr = tunAddr
+					}
+					syncConnect(dialContext, *c, dialer, addr)
+				}(addr)
 			}
 		}
 	}
@@ -193,6 +199,29 @@ func (c *Client) connectWithAuth(ctx context.Context) error {
 			return trace.Wrap(err, "all auth methods failed")
 		}
 	}
+}
+
+func findTunnelAddr(webAddr string) (string, error) {
+	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := &http.Client{Transport: tr}
+	resp, err := client.Get("https://" + webAddr + "/webapi/find")
+	if err != nil {
+		return "", trace.Wrap(err)
+	}
+
+	defer resp.Body.Close()
+	findResponse := &struct {
+		Proxy struct {
+			SSH struct {
+				TunnelPublicAddr string `json:"ssh_tunnel_public_addr,omitempty"`
+			} `json:"ssh"`
+		} `json:"proxy"`
+	}{}
+	if err := json.NewDecoder(resp.Body).Decode(findResponse); err != nil {
+		return "", trace.Wrap(err)
+	}
+
+	return findResponse.Proxy.SSH.TunnelPublicAddr, nil
 }
 
 // setClientConn uses the given dialer and addr to create a connection for an AuthServiceClient.
