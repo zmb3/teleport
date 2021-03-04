@@ -24,28 +24,30 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/ssh"
 )
 
 func TestLoadTLS(t *testing.T) {
 	t.Parallel()
 
 	// Load expected tls.Config.
-	expectedConfig := getExpectedConfig(t)
+	expectedTLSConfig := getExpectedTLSConfig(t)
 
 	// Load and build tls.Config.
-	config, err := LoadTLS(expectedConfig).TLSConfig()
+	config, err := LoadTLS(expectedTLSConfig).TLSConfig()
 	require.NoError(t, err)
 
 	// Compare built aand expected tls.Config.
-	require.Equal(t, config.Certificates, expectedConfig.Certificates)
-	require.Equal(t, config.RootCAs.Subjects(), expectedConfig.RootCAs.Subjects())
+	require.Equal(t, config.Certificates, expectedTLSConfig.Certificates)
+	require.Equal(t, config.RootCAs.Subjects(), expectedTLSConfig.RootCAs.Subjects())
 }
 
 func TestLoadIdentityFile(t *testing.T) {
 	t.Parallel()
 
-	// Load expected tls.Config.
-	expectedConfig := getExpectedConfig(t)
+	// Load expected tls.Config and ssh.ClientConfig.
+	expectedTLSConfig := getExpectedTLSConfig(t)
+	expectedSSHConfig := getExpectedSSHConfig(t)
 
 	// Write identity file to disk.
 	path := filepath.Join(t.TempDir(), "file")
@@ -63,20 +65,33 @@ func TestLoadIdentityFile(t *testing.T) {
 	err := WriteIdentityFile(idFile, path)
 	require.NoError(t, err)
 
-	// Load identity file and build tls.Config.
-	config, err := LoadIdentityFile(path).TLSConfig()
-	require.NoError(t, err)
+	// Load identity file.
+	IdentityCreds := LoadIdentityFile(path)
 
-	// Compare built and expected tls.Config.
-	require.Equal(t, config.Certificates, expectedConfig.Certificates)
-	require.Equal(t, config.RootCAs.Subjects(), expectedConfig.RootCAs.Subjects())
+	// build tls.Config and compare to expected tls.Config
+	tlsConfig, err := IdentityCreds.TLSConfig()
+	require.NoError(t, err)
+	require.Equal(t, tlsConfig.Certificates, expectedTLSConfig.Certificates)
+	require.Equal(t, tlsConfig.RootCAs.Subjects(), expectedTLSConfig.RootCAs.Subjects())
+
+	// build ssh.ClientConfig and compare to expected ssh.ClientConfig
+	sshConfig, err := IdentityCreds.SSHConfig()
+	require.NoError(t, err)
+	require.Equal(t, sshConfig.User, expectedSSHConfig.User)
+
+	// Load invalid identity.
+	invalidIdentityCreds := LoadIdentityFile("invalid_path")
+	_, err = invalidIdentityCreds.TLSConfig()
+	require.Error(t, err)
+	_, err = invalidIdentityCreds.SSHConfig()
+	require.Error(t, err)
 }
 
 func TestLoadKeyPair(t *testing.T) {
 	t.Parallel()
 
 	// Load expected tls.Config.
-	expectedConfig := getExpectedConfig(t)
+	expectedTLSConfig := getExpectedTLSConfig(t)
 
 	// Write key pair and CAs files from bytes.
 	path := t.TempDir() + "username"
@@ -93,11 +108,16 @@ func TestLoadKeyPair(t *testing.T) {
 	require.NoError(t, err)
 
 	// Compare built and expected tls.Config.
-	require.Equal(t, config.Certificates, expectedConfig.Certificates)
-	require.Equal(t, config.RootCAs.Subjects(), expectedConfig.RootCAs.Subjects())
+	require.Equal(t, config.Certificates, expectedTLSConfig.Certificates)
+	require.Equal(t, config.RootCAs.Subjects(), expectedTLSConfig.RootCAs.Subjects())
+
+	// Load invalid keypairs.
+	invalidIdentityCreds := LoadKeyPair("invalid_path", "invalid_path", "invalid_path")
+	_, err = invalidIdentityCreds.TLSConfig()
+	require.Error(t, err)
 }
 
-func getExpectedConfig(t *testing.T) *tls.Config {
+func getExpectedTLSConfig(t *testing.T) *tls.Config {
 	cert, err := tls.X509KeyPair(certPEM, keyPEM)
 	require.NoError(t, err)
 
@@ -108,6 +128,13 @@ func getExpectedConfig(t *testing.T) *tls.Config {
 		Certificates: []tls.Certificate{cert},
 		RootCAs:      pool,
 	})
+}
+
+func getExpectedSSHConfig(t *testing.T) *ssh.ClientConfig {
+	config, err := SSHClientConfig(sshCert, keyPEM, [][]byte{sshCACert})
+	require.NoError(t, err)
+
+	return config
 }
 
 var (

@@ -25,6 +25,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -55,18 +56,18 @@ func init() {
 // Client is a gRPC Client that connects to a teleport auth server through TLS.
 type Client struct {
 	c Config
+	// atomicFlag is set to indicate whether conn is unset, set, or closed.
+	atomicFlag int32
 	// tlsConfig is the *tls.Config for a successfully connected client.
 	tlsConfig *tls.Config
 	// sshConfig is the *ssh.ClientConfig for a successfully connected proxy client.
 	sshConfig *ssh.ClientConfig
 	// dialer is the ContextDialer for a successfully connected client.
 	dialer ContextDialer
-	// grpc is the gRPC client specification for the auth server.
-	grpc proto.AuthServiceClient
 	// conn is a grpc connection to the auth server.
 	conn *grpc.ClientConn
-	// atomicFlag is set to indicate whether conn is unset, set, or closed.
-	atomicFlag int32
+	// grpc is the gRPC client specification for the auth server.
+	grpc proto.AuthServiceClient
 }
 
 const (
@@ -89,118 +90,118 @@ func New(ctx context.Context, cfg Config) (*Client, error) {
 	return clt, nil
 }
 
+// connectWithAuth connects the client to the server, using the Credentials and
+// Dialer/Addresses provided in the client's config. Multiple goroutines are started
+// to attempt dialing the server with different combinations of dialers + creds, and
+// the first client to successfully connect is used to populate the client's connection
+// attributes. If none successfully connect, an aggregated error is returned.
 func (c *Client) connectWithAuth(ctx context.Context) error {
-	clientChan := make(chan *Client)
+	// done will receive a signal when the client is successfully
+	// populated, or when all goroutines terminate and errChan is closed.
+	done := make(chan struct{})
 	errChan := make(chan error)
-	dialContext, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
 
-	// asyncConnect is used to try several combinations of dialers, addresses,
-	// and credentials simultaneously. The first succesful connection yields
-	// the client to be used.
-	syncConnect := func(ctx context.Context, clt Client, dialer ContextDialer, addr string) {
-		conn, err := clt.getClientConn(ctx, dialer, addr)
-		if err != nil {
-			errChan <- trace.Wrap(err)
-			return
+	// start goroutine to collect errors
+	var errs []error
+	go func() {
+		for err := range errChan {
+			errs = append(errs, err)
 		}
+		// errChan closed, all goroutines in waitgroup have concluded
+		done <- struct{}{}
+	}()
 
-		service := proto.NewAuthServiceClient(conn)
-		resp, err := service.Ping(ctx, &proto.PingRequest{})
-		if err != nil {
-			errChan <- trace.Wrap(err)
-			return
-		}
+	// syncConnect is used to concurrently test several connections, and apply
+	// the first successful connection to the client's connection attributes.
+	var wg sync.WaitGroup
+	syncConnect := func(ctx context.Context, clt Client, addr string) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 
-		// if non empty, then the current connection is to the webproxy, so we dial
-		// a new connection to the given tunnel address.
-		if resp.PublicTunnelAddr != "" && clt.sshConfig != nil {
-			tunnelDialer := NewTunnelDialer(*clt.sshConfig, clt.c.KeepAlivePeriod, clt.c.DialTimeout)
-			// conn, err := clt.getClientConn(ctx, tunnelDialer, resp.PublicTunnelAddr)
-			conn, err := clt.getClientConn(ctx, tunnelDialer, "localhost:3024")
-			if err != nil {
+			if err := clt.setClientConn(ctx, addr); err != nil {
 				errChan <- trace.Wrap(err)
 				return
 			}
-			service = proto.NewAuthServiceClient(conn)
-			resp, err = service.Ping(ctx, &proto.PingRequest{})
-			if err != nil {
-				errChan <- trace.Wrap(err)
-				return
-			}
-		}
-		// TODO (Joerger): Add version compatibility check
 
-		if c.setOpen() {
-			c.dialer = dialer
-			c.conn = conn
-			c.grpc = service
-			clientChan <- &clt
-		}
+			if c.setOpen() {
+				c.tlsConfig = clt.tlsConfig
+				c.sshConfig = clt.sshConfig
+				c.dialer = clt.dialer
+				c.conn = clt.conn
+				c.grpc = clt.grpc
+				done <- struct{}{}
+			}
+		}()
 	}
 
-	for _, creds := range c.c.Credentials {
+	// make a copy of client to dial multiple connections
+	clt := *c
+	for _, creds := range clt.c.Credentials {
 		var err error
-		c.tlsConfig, err = creds.TLSConfig()
-		if err != nil {
+		if clt.tlsConfig, err = creds.TLSConfig(); err != nil {
 			errChan <- trace.Wrap(err)
 			continue
 		}
 
-		c.sshConfig, err = creds.SSHConfig()
-		if err != nil {
+		if clt.sshConfig, err = creds.SSHConfig(); err != nil {
 			errChan <- trace.Wrap(err)
 			continue
 		}
 
-		// Connect with dialer provided in creds.
-		if dialer, err := creds.Dialer(); err == nil {
-			go syncConnect(dialContext, *c, dialer, constants.APIDomain)
+		// connect with dialer provided in creds
+		if clt.dialer, err = creds.Dialer(); err == nil {
+			syncConnect(ctx, clt, constants.APIDomain)
 			continue
 		}
 
-		// Connect with dialer provided in config.
-		if c.c.Dialer != nil {
-			go syncConnect(dialContext, *c, c.c.Dialer, constants.APIDomain)
+		// connect with dialer provided in config
+		if clt.dialer = clt.c.Dialer; clt.dialer != nil {
+			syncConnect(ctx, clt, constants.APIDomain)
 			continue
 		}
 
-		for _, addr := range c.c.Addrs {
-			// Connect to auth.
-			dialer := NewDialer(c.c.KeepAlivePeriod, c.c.DialTimeout)
-			go syncConnect(dialContext, *c, dialer, addr)
+		for _, addr := range clt.c.Addrs {
+			// connect to auth
+			clt.dialer = NewDialer(clt.c.KeepAlivePeriod, clt.c.DialTimeout)
+			syncConnect(ctx, clt, addr)
 
-			// Connect to proxy if ssh config is provided.
-			if c.sshConfig != nil {
-				dialer := NewTunnelDialer(*c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout)
-				go func(addr string) {
-					// Try connecting to web to retrieve proxy address.
+			// connect to proxy
+			if clt.sshConfig != nil {
+				clt.dialer = NewTunnelDialer(*clt.sshConfig, clt.c.KeepAlivePeriod, clt.c.DialTimeout)
+				// try connecting to web to retrieve proxy address.
+				// if it succeeds, connect to proxy with that address.
+				// otherwise connect to proxy with original address.
+				wg.Add(1)
+				go func(clt Client, addr string) {
+					defer wg.Done()
 					if tunAddr, err := findTunnelAddr(addr); err == nil {
 						addr = tunAddr
 					}
-					syncConnect(dialContext, *c, dialer, addr)
-				}(addr)
+					syncConnect(ctx, clt, addr)
+				}(clt, addr)
 			}
 		}
 	}
 
-	var errs []error
-	for {
-		select {
-		case c = <-clientChan:
-			return nil
-		case err := <-errChan:
-			errs = append(errs, err)
-		case <-dialContext.Done():
-			err := trace.NewAggregate(errs...)
-			if err == nil {
-				err = dialContext.Err()
-			}
-			return trace.Wrap(err, "all auth methods failed")
+	// wait for all goroutines to conclude, then close error channel
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+
+	select {
+	case <-done:
+		if _, ok := <-errChan; !ok {
+			// errChan is closed and no client successfully connected
+			return trace.Wrap(trace.NewAggregate(errs...), "all auth methods failed")
 		}
+		// client connection attributes successfully populated
+		return nil
 	}
 }
 
+// findTunnelAddr retrieves the server's public tunnel address from the web proxy.
 func findTunnelAddr(webAddr string) (string, error) {
 	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Transport: tr}
@@ -224,47 +225,27 @@ func findTunnelAddr(webAddr string) (string, error) {
 	return findResponse.Proxy.SSH.TunnelPublicAddr, nil
 }
 
-// setClientConn uses the given dialer and addr to create a connection for an AuthServiceClient.
-// Then the AuthServiceClient is tested using ping. If the client is connected to a WebProxy server,
-// the retrieved PublicTunnelAddr is used to dial a connection through a reverse tunnel.
-func (c *Client) setClientConn(ctx context.Context, dialer ContextDialer, addr string) error {
-	conn, err := c.getClientConn(ctx, dialer, addr)
-	if err != nil {
-		return trace.Wrap(err)
-	}
-	service := proto.NewAuthServiceClient(conn)
-	resp, err := service.Ping(ctx, nil)
+// setClientConn sets the client's AuthServiceClient with an open connection to the server.
+func (c *Client) setClientConn(ctx context.Context, addr string) error {
+	conn, err := c.getClientConn(ctx, addr)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
-	// if non empty, then the current connection is to the webproxy, so we dial
-	// a new connection to the given tunnel address.
-	if resp.PublicTunnelAddr != "" && c.sshConfig != nil {
-		tunnelDialer := NewTunnelDialer(*c.sshConfig, c.c.KeepAlivePeriod, c.c.DialTimeout)
-		conn, err := c.getClientConn(ctx, tunnelDialer, addr)
-		if err != nil {
-			return trace.Wrap(err)
-		}
-		service = proto.NewAuthServiceClient(conn)
-		resp, err = service.Ping(ctx, nil)
-		if err != nil {
-			return trace.Wrap(err)
-		}
-	}
 	// TODO (Joerger): Add version compatibility check
 
 	if c.setOpen() {
-		c.dialer = dialer
 		c.conn = conn
-		c.grpc = service
+		c.grpc = proto.NewAuthServiceClient(conn)
 	}
 	return nil
 }
 
-func (c *Client) getClientConn(ctx context.Context, dialer ContextDialer, addr string) (*grpc.ClientConn, error) {
+// getClientConn opens up a connection between server and client using the client's dialer and tlsConfig.
+// To dial the connection in the background, c.WithoutDialBlock can be set to true.
+func (c *Client) getClientConn(ctx context.Context, addr string) (*grpc.ClientConn, error) {
 	dialOptions := []grpc.DialOption{
-		grpc.WithContextDialer(c.grpcDialer(dialer)),
+		grpc.WithContextDialer(c.grpcDialer(c.dialer)),
 		grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
 			Time:                c.c.KeepAlivePeriod,
@@ -277,8 +258,11 @@ func (c *Client) getClientConn(ctx context.Context, dialer ContextDialer, addr s
 		dialOptions = append(dialOptions, grpc.WithBlock())
 	}
 
+	dialContext, cancel := context.WithTimeout(context.Background(), c.c.DialTimeout)
+	defer cancel()
+
 	var err error
-	conn, err := grpc.DialContext(ctx, addr, dialOptions...)
+	conn, err := grpc.DialContext(dialContext, addr, dialOptions...)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -287,7 +271,7 @@ func (c *Client) getClientConn(ctx context.Context, dialer ContextDialer, addr s
 }
 
 // grpcDialer wraps the given ContextDialer with a grpcDialer, which
-// can be used in the DialOption grpc.WithContextDialer.
+// can be used to create a DialOption with grpc.WithContextDialer.
 func (c *Client) grpcDialer(dialer ContextDialer) func(ctx context.Context, addr string) (net.Conn, error) {
 	return func(ctx context.Context, addr string) (net.Conn, error) {
 		if c.isClosed() {
