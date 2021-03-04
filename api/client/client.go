@@ -34,11 +34,11 @@ import (
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/types/events"
-	"golang.org/x/crypto/ssh"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/gravitational/trace"
 	"github.com/gravitational/trace/trail"
+	"golang.org/x/crypto/ssh"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	ggzip "google.golang.org/grpc/encoding/gzip"
@@ -53,11 +53,10 @@ func init() {
 	}
 }
 
-// Client is a gRPC Client that connects to a teleport auth server through TLS.
+// Client is a gRPC Client that connects to a teleport server through TLS.
 type Client struct {
+	// c contains configuration values for the client.
 	c Config
-	// atomicFlag is set to indicate whether conn is unset, set, or closed.
-	atomicFlag int32
 	// tlsConfig is the *tls.Config for a successfully connected client.
 	tlsConfig *tls.Config
 	// sshConfig is the *ssh.ClientConfig for a successfully connected proxy client.
@@ -68,13 +67,9 @@ type Client struct {
 	conn *grpc.ClientConn
 	// grpc is the gRPC client specification for the auth server.
 	grpc proto.AuthServiceClient
+	// connFlag is set to indicate and atomically alter the connection's state.
+	connFlag int32
 }
-
-const (
-	unsetFlag int32 = iota
-	openFlag
-	closedFlag
-)
 
 // New creates a new API client with a connection to a Teleport server.
 func New(ctx context.Context, cfg Config) (*Client, error) {
@@ -83,37 +78,37 @@ func New(ctx context.Context, cfg Config) (*Client, error) {
 	}
 
 	clt := &Client{c: cfg}
-	if err := clt.connectWithAuth(ctx); err != nil {
+	if err := clt.connect(ctx); err != nil {
 		return nil, trace.Wrap(err)
 	}
 
 	return clt, nil
 }
 
-// connectWithAuth connects the client to the server, using the Credentials and
+// connect connects the client to the server, using the Credentials and
 // Dialer/Addresses provided in the client's config. Multiple goroutines are started
 // to attempt dialing the server with different combinations of dialers + creds, and
 // the first client to successfully connect is used to populate the client's connection
 // attributes. If none successfully connect, an aggregated error is returned.
-func (c *Client) connectWithAuth(ctx context.Context) error {
+func (c *Client) connect(ctx context.Context) error {
 	// done will receive a signal when the client is successfully
 	// populated, or when all goroutines terminate and errChan is closed.
 	done := make(chan struct{})
 	errChan := make(chan error)
+	var wg sync.WaitGroup
 
-	// start goroutine to collect errors
+	// start goroutine to collect errors.
 	var errs []error
 	go func() {
 		for err := range errChan {
 			errs = append(errs, err)
 		}
-		// errChan closed, all goroutines in waitgroup have concluded
+		// errChan closed, all goroutines in waitgroup have concluded.
 		done <- struct{}{}
 	}()
 
 	// syncConnect is used to concurrently test several connections, and apply
 	// the first successful connection to the client's connection attributes.
-	var wg sync.WaitGroup
 	syncConnect := func(ctx context.Context, clt Client, addr string) {
 		wg.Add(1)
 		go func() {
@@ -125,17 +120,17 @@ func (c *Client) connectWithAuth(ctx context.Context) error {
 			}
 
 			if c.setOpen() {
-				c.tlsConfig = clt.tlsConfig
-				c.sshConfig = clt.sshConfig
-				c.dialer = clt.dialer
-				c.conn = clt.conn
-				c.grpc = clt.grpc
+				// point c to the connected and authenticated clt.
+				*c = clt
 				done <- struct{}{}
+				return
 			}
+
+			clt.Close()
 		}()
 	}
 
-	// make a copy of client to dial multiple connections
+	// make a copy of client to mutate and pass into multiple goroutines.
 	clt := *c
 	for _, creds := range clt.c.Credentials {
 		var err error
@@ -144,37 +139,35 @@ func (c *Client) connectWithAuth(ctx context.Context) error {
 			continue
 		}
 
-		if clt.sshConfig, err = creds.SSHConfig(); err != nil {
+		if clt.sshConfig, err = creds.SSHClientConfig(); err != nil && !trace.IsNotImplemented(err) {
 			errChan <- trace.Wrap(err)
 			continue
 		}
 
-		// connect with dialer provided in creds
-		if clt.dialer, err = creds.Dialer(); err == nil {
-			syncConnect(ctx, clt, constants.APIDomain)
-			continue
-		}
-
-		// connect with dialer provided in config
+		// connect with dialer provided in config.
 		if clt.dialer = clt.c.Dialer; clt.dialer != nil {
 			syncConnect(ctx, clt, constants.APIDomain)
 			continue
 		}
 
+		// connect with dialer provided in creds.
+		if clt.dialer, err = creds.Dialer(); err == nil {
+			syncConnect(ctx, clt, constants.APIDomain)
+			continue
+		}
+
 		for _, addr := range clt.c.Addrs {
-			// connect to auth
+			// connect to auth.
 			clt.dialer = NewDialer(clt.c.KeepAlivePeriod, clt.c.DialTimeout)
 			syncConnect(ctx, clt, addr)
 
-			// connect to proxy
+			// connect to proxy.
 			if clt.sshConfig != nil {
 				clt.dialer = NewTunnelDialer(*clt.sshConfig, clt.c.KeepAlivePeriod, clt.c.DialTimeout)
-				// try connecting to web to retrieve proxy address.
-				// if it succeeds, connect to proxy with that address.
-				// otherwise connect to proxy with original address.
 				wg.Add(1)
 				go func(clt Client, addr string) {
 					defer wg.Done()
+					// try connecting to web proxy to retrieve tunnel address.
 					if tunAddr, err := findTunnelAddr(addr); err == nil {
 						addr = tunAddr
 					}
@@ -185,6 +178,7 @@ func (c *Client) connectWithAuth(ctx context.Context) error {
 	}
 
 	// wait for all goroutines to conclude, then close error channel
+	// to signal error receiver goroutine to conclude, and signal done.
 	go func() {
 		wg.Wait()
 		close(errChan)
@@ -193,10 +187,10 @@ func (c *Client) connectWithAuth(ctx context.Context) error {
 	select {
 	case <-done:
 		if _, ok := <-errChan; !ok {
-			// errChan is closed and no client successfully connected
+			// errChan is closed and no client successfully connected.
 			return trace.Wrap(trace.NewAggregate(errs...), "all auth methods failed")
 		}
-		// client connection attributes successfully populated
+		// client connection attributes successfully populated.
 		return nil
 	}
 }
@@ -232,7 +226,7 @@ func (c *Client) setClientConn(ctx context.Context, addr string) error {
 		return trace.Wrap(err)
 	}
 
-	// TODO (Joerger): Add version compatibility check
+	// TODO (Joerger): Add version compatibility check.
 
 	if c.setOpen() {
 		c.conn = conn
@@ -287,28 +281,28 @@ func (c *Client) grpcDialer(dialer ContextDialer) func(ctx context.Context, addr
 
 // Config contains configuration of the client
 type Config struct {
-	// Addrs is a list of teleport auth/proxy server addresses to dial
+	// Addrs is a list of teleport auth/proxy server addresses to dial.
 	Addrs []string
-	// Dialer is a custom dialer used to dial the auth server
+	// Dialer is a custom dialer used to dial a server. If set, Dialer
+	// takes precedence over all other connection options.
 	Dialer ContextDialer
-	// DialTimeout defines how long to attempt dialing before timing out
+	// DialTimeout defines how long to attempt dialing before timing out.
 	DialTimeout time.Duration
-	// KeepAlivePeriod defines period between keep alives
+	// KeepAlivePeriod defines period between keep alives.
 	KeepAlivePeriod time.Duration
 	// KeepAliveCount specifies the amount of missed keep alives
-	// to wait for before declaring the connection as broken
+	// to wait for before declaring the connection as broken.
 	KeepAliveCount int
-
-	// Credentials are a list of credentials to use when attempting to connect
-	// to Auth.
+	// Credentials are a list of credentials to use when attempting
+	// to form a connection from client to server.
 	Credentials []Credentials
-
-	// WithoutDialBlock does not wait for the dialed connection to be established,
-	// which can be done in the background.
+	// WithoutDialBlock makes the client establish a connection in the
+	// background rather than blocking. Not recommended for external api
+	// usage, set DialTimeout to reduce dial wait time instead.
 	WithoutDialBlock bool
 }
 
-// CheckAndSetDefaults checks and sets default config values
+// CheckAndSetDefaults checks and sets default config values.
 func (c *Config) CheckAndSetDefaults() error {
 	if len(c.Credentials) == 0 {
 		return trace.BadParameter("missing connection credentials")
@@ -325,8 +319,8 @@ func (c *Config) CheckAndSetDefaults() error {
 	return nil
 }
 
-// GetHTTPDialer returns the configured dialer, or builds a dialer
-// from configured addresses.
+// GetHTTPDialer returns the configured dialer,
+// or builds a dialer from configured addresses.
 func (c *Config) GetHTTPDialer() (ContextDialer, error) {
 	var err error
 	if c.Dialer != nil {
@@ -349,12 +343,12 @@ func (c *Client) Dialer() ContextDialer {
 	return c.dialer
 }
 
-// GetConnection returns GRPC connection
+// GetConnection returns GRPC connection.
 func (c *Client) GetConnection() *grpc.ClientConn {
 	return c.conn
 }
 
-// Close closes the Client connection to the auth server
+// Close closes the Client connection to the auth server.
 func (c *Client) Close() error {
 	if c.setClosed() {
 		err := c.conn.Close()
@@ -364,18 +358,25 @@ func (c *Client) Close() error {
 	return nil
 }
 
+const (
+	unsetConn int32 = iota
+	openConn
+	closedConn
+)
+
+// isOpen returns whether the client is marked as closed.
 func (c *Client) isClosed() bool {
-	return atomic.LoadInt32(&c.atomicFlag) == closedFlag
+	return atomic.LoadInt32(&c.connFlag) == closedConn
 }
 
-func (c *Client) setOpen() bool {
-	return atomic.CompareAndSwapInt32(&c.atomicFlag, unsetFlag, openFlag)
-}
-
-// setClosed marks the client to closed and returns true
-// if the client was successfully marked as closed.
+// setClosed marks the client as closed and returns true if it wasn't already closed.
 func (c *Client) setClosed() bool {
-	return atomic.CompareAndSwapInt32(&c.atomicFlag, openFlag, closedFlag)
+	return atomic.SwapInt32(&c.connFlag, closedConn) != closedConn
+}
+
+// setOpen marks the client as open and returns true if it wasn't already open.
+func (c *Client) setOpen() bool {
+	return atomic.SwapInt32(&c.connFlag, openConn) != openConn
 }
 
 // Ping gets basic info about the auth server.

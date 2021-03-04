@@ -38,21 +38,6 @@ var log = logrus.WithFields(logrus.Fields{
 	trace.Component: teleport.ComponentConnectProxy,
 })
 
-// NewClientConnWithDeadline establishes new client connection with specified deadline
-func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
-	if config.Timeout > 0 {
-		conn.SetReadDeadline(time.Now().Add(config.Timeout))
-	}
-	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
-	if err != nil {
-		return nil, err
-	}
-	if config.Timeout > 0 {
-		conn.SetReadDeadline(time.Time{})
-	}
-	return ssh.NewClient(c, chans, reqs), nil
-}
-
 // dialWithDeadline works around the case when net.DialWithTimeout
 // succeeds, but key exchange hangs. Setting deadline on connection
 // prevents this case from happening

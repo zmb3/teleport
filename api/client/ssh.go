@@ -30,20 +30,6 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 )
 
-// SSHCert returns parsed SSH certificate
-func SSHCert(sshCert []byte) (*ssh.Certificate, error) {
-	key, _, _, _, err := ssh.ParseAuthorizedKey(sshCert)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	cert, ok := key.(*ssh.Certificate)
-	if !ok {
-		return nil, trace.BadParameter("found key, not certificate")
-	}
-	return cert, nil
-}
-
 // SSHClientConfig returns an ssh.ClientConfig with SSH credentials from this
 // Key and HostKeyCallback matching SSH CAs in the Key.
 func SSHClientConfig(sshCert, privKey []byte, caCerts [][]byte) (*ssh.ClientConfig, error) {
@@ -68,6 +54,20 @@ func SSHClientConfig(sshCert, privKey []byte, caCerts [][]byte) (*ssh.ClientConf
 		HostKeyCallback: hostKeyCallback,
 		Timeout:         defaults.DefaultDialTimeout,
 	}, nil
+}
+
+// SSHCert returns parsed SSH certificate
+func SSHCert(sshCert []byte) (*ssh.Certificate, error) {
+	key, _, _, _, err := ssh.ParseAuthorizedKey(sshCert)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	cert, ok := key.(*ssh.Certificate)
+	if !ok {
+		return nil, trace.BadParameter("found key, not certificate")
+	}
+	return cert, nil
 }
 
 // AsAuthMethod returns an "auth method" interface, a common abstraction

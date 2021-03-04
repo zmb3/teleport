@@ -33,13 +33,21 @@ func TestLoadTLS(t *testing.T) {
 	// Load expected tls.Config.
 	expectedTLSConfig := getExpectedTLSConfig(t)
 
-	// Load and build tls.Config.
-	config, err := LoadTLS(expectedTLSConfig).TLSConfig()
-	require.NoError(t, err)
+	// Load TLSConfigCreds.
+	creds := LoadTLS(expectedTLSConfig)
 
-	// Compare built aand expected tls.Config.
-	require.Equal(t, config.Certificates, expectedTLSConfig.Certificates)
-	require.Equal(t, config.RootCAs.Subjects(), expectedTLSConfig.RootCAs.Subjects())
+	// Build tls.Config and compare to expected tls.Config.
+	tlsConfig, err := creds.TLSConfig()
+	require.NoError(t, err)
+	require.Equal(t, tlsConfig.Certificates, expectedTLSConfig.Certificates)
+	require.Equal(t, tlsConfig.RootCAs.Subjects(), expectedTLSConfig.RootCAs.Subjects())
+
+	// Load invalid tls.Config.
+	invalidTLSCreds := LoadTLS(&tls.Config{})
+	_, err = invalidTLSCreds.TLSConfig()
+	require.Error(t, err)
+	_, err = invalidTLSCreds.SSHClientConfig()
+	require.Error(t, err)
 }
 
 func TestLoadIdentityFile(t *testing.T) {
@@ -65,25 +73,25 @@ func TestLoadIdentityFile(t *testing.T) {
 	err := WriteIdentityFile(idFile, path)
 	require.NoError(t, err)
 
-	// Load identity file.
-	IdentityCreds := LoadIdentityFile(path)
+	// Load identity file from disk.
+	creds := LoadIdentityFile(path)
 
-	// build tls.Config and compare to expected tls.Config
-	tlsConfig, err := IdentityCreds.TLSConfig()
+	// Build tls.Config and compare to expected tls.Config.
+	tlsConfig, err := creds.TLSConfig()
 	require.NoError(t, err)
 	require.Equal(t, tlsConfig.Certificates, expectedTLSConfig.Certificates)
 	require.Equal(t, tlsConfig.RootCAs.Subjects(), expectedTLSConfig.RootCAs.Subjects())
 
-	// build ssh.ClientConfig and compare to expected ssh.ClientConfig
-	sshConfig, err := IdentityCreds.SSHConfig()
+	// Build ssh.ClientConfig and compare to expected ssh.ClientConfig.
+	sshConfig, err := creds.SSHClientConfig()
 	require.NoError(t, err)
 	require.Equal(t, sshConfig.User, expectedSSHConfig.User)
 
 	// Load invalid identity.
-	invalidIdentityCreds := LoadIdentityFile("invalid_path")
-	_, err = invalidIdentityCreds.TLSConfig()
+	creds = LoadIdentityFile("invalid_path")
+	_, err = creds.TLSConfig()
 	require.Error(t, err)
-	_, err = invalidIdentityCreds.SSHConfig()
+	_, err = creds.SSHClientConfig()
 	require.Error(t, err)
 }
 
@@ -103,13 +111,14 @@ func TestLoadKeyPair(t *testing.T) {
 	err = ioutil.WriteFile(caPath, caCertPEM, 0600)
 	require.NoError(t, err)
 
-	// Load key pair from disk and build tls.Config.
-	config, err := LoadKeyPair(certPath, keyPath, caPath).TLSConfig()
-	require.NoError(t, err)
+	// Load key pair from disk.
+	creds := LoadKeyPair(certPath, keyPath, caPath)
 
-	// Compare built and expected tls.Config.
-	require.Equal(t, config.Certificates, expectedTLSConfig.Certificates)
-	require.Equal(t, config.RootCAs.Subjects(), expectedTLSConfig.RootCAs.Subjects())
+	// Build tls.Config and compare to expected tls.Config.
+	tlsConfig, err := creds.TLSConfig()
+	require.NoError(t, err)
+	require.Equal(t, tlsConfig.Certificates, expectedTLSConfig.Certificates)
+	require.Equal(t, tlsConfig.RootCAs.Subjects(), expectedTLSConfig.RootCAs.Subjects())
 
 	// Load invalid keypairs.
 	invalidIdentityCreds := LoadKeyPair("invalid_path", "invalid_path", "invalid_path")

@@ -27,7 +27,6 @@ import (
 
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils"
 
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
@@ -47,7 +46,7 @@ func (f ContextDialerFunc) DialContext(ctx context.Context, network, addr string
 	return f(ctx, network, addr)
 }
 
-// NewDialer makes a new dialer from a single address
+// NewDialer makes a new dialer.
 func NewDialer(keepAliveInterval, dialTimeout time.Duration) ContextDialer {
 	return &net.Dialer{
 		Timeout:   dialTimeout,
@@ -55,7 +54,7 @@ func NewDialer(keepAliveInterval, dialTimeout time.Duration) ContextDialer {
 	}
 }
 
-// NewAddrsDialer makes a new dialer from a list of addresses
+// NewAddrsDialer makes a new dialer from a list of addresses.
 func NewAddrsDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration) (ContextDialer, error) {
 	if len(addrs) == 0 {
 		return nil, trace.BadParameter("no addresses to dial")
@@ -73,7 +72,7 @@ func NewAddrsDialer(addrs []string, keepAliveInterval, dialTimeout time.Duration
 	}), nil
 }
 
-// NewTunnelDialer make a new dialer from a list of addresses over ssh
+// NewTunnelDialer make a new ssh tunnel dialer
 func NewTunnelDialer(ssh ssh.ClientConfig, keepAliveInterval, dialTimeout time.Duration) ContextDialer {
 	dialer := NewDialer(keepAliveInterval, dialTimeout)
 	return ContextDialerFunc(func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
@@ -117,7 +116,7 @@ func NewClientConnWithDeadline(conn net.Conn, addr string, config *ssh.ClientCon
 
 // ConnectProxyTransport opens a channel over the remote tunnel and connects
 // to the requested host.
-func ConnectProxyTransport(sconn ssh.Conn, req *DialReq, exclusive bool) (*utils.ChConn, bool, error) {
+func ConnectProxyTransport(sconn ssh.Conn, req *DialReq, exclusive bool) (*ChConn, bool, error) {
 	if err := req.CheckAndSetDefaults(); err != nil {
 		return nil, false, trace.Wrap(err)
 	}
@@ -154,9 +153,9 @@ func ConnectProxyTransport(sconn ssh.Conn, req *DialReq, exclusive bool) (*utils
 	}
 
 	if exclusive {
-		return utils.NewExclusiveChConn(sconn, channel), false, nil
+		return NewExclusiveChConn(sconn, channel), false, nil
 	}
-	return utils.NewChConn(sconn, channel), false, nil
+	return NewChConn(sconn, channel), false, nil
 }
 
 // DialReq is a request for the address to connect to. Supports special

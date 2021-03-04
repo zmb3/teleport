@@ -28,7 +28,6 @@ import (
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/srv/forward"
@@ -606,11 +605,11 @@ func (s *remoteSite) dialWithAgent(params DialParams) (net.Conn, error) {
 // UseTunnel makes a channel request asking for the type of connection. If
 // the other side does not respond (older cluster) or takes to long to
 // respond, be on the safe side and assume it's not a tunnel connection.
-func UseTunnel(c *utils.ChConn) bool {
+func UseTunnel(c *client.ChConn) bool {
 	responseCh := make(chan bool, 1)
 
 	go func() {
-		ok, err := c.SendRequest(utils.ConnectionTypeRequest, true, nil)
+		ok, err := c.SendRequest(client.ConnectionTypeRequest, true, nil)
 		if err != nil {
 			responseCh <- false
 			return
@@ -628,14 +627,14 @@ func UseTunnel(c *utils.ChConn) bool {
 	}
 }
 
-func (s *remoteSite) connThroughTunnel(req *client.DialReq) (*utils.ChConn, error) {
+func (s *remoteSite) connThroughTunnel(req *client.DialReq) (*client.ChConn, error) {
 
 	s.Debugf("Requesting connection to %v [%v] in remote cluster.",
 		req.Address, req.ServerID)
 
 	// Loop through existing remote connections and try and establish a
 	// connection over the "reverse tunnel".
-	var conn *utils.ChConn
+	var conn *client.ChConn
 	var err error
 	for i := 0; i < s.connectionCount(); i++ {
 		conn, err = s.chanTransportConn(req)
@@ -659,7 +658,7 @@ func (s *remoteSite) connThroughTunnel(req *client.DialReq) (*utils.ChConn, erro
 	return nil, err
 }
 
-func (s *remoteSite) chanTransportConn(req *client.DialReq) (*utils.ChConn, error) {
+func (s *remoteSite) chanTransportConn(req *client.DialReq) (*client.ChConn, error) {
 	rconn, err := s.nextConn()
 	if err != nil {
 		return nil, trace.Wrap(err)

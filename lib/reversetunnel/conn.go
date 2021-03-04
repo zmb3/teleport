@@ -26,7 +26,7 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/services"
 
@@ -165,7 +165,7 @@ func (c *remoteConn) OpenChannel(name string, data []byte) (ssh.Channel, error) 
 
 // ChannelConn creates a net.Conn over a SSH channel.
 func (c *remoteConn) ChannelConn(channel ssh.Channel) net.Conn {
-	return utils.NewChConn(c.sconn, channel)
+	return client.NewChConn(c.sconn, channel)
 }
 
 func (c *remoteConn) markInvalid(err error) {

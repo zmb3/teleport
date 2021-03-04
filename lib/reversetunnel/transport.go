@@ -25,7 +25,6 @@ import (
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client"
-	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/services"
@@ -186,7 +185,7 @@ func (p *transport) start() {
 			}
 
 			p.log.Debug("Handing off connection to a local kubernetes service")
-			p.server.HandleConnection(apiutils.NewChConn(p.sconn, p.channel))
+			p.server.HandleConnection(client.NewChConn(p.sconn, p.channel))
 			return
 		default:
 			// This must be a proxy.
@@ -220,7 +219,7 @@ func (p *transport) start() {
 			}
 
 			p.log.Debug("Handing off connection to a local SSH service")
-			p.server.HandleConnection(apiutils.NewChConn(p.sconn, p.channel))
+			p.server.HandleConnection(client.NewChConn(p.sconn, p.channel))
 			return
 		}
 		// If this is a proxy and not an SSH node, try finding an inbound
@@ -294,7 +293,7 @@ func (p *transport) handleChannelRequests(closeContext context.Context, useTunne
 				return
 			}
 			switch req.Type {
-			case apiutils.ConnectionTypeRequest:
+			case client.ConnectionTypeRequest:
 				p.reply(req, useTunnel, nil)
 			default:
 				p.reply(req, false, nil)

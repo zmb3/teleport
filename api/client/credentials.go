@@ -34,8 +34,8 @@ type Credentials interface {
 	Dialer() (ContextDialer, error)
 	// TLSConfig returns TLS configuration used to connect to Auth.
 	TLSConfig() (*tls.Config, error)
-	// SSHConfig returns SSH configuration used to connect to Proxy, may be nil.
-	SSHConfig() (*ssh.ClientConfig, error)
+	// SSHClientConfig returns SSH configuration used to connect to Proxy through tunnel.
+	SSHClientConfig() (*ssh.ClientConfig, error)
 }
 
 // LoadTLS is used to load credentials directly from another *tls.Config.
@@ -64,9 +64,9 @@ func (c *TLSConfigCreds) TLSConfig() (*tls.Config, error) {
 	return configure(c.tlsConfig), nil
 }
 
-// SSHConfig returns SSH configuration used to connect to Proxy.
-func (c *TLSConfigCreds) SSHConfig() (*ssh.ClientConfig, error) {
-	return nil, nil
+// SSHClientConfig returns SSH configuration used to connect to Proxy.
+func (c *TLSConfigCreds) SSHClientConfig() (*ssh.ClientConfig, error) {
+	return nil, trace.NotImplemented("no ssh config")
 }
 
 // LoadKeyPair is used to load credentials from files on disk.
@@ -114,9 +114,9 @@ func (c *KeyPairCreds) TLSConfig() (*tls.Config, error) {
 	}), nil
 }
 
-// SSHConfig returns SSH configuration used to connect to Proxy.
-func (c *KeyPairCreds) SSHConfig() (*ssh.ClientConfig, error) {
-	return nil, nil
+// SSHClientConfig returns SSH configuration used to connect to Proxy.
+func (c *KeyPairCreds) SSHClientConfig() (*ssh.ClientConfig, error) {
+	return nil, trace.NotImplemented("no ssh config")
 }
 
 // LoadIdentityFile is used to load credentials from an identity file on disk.
@@ -152,8 +152,8 @@ func (c *IdentityCreds) TLSConfig() (*tls.Config, error) {
 	return configure(tlsConfig), nil
 }
 
-// SSHConfig returns SSH configuration used to connect to Proxy.
-func (c *IdentityCreds) SSHConfig() (*ssh.ClientConfig, error) {
+// SSHClientConfig returns SSH configuration used to connect to Proxy.
+func (c *IdentityCreds) SSHClientConfig() (*ssh.ClientConfig, error) {
 	identityFile, err := ReadIdentityFile(c.path)
 	if err != nil {
 		return nil, trace.BadParameter("identity file could not be decoded: %v", err)
