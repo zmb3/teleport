@@ -77,12 +77,12 @@ func New(ctx context.Context, cfg Config) (*Client, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	clt := &Client{c: cfg}
-	if err := clt.connect(ctx); err != nil {
+	c := &Client{c: cfg}
+	if err := c.connect(ctx); err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	return clt, nil
+	return c, nil
 }
 
 // connect connects the client to the server, using the Credentials and
@@ -347,7 +347,7 @@ func (c *Client) GetConnection() *grpc.ClientConn {
 
 // Close closes the Client connection to the auth server.
 func (c *Client) Close() error {
-	if c.setClosed() {
+	if c.setClosed() && c.conn != nil {
 		err := c.conn.Close()
 		c.conn = nil
 		return trace.Wrap(err)

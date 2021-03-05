@@ -254,8 +254,6 @@ message PingResponse {
     string ClusterName = 1 [ (gogoproto.jsontag) = "cluster_name" ];
     // ServerVersion is the version of the auth server.
     string ServerVersion = 2 [ (gogoproto.jsontag) = "server_version" ];
-    // PublicTunnelAddr is the server's public proxy tunnel addresses.
-    string PublicTunnelAddr = 3 [ (gogoproto.jsontag) = "public_tunnel_addr" ];
 }
 
 // DeleteUserRequest is the input value for the DeleteUser method.

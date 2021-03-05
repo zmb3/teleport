@@ -119,12 +119,11 @@ func ReadIdentityFile(path string) (*IdentityFile, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	// did not find the SSH certificate in the file? look in a
-	// separate file with -cert.pub prefix
+	// Did not find the SSH certificate in the file? look in a
+	// separate file with -cert.pub prefix.
 	if len(ident.Certs.SSH) == 0 {
 		certFn := path + constants.FileExtCert
-		ident.Certs.SSH, err = ioutil.ReadFile(certFn)
-		if err != nil {
+		if ident.Certs.SSH, err = ioutil.ReadFile(certFn); err != nil {
 			return nil, trace.Wrap(err)
 		}
 	}
