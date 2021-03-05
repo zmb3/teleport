@@ -31,6 +31,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth/testauthority"
@@ -225,9 +226,8 @@ func (s *AuthSuite) TestAuthenticateSSHUser(c *C) {
 	// Verify the public key and principals in SSH cert.
 	inSSHPub, _, _, _, err := ssh.ParseAuthorizedKey(pub)
 	c.Assert(err, IsNil)
-	gotSSHCertPub, _, _, _, err := ssh.ParseAuthorizedKey(resp.Cert)
+	gotSSHCert, err := client.ParseCertificate(resp.Cert)
 	c.Assert(err, IsNil)
-	gotSSHCert := gotSSHCertPub.(*ssh.Certificate)
 	c.Assert(gotSSHCert.Key, DeepEquals, inSSHPub)
 	c.Assert(gotSSHCert.ValidPrincipals, DeepEquals, []string{user})
 	// Verify the public key and Subject in TLS cert.
@@ -567,9 +567,8 @@ func (s *AuthSuite) TestTokensCRUD(c *C) {
 	c.Assert(err, IsNil)
 
 	// along the way, make sure that additional principals work
-	key, _, _, _, err := ssh.ParseAuthorizedKey(keys.Cert)
+	hostCert, err := client.ParseCertificate(keys.Cert)
 	c.Assert(err, IsNil)
-	hostCert := key.(*ssh.Certificate)
 	comment := Commentf("can't find example.com in %v", hostCert.ValidPrincipals)
 	c.Assert(utils.SliceContainsStr(hostCert.ValidPrincipals, "example.com"), Equals, true, comment)
 

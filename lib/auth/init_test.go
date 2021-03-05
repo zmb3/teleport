@@ -30,6 +30,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth/testauthority"
@@ -90,10 +91,8 @@ func TestReadIdentity(t *testing.T) {
 		TTL:                 ttl,
 	})
 	require.NoError(t, err)
-	pk, _, _, _, err := ssh.ParseAuthorizedKey(bytes)
+	copy, err := client.ParseCertificate(bytes)
 	require.NoError(t, err)
-	copy, ok := pk.(*ssh.Certificate)
-	require.True(t, ok)
 	require.Equal(t, uint64(expiryDate.Unix()), copy.ValidBefore)
 }
 

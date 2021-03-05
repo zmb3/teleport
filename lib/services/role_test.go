@@ -24,9 +24,8 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/crypto/ssh"
-
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/types/wrappers"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -1990,10 +1989,8 @@ func TestExtractFrom(t *testing.T) {
 	})
 
 	// Create a SSH certificate.
-	pubkey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(fixtures.UserCertificateStandard))
+	cert, err := client.ParseCertificate([]byte(fixtures.UserCertificateStandard))
 	require.NoError(t, err)
-	cert, ok := pubkey.(*ssh.Certificate)
-	require.True(t, ok)
 
 	// Create a TLS identity.
 	identity := &tlsca.Identity{
@@ -2052,10 +2049,8 @@ func TestExtractFromLegacy(t *testing.T) {
 	})
 
 	// Create a SSH certificate in the legacy format.
-	pubkey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(fixtures.UserCertificateLegacy))
+	cert, err := client.ParseCertificate([]byte(fixtures.UserCertificateLegacy))
 	require.NoError(t, err)
-	cert, ok := pubkey.(*ssh.Certificate)
-	require.True(t, ok)
 
 	// Create a TLS identity with only roles.
 	identity := &tlsca.Identity{

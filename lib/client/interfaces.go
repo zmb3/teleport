@@ -314,7 +314,7 @@ func (k *Key) AsAuthMethod() (ssh.AuthMethod, error) {
 
 // SSHCert returns parsed SSH certificate
 func (k *Key) SSHCert() (*ssh.Certificate, error) {
-	return client.SSHCert(k.Cert)
+	return client.ParseCertificate(k.Cert)
 }
 
 // CheckCert makes sure the SSH certificate is valid.

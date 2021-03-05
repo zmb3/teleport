@@ -1502,11 +1502,8 @@ func (s *TLSSuite) TestWebSessionWithApprovedAccessRequest(c *check.C) {
 	sess, err := web.ExtendWebSession(user, ws.GetName(), accessReq.GetMetadata().Name)
 	c.Assert(err, check.IsNil)
 
-	pub, _, _, _, err := ssh.ParseAuthorizedKey(sess.GetPub())
+	sshcert, err := client.ParseCertificate(sess.GetPub())
 	c.Assert(err, check.IsNil)
-
-	sshcert, ok := pub.(*ssh.Certificate)
-	c.Assert(ok, check.Equals, true)
 
 	// Roles extracted from cert should contain the initial role and the role assigned with access request.
 	roles, _, err := services.ExtractFromCertificate(clt, sshcert)
@@ -1670,12 +1667,8 @@ func (s *TLSSuite) TestAccessRequest(c *check.C) {
 
 	// certLogins extracts the logins from an ssh certificate
 	certLogins := func(sshCert []byte) []string {
-		key, _, _, _, err := ssh.ParseAuthorizedKey(sshCert)
+		cert, err := client.ParseCertificate(sshCert)
 		c.Assert(err, check.IsNil)
-
-		cert, ok := key.(*ssh.Certificate)
-		c.Assert(ok, check.Equals, true)
-
 		return cert.ValidPrincipals
 	}
 
@@ -1840,9 +1833,8 @@ func TestGenerateCerts(t *testing.T) {
 		})
 	require.NoError(t, err)
 
-	key, _, _, _, err := ssh.ParseAuthorizedKey(certs.Cert)
+	hostCert, err := client.ParseCertificate(certs.Cert)
 	require.NoError(t, err)
-	hostCert := key.(*ssh.Certificate)
 	require.Contains(t, hostCert.ValidPrincipals, "example.com")
 
 	// sign server public keys for node
@@ -1861,9 +1853,8 @@ func TestGenerateCerts(t *testing.T) {
 		})
 	require.NoError(t, err)
 
-	key, _, _, _, err = ssh.ParseAuthorizedKey(certs.Cert)
+	hostCert, err = client.ParseCertificate(certs.Cert)
 	require.NoError(t, err)
-	hostCert = key.(*ssh.Certificate)
 	require.Contains(t, hostCert.ValidPrincipals, "example.com")
 
 	// attempt to elevate privileges by getting admin role in the certificate
@@ -1937,9 +1928,8 @@ func TestGenerateCerts(t *testing.T) {
 	require.NoError(t, err)
 
 	parseCert := func(sshCert []byte) (*ssh.Certificate, time.Duration) {
-		parsedKey, _, _, _, err := ssh.ParseAuthorizedKey(sshCert)
+		parsedCert, err := client.ParseCertificate(sshCert)
 		require.NoError(t, err)
-		parsedCert, _ := parsedKey.(*ssh.Certificate)
 		validBefore := time.Unix(int64(parsedCert.ValidBefore), 0)
 		return parsedCert, time.Until(validBefore)
 	}
@@ -2185,9 +2175,8 @@ func (s *TLSSuite) TestCertificateFormat(c *check.C) {
 		})
 		c.Assert(err, check.IsNil)
 
-		parsedKey, _, _, _, err := ssh.ParseAuthorizedKey(re.Cert)
+		parsedCert, err := client.ParseCertificate(re.Cert)
 		c.Assert(err, check.IsNil)
-		parsedCert, _ := parsedKey.(*ssh.Certificate)
 
 		_, ok := parsedCert.Extensions[teleport.CertExtensionTeleportRoles]
 		c.Assert(ok, check.Equals, tt.outCertContainsRole)

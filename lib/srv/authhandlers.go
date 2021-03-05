@@ -69,7 +69,6 @@ type AuthHandlers struct {
 func (h *AuthHandlers) CreateIdentityContext(sconn *ssh.ServerConn) (IdentityContext, error) {
 	identity := IdentityContext{
 		TeleportUser: sconn.Permissions.Extensions[utils.CertTeleportUser],
-		Certificate:  []byte(sconn.Permissions.Extensions[utils.CertTeleportUserCertificate]),
 		Login:        sconn.User(),
 	}
 
@@ -78,10 +77,12 @@ func (h *AuthHandlers) CreateIdentityContext(sconn *ssh.ServerConn) (IdentityCon
 		return IdentityContext{}, trace.Wrap(err)
 	}
 
-	certificate, err := identity.GetCertificate()
+	certRaw := []byte(sconn.Permissions.Extensions[utils.CertTeleportUserCertificate])
+	certificate, err := client.ParseCertificate(certRaw)
 	if err != nil {
 		return IdentityContext{}, trace.Wrap(err)
 	}
+	identity.Certificate = certificate
 	identity.RouteToCluster = certificate.Extensions[teleport.CertExtensionTeleportRouteToCluster]
 	if certificate.ValidBefore != 0 {
 		identity.CertValidBefore = time.Unix(int64(certificate.ValidBefore), 0)

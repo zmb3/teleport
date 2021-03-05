@@ -288,15 +288,7 @@ func (c *SessionContext) GetAgent() (agent.Agent, *ssh.Certificate, error) {
 
 // GetSSHCertificate returns the *ssh.Certificate associated with this session.
 func (c *SessionContext) GetSSHCertificate() (*ssh.Certificate, error) {
-	pub, _, _, _, err := ssh.ParseAuthorizedKey(c.session.GetPub())
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	sshCert, ok := pub.(*ssh.Certificate)
-	if !ok {
-		return nil, trace.BadParameter("expected certificate, got %T", pub)
-	}
-	return sshCert, nil
+	return apiclient.ParseCertificate(c.session.GetPub())
 }
 
 // GetX509Certificate returns the *x509.Certificate associated with this session.
