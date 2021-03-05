@@ -67,8 +67,8 @@ type Client struct {
 	conn *grpc.ClientConn
 	// grpc is the gRPC client specification for the auth server.
 	grpc proto.AuthServiceClient
-	// connFlag is set to indicate and atomically alter the connection's state.
-	connFlag int32
+	// closedFlag is set to indicate that the connnection is closed.
+	closedFlag int32
 }
 
 // New creates a new API client with a connection to a Teleport server.
@@ -91,24 +91,14 @@ func New(ctx context.Context, cfg Config) (*Client, error) {
 // the first client to successfully connect is used to populate the client's connection
 // attributes. If none successfully connect, an aggregated error is returned.
 func (c *Client) connect(ctx context.Context) error {
-	// done will receive a signal when the client is successfully
-	// populated, or when all goroutines terminate and errChan is closed.
-	done := make(chan struct{})
+	// cltChan will either recieve a connected client or nil to
+	// indicate errors that all connections resulted in errors.
+	cltChan := make(chan Client)
 	errChan := make(chan error)
-	var wg sync.WaitGroup
-
-	// start goroutine to collect errors.
-	var errs []error
-	go func() {
-		for err := range errChan {
-			errs = append(errs, err)
-		}
-		// errChan closed, all goroutines in waitgroup have concluded.
-		done <- struct{}{}
-	}()
 
 	// syncConnect is used to concurrently test several connections, and apply
 	// the first successful connection to the client's connection attributes.
+	var wg sync.WaitGroup
 	syncConnect := func(ctx context.Context, clt Client, addr string) {
 		wg.Add(1)
 		go func() {
@@ -119,80 +109,89 @@ func (c *Client) connect(ctx context.Context) error {
 				return
 			}
 
-			if c.setOpen() {
-				// point c to the connected and authenticated clt.
-				*c = clt
-				done <- struct{}{}
-				return
+			// If cltChan is empty, send clt. If full, close clt.
+			select {
+			case cltChan <- clt:
+			default:
+				clt.Close()
 			}
-
-			clt.Close()
 		}()
 	}
 
-	// make a copy of client to mutate and pass into multiple goroutines.
-	clt := *c
-	for _, creds := range clt.c.Credentials {
-		var err error
-		if clt.tlsConfig, err = creds.TLSConfig(); err != nil {
-			errChan <- trace.Wrap(err)
-			continue
-		}
+	wg.Add(1)
+	go func(clt Client) {
+		defer wg.Done()
+		for _, creds := range clt.c.Credentials {
+			var err error
+			if clt.tlsConfig, err = creds.TLSConfig(); err != nil {
+				errChan <- trace.Wrap(err)
+				continue
+			}
 
-		if clt.sshConfig, err = creds.SSHClientConfig(); err != nil && !trace.IsNotImplemented(err) {
-			errChan <- trace.Wrap(err)
-			continue
-		}
+			if clt.sshConfig, err = creds.SSHClientConfig(); err != nil && !trace.IsNotImplemented(err) {
+				errChan <- trace.Wrap(err)
+				continue
+			}
 
-		// connect with dialer provided in config.
-		if clt.dialer = clt.c.Dialer; clt.dialer != nil {
-			syncConnect(ctx, clt, constants.APIDomain)
-			continue
-		}
+			// connect with dialer provided in config.
+			if clt.dialer = clt.c.Dialer; clt.dialer != nil {
+				syncConnect(ctx, clt, constants.APIDomain)
+				continue
+			}
 
-		// connect with dialer provided in creds.
-		if clt.dialer, err = creds.Dialer(); err == nil {
-			syncConnect(ctx, clt, constants.APIDomain)
-			continue
-		}
+			// connect with dialer provided in creds.
+			if clt.dialer, err = creds.Dialer(); err == nil {
+				syncConnect(ctx, clt, constants.APIDomain)
+				continue
+			}
 
-		for _, addr := range clt.c.Addrs {
-			// connect to auth.
-			clt.dialer = NewDialer(clt.c.KeepAlivePeriod, clt.c.DialTimeout)
-			syncConnect(ctx, clt, addr)
+			for _, addr := range clt.c.Addrs {
+				// connect to auth.
+				clt.dialer = NewDialer(clt.c.KeepAlivePeriod, clt.c.DialTimeout)
+				syncConnect(ctx, clt, addr)
 
-			// connect to proxy.
-			if clt.sshConfig != nil {
-				clt.dialer = NewTunnelDialer(*clt.sshConfig, clt.c.KeepAlivePeriod, clt.c.DialTimeout)
-				wg.Add(1)
-				go func(clt Client, addr string) {
-					defer wg.Done()
-					// try connecting to web proxy to retrieve tunnel address.
-					if tunAddr, err := findTunnelAddr(addr); err == nil {
-						addr = tunAddr
-					}
-					syncConnect(ctx, clt, addr)
-				}(clt, addr)
+				// connect to proxy.
+				if clt.sshConfig != nil {
+					clt.dialer = NewTunnelDialer(*clt.sshConfig, clt.c.KeepAlivePeriod, clt.c.DialTimeout)
+					wg.Add(1)
+					go func(clt Client, addr string) {
+						defer wg.Done()
+						// try connecting to web proxy to retrieve tunnel address.
+						if tunAddr, err := findTunnelAddr(addr); err == nil {
+							addr = tunAddr
+						}
+						syncConnect(ctx, clt, addr)
+					}(clt, addr)
+				}
 			}
 		}
-	}
+	}(*c)
 
-	// wait for all goroutines to conclude, then close error channel
-	// to signal error receiver goroutine to conclude, and signal done.
+	// Start error receiver.
+	var errs error
+	go func() {
+		errs = <-errChan
+		for err := range errChan {
+			errs = trace.Errorf("%v,\n\t%v", errs, err)
+		}
+		// errChan closed, close cltChan to return errs.
+		close(cltChan)
+	}()
+
+	// Start goroutine to wait for wait group.
 	go func() {
 		wg.Wait()
+		// Signal error receiver to close.
 		close(errChan)
 	}()
 
-	select {
-	case <-done:
-		if _, ok := <-errChan; !ok {
-			// errChan is closed and no client successfully connected.
-			return trace.Wrap(trace.NewAggregate(errs...), "all auth methods failed")
-		}
-		// client connection attributes successfully populated.
+	if clt, ok := <-cltChan; ok {
+		// Point c to connected clt.
+		*c = clt
 		return nil
 	}
+
+	return trace.Wrap(errs, "all auth methods failed")
 }
 
 // findTunnelAddr retrieves the server's public tunnel address from the web proxy.
@@ -228,10 +227,8 @@ func (c *Client) setClientConn(ctx context.Context, addr string) error {
 
 	// TODO (Joerger): Add version compatibility check.
 
-	if c.setOpen() {
-		c.conn = conn
-		c.grpc = proto.NewAuthServiceClient(conn)
-	}
+	c.conn = conn
+	c.grpc = proto.NewAuthServiceClient(conn)
 	return nil
 }
 
@@ -358,25 +355,14 @@ func (c *Client) Close() error {
 	return nil
 }
 
-const (
-	unsetConn int32 = iota
-	openConn
-	closedConn
-)
-
-// isOpen returns whether the client is marked as closed.
+// isClosed returns whether the client is marked as closed.
 func (c *Client) isClosed() bool {
-	return atomic.LoadInt32(&c.connFlag) == closedConn
+	return atomic.LoadInt32(&c.closedFlag) == 1
 }
 
 // setClosed marks the client as closed and returns true if it wasn't already closed.
 func (c *Client) setClosed() bool {
-	return atomic.SwapInt32(&c.connFlag, closedConn) != closedConn
-}
-
-// setOpen marks the client as open and returns true if it wasn't already open.
-func (c *Client) setOpen() bool {
-	return atomic.SwapInt32(&c.connFlag, openConn) != openConn
+	return atomic.CompareAndSwapInt32(&c.closedFlag, 0, 1)
 }
 
 // Ping gets basic info about the auth server.
