@@ -23,6 +23,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gravitational/teleport/api/sshutils"
+
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 )
@@ -140,7 +142,7 @@ func getExpectedTLSConfig(t *testing.T) *tls.Config {
 }
 
 func getExpectedSSHConfig(t *testing.T) *ssh.ClientConfig {
-	config, err := SSHClientConfig(sshCert, keyPEM, [][]byte{sshCACert})
+	config, err := sshutils.SSHClientConfig(sshCert, keyPEM, [][]byte{sshCACert})
 	require.NoError(t, err)
 
 	return config

@@ -27,6 +27,7 @@ import (
 	"os"
 
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/api/sshutils"
 
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
@@ -86,7 +87,7 @@ func (i *IdentityFile) TLSConfig() (*tls.Config, error) {
 // SSHClientConfig returns an ssh.ClientConfig with SSH credentials from this
 // Key and HostKeyCallback matching SSH CAs in the Key.
 func (i *IdentityFile) SSHClientConfig() (*ssh.ClientConfig, error) {
-	ssh, err := SSHClientConfig(i.Certs.SSH, i.PrivateKey, i.CACerts.SSH)
+	ssh, err := sshutils.SSHClientConfig(i.Certs.SSH, i.PrivateKey, i.CACerts.SSH)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

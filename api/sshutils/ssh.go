@@ -14,7 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package client
+// Package sshutils defines several functions and types used across the
+// Teleport API and other Teleport packages when working with SSH.
+package sshutils
 
 import (
 	"crypto/subtle"

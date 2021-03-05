@@ -27,8 +27,8 @@ import (
 
 	"github.com/coreos/go-semver/semver"
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/constants"
+	apisshutils "github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -795,7 +795,7 @@ func (s *server) checkClientCert(logger *log.Entry, user string, clusterName str
 	// match key of the certificate authority with the signature key
 	var match bool
 	for _, k := range keys {
-		if client.KeysEqual(k, cert.SignatureKey) {
+		if apisshutils.KeysEqual(k, cert.SignatureKey) {
 			match = true
 			break
 		}

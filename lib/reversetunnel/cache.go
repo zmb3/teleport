@@ -24,7 +24,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/sshca"
@@ -155,7 +155,7 @@ func (c *certificateCache) generateHostCert(principals []string) (ssh.Signer, er
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	cert, err := client.ParseCertificate(certBytes)
+	cert, err := sshutils.ParseCertificate(certBytes)
 	if err != nil {
 		return nil, err
 	}

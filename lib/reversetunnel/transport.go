@@ -24,7 +24,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/services"
@@ -55,7 +55,7 @@ func (t *TunnelAuthDialer) DialContext(ctx context.Context, network string, addr
 
 	// Build a net.Conn over the tunnel. Make this an exclusive connection:
 	// close the net.Conn as well as the channel upon close.
-	conn, _, err := client.ConnectProxyTransport(sconn.Conn, &client.DialReq{
+	conn, _, err := sshutils.ConnectProxyTransport(sconn.Conn, &sshutils.DialReq{
 		Address: RemoteAuthServer,
 	}, true)
 	if err != nil {
@@ -67,13 +67,13 @@ func (t *TunnelAuthDialer) DialContext(ctx context.Context, network string, addr
 
 // parseDialReq parses the dial request. Is backward compatible with legacy
 // payload.
-func parseDialReq(payload []byte) *client.DialReq {
-	var req client.DialReq
+func parseDialReq(payload []byte) *sshutils.DialReq {
+	var req sshutils.DialReq
 	err := json.Unmarshal(payload, &req)
 	if err != nil {
 		// For backward compatibility, if the request is not a *DialReq, it is just
 		// a raw string with the target host as the payload.
-		return &client.DialReq{
+		return &sshutils.DialReq{
 			Address: string(payload),
 		}
 	}
@@ -185,7 +185,7 @@ func (p *transport) start() {
 			}
 
 			p.log.Debug("Handing off connection to a local kubernetes service")
-			p.server.HandleConnection(client.NewChConn(p.sconn, p.channel))
+			p.server.HandleConnection(sshutils.NewChConn(p.sconn, p.channel))
 			return
 		default:
 			// This must be a proxy.
@@ -219,7 +219,7 @@ func (p *transport) start() {
 			}
 
 			p.log.Debug("Handing off connection to a local SSH service")
-			p.server.HandleConnection(client.NewChConn(p.sconn, p.channel))
+			p.server.HandleConnection(sshutils.NewChConn(p.sconn, p.channel))
 			return
 		}
 		// If this is a proxy and not an SSH node, try finding an inbound
@@ -293,7 +293,7 @@ func (p *transport) handleChannelRequests(closeContext context.Context, useTunne
 				return
 			}
 			switch req.Type {
-			case client.ConnectionTypeRequest:
+			case sshutils.ConnectionTypeRequest:
 				p.reply(req, useTunnel, nil)
 			default:
 				p.reply(req, false, nil)
@@ -307,7 +307,7 @@ func (p *transport) handleChannelRequests(closeContext context.Context, useTunne
 // getConn checks if the local site holds a connection to the target host,
 // and if it does, attempts to dial through the tunnel. Otherwise directly
 // dials to host.
-func (p *transport) getConn(servers []string, r *client.DialReq) (net.Conn, bool, error) {
+func (p *transport) getConn(servers []string, r *sshutils.DialReq) (net.Conn, bool, error) {
 	// This function doesn't attempt to dial if a host with one of the
 	// search names is not registered. It's a fast check.
 	p.log.Debugf("Attempting to dial through tunnel with server ID %v.", r.ServerID)
@@ -339,7 +339,7 @@ func (p *transport) getConn(servers []string, r *client.DialReq) (net.Conn, bool
 
 // tunnelDial looks up the search names in the local site for a matching tunnel
 // connection. If a connection exists, it's used to dial through the tunnel.
-func (p *transport) tunnelDial(r *client.DialReq) (net.Conn, error) {
+func (p *transport) tunnelDial(r *sshutils.DialReq) (net.Conn, error) {
 	// Extract the local site from the tunnel server. If no tunnel server
 	// exists, then exit right away this code may be running outside of a
 	// remote site.
