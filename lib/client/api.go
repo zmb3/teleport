@@ -45,8 +45,8 @@ import (
 	"golang.org/x/term"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/types/wrappers"
 	"github.com/gravitational/teleport/lib/auth"
@@ -460,7 +460,7 @@ func readProfile(profileDir string, profileName string) (*ProfileStatus, error) 
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	sshCert, err := client.ParseCertificate(key.Cert)
+	sshCert, err := sshutils.ParseCertificate(key.Cert)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

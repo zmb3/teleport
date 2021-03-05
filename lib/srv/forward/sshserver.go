@@ -27,7 +27,7 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client"
+	apisshutils "github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/bpf"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -566,7 +566,7 @@ func (s *Server) newRemoteClient(systemLogin string) (*ssh.Client, error) {
 	// the correct host. It must occur in the list of principals presented by
 	// the remote server.
 	dstAddr := net.JoinHostPort(s.address, "0")
-	client, err := client.NewClientConnWithDeadline(s.targetConn, dstAddr, clientConfig)
+	client, err := apisshutils.NewClientConnWithDeadline(s.targetConn, dstAddr, clientConfig)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

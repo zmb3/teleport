@@ -33,9 +33,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/client/proto"
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth/mocku2f"
 	"github.com/gravitational/teleport/lib/auth/u2f"
@@ -666,7 +666,7 @@ func TestGenerateUserSingleUseCert(t *testing.T) {
 					crt := c.GetSSH()
 					require.NotEmpty(t, crt)
 
-					cert, err := client.ParseCertificate(crt)
+					cert, err := sshutils.ParseCertificate(crt)
 					require.NoError(t, err)
 
 					require.Equal(t, cert.Extensions[teleport.CertExtensionMFAVerified], u2fDevID)
@@ -769,7 +769,7 @@ func TestGenerateUserSingleUseCert(t *testing.T) {
 					crt := c.GetSSH()
 					require.NotEmpty(t, crt)
 
-					cert, err := client.ParseCertificate(crt)
+					cert, err := sshutils.ParseCertificate(crt)
 					require.NoError(t, err)
 
 					require.Equal(t, cert.Extensions[teleport.CertExtensionMFAVerified], u2fDevID)

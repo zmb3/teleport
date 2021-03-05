@@ -32,6 +32,7 @@ import (
 	"github.com/gravitational/teleport"
 	apiclient "github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/client/proto"
+	"github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/auth/u2f"
@@ -288,7 +289,7 @@ func (c *SessionContext) GetAgent() (agent.Agent, *ssh.Certificate, error) {
 
 // GetSSHCertificate returns the *ssh.Certificate associated with this session.
 func (c *SessionContext) GetSSHCertificate() (*ssh.Certificate, error) {
-	return apiclient.ParseCertificate(c.session.GetPub())
+	return sshutils.ParseCertificate(c.session.GetPub())
 }
 
 // GetX509Certificate returns the *x509.Certificate associated with this session.

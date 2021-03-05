@@ -40,6 +40,7 @@ import (
 	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/client/proto"
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -1502,7 +1503,7 @@ func (s *TLSSuite) TestWebSessionWithApprovedAccessRequest(c *check.C) {
 	sess, err := web.ExtendWebSession(user, ws.GetName(), accessReq.GetMetadata().Name)
 	c.Assert(err, check.IsNil)
 
-	sshcert, err := client.ParseCertificate(sess.GetPub())
+	sshcert, err := sshutils.ParseCertificate(sess.GetPub())
 	c.Assert(err, check.IsNil)
 
 	// Roles extracted from cert should contain the initial role and the role assigned with access request.
@@ -1667,7 +1668,7 @@ func (s *TLSSuite) TestAccessRequest(c *check.C) {
 
 	// certLogins extracts the logins from an ssh certificate
 	certLogins := func(sshCert []byte) []string {
-		cert, err := client.ParseCertificate(sshCert)
+		cert, err := sshutils.ParseCertificate(sshCert)
 		c.Assert(err, check.IsNil)
 		return cert.ValidPrincipals
 	}
@@ -1833,7 +1834,7 @@ func TestGenerateCerts(t *testing.T) {
 		})
 	require.NoError(t, err)
 
-	hostCert, err := client.ParseCertificate(certs.Cert)
+	hostCert, err := sshutils.ParseCertificate(certs.Cert)
 	require.NoError(t, err)
 	require.Contains(t, hostCert.ValidPrincipals, "example.com")
 
@@ -1853,7 +1854,7 @@ func TestGenerateCerts(t *testing.T) {
 		})
 	require.NoError(t, err)
 
-	hostCert, err = client.ParseCertificate(certs.Cert)
+	hostCert, err = sshutils.ParseCertificate(certs.Cert)
 	require.NoError(t, err)
 	require.Contains(t, hostCert.ValidPrincipals, "example.com")
 
@@ -1928,7 +1929,7 @@ func TestGenerateCerts(t *testing.T) {
 	require.NoError(t, err)
 
 	parseCert := func(sshCert []byte) (*ssh.Certificate, time.Duration) {
-		parsedCert, err := client.ParseCertificate(sshCert)
+		parsedCert, err := sshutils.ParseCertificate(sshCert)
 		require.NoError(t, err)
 		validBefore := time.Unix(int64(parsedCert.ValidBefore), 0)
 		return parsedCert, time.Until(validBefore)
@@ -2175,7 +2176,7 @@ func (s *TLSSuite) TestCertificateFormat(c *check.C) {
 		})
 		c.Assert(err, check.IsNil)
 
-		parsedCert, err := client.ParseCertificate(re.Cert)
+		parsedCert, err := sshutils.ParseCertificate(re.Cert)
 		c.Assert(err, check.IsNil)
 
 		_, ok := parsedCert.Extensions[teleport.CertExtensionTeleportRoles]

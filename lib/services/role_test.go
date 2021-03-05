@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/types/wrappers"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -1989,7 +1989,7 @@ func TestExtractFrom(t *testing.T) {
 	})
 
 	// Create a SSH certificate.
-	cert, err := client.ParseCertificate([]byte(fixtures.UserCertificateStandard))
+	cert, err := sshutils.ParseCertificate([]byte(fixtures.UserCertificateStandard))
 	require.NoError(t, err)
 
 	// Create a TLS identity.
@@ -2049,7 +2049,7 @@ func TestExtractFromLegacy(t *testing.T) {
 	})
 
 	// Create a SSH certificate in the legacy format.
-	cert, err := client.ParseCertificate([]byte(fixtures.UserCertificateLegacy))
+	cert, err := sshutils.ParseCertificate([]byte(fixtures.UserCertificateLegacy))
 	require.NoError(t, err)
 
 	// Create a TLS identity with only roles.

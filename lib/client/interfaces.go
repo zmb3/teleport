@@ -23,6 +23,7 @@ import (
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/auth/native"
 	"github.com/gravitational/teleport/lib/services"
@@ -206,7 +207,7 @@ func (k *Key) clientTLSConfig(cipherSuites []uint16, tlsCertRaw []byte) (*tls.Co
 // ClientSSHConfig returns an ssh.ClientConfig with SSH credentials from this
 // Key and HostKeyCallback matching SSH CAs in the Key.
 func (k *Key) ClientSSHConfig() (*ssh.ClientConfig, error) {
-	return client.SSHClientConfig(k.Cert, k.Priv, k.SSHCAs())
+	return sshutils.SSHClientConfig(k.Cert, k.Priv, k.SSHCAs())
 }
 
 // CertUsername returns the name of the Teleport user encoded in the SSH certificate.
@@ -252,7 +253,7 @@ func (k *Key) AsAgentKeys() ([]agent.AddedKey, error) {
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return client.AsAgentKeys(cert, k.Priv)
+	return sshutils.AsAgentKeys(cert, k.Priv)
 }
 
 // TeleportTLSCertificate returns the parsed x509 certificate for
@@ -309,12 +310,12 @@ func (k *Key) AsAuthMethod() (ssh.AuthMethod, error) {
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return client.AsAuthMethod(cert, k.Priv)
+	return sshutils.AsAuthMethod(cert, k.Priv)
 }
 
 // SSHCert returns parsed SSH certificate
 func (k *Key) SSHCert() (*ssh.Certificate, error) {
-	return client.ParseCertificate(k.Cert)
+	return sshutils.ParseCertificate(k.Cert)
 }
 
 // CheckCert makes sure the SSH certificate is valid.
@@ -344,7 +345,7 @@ func (k *Key) CheckCert() error {
 // This causes golang.org/x/crypto/ssh to prompt the user to verify host key
 // fingerprint (same as OpenSSH does for an unknown host).
 func (k *Key) HostKeyCallback() (ssh.HostKeyCallback, error) {
-	return client.HostKeyCallback(k.SSHCAs())
+	return sshutils.HostKeyCallback(k.SSHCAs())
 }
 
 // ProxyClientSSHConfig returns an ssh.ClientConfig with SSH credentials from this

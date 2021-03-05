@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/lib/auth/test"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/services"
@@ -181,7 +181,7 @@ func (s *NativeSuite) TestBuildPrincipals(c *check.C) {
 			})
 		c.Assert(err, check.IsNil)
 
-		hostCertificate, err := client.ParseCertificate(hostCertificateBytes)
+		hostCertificate, err := sshutils.ParseCertificate(hostCertificateBytes)
 		c.Assert(err, check.IsNil)
 
 		c.Assert(hostCertificate.ValidPrincipals, check.DeepEquals, tt.outValidPrincipals)
@@ -228,7 +228,7 @@ func (s *NativeSuite) TestUserCertCompatibility(c *check.C) {
 		})
 		c.Assert(err, check.IsNil, comment)
 
-		userCertificate, err := client.ParseCertificate(userCertificateBytes)
+		userCertificate, err := sshutils.ParseCertificate(userCertificateBytes)
 		c.Assert(err, check.IsNil, comment)
 		// Check that the signature algorithm is correct.
 		c.Assert(userCertificate.Signature.Format, check.Equals, defaults.CASignatureAlgorithm)

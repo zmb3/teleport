@@ -20,7 +20,7 @@ import (
 	"crypto"
 	"io"
 
-	"github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/sshutils"
 
 	"golang.org/x/crypto/ssh"
 
@@ -81,7 +81,7 @@ func NewSigner(keyBytes, certBytes []byte) (ssh.Signer, error) {
 		return nil, trace.Wrap(err, "failed to parse SSH private key")
 	}
 
-	cert, err := client.ParseCertificate(certBytes)
+	cert, err := sshutils.ParseCertificate(certBytes)
 	if err != nil {
 		return nil, trace.Wrap(err, "failed to parse SSH certificate")
 	}
