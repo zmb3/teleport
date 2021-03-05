@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/sshutils"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/sshca"
@@ -76,7 +76,7 @@ func (s *AuthSuite) GenerateHostCert(c *check.C) {
 		})
 	c.Assert(err, check.IsNil)
 
-	certificate, err := client.ParseCertificate(cert)
+	certificate, err := sshutils.ParseCertificate(cert)
 	c.Assert(err, check.IsNil)
 
 	// Check the valid time is not more than 1 minute before the current time.
@@ -105,7 +105,7 @@ func (s *AuthSuite) GenerateUserCert(c *check.C) {
 	})
 	c.Assert(err, check.IsNil)
 
-	certificate, err := client.ParseCertificate(cert)
+	certificate, err := sshutils.ParseCertificate(cert)
 	c.Assert(err, check.IsNil)
 
 	// Check the valid time is not more than 1 minute before the current time.
@@ -172,7 +172,7 @@ func (s *AuthSuite) GenerateUserCert(c *check.C) {
 		Roles:                 inRoles,
 	})
 	c.Assert(err, check.IsNil)
-	parsedCert, err := client.ParseCertificate(cert)
+	parsedCert, err := sshutils.ParseCertificate(cert)
 	c.Assert(err, check.IsNil)
 	outRoles, err := services.UnmarshalCertRoles(parsedCert.Extensions[teleport.CertExtensionTeleportRoles])
 	c.Assert(err, check.IsNil)
