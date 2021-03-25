@@ -17,13 +17,13 @@ func testCheckoutCommands(enterprise bool) []string {
 		`git init && git remote add origin ${DRONE_REMOTE_URL}`,
 		`# handle pull requests
 if [ "${DRONE_BUILD_EVENT}" = "pull_request" ]; then
-  git fetch origin +refs/heads/${DRONE_COMMIT_BRANCH}:
+  git fetch origin --depth=1 +refs/heads/${DRONE_COMMIT_BRANCH}:
   git checkout ${DRONE_COMMIT_BRANCH}
-  git fetch origin ${DRONE_COMMIT_REF}:
+  git fetch origin --depth=1 ${DRONE_COMMIT_REF}:
   git merge ${DRONE_COMMIT}
 # handle tags
 elif [ "${DRONE_BUILD_EVENT}" = "tag" ]; then
-  git fetch origin +refs/tags/${DRONE_TAG}:
+  git fetch origin --depth=1 +refs/tags/${DRONE_TAG}:
   git checkout -qf FETCH_HEAD
 # handle pushes/other events
 else
@@ -31,7 +31,7 @@ else
     git fetch origin
     git checkout -qf ${DRONE_COMMIT_SHA}
   else
-    git fetch origin +refs/heads/${DRONE_COMMIT_BRANCH}:
+    git fetch origin --depth=1 +refs/heads/${DRONE_COMMIT_BRANCH}:
     git checkout ${DRONE_COMMIT} -b ${DRONE_COMMIT_BRANCH}
   fi
 fi
