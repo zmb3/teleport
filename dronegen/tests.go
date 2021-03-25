@@ -22,7 +22,7 @@ if [ "${DRONE_BUILD_EVENT}" = "pull_request" ]; then
   git fetch origin --shallow-since=$${PR_DATE} +refs/heads/${DRONE_COMMIT_BRANCH}:
   git checkout ${DRONE_COMMIT_BRANCH}
   git fetch origin --shallow-since=$${PR_DATE} ${DRONE_COMMIT_REF}:
-  git merge ${DRONE_COMMIT}
+  git merge ${DRONE_COMMIT} --allow-unrelated-histories
 # handle tags
 elif [ "${DRONE_BUILD_EVENT}" = "tag" ]; then
   git fetch origin +refs/tags/${DRONE_TAG}:
