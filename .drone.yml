@@ -37,8 +37,8 @@ steps:
       PR_DATE=$(curl -Ls https://api.github.com/repos/gravitational/${DRONE_REPO_NAME}/pulls/${DRONE_PULL_REQUEST} | jq -r '.created_at')
       git fetch origin --shallow-since=$${PR_DATE} +refs/heads/${DRONE_COMMIT_BRANCH}:
       git checkout ${DRONE_COMMIT_BRANCH}
-      git fetch origin --shallow-since=$${PR_DATE} ${DRONE_COMMIT_REF}:
-      git merge ${DRONE_COMMIT} --allow-unrelated-histories
+      git fetch origin ${DRONE_COMMIT_REF}:
+      git merge ${DRONE_COMMIT}
     # handle tags
     elif [ "${DRONE_BUILD_EVENT}" = "tag" ]; then
       git fetch origin +refs/tags/${DRONE_TAG}:
@@ -238,8 +238,8 @@ steps:
       PR_DATE=$(curl -Ls https://api.github.com/repos/gravitational/${DRONE_REPO_NAME}/pulls/${DRONE_PULL_REQUEST} | jq -r '.created_at')
       git fetch origin --shallow-since=$${PR_DATE} +refs/heads/${DRONE_COMMIT_BRANCH}:
       git checkout ${DRONE_COMMIT_BRANCH}
-      git fetch origin --shallow-since=$${PR_DATE} ${DRONE_COMMIT_REF}:
-      git merge ${DRONE_COMMIT} --allow-unrelated-histories
+      git fetch origin ${DRONE_COMMIT_REF}:
+      git merge ${DRONE_COMMIT}
     # handle tags
     elif [ "${DRONE_BUILD_EVENT}" = "tag" ]; then
       git fetch origin +refs/tags/${DRONE_TAG}:
@@ -4755,6 +4755,6 @@ volumes:
       name: drone-s3-debrepo-pvc
 ---
 kind: signature
-hmac: 11604f7404d32f93b63c7e7dfc91d54b7cb87a035d9c9b5ea976cfe8d9bcd94c
+hmac: 6ad8a769914ef3d58d4b99979806dd9cb6d0a25e9b7233e0f51c80675ed95157
 
 ...
