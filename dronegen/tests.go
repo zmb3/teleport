@@ -21,8 +21,8 @@ if [ "${DRONE_BUILD_EVENT}" = "pull_request" ]; then
   PR_DATE=$(curl -Ls https://api.github.com/repos/gravitational/${DRONE_REPO_NAME}/pulls/${DRONE_PULL_REQUEST} | jq -r '.created_at')
   git fetch origin --shallow-since=$${PR_DATE} +refs/heads/${DRONE_COMMIT_BRANCH}:
   git checkout ${DRONE_COMMIT_BRANCH}
-  git fetch origin --shallow-since=$${PR_DATE} ${DRONE_COMMIT_REF}:
-  git merge ${DRONE_COMMIT} --allow-unrelated-histories
+  git fetch origin ${DRONE_COMMIT_REF}:
+  git merge ${DRONE_COMMIT}
 # handle tags
 elif [ "${DRONE_BUILD_EVENT}" = "tag" ]; then
   git fetch origin +refs/tags/${DRONE_TAG}:
