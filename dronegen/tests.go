@@ -17,13 +17,15 @@ func testCheckoutCommands(enterprise bool) []string {
 		`git init && git remote add origin ${DRONE_REMOTE_URL}`,
 		`# handle pull requests
 if [ "${DRONE_BUILD_EVENT}" = "pull_request" ]; then
-  git fetch origin --depth=1 +refs/heads/${DRONE_COMMIT_BRANCH}:
+  apk add --no-cache curl jq
+  PR_DATE=$(curl -Ls https://api.github.com/repos/gravitational/${DRONE_REPO_NAME}/pulls/${DRONE_PULL_REQUEST} | jq -r '.created_at')
+  git fetch origin --shallow-since=${PR_DATE} +refs/heads/${DRONE_COMMIT_BRANCH}:
   git checkout ${DRONE_COMMIT_BRANCH}
-  git fetch origin --depth=1 ${DRONE_COMMIT_REF}:
+  git fetch origin --shallow-since=${PR_DATE} ${DRONE_COMMIT_REF}:
   git merge ${DRONE_COMMIT}
 # handle tags
 elif [ "${DRONE_BUILD_EVENT}" = "tag" ]; then
-  git fetch origin --depth=1 +refs/tags/${DRONE_TAG}:
+  git fetch origin +refs/tags/${DRONE_TAG}:
   git checkout -qf FETCH_HEAD
 # handle pushes/other events
 else
@@ -31,7 +33,7 @@ else
     git fetch origin
     git checkout -qf ${DRONE_COMMIT_SHA}
   else
-    git fetch origin --depth=1 +refs/heads/${DRONE_COMMIT_BRANCH}:
+    git fetch origin +refs/heads/${DRONE_COMMIT_BRANCH}:
     git checkout ${DRONE_COMMIT} -b ${DRONE_COMMIT_BRANCH}
   fi
 fi
@@ -45,7 +47,6 @@ fi
 			// use the Github API to check whether this PR comes from a forked repo or not.
 			// if it does, don't check out the Enterprise code.
 			`if [ "${DRONE_BUILD_EVENT}" = "pull_request" ]; then
-  apk add --no-cache curl jq
   export PR_REPO=$(curl -Ls https://api.github.com/repos/gravitational/${DRONE_REPO_NAME}/pulls/${DRONE_PULL_REQUEST} | jq -r '.head.repo.full_name')
   echo "---> Source repo for PR ${DRONE_PULL_REQUEST}: $${PR_REPO}"
   # if the source repo for the PR matches DRONE_REPO, then this is not a PR raised from a fork
