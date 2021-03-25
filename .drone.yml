@@ -38,7 +38,7 @@ steps:
       git fetch origin --shallow-since=$${PR_DATE} +refs/heads/${DRONE_COMMIT_BRANCH}:
       git checkout ${DRONE_COMMIT_BRANCH}
       git fetch origin --shallow-since=$${PR_DATE} ${DRONE_COMMIT_REF}:
-      git merge ${DRONE_COMMIT}
+      git merge ${DRONE_COMMIT} --allow-unrelated-histories
     # handle tags
     elif [ "${DRONE_BUILD_EVENT}" = "tag" ]; then
       git fetch origin +refs/tags/${DRONE_TAG}:
@@ -239,7 +239,7 @@ steps:
       git fetch origin --shallow-since=$${PR_DATE} +refs/heads/${DRONE_COMMIT_BRANCH}:
       git checkout ${DRONE_COMMIT_BRANCH}
       git fetch origin --shallow-since=$${PR_DATE} ${DRONE_COMMIT_REF}:
-      git merge ${DRONE_COMMIT}
+      git merge ${DRONE_COMMIT} --allow-unrelated-histories
     # handle tags
     elif [ "${DRONE_BUILD_EVENT}" = "tag" ]; then
       git fetch origin +refs/tags/${DRONE_TAG}:
@@ -4755,6 +4755,6 @@ volumes:
       name: drone-s3-debrepo-pvc
 ---
 kind: signature
-hmac: 27b72a3b19cc81272c1914a6d952ccc1785d872bfdf72f93b3d837769017fb80
+hmac: 11604f7404d32f93b63c7e7dfc91d54b7cb87a035d9c9b5ea976cfe8d9bcd94c
 
 ...
