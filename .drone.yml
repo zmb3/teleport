@@ -33,13 +33,13 @@ steps:
   - |
     # handle pull requests
     if [ "${DRONE_BUILD_EVENT}" = "pull_request" ]; then
-      git fetch origin +refs/heads/${DRONE_COMMIT_BRANCH}:
+      git fetch origin --depth=1 +refs/heads/${DRONE_COMMIT_BRANCH}:
       git checkout ${DRONE_COMMIT_BRANCH}
-      git fetch origin ${DRONE_COMMIT_REF}:
+      git fetch origin --depth=1 ${DRONE_COMMIT_REF}:
       git merge ${DRONE_COMMIT}
     # handle tags
     elif [ "${DRONE_BUILD_EVENT}" = "tag" ]; then
-      git fetch origin +refs/tags/${DRONE_TAG}:
+      git fetch origin --depth=1 +refs/tags/${DRONE_TAG}:
       git checkout -qf FETCH_HEAD
     # handle pushes/other events
     else
@@ -47,7 +47,7 @@ steps:
         git fetch origin
         git checkout -qf ${DRONE_COMMIT_SHA}
       else
-        git fetch origin +refs/heads/${DRONE_COMMIT_BRANCH}:
+        git fetch origin --depth=1 +refs/heads/${DRONE_COMMIT_BRANCH}:
         git checkout ${DRONE_COMMIT} -b ${DRONE_COMMIT_BRANCH}
       fi
     fi
@@ -233,13 +233,13 @@ steps:
   - |
     # handle pull requests
     if [ "${DRONE_BUILD_EVENT}" = "pull_request" ]; then
-      git fetch origin +refs/heads/${DRONE_COMMIT_BRANCH}:
+      git fetch origin --depth=1 +refs/heads/${DRONE_COMMIT_BRANCH}:
       git checkout ${DRONE_COMMIT_BRANCH}
-      git fetch origin ${DRONE_COMMIT_REF}:
+      git fetch origin --depth=1 ${DRONE_COMMIT_REF}:
       git merge ${DRONE_COMMIT}
     # handle tags
     elif [ "${DRONE_BUILD_EVENT}" = "tag" ]; then
-      git fetch origin +refs/tags/${DRONE_TAG}:
+      git fetch origin --depth=1 +refs/tags/${DRONE_TAG}:
       git checkout -qf FETCH_HEAD
     # handle pushes/other events
     else
@@ -247,7 +247,7 @@ steps:
         git fetch origin
         git checkout -qf ${DRONE_COMMIT_SHA}
       else
-        git fetch origin +refs/heads/${DRONE_COMMIT_BRANCH}:
+        git fetch origin --depth=1 +refs/heads/${DRONE_COMMIT_BRANCH}:
         git checkout ${DRONE_COMMIT} -b ${DRONE_COMMIT_BRANCH}
       fi
     fi
@@ -4752,6 +4752,6 @@ volumes:
       name: drone-s3-debrepo-pvc
 ---
 kind: signature
-hmac: 273dd935191f15a3702b79a2ee55d5557e51b27a2ae3fe567c94d251f6925a66
+hmac: f50fffb6328b76b416f78f25a0f26fadf21b8949d9a7baef242ea14c7ea406e7
 
 ...
