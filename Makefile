@@ -45,7 +45,14 @@ endif
 ifeq ("$(ARCH)","arm64")
 CGOFLAG = CGO_ENABLED=1 CC=aarch64-linux-gnu-gcc
 endif
+ifeq ("$(ARCH)","mips")
+CGOFLAG = CGO_ENABLED=1 CC=mips-linux-gnu-gcc
 endif
+ifeq ("$(ARCH)","mips64")
+CGOFLAG = CGO_ENABLED=1 CC=mips64-linux-gnuabi64-gcc
+endif
+endif
+
 
 OS ?= $(shell $(GO_BINARY) env GOOS)
 ARCH ?= $(shell $(GO_BINARY) env GOARCH)
@@ -77,9 +84,16 @@ endif
 # BPF support will only be built into Teleport if headers exist at build time.
 BPF_MESSAGE := "without BPF support"
 
-# BPF cannot currently be compiled on ARMv7 due to this bug: https://github.com/iovisor/gobpf/issues/272
+# BPF cannot currently be compiled on 32-bit architectures (armv7, mips) due to this bug: https://github.com/iovisor/gobpf/issues/272
 # ARM64 builds are not affected.
-ifneq ("$(ARCH)","arm")
+32BIT := false
+ifeq ("$(ARCH)","arm")
+32BIT := true
+endif
+ifeq ("$(ARCH)","mips")
+32BIT := true
+endif
+ifneq ("$(32BIT)","true")
 ifneq ("$(wildcard /usr/include/bcc/libbpf.h)","")
 BPF_TAG := bpf
 BPF_MESSAGE := "with BPF support"

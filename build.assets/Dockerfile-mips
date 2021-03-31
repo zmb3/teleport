@@ -1,0 +1,6 @@
+ARG RUNTIME
+FROM quay.io/gravitational/teleport-buildbox:$RUNTIME
+
+RUN apt-get -y update && \
+    apt-get -y install gcc-mips-linux-gnu gcc-mips64-linux-gnuabi64 && \
+    apt-get -y autoclean && apt-get -y clean

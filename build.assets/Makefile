@@ -29,6 +29,7 @@ BUILDBOX_CENTOS6=quay.io/gravitational/teleport-buildbox-centos6:$(RUNTIME)
 BUILDBOX_CENTOS6_FIPS=quay.io/gravitational/teleport-buildbox-centos6-fips:$(RUNTIME)
 BUILDBOX_ARM=quay.io/gravitational/teleport-buildbox-arm:$(RUNTIME)
 BUILDBOX_ARM_FIPS=quay.io/gravitational/teleport-buildbox-arm-fips:$(RUNTIME)
+BUILDBOX_MIPS=quay.io/gravitational/teleport-buildbox-mips:$(RUNTIME)
 
 # These variables are used to dynamically change the name of the buildbox Docker image used by the 'release'
 # target. The other solution was to remove the 'buildbox' dependency from the 'release' target, but this would
@@ -176,6 +177,21 @@ buildbox-arm-fips: buildbox-fips
 		--cache-from $(BUILDBOX_ARM_FIPS) \
 		--tag $(BUILDBOX_ARM_FIPS) -f Dockerfile-arm-fips .
 
+#
+# Builds a Docker buildbox for mips64 builds
+# MIPS buildboxes use a regular Teleport buildbox as a base which already has a user
+# with the correct UID and GID created, so those arguments are not needed here.
+#
+.PHONY:buildbox-mips
+buildbox-mips: buildbox
+	@if [[ $${DRONE} == "true" ]] && ! docker inspect --type=image $(BUILDBOX_MIPS) 2>&1 >/dev/null; then docker pull $(BUILDBOX_MIPS) || true; fi;
+	docker build \
+		--build-arg RUNTIME=$(RUNTIME) \
+		--cache-from $(BUILDBOX) \
+		--cache-from $(BUILDBOX_MIPS) \
+		--tag $(BUILDBOX_MIPS) -f Dockerfile-mips .
+
+
 # grpc generates GRPC stubs from service definitions
 .PHONY: grpc
 grpc: buildbox
@@ -265,6 +281,14 @@ release-arm: buildbox-arm
 .PHONY: release-arm64
 release-arm64: buildbox-arm
 	$(MAKE) release ARCH=arm64 BUILDBOX_NAME=$(BUILDBOX_ARM)
+
+.PHONY: release-mips
+release-mips: buildbox-mips
+	$(MAKE) release ARCH=mips BUILDBOX_NAME=$(BUILDBOX_MIPS)
+
+.PHONY: release-mips64
+release-mips64: buildbox-mips
+	$(MAKE) release ARCH=mips64 BUILDBOX_NAME=$(BUILDBOX_MIPS)
 
 .PHONY: release-amd64-centos6
 release-amd64-centos6: buildbox-centos6
