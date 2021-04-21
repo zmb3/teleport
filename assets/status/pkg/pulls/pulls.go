@@ -2,16 +2,14 @@ package pulls
 
 import (
 	"context"
+	"time"
+
+	"github.com/gravitational/teleport/assets/statusctl/pkg/constants"
 
 	"github.com/google/go-github/v35/github"
 	"github.com/gravitational/trace"
 	"golang.org/x/oauth2"
 )
-
-type PullRequest struct {
-	PR      *github.PullRequest
-	Reviews []*github.PullRequestReview
-}
 
 type Config struct {
 	AccessToken string
@@ -26,32 +24,54 @@ func (c *Config) CheckAndSetDefaults() error {
 	return nil
 }
 
-func newClient(ctx context.Context, accessToken string) *github.Client {
-	// If no accessToken was passed in, use a (rate limited) unauthenticated.
-	if accessToken == "" {
-		return github.NewClient(nil)
+func Print(ctx context.Context, c *Config) error {
+	prs, err := fetch(ctx, c)
+	if err != nil {
+		return trace.Wrap(err)
 	}
 
-	tc := oauth2.NewClient(ctx, oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: accessToken},
-	))
-	return github.NewClient(tc)
+	if err := display(ctx, prs); err != nil {
+		return trace.Wrap(err)
+	}
+
+	return nil
 }
 
-func Fetch(ctx context.Context, c *Config) ([]PullRequest, error) {
+type pullRequest struct {
+	//PR      *github.PullRequest
+	//Reviews []*github.PullRequestReview
+
+	// group is how we categorize PRs. A few examples, "code", "rfd", "docs",
+	// "draft", "backport".
+	group string
+
+	// openFor is how long the PR has been open.
+	openFor time.Duration
+
+	// number is the GitHub PR number, like #1234.
+	number int
+
+	// author is the GitHub handle of the PR author.
+	author string
+
+	// title is the title of the PR.
+	title string
+
+	// approvers is a slice of GitHub handles that have approved the PR. Only
+	// available in verbose mode.
+	approvers []string
+}
+
+func fetch(ctx context.Context, c *Config) ([]pullRequest, error) {
 	if err := c.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}
+	client := newClient(ctx, c.AccessToken)
 
-	client, err := newClient(ctx, c.AccessToken)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
+	var prs []pullRequest
 
-	var pulls []PullRequest
-
-	// Request PRs.
-	lopts := &github.PullRequestListOptions{
+	// ?
+	popts := &github.PullRequestListOptions{
 		State: constants.Open,
 		ListOptions: github.ListOptions{
 			PerPage: constants.PageSize,
@@ -61,16 +81,16 @@ func Fetch(ctx context.Context, c *Config) ([]PullRequest, error) {
 	// Paginate and get all PRs.
 	for {
 		page, resp, err := client.PullRequests.List(ctx,
-			constants.Organization, constants.Repository, ropts)
+			constants.Organization, constants.Repository, popts)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 
 		for _, pr := range page {
-			lopts := &github.ListOptions{
+			ropts := &github.ListOptions{
 				PerPage: 20,
 			}
-			reviews, _, err := client.PullRequests.ListReviews(context.Background(), "gravitational", "teleport", pr.GetNumber(), lopts)
+			reviews, _, err := client.PullRequests.ListReviews(context.Background(), "gravitational", "teleport", pr.GetNumber(), ropts)
 			if err != nil {
 				return nil, err
 			}
@@ -88,6 +108,10 @@ func Fetch(ctx context.Context, c *Config) ([]PullRequest, error) {
 	}
 
 	return pulls, nil
+}
+
+func display(ctx context.Context, pr []pullRequest) error {
+	return nil
 }
 
 //func fetchm() ([]*pullRequest, error) {
@@ -353,3 +377,15 @@ func Fetch(ctx context.Context, c *Config) ([]PullRequest, error) {
 //
 //	//printTeam("", prs)
 //}
+
+func newClient(ctx context.Context, accessToken string) *github.Client {
+	// If no accessToken was passed in, use a (rate limited) unauthenticated.
+	if accessToken == "" {
+		return github.NewClient(nil)
+	}
+
+	tc := oauth2.NewClient(ctx, oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: accessToken},
+	))
+	return github.NewClient(tc)
+}

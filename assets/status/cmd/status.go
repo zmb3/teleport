@@ -7,6 +7,7 @@ import (
 
 	"github.com/gravitational/teleport/assets/statusctl/pkg/config"
 	"github.com/gravitational/teleport/assets/statusctl/pkg/pulls"
+	"github.com/gravitational/trace"
 )
 
 //"context"
@@ -310,17 +311,35 @@ import (
 //	return false
 //}
 
+func usage() {
+	fmt.Printf("usage: %v.\n", os.Args[0])
+}
+
 func main() {
+	// Parse command line arguments and flags.
+	if len(os.Args) == 1 {
+		usage()
+		os.Exit(1)
+	}
+
+	// Read in GitHub access token. An access token is not required, but GitHub
+	// rate limits requests fairly heavily if one is not provided.
 	accessToken, err := config.ReadToken()
 	if err != nil {
 		fmt.Printf("No GitHub OAuth2 token found, requests will be rate limited.\n")
 	}
 
-	prs, err := pulls.Fetch(context.Background(), &pulls.Config{
-		AccessToken: accessToken,
-	})
+	var err error
+	switch os.Args[1] {
+	case constants.PR:
+		err = pulls.Print(context.Background(), &pulls.Config{
+			AccessToken: accessToken,
+		})
+	case constants.Milestone:
+		err = trace.BadParameter("")
+	}
 	if err != nil {
-		fmt.Printf("Failed to fetch Pull Requests: %v.\n", err)
+		fmt.Printf("Command failed: %v.\n", err)
 		os.Exit(1)
 	}
 

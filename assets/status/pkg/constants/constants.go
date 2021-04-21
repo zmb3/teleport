@@ -1,4 +1,4 @@
-package main
+package constants
 
 const (
 	Open = "open"
@@ -7,4 +7,7 @@ const (
 
 	Organization = "gravitational"
 	Repository   = "teleport"
+
+	PR        = "pr"
+	Milestone = "milestone"
 )
