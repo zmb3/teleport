@@ -1,36 +1,27 @@
-package pulls
+package commands
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"strings"
+	"text/tabwriter"
 	"time"
 
 	"github.com/gravitational/teleport/assets/statusctl/pkg/constants"
 
-	"github.com/google/go-github/v35/github"
 	"github.com/gravitational/trace"
-	"golang.org/x/oauth2"
+
+	"github.com/google/go-github/v35/github"
 )
 
-type Config struct {
-	AccessToken string
-	Verbose     bool
-}
-
-func (c *Config) CheckAndSetDefaults() error {
-	if c.Verbose && c.AccessToken == "" {
-		return trace.BadParameter("verbose unavailable without an access token")
-	}
-
-	return nil
-}
-
-func Print(ctx context.Context, c *Config) error {
-	prs, err := fetch(ctx, c)
+func (c *Client) Pulls(ctx context.Context) error {
+	prs, err := c.fetchPulls(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
-	if err := display(ctx, prs); err != nil {
+	if err := c.displayPulls(ctx, prs); err != nil {
 		return trace.Wrap(err)
 	}
 
@@ -62,12 +53,7 @@ type pullRequest struct {
 	approvers []string
 }
 
-func fetch(ctx context.Context, c *Config) ([]pullRequest, error) {
-	if err := c.CheckAndSetDefaults(); err != nil {
-		return nil, trace.Wrap(err)
-	}
-	client := newClient(ctx, c.AccessToken)
-
+func (c *Client) fetchPulls(ctx context.Context) ([]pullRequest, error) {
 	var prs []pullRequest
 
 	// ?
@@ -80,86 +66,56 @@ func fetch(ctx context.Context, c *Config) ([]pullRequest, error) {
 
 	// Paginate and get all PRs.
 	for {
-		page, resp, err := client.PullRequests.List(ctx,
+		page, resp, err := c.client.PullRequests.List(ctx,
 			constants.Organization, constants.Repository, popts)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 
 		for _, pr := range page {
-			ropts := &github.ListOptions{
-				PerPage: 20,
-			}
-			reviews, _, err := client.PullRequests.ListReviews(context.Background(), "gravitational", "teleport", pr.GetNumber(), ropts)
-			if err != nil {
-				return nil, err
-			}
+			//ropts := &github.ListOptions{
+			//	PerPage: 20,
+			//}
+			//reviews, _, err := client.PullRequests.ListReviews(context.Background(), "gravitational", "teleport", pr.GetNumber(), ropts)
+			//if err != nil {
+			//	return nil, err
+			//}
 
-			pulls = append(pulls, &pullRequest{
-				pr:      pr,
-				reviews: reviews,
+			prs = append(prs, pullRequest{
+				//pr:      pr,
+				//reviews: reviews,
+
+				//group string
+				//openFor time.Duration
+				//number int
+				author: pr.GetTitle(),
+				title:  pr.GetTitle(),
+				//approvers []string
 			})
 		}
 
+		// If the last page has been fetched, exit the loop, otherwise continue to
+		// fetch the next page of results.
 		if resp.NextPage == 0 {
 			break
 		}
-		ropts.Page = resp.NextPage
+		popts.Page = resp.NextPage
 	}
 
-	return pulls, nil
+	return prs, nil
 }
 
-func display(ctx context.Context, pr []pullRequest) error {
+func (c *Client) displayPulls(ctx context.Context, prs []pullRequest) error {
+	template := strings.Repeat("%v\t", 6) + "\n"
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.AlignRight|tabwriter.Debug)
+	for _, pr := range prs {
+		fmt.Fprintf(w, template, pr.title, "", "", "", "", "")
+	}
+	w.Flush()
+
 	return nil
 }
-
-//func fetchm() ([]*pullRequest, error) {
-//	var pulls []*pullRequest
-//
-//	tc := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(
-//		&oauth2.Token{AccessToken: ""},
-//	))
-//	client := github.NewClient(tc)
-//
-//	iopts := &github.IssueListByRepoOptions{
-//		Milestone: "55",
-//		State:     "open",
-//	}
-//	milestone, resp, err := client.Issues.ListByRepo(context.Background(), "gravitational", "teleport", iopts)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	for {
-//		page, resp, err := client.Issues.GetMilestone(context.Background(), "gravitational", "teleport", 55)
-//		if err != nil {
-//			return nil, err
-//		}
-//
-//		for _, pr := range page {
-//			lopts := &github.ListOptions{
-//				PerPage: 20,
-//			}
-//			reviews, _, err := client.PullRequests.ListReviews(context.Background(), "gravitational", "teleport", pr.GetNumber(), lopts)
-//			if err != nil {
-//				return nil, err
-//			}
-//
-//			pulls = append(pulls, &pullRequest{
-//				pr:      pr,
-//				reviews: reviews,
-//			})
-//		}
-//
-//		if resp.NextPage == 0 {
-//			break
-//		}
-//		ropts.Page = resp.NextPage
-//	}
-//
-//	return pulls, nil
-//}
 
 //func exclude(pr *github.PullRequest) bool {
 //	if pr.GetState() == "draft" {
@@ -352,40 +308,8 @@ func display(ctx context.Context, pr []pullRequest) error {
 //	return false
 //}
 
-//func main() {
-//	token, err := config.ReadToken()
-//	if err != nil {
-//		log.Fatalf("Failed to read in GitHub OAuth2 token: %v.", err)
-//	}
-//
-//	//pulls, err := fetch()
-//	//if err != nil {
-//	//	log.Fatalf("Failed to fetch: %v.", err)
-//	//}
-//
-//	////if len(os.Args) > 1 && os.Args[1] == "summary" {
-//	////	summary(pulls)
-//	////} else {
-//	////	milestone()
-//	////}
-//
-//	//printTeam("security", prs)
-//	//printTeam("scale", prs)
-//	//printTeam("sshkube", prs)
-//	//printTeam("appdb", prs)
-//	//printTeam("release", prs)
-//
-//	//printTeam("", prs)
-//}
-
-func newClient(ctx context.Context, accessToken string) *github.Client {
-	// If no accessToken was passed in, use a (rate limited) unauthenticated.
-	if accessToken == "" {
-		return github.NewClient(nil)
-	}
-
-	tc := oauth2.NewClient(ctx, oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: accessToken},
-	))
-	return github.NewClient(tc)
-}
+//printTeam("security", prs)
+//printTeam("scale", prs)
+//printTeam("sshkube", prs)
+//printTeam("appdb", prs)
+//printTeam("release", prs)

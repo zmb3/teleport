@@ -1,6 +1,6 @@
-.PHONY: run
-run: build
-	./build/status
+.PHONY: run-pr
+run-pr: build
+	./build/status pr
 
 .PHONY: build
 build:
