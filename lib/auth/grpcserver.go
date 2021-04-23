@@ -21,6 +21,7 @@ import (
 	"crypto/tls"
 	"io"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/gravitational/teleport"
@@ -149,6 +150,71 @@ func (g *GRPCServer) CreateAuditStream(stream proto.AuthService_CreateAuditStrea
 		}
 		if err != nil {
 			g.WithError(err).Debugf("Failed to receive stream request.")
+			sessionData := g.APIConfig.MetadataGetter.GetUploadMetadata(sessionID)
+			meta := auth.User.GetMetadata()
+			session, err := auth.GetSession(meta.Namespace, sessionData.SessionID)
+			if err != nil {
+				return trail.ToGRPC(err)
+			}
+			sessionDataEvent := &events.SessionData{
+				Metadata: events.Metadata{
+					Index: events.SessionDataIndex,
+					Type:  events.SessionDataEvent,
+					Code:  events.SessionDataCode,
+				},
+				ServerMetadata: events.ServerMetadata{
+					ServerID:        meta.Name,
+					ServerNamespace: meta.Namespace,
+				},
+				SessionMetadata: events.SessionMetadata{
+					SessionID: string(session.ID),
+				},
+				UserMetadata: events.UserMetadata{
+					User:  auth.User.GetName(),
+					Login: session.Login,
+				},
+				ConnectionMetadata: events.ConnectionMetadata{
+					RemoteAddr: session.ServerAddr,
+				},
+			}
+			if err := g.Emitter.EmitAuditEvent(auth.CloseContext(), sessionDataEvent); err != nil {
+				return trail.ToGRPC(err)
+			}
+			clusterName, err := auth.GetClusterName()
+			if err != nil {
+				return trail.ToGRPC(err)
+			}
+			sessionEndEvent := &events.SessionEnd{
+				Metadata: events.Metadata{
+					Type:        events.SessionEndEvent,
+					Code:        events.SessionEndCode,
+					ClusterName: clusterName.GetClusterName(),
+				},
+				ServerMetadata: events.ServerMetadata{
+					ServerID:        meta.Name,
+					ServerLabels:    meta.Labels,
+					ServerNamespace: meta.Namespace,
+					ServerHostname:  session.ServerHostname,
+					ServerAddr:      session.ServerAddr,
+				},
+				SessionMetadata: events.SessionMetadata{
+					SessionID: string(session.ID),
+				},
+				UserMetadata: events.UserMetadata{
+					User: auth.User.GetName(),
+				},
+				EnhancedRecording: false,
+				Interactive:       true,
+				StartTime:         streamStart,
+				EndTime:           time.Now(),
+			}
+			if err := g.Emitter.EmitAuditEvent(auth.CloseContext(), sessionEndEvent); err != nil {
+				return trail.ToGRPC(err)
+			}
+			err = eventStream.Complete(auth.CloseContext())
+			if err != nil {
+				return trail.ToGRPC(err)
+			}
 			return trail.ToGRPC(err)
 		}
 		if create := request.GetCreateStream(); create != nil {
