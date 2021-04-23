@@ -546,6 +546,9 @@ func waitAndReload(ctx context.Context, cfg Config, srv Process, newTeleport New
 // NewTeleport takes the daemon configuration, instantiates all required services
 // and starts them under a supervisor, returning the supervisor object.
 func NewTeleport(cfg *Config) (*TeleportProcess, error) {
+	cfg.Log.Debug("--> Config.NewTeleport()")
+	defer cfg.Log.Debug("<-- Config.NewTeleport()")
+
 	var err error
 
 	// Before we do anything reset the SIGINT handler back to the default.
@@ -2164,6 +2167,9 @@ func (process *TeleportProcess) getAdditionalPrincipals(role teleport.Role) ([]s
 //    2. proxy SSH connections to nodes running with 'node' role
 //    3. take care of reverse tunnels
 func (process *TeleportProcess) initProxy() error {
+	process.log.Debug("--> TeleportProcess.initProxy")
+	defer process.log.Debug("<-- TeleportProcess.initProxy")
+
 	// If no TLS key was provided for the web UI, generate a self signed cert
 	if len(process.Config.Proxy.KeyPairs) == 0 &&
 		!process.Config.Proxy.DisableTLS &&
@@ -2368,6 +2374,9 @@ func (process *TeleportProcess) setupProxyListeners() (*proxyListeners, error) {
 }
 
 func (process *TeleportProcess) initProxyEndpoint(conn *Connector) error {
+	process.log.Debug("--> TeleportProcess.initProxyEndpoint")
+	defer process.log.Debug("<-- TeleportProcess.initProxyEndpoint")
+
 	// clean up unused descriptors passed for proxy, but not used by it
 	defer func() {
 		if err := process.closeImportedDescriptors(teleport.ComponentProxy); err != nil {
@@ -2737,6 +2746,7 @@ func (process *TeleportProcess) initProxyEndpoint(conn *Connector) error {
 				ClusterOverride:   cfg.Proxy.Kube.ClusterOverride,
 				KubeconfigPath:    cfg.Proxy.Kube.KubeconfigPath,
 				Component:         component,
+				LegacyMode:        cfg.Proxy.Kube.LegacyMode,
 			},
 			TLS:           tlsConfig,
 			LimiterConfig: cfg.Proxy.Limiter,

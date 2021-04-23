@@ -73,6 +73,9 @@ func TestOnlySkipSelfPermissionCheck(skip bool) {
 //   - if no credentials are loaded, returns an error
 //   - permission self-test failures cause an error to be returned
 func getKubeCreds(ctx context.Context, log logrus.FieldLogger, tpClusterName, kubeClusterName, kubeconfigPath string, newKubeService bool) (map[string]*kubeCreds, error) {
+	log.Debug("--> proxy.getKubeCreds()")
+	defer log.Debug("<-- proxy.getKubeCreds()")
+
 	log.
 		WithField("kubeconfigPath", kubeconfigPath).
 		WithField("kubeClusterName", kubeClusterName).
@@ -91,6 +94,7 @@ func getKubeCreds(ctx context.Context, log logrus.FieldLogger, tpClusterName, ku
 		log.Debugf("Could not load kubernetes credentials. This proxy will still handle kubernetes requests for trusted teleport clusters or kubernetes nodes in this teleport cluster")
 		return map[string]*kubeCreds{}, nil
 	}
+
 	if !newKubeService {
 		// Hack for proxy_service - register a k8s cluster named after the
 		// teleport cluster name to route legacy requests.

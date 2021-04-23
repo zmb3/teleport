@@ -34,6 +34,9 @@ import (
 )
 
 func (process *TeleportProcess) initKubernetes() {
+	process.log.Debug("--> TeleportProcess.initKubernetes()")
+	defer process.log.Debug("<-- TeleportProcess.initKubernetes()")
+
 	log := process.log.WithFields(logrus.Fields{
 		trace.Component: teleport.Component(teleport.ComponentKube, process.id),
 	})
@@ -67,6 +70,9 @@ func (process *TeleportProcess) initKubernetes() {
 }
 
 func (process *TeleportProcess) initKubernetesService(log *logrus.Entry, conn *Connector) (retErr error) {
+	log.Debug("--> TeleportProcess.initKubernetesService()")
+	defer log.Debug("<-- TeleportProcess.initKubernetesService()")
+
 	// clean up unused descriptors passed for proxy, but not used by it
 	defer func() {
 		if err := process.closeImportedDescriptors(teleport.ComponentKube); err != nil {
@@ -223,6 +229,7 @@ func (process *TeleportProcess) initKubernetesService(log *logrus.Entry, conn *C
 			Component:         teleport.ComponentKube,
 			StaticLabels:      cfg.Kube.StaticLabels,
 			DynamicLabels:     dynLabels,
+			LegacyMode:        cfg.Kube.LegacyMode,
 		},
 		TLS:           tlsConfig,
 		AccessPoint:   accessPoint,

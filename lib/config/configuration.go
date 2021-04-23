@@ -41,6 +41,7 @@ import (
 	"github.com/gravitational/teleport/lib/backend/lite"
 	"github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/defaults"
+	"github.com/gravitational/teleport/lib/kube"
 	"github.com/gravitational/teleport/lib/limiter"
 	"github.com/gravitational/teleport/lib/pam"
 	"github.com/gravitational/teleport/lib/service"
@@ -531,6 +532,36 @@ func applyAuthConfig(fc *FileConfig, cfg *service.Config) error {
 	return nil
 }
 
+func determinKubeLegacyMode(fc *FileConfig) (bool, kube.LegacyMode, error) {
+	hasKubeConfig := false
+	mode := kube.LegacyModeNone
+
+	legacyKube := fc.Proxy.Kube.Configured() && fc.Proxy.Kube.Enabled()
+	newKube := fc.Proxy.KubeAddr != "" || len(fc.Proxy.KubePublicAddr) > 0
+
+	switch {
+	case legacyKube && !newKube:
+		hasKubeConfig = true
+		mode = kube.LegacyModePreV5
+
+	case !legacyKube && newKube:
+		hasKubeConfig = true
+		mode = kube.LegacyModeNone
+
+	case legacyKube && newKube:
+		return false, kube.LegacyModeNone, trace.BadParameter(
+			"proxy_service should either set kube_listen_addr/" +
+				"kube_public_addr or kubernetes.enabled, not both; keep " +
+				"kubernetes.enabled if you don't enable kubernetes_service, " +
+				"or keep kube_listen_addr otherwise")
+
+	case !legacyKube && !newKube:
+		// Nothing enabled, this is just for completeness.
+	}
+
+	return hasKubeConfig, mode, nil
+}
+
 // applyProxyConfig applies file configuration for the "proxy_service" section.
 func applyProxyConfig(fc *FileConfig, cfg *service.Config) error {
 	var err error
@@ -618,53 +649,56 @@ func applyProxyConfig(fc *FileConfig, cfg *service.Config) error {
 	}
 
 	// apply kubernetes proxy config, by default kube proxy is disabled
-	legacyKube := fc.Proxy.Kube.Configured() && fc.Proxy.Kube.Enabled()
-	newKube := fc.Proxy.KubeAddr != "" || len(fc.Proxy.KubePublicAddr) > 0
-	switch {
-	case legacyKube && !newKube:
-		cfg.Proxy.Kube.Enabled = true
-		if fc.Proxy.Kube.KubeconfigFile != "" {
-			cfg.Proxy.Kube.KubeconfigPath = fc.Proxy.Kube.KubeconfigFile
-		}
-		if fc.Proxy.Kube.ListenAddress != "" {
-			addr, err := utils.ParseHostPortAddr(fc.Proxy.Kube.ListenAddress, int(defaults.KubeListenPort))
+	hasKubeConfig, legacyMode, err := determinKubeLegacyMode(fc)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	if hasKubeConfig {
+		cfg.Proxy.Kube.LegacyMode = legacyMode
+
+		switch legacyMode {
+		case kube.LegacyModePreV5:
+			cfg.Proxy.Kube.Enabled = true
+			if fc.Proxy.Kube.KubeconfigFile != "" {
+				cfg.Proxy.Kube.KubeconfigPath = fc.Proxy.Kube.KubeconfigFile
+			}
+			if fc.Proxy.Kube.ListenAddress != "" {
+				addr, err := utils.ParseHostPortAddr(fc.Proxy.Kube.ListenAddress, int(defaults.KubeListenPort))
+				if err != nil {
+					return trace.Wrap(err)
+				}
+				cfg.Proxy.Kube.ListenAddr = *addr
+			}
+			if len(fc.Proxy.Kube.PublicAddr) != 0 {
+				addrs, err := utils.AddrsFromStrings(fc.Proxy.Kube.PublicAddr, defaults.KubeListenPort)
+				if err != nil {
+					return trace.Wrap(err)
+				}
+				cfg.Proxy.Kube.PublicAddrs = addrs
+			}
+
+		case kube.LegacyModeNone:
+			// New kubernetes format (kubernetes_service +
+			// proxy_service.kube_listen_addr) is only relevant in the config file
+			// format. Under the hood, we use the same cfg.Proxy.Kube field to
+			// enable it.
+			if len(fc.Proxy.KubePublicAddr) > 0 && fc.Proxy.KubeAddr == "" {
+				return trace.BadParameter("kube_listen_addr must be set when kube_public_addr is set")
+			}
+			addr, err := utils.ParseHostPortAddr(fc.Proxy.KubeAddr, int(defaults.KubeListenPort))
 			if err != nil {
 				return trace.Wrap(err)
 			}
 			cfg.Proxy.Kube.ListenAddr = *addr
-		}
-		if len(fc.Proxy.Kube.PublicAddr) != 0 {
-			addrs, err := utils.AddrsFromStrings(fc.Proxy.Kube.PublicAddr, defaults.KubeListenPort)
+
+			publicAddrs, err := utils.AddrsFromStrings(fc.Proxy.KubePublicAddr, defaults.KubeListenPort)
 			if err != nil {
 				return trace.Wrap(err)
 			}
-			cfg.Proxy.Kube.PublicAddrs = addrs
+			cfg.Proxy.Kube.PublicAddrs = publicAddrs
 		}
-	case !legacyKube && newKube:
-		// New kubernetes format (kubernetes_service +
-		// proxy_service.kube_listen_addr) is only relevant in the config file
-		// format. Under the hood, we use the same cfg.Proxy.Kube field to
-		// enable it.
-		if len(fc.Proxy.KubePublicAddr) > 0 && fc.Proxy.KubeAddr == "" {
-			return trace.BadParameter("kube_listen_addr must be set when kube_public_addr is set")
-		}
-		cfg.Proxy.Kube.Enabled = true
-		addr, err := utils.ParseHostPortAddr(fc.Proxy.KubeAddr, int(defaults.KubeListenPort))
-		if err != nil {
-			return trace.Wrap(err)
-		}
-		cfg.Proxy.Kube.ListenAddr = *addr
-
-		publicAddrs, err := utils.AddrsFromStrings(fc.Proxy.KubePublicAddr, defaults.KubeListenPort)
-		if err != nil {
-			return trace.Wrap(err)
-		}
-		cfg.Proxy.Kube.PublicAddrs = publicAddrs
-	case legacyKube && newKube:
-		return trace.BadParameter("proxy_service should either set kube_listen_addr/kube_public_addr or kubernetes.enabled, not both; keep kubernetes.enabled if you don't enable kubernetes_service, or keep kube_listen_addr otherwise")
-	case !legacyKube && !newKube:
-		// Nothing enabled, this is just for completeness.
 	}
+
 	if len(fc.Proxy.PublicAddr) != 0 {
 		addrs, err := utils.AddrsFromStrings(fc.Proxy.PublicAddr, defaults.HTTPListenPort)
 		if err != nil {
@@ -837,6 +871,12 @@ func applyKubeConfig(fc *FileConfig, cfg *service.Config) error {
 			}
 		}
 	}
+
+	_, legacyMode, err := determinKubeLegacyMode(fc)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	cfg.Kube.LegacyMode = legacyMode
 
 	// Sanity check the local proxy config, so that users don't forget to
 	// enable the k8s endpoint there.

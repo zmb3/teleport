@@ -36,6 +36,7 @@ import (
 	"github.com/gravitational/teleport/lib/bpf"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/events"
+	"github.com/gravitational/teleport/lib/kube"
 	"github.com/gravitational/teleport/lib/limiter"
 	"github.com/gravitational/teleport/lib/pam"
 	"github.com/gravitational/teleport/lib/plugin"
@@ -436,6 +437,12 @@ type KubeProxyConfig struct {
 
 	// KubeconfigPath is a path to kubeconfig
 	KubeconfigPath string
+
+	// Mode indicates how the kubernetes service was configured (either via the
+	// legacy `proxy.kube` config block, or the newer `kubernetes_service`
+	// block). We will try to match legacy behaviour to legacy config where possible,
+	// and this is how we decide whether to offer new or legacy behaviour.
+	LegacyMode kube.LegacyMode
 }
 
 // AuthConfig is a configuration of the auth server
@@ -547,6 +554,8 @@ type KubeConfig struct {
 
 	// Limiter limits the connection and request rates.
 	Limiter limiter.Config
+
+	LegacyMode kube.LegacyMode
 }
 
 // DatabasesConfig configures the database proxy service.

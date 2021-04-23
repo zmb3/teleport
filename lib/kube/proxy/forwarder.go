@@ -37,6 +37,7 @@ import (
 	"github.com/gravitational/teleport/lib/events"
 	"github.com/gravitational/teleport/lib/events/filesessions"
 	"github.com/gravitational/teleport/lib/httplib"
+	"github.com/gravitational/teleport/lib/kube"
 	kubeutils "github.com/gravitational/teleport/lib/kube/utils"
 	"github.com/gravitational/teleport/lib/labels"
 	"github.com/gravitational/teleport/lib/reversetunnel"
@@ -113,6 +114,9 @@ type ForwarderConfig struct {
 	// DynamicLabels is map of dynamic labels associated with this cluster.
 	// Used for RBAC.
 	DynamicLabels *labels.Dynamic
+
+	// TODO(tcsc) - docs
+	LegacyMode kube.LegacyMode
 }
 
 // CheckAndSetDefaults checks and sets default values
@@ -168,6 +172,9 @@ func (f *ForwarderConfig) CheckAndSetDefaults() error {
 // NewForwarder returns new instance of Kubernetes request
 // forwarding proxy.
 func NewForwarder(cfg ForwarderConfig) (*Forwarder, error) {
+	log.Debug("--> proxy.NewForwarder()")
+	defer log.Debug("<-- proxy.NewForwarder()")
+
 	if err := cfg.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}

@@ -87,6 +87,9 @@ type TLSServer struct {
 
 // NewTLSServer returns new unstarted TLS server
 func NewTLSServer(cfg TLSServerConfig) (*TLSServer, error) {
+	log.Debug("--> proxy.NewTLSServer()")
+	defer log.Debug("<-- proxy.NewTLSServer()")
+
 	if err := cfg.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}
