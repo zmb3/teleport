@@ -10,4 +10,10 @@ const (
 
 	PR        = "pr"
 	Milestone = "milestone"
+
+	Draft         = "draft"
+	Backport      = "backport"
+	Documentation = "documentation"
+	RFD           = "rfd"
+	Code          = "code"
 )

@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"strings"
 	"text/tabwriter"
@@ -32,12 +33,16 @@ type pullRequest struct {
 	//PR      *github.PullRequest
 	//Reviews []*github.PullRequestReview
 
+	// team is the internal Teleport team this user belongs to.
+	team string
+
 	// group is how we categorize PRs. A few examples, "code", "rfd", "docs",
 	// "draft", "backport".
 	group string
 
 	// openFor is how long the PR has been open.
-	openFor time.Duration
+	//openFor time.Duration
+	openFor string
 
 	// number is the GitHub PR number, like #1234.
 	number int
@@ -81,16 +86,17 @@ func (c *Client) fetchPulls(ctx context.Context) ([]pullRequest, error) {
 			//	return nil, err
 			//}
 
-			prs = append(prs, pullRequest{
-				//pr:      pr,
-				//reviews: reviews,
+			duration := time.Now().Sub(pr.GetCreatedAt())
+			humanDuration := fmt.Sprintf("%vd", math.Ceil(duration.Hours()/24))
 
-				//group string
-				//openFor time.Duration
-				//number int
-				author: pr.GetTitle(),
-				title:  pr.GetTitle(),
-				//approvers []string
+			prs = append(prs, pullRequest{
+				number:    pr.GetNumber(),
+				approvers: []string{},
+				author:    pr.GetUser().GetLogin(),
+				team:      "",
+				group:     group(pr),
+				openFor:   humanDuration,
+				title:     pr.GetTitle(),
 			})
 		}
 
@@ -108,13 +114,55 @@ func (c *Client) fetchPulls(ctx context.Context) ([]pullRequest, error) {
 func (c *Client) displayPulls(ctx context.Context, prs []pullRequest) error {
 	template := strings.Repeat("%v\t", 6) + "\n"
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.AlignRight|tabwriter.Debug)
+	// Closures for sorting, then sort.
+	group := func(c1, c2 *pullRequest) bool {
+		return c1.group < c2.group
+	}
+	author := func(c1, c2 *pullRequest) bool {
+		return c1.author < c2.author
+	}
+	team := func(c1, c2 *pullRequest) bool {
+		return c1.team < c2.team
+	}
+	OrderedBy(group, team, author).Sort(prs)
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.Debug)
+
+	// Print header.
+	fmt.Fprintf(w, template, "PR", "Author", "Team", "Group", "Open For", "Title")
 	for _, pr := range prs {
-		fmt.Fprintf(w, template, pr.title, "", "", "", "", "")
+		fmt.Fprintf(w, template, pr.number, pr.author, "", pr.group, pr.openFor, pr.title)
 	}
 	w.Flush()
 
 	return nil
+}
+
+func group(pr *github.PullRequest) string {
+	if pr.GetDraft() {
+		return constants.Draft
+	}
+
+	if hasLabel(pr, constants.RFD) {
+		return constants.RFD
+	}
+	if hasLabel(pr, constants.Documentation) {
+		return constants.Documentation
+	}
+	if hasLabel(pr, constants.Backport) {
+		return constants.Backport
+	}
+
+	return constants.Code
+}
+
+func hasLabel(pr *github.PullRequest, labelName string) bool {
+	for _, label := range pr.Labels {
+		if label.GetName() == labelName {
+			return true
+		}
+	}
+	return false
 }
 
 //func exclude(pr *github.PullRequest) bool {
