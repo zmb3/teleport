@@ -13,6 +13,7 @@ const (
 
 	Draft         = "draft"
 	Backport      = "backport"
+	UX            = "ux"
 	Documentation = "documentation"
 	RFD           = "rfd"
 	Code          = "code"

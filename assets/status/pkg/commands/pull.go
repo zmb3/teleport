@@ -157,6 +157,9 @@ func group(pr *github.PullRequest) string {
 	if hasLabel(pr, constants.Backport) {
 		return constants.Backport
 	}
+	if hasLabel(pr, constants.UX) {
+		return constants.UX
+	}
 
 	return constants.Code
 }
