@@ -61,6 +61,11 @@ type pullRequest struct {
 func (c *Client) fetchPulls(ctx context.Context) ([]pullRequest, error) {
 	var prs []pullRequest
 
+	teams, err := c.Teams(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
 	// ?
 	popts := &github.PullRequestListOptions{
 		State: constants.Open,
@@ -93,7 +98,7 @@ func (c *Client) fetchPulls(ctx context.Context) ([]pullRequest, error) {
 				number:    pr.GetNumber(),
 				approvers: []string{},
 				author:    pr.GetUser().GetLogin(),
-				team:      "",
+				team:      teamForUser(teams, pr.GetUser().GetLogin()),
 				group:     group(pr),
 				openFor:   humanDuration,
 				title:     pr.GetTitle(),
@@ -131,7 +136,7 @@ func (c *Client) displayPulls(ctx context.Context, prs []pullRequest) error {
 	// Print header.
 	fmt.Fprintf(w, template, "PR", "Author", "Team", "Group", "Open For", "Title")
 	for _, pr := range prs {
-		fmt.Fprintf(w, template, pr.number, pr.author, "", pr.group, pr.openFor, pr.title)
+		fmt.Fprintf(w, template, pr.number, pr.author, pr.team, pr.group, pr.openFor, pr.title)
 	}
 	w.Flush()
 

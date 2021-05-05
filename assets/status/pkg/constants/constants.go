@@ -16,4 +16,6 @@ const (
 	Documentation = "documentation"
 	RFD           = "rfd"
 	Code          = "code"
+
+	TeamPrefix = "team-"
 )
