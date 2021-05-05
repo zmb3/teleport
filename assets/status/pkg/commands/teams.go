@@ -22,6 +22,12 @@ func (c *Client) Teams(ctx context.Context) (map[string][]string, error) {
 		teamPages, resp, err := c.client.Teams.ListTeams(ctx,
 			constants.Organization, topts)
 		if err != nil {
+			// If the error is "401 Requires authentication", return an empty teams
+			// mapping. This allows this script to work even when unauthenticated, just
+			// not report team mapping for users.
+			if strings.Contains(err.Error(), "401") {
+				return teams, nil
+			}
 			return nil, trace.Wrap(err)
 		}
 		for _, team := range teamPages {
