@@ -3,6 +3,9 @@ package constants
 const (
 	Open = "open"
 
+	DueOn     = "due_on"
+	Ascending = "asc"
+
 	PageSize = 20
 
 	Organization = "gravitational"

@@ -2,6 +2,10 @@
 run-pr: build
 	./build/status pr
 
+.PHONY: run-milestone
+run-milestone: build
+	./build/status milestone
+
 .PHONY: build
 build:
 	mkdir -p build/
