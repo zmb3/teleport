@@ -125,6 +125,7 @@ func (c *Client) displayMilestones(ctx context.Context, milestones []*milestone)
 		for _, issue := range milestone.issues {
 			fmt.Fprintf(w, template, milestone.version, issue.number, issue.assignee, issue.title)
 		}
+		fmt.Fprintf(w, template, "----", "----", "----", "--------------------")
 	}
 
 	w.Flush()
