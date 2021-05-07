@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -159,6 +160,16 @@ func (c *Client) displayMilestones(ctx context.Context, milestones []*milestone)
 
 	// Print Milestone.
 	for _, milestone := range milestones {
+		sort.Slice(milestone.issues, func(i, j int) bool {
+			switch strings.Compare(milestone.issues[i].group, milestone.issues[j].group) {
+			case -1:
+				return true
+			case 1:
+				return false
+			}
+			return milestone.issues[i].assignee > milestone.issues[j].assignee
+		})
+
 		for _, issue := range milestone.issues {
 			fmt.Fprintf(w, template, milestone.version, issue.number, issue.group, issue.assignee, issue.title)
 		}
