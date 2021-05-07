@@ -39,6 +39,7 @@ type issue struct {
 	title    string
 	assignee string
 	team     string
+	group    string
 }
 
 func (c *Client) fetchMilestones(ctx context.Context) ([]*milestone, error) {
@@ -88,6 +89,7 @@ func (c *Client) fetchMilestones(ctx context.Context) ([]*milestone, error) {
 						number:   i.GetNumber(),
 						assignee: i.GetAssignee().GetLogin(),
 						title:    i.GetTitle(),
+						group:    groupIssue(i),
 					})
 				}
 
@@ -115,19 +117,84 @@ func (c *Client) fetchMilestones(ctx context.Context) ([]*milestone, error) {
 }
 
 func (c *Client) displayMilestones(ctx context.Context, milestones []*milestone) error {
-	template := strings.Repeat("%v\t", 4) + "\n"
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.Debug)
+	template := strings.Repeat("%v\t", 5) + "\n"
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, ' ', tabwriter.Debug)
 
-	// Print header.
-	fmt.Fprintf(w, template, "Milestone", "Issue", "Assignee", "Title")
+	titles := []string{
+		"Milestone",
+		"Issue",
+		"Group",
+		"Assignee",
+		"Title",
+	}
+
+	separator := []int{
+		len(titles[0]),
+		len(titles[1]),
+		len(titles[2]),
+		len(titles[3]),
+		len(titles[4]),
+	}
 
 	for _, milestone := range milestones {
 		for _, issue := range milestone.issues {
-			fmt.Fprintf(w, template, milestone.version, issue.number, issue.assignee, issue.title)
+			separator[0] = max(separator[0], len(milestone.version))
+			separator[1] = max(separator[1], len(strconv.Itoa(issue.number)))
+			separator[2] = max(separator[2], len(issue.group))
+			separator[3] = max(separator[3], len(issue.assignee))
+			separator[4] = max(separator[4], len(issue.title))
 		}
-		fmt.Fprintf(w, template, "----", "----", "----", "--------------------")
+	}
+
+	// Print header.
+	fmt.Fprintf(w, template, titles[0], titles[1], titles[2], titles[3], titles[4])
+
+	// Print separator.
+	fmt.Fprintf(w, template,
+		strings.Repeat("-", separator[0]),
+		strings.Repeat("-", separator[1]),
+		strings.Repeat("-", separator[2]),
+		strings.Repeat("-", separator[3]),
+		strings.Repeat("-", separator[4]))
+
+	// Print Milestone.
+	for _, milestone := range milestones {
+		for _, issue := range milestone.issues {
+			fmt.Fprintf(w, template, milestone.version, issue.number, issue.group, issue.assignee, issue.title)
+		}
+
+		// Print separator.
+		fmt.Fprintf(w, template,
+			strings.Repeat("-", separator[0]),
+			strings.Repeat("-", separator[1]),
+			strings.Repeat("-", separator[2]),
+			strings.Repeat("-", separator[3]),
+			strings.Repeat("-", separator[4]))
 	}
 
 	w.Flush()
 	return nil
+}
+
+func groupIssue(issue *github.Issue) string {
+	if hasIssueLabel(issue, constants.Documentation) {
+		return constants.Documentation
+	}
+	return constants.Code
+}
+
+func hasIssueLabel(issue *github.Issue, labelName string) bool {
+	for _, label := range issue.Labels {
+		if label.GetName() == labelName {
+			return true
+		}
+	}
+	return false
+}
+
+func max(a int, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
