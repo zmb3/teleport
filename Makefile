@@ -12,6 +12,7 @@
 #   Pre-releases:      "1.0.0-alpha.1", "1.0.0-beta.2", "1.0.0-rc.3"
 #   Master/dev branch: "1.0.0-dev"
 VERSION=7.0.0-dev
+MODULE_MAJOR_VERSION_SUFFIX=v6
 
 DOCKER_IMAGE ?= quay.io/gravitational/teleport
 DOCKER_IMAGE_CI ?= quay.io/gravitational/teleport-ci
@@ -645,10 +646,10 @@ init-submodules-e: init-webapps-submodules-e
 update-vendor:
 	go mod tidy
 	go mod vendor
-	# delete the vendored api package. In its place
-	# create a symlink to the the original api package
-	rm -r vendor/github.com/gravitational/teleport/api
-	ln -s -r $(shell readlink -f api) vendor/github.com/gravitational/teleport
+	# delete the vendored api/$(MODULE_MAJOR_VERSION_SUFFIX) package. In its place
+	# create a symlink to the the original api package/$(MODULE_MAJOR_VERSION_SUFFIX)
+	rm -r vendor/github.com/gravitational/teleport/api/$(MODULE_MAJOR_VERSION_SUFFIX)
+	ln -s -r $(shell readlink -f api) vendor/github.com/gravitational/teleport/api/$(MODULE_MAJOR_VERSION_SUFFIX)
 
 # update-webassets updates the minified code in the webassets repo using the latest webapps
 # repo and creates a PR in the teleport repo to update webassets submodule.
