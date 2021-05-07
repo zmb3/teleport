@@ -21,9 +21,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/api/v6/client/proto"
+	"github.com/gravitational/teleport/api/v6/constants"
+	"github.com/gravitational/teleport/api/v6/types"
 	"github.com/gravitational/teleport/lib/tlsca"
 
 	"github.com/google/go-cmp/cmp"

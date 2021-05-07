@@ -23,7 +23,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/api/v6/types"
 	"github.com/gravitational/trace"
 )
 

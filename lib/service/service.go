@@ -47,9 +47,9 @@ import (
 	"github.com/gravitational/trace"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/client/webclient"
-	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/api/v6/client/proto"
+	"github.com/gravitational/teleport/api/v6/client/webclient"
+	"github.com/gravitational/teleport/api/v6/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/auth/native"
 	"github.com/gravitational/teleport/lib/backend"

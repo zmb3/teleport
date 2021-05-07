@@ -23,7 +23,7 @@ import (
 
 	"github.com/coreos/go-semver/semver"
 
-	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/api/v6/constants"
 )
 
 // The following constants have been moved to /api/constants/constants.go, and are now

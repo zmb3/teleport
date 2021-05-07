@@ -19,7 +19,7 @@ package common
 import (
 	"context"
 
-	"github.com/gravitational/teleport/api/types/events"
+	"github.com/gravitational/teleport/api/v6/types/events"
 	"github.com/gravitational/teleport/lib/defaults"
 	libevents "github.com/gravitational/teleport/lib/events"
 

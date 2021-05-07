@@ -16,7 +16,7 @@ limitations under the License.
 
 package events
 
-import "github.com/gravitational/teleport/api/types/events"
+import "github.com/gravitational/teleport/api/v6/types/events"
 
 // The following types, functions, and constants have been moved to /api/types, and are now imported here
 // for backwards compatibility. These can be removed in a future version.

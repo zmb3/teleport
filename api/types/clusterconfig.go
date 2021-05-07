@@ -21,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/gravitational/teleport/api/v6/defaults"
+	"github.com/gravitational/teleport/api/v6/utils"
 
 	"github.com/gravitational/trace"
 )

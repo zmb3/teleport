@@ -19,7 +19,7 @@ package services
 import (
 	"fmt"
 
-	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/api/v6/constants"
 	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"

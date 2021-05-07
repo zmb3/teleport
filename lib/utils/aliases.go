@@ -17,7 +17,7 @@ limitations under the License.
 package utils
 
 import (
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/gravitational/teleport/api/v6/utils"
 )
 
 // The following util functions have been moved to /api/utils, and are now

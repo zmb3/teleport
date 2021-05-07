@@ -20,7 +20,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/api/v6/types"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/services"

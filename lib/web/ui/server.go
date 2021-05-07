@@ -19,7 +19,7 @@ package ui
 import (
 	"sort"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/api/v6/types"
 	"github.com/gravitational/teleport/lib/services"
 )
 

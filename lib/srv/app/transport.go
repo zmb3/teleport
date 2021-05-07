@@ -25,7 +25,7 @@ import (
 	"path"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types/wrappers"
+	"github.com/gravitational/teleport/api/v6/types/wrappers"
 	"github.com/gravitational/teleport/lib"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/events"

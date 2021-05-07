@@ -1,4 +1,4 @@
-module github.com/gravitational/teleport/api
+module github.com/gravitational/teleport/api/v6
 
 go 1.15
 

@@ -8,8 +8,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/api/v6/client"
+	"github.com/gravitational/teleport/api/v6/types"
 )
 
 // Below is an example of creating a new Teleport Auth client with Profile credentials,

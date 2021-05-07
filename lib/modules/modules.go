@@ -24,7 +24,7 @@ import (
 	"sync"
 
 	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client/proto"
+	"github.com/gravitational/teleport/api/v6/client/proto"
 )
 
 // Features provides supported and unsupported features

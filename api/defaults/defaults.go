@@ -20,7 +20,7 @@ package defaults
 import (
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/api/v6/constants"
 )
 
 const (

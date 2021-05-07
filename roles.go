@@ -16,7 +16,7 @@ limitations under the License.
 
 package teleport
 
-import "github.com/gravitational/teleport/api/types"
+import "github.com/gravitational/teleport/api/v6/types"
 
 // The following types, functions, and constants have been moved to /api/types/teleport_roles.go,
 // and are now imported here for backwards compatibility. DELETE IN 7.0.0

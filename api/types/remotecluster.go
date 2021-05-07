@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/api/v6/defaults"
 )
 
 // RemoteCluster represents a remote cluster that has connected via reverse tunnel

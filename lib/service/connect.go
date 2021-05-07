@@ -27,8 +27,8 @@ import (
 
 	"github.com/gravitational/roundtrip"
 	"github.com/gravitational/teleport"
-	apiclient "github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/client/webclient"
+	apiclient "github.com/gravitational/teleport/api/v6/client"
+	"github.com/gravitational/teleport/api/v6/client/webclient"
 	"github.com/gravitational/teleport/lib"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/backend"
