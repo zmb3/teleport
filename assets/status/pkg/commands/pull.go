@@ -16,7 +16,48 @@ import (
 	"github.com/google/go-github/v35/github"
 )
 
+//func getRunID(client *github.Client, prNumber int) (int64, error) {
+//	page, _, err := client.Actions.ListRepositoryWorkflowRuns(context.Background(), "gravitational", "gh-actions-poc", &github.ListWorkflowRunsOptions{
+//		Event: "pull_request",
+//	})
+//	fmt.Printf("--> err: %v.\n", err)
+//	for _, p := range page.WorkflowRuns {
+//		for _, pr := range p.PullRequests {
+//			if pr.GetNumber() == prNumber {
+//				return p.GetID(), nil
+//				//fmt.Printf("--> %v %v %v %v.\n", p.GetRerunURL(), p.GetName(), p.GetRunNumber(), pr.GetNumber())
+//			}
+//		}
+//	}
+//
+//	return 0, trace.BadParameter("run id not found")
+//}
+
 func (c *Client) Pulls(ctx context.Context) error {
+	////pr, _, err := c.client.PullRequests.Get(ctx, "gravitational", "gh-actions-poc", 10)
+	////if err != nil {
+	////	return err
+	////}
+
+	//page, _, err := c.client.Actions.ListRepositoryWorkflowRuns(ctx, "gravitational", "gh-actions-poc", &github.ListWorkflowRunsOptions{
+	//	Event: "pull_request",
+	//})
+	//fmt.Printf("--> err: %v.\n", err)
+	//for _, p := range page.WorkflowRuns {
+	//	for _, pr := range p.PullRequests {
+	//		fmt.Printf("--> %v %v %v %v.\n", p.GetRerunURL(), p.GetName(), p.GetRunNumber(), pr.GetNumber())
+	//	}
+	//}
+
+	//runID, err := getRunID(c.client, 10)
+	//fmt.Printf("--> runID: %v, err: %v.\n", runID, err)
+
+	//_, err = c.client.Actions.RerunWorkflowByID(ctx, "gravitational", "gh-actions-poc", 822258863)
+	//fmt.Printf("--> err: %v.\n", err)
+
+	//_, err = c.client.Actions.RerunWorkflowByID(ctx, "gravitational", "gh-actions-poc", 822068640)
+	//fmt.Printf("--> err: %v.\n", err)
+
 	prs, err := c.fetchPulls(ctx)
 	if err != nil {
 		return trace.Wrap(err)
