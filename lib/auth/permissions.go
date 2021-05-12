@@ -384,6 +384,7 @@ func GetCheckerForBuiltinRole(clusterName string, clusterConfig services.Cluster
 				services.RoleSpecV3{
 					Allow: services.RoleConditions{
 						Namespaces:    []string{services.Wildcard},
+						AppLabels:     types.Labels{services.Wildcard: []string{services.Wildcard}},
 						ClusterLabels: services.Labels{services.Wildcard: []string{services.Wildcard}},
 						Rules: []services.Rule{
 							services.NewRule(services.KindProxy, services.RW()),
@@ -442,6 +443,7 @@ func GetCheckerForBuiltinRole(clusterName string, clusterConfig services.Cluster
 			services.RoleSpecV3{
 				Allow: services.RoleConditions{
 					Namespaces:    []string{services.Wildcard},
+					AppLabels:     types.Labels{services.Wildcard: []string{services.Wildcard}},
 					ClusterLabels: services.Labels{services.Wildcard: []string{services.Wildcard}},
 					Rules: []services.Rule{
 						services.NewRule(services.KindProxy, services.RW()),
@@ -515,7 +517,7 @@ func GetCheckerForBuiltinRole(clusterName string, clusterConfig services.Cluster
 				Allow: services.RoleConditions{
 					Namespaces:    []string{services.Wildcard},
 					Logins:        []string{},
-					NodeLabels:    services.Labels{services.Wildcard: []string{services.Wildcard}},
+					AppLabels:     services.Labels{services.Wildcard: []string{services.Wildcard}},
 					ClusterLabels: services.Labels{services.Wildcard: []string{services.Wildcard}},
 					Rules: []services.Rule{
 						services.NewRule(services.Wildcard, services.RW()),

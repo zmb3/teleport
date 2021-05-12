@@ -521,24 +521,19 @@ func (r *RoleV3) CheckAndSetDefaults() error {
 		r.Spec.Allow.Namespaces = []string{defaults.Namespace}
 	}
 	if r.Spec.Allow.NodeLabels == nil {
-		if len(r.Spec.Allow.Logins) == 0 {
-			// no logins implies no node access
-			r.Spec.Allow.NodeLabels = Labels{}
-		} else {
-			r.Spec.Allow.NodeLabels = Labels{Wildcard: []string{Wildcard}}
-		}
+		r.Spec.Allow.NodeLabels = Labels{}
 	}
 
 	if r.Spec.Allow.AppLabels == nil {
-		r.Spec.Allow.AppLabels = Labels{Wildcard: []string{Wildcard}}
+		r.Spec.Allow.AppLabels = Labels{}
 	}
 
 	if r.Spec.Allow.KubernetesLabels == nil {
-		r.Spec.Allow.KubernetesLabels = Labels{Wildcard: []string{Wildcard}}
+		r.Spec.Allow.KubernetesLabels = Labels{}
 	}
 
 	if r.Spec.Allow.DatabaseLabels == nil {
-		r.Spec.Allow.DatabaseLabels = Labels{Wildcard: []string{Wildcard}}
+		r.Spec.Allow.DatabaseLabels = Labels{}
 	}
 
 	if r.Spec.Deny.Namespaces == nil {
