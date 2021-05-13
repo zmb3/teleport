@@ -91,4 +91,5 @@ func SetNoSniff(h http.Header) {
 func SetWebConfigHeaders(h http.Header) {
 	SetStaticFileHeaders(h)
 	h.Set("Content-Type", "application/javascript")
+	h.Set("Access-Control-Allow-Origin", "*")
 }

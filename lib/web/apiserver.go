@@ -418,6 +418,34 @@ func NewHandler(cfg Config, opts ...HandlerOption) (*RewritingHandler, error) {
 				h.log.WithError(err).Warn("Failed to generate CSRF token.")
 			}
 
+			if r.URL.Path == "/web/sso" {
+				connectorName := r.URL.Query().Get("connector")
+				connector, err := h.getConnector(r.Context(), connectorName)
+				if err != nil {
+					h.log.WithError(err).Warnf("Failed to get connector %q.", connectorName)
+				}
+				switch connector.(type) {
+				case types.GithubConnector:
+					redirectURL := ui.WebConfigAuthProviderGitHubURL
+					redirectURL = strings.Replace(redirectURL, ":redirect", r.URL.Query().Get("redirect"), 1)
+					redirectURL = strings.Replace(redirectURL, ":providerName", connectorName, 1)
+					http.Redirect(w, r, redirectURL, http.StatusFound)
+					return
+				case types.OIDCConnector:
+					redirectURL := ui.WebConfigAuthProviderOIDCURL
+					redirectURL = strings.Replace(redirectURL, ":redirect", r.URL.Query().Get("redirect"), 1)
+					redirectURL = strings.Replace(redirectURL, ":providerName", connectorName, 1)
+					http.Redirect(w, r, redirectURL, http.StatusFound)
+					return
+				case types.SAMLConnector:
+					redirectURL := ui.WebConfigAuthProviderSAMLURL
+					redirectURL = strings.Replace(redirectURL, ":redirect", r.URL.Query().Get("redirect"), 1)
+					redirectURL = strings.Replace(redirectURL, ":providerName", connectorName, 1)
+					http.Redirect(w, r, redirectURL, http.StatusFound)
+					return
+				}
+			}
+
 			session := struct {
 				Session string
 				XCSRF   string
@@ -741,6 +769,37 @@ func (h *Handler) pingWithConnector(w http.ResponseWriter, r *http.Request, p ht
 	}
 
 	return nil, trace.BadParameter("invalid connector name %v", connectorName)
+}
+
+func (h *Handler) getConnector(ctx context.Context, name string) (types.Resource, error) {
+	oidc, err := h.cfg.ProxyClient.GetOIDCConnectors(ctx, false)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	for _, connector := range oidc {
+		if connector.GetName() == name {
+			return connector, nil
+		}
+	}
+	saml, err := h.cfg.ProxyClient.GetSAMLConnectors(ctx, false)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	for _, connector := range saml {
+		if connector.GetName() == name {
+			return connector, nil
+		}
+	}
+	github, err := h.cfg.ProxyClient.GetGithubConnectors(ctx, false)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	for _, connector := range github {
+		if connector.GetName() == name {
+			return connector, nil
+		}
+	}
+	return nil, trace.NotFound("no connector %q", name)
 }
 
 // getWebConfig returns configuration for the web application.
