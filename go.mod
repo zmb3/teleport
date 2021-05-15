@@ -12,8 +12,7 @@ require (
 	github.com/alecthomas/colour v0.1.0 // indirect
 	github.com/alecthomas/repr v0.0.0-20200325044227-4184120f674c // indirect
 	github.com/alecthomas/units v0.0.0-20210208195552-ff826a37aa15 // indirect
-	github.com/aquasecurity/tracee v0.5.1-0.20210407113620-71d4c839fb68 // indirect
-	github.com/aquasecurity/tracee/libbpfgo v0.0.0-20210407113620-71d4c839fb68
+	github.com/aquasecurity/tracee/libbpfgo v0.0.0-20210513142145-242d721bad3d
 	github.com/armon/go-radix v1.0.0
 	github.com/aws/aws-sdk-go v1.37.17
 	github.com/beevik/etree v1.1.0
@@ -42,9 +41,9 @@ require (
 	github.com/gravitational/configure v0.0.0-20180808141939-c3428bd84c23
 	github.com/gravitational/form v0.0.0-20151109031454-c4048f792f70
 	github.com/gravitational/kingpin v2.1.11-0.20190130013101-742f2714c145+incompatible
-	github.com/gravitational/license v0.0.0-20210218173955-6d8fb49b117a // indirect
+	github.com/gravitational/license v0.0.0-20210218173955-6d8fb49b117a
 	github.com/gravitational/oxy v0.0.0-20210316180922-c73d80d27348
-	github.com/gravitational/reporting v0.0.0-20180907002058-ac7b85c75c4c // indirect
+	github.com/gravitational/reporting v0.0.0-20180907002058-ac7b85c75c4c
 	github.com/gravitational/roundtrip v1.0.0
 	github.com/gravitational/teleport/api v0.0.0
 	github.com/gravitational/trace v1.1.15
@@ -99,7 +98,7 @@ require (
 	golang.org/x/mod v0.4.1 // indirect
 	golang.org/x/net v0.0.0-20210222171744-9060382bd457
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/sys v0.0.0-20210412220455-f1c623a9e750
+	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015
 	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d
 	golang.org/x/text v0.3.5
 	golang.org/x/tools v0.1.0 // indirect
