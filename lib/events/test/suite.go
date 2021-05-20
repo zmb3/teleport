@@ -26,6 +26,7 @@ import (
 	"testing"
 	"time"
 
+	apievents "github.com/gravitational/teleport/api/types/events"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/events"
 	"github.com/gravitational/teleport/lib/fixtures"
@@ -97,7 +98,7 @@ func (s *EventsSuite) EventPagination(c *check.C) {
 	}
 
 	toTime := baseTime.Add(time.Hour)
-	var arr []events.AuditEvent
+	var arr []apievents.AuditEvent
 	var err error
 	var checkpoint string
 
@@ -105,7 +106,7 @@ func (s *EventsSuite) EventPagination(c *check.C) {
 		arr, checkpoint, err = s.Log.SearchEvents(baseTime, toTime, defaults.Namespace, nil, 1, checkpoint)
 		c.Assert(err, check.IsNil)
 		c.Assert(arr, check.HasLen, 1)
-		event, ok := arr[0].(*events.UserLogin)
+		event, ok := arr[0].(*apievents.UserLogin)
 		c.Assert(ok, check.Equals, true)
 		c.Assert(name, check.Equals, event.User)
 	}
@@ -117,8 +118,8 @@ func (s *EventsSuite) EventPagination(c *check.C) {
 		arr, checkpoint, err = s.Log.SearchEvents(baseTime, toTime, defaults.Namespace, nil, 2, checkpoint)
 		c.Assert(err, check.IsNil)
 		c.Assert(arr, check.HasLen, 2)
-		eventA, okA := arr[0].(*events.UserLogin)
-		eventB, okB := arr[1].(*events.UserLogin)
+		eventA, okA := arr[0].(*apievents.UserLogin)
+		eventB, okB := arr[1].(*apievents.UserLogin)
 		c.Assert(okA, check.Equals, true)
 		c.Assert(okB, check.Equals, true)
 		c.Assert(nameA, check.Equals, eventA.User)
