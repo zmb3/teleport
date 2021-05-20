@@ -48,7 +48,7 @@ func GetClusterNameSchema(extensionSchema string) string {
 }
 
 // UnmarshalClusterName unmarshals the ClusterName resource from JSON.
-func UnmarshalClusterName(bytes []byte, opts ...MarshalOption) (ClusterName, error) {
+func UnmarshalClusterName(bytes []byte, opts ...MarshalOption) (types.ClusterName, error) {
 	var clusterName types.ClusterNameV2
 
 	if len(bytes) == 0 {
@@ -87,7 +87,7 @@ func UnmarshalClusterName(bytes []byte, opts ...MarshalOption) (ClusterName, err
 }
 
 // MarshalClusterName marshals the ClusterName resource to JSON.
-func MarshalClusterName(clusterName ClusterName, opts ...MarshalOption) ([]byte, error) {
+func MarshalClusterName(clusterName types.ClusterName, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)

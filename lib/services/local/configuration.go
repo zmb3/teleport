@@ -54,7 +54,7 @@ func NewClusterConfigurationService(backend backend.Backend) (*ClusterConfigurat
 }
 
 // GetClusterName gets the name of the cluster from the backend.
-func (s *ClusterConfigurationService) GetClusterName(opts ...services.MarshalOption) (services.ClusterName, error) {
+func (s *ClusterConfigurationService) GetClusterName(opts ...services.MarshalOption) (types.ClusterName, error) {
 	item, err := s.Get(context.TODO(), backend.Key(clusterConfigPrefix, namePrefix))
 	if err != nil {
 		if trace.IsNotFound(err) {
@@ -81,7 +81,7 @@ func (s *ClusterConfigurationService) DeleteClusterName() error {
 
 // SetClusterName sets the name of the cluster in the backend. SetClusterName
 // can only be called once on a cluster after which it will return trace.AlreadyExists.
-func (s *ClusterConfigurationService) SetClusterName(c services.ClusterName) error {
+func (s *ClusterConfigurationService) SetClusterName(c types.ClusterName) error {
 	value, err := services.MarshalClusterName(c)
 	if err != nil {
 		return trace.Wrap(err)
@@ -100,7 +100,7 @@ func (s *ClusterConfigurationService) SetClusterName(c services.ClusterName) err
 }
 
 // UpsertClusterName sets the name of the cluster in the backend.
-func (s *ClusterConfigurationService) UpsertClusterName(c services.ClusterName) error {
+func (s *ClusterConfigurationService) UpsertClusterName(c types.ClusterName) error {
 	value, err := services.MarshalClusterName(c)
 	if err != nil {
 		return trace.Wrap(err)
@@ -120,7 +120,7 @@ func (s *ClusterConfigurationService) UpsertClusterName(c services.ClusterName) 
 }
 
 // GetStaticTokens gets the list of static tokens used to provision nodes.
-func (s *ClusterConfigurationService) GetStaticTokens() (services.StaticTokens, error) {
+func (s *ClusterConfigurationService) GetStaticTokens() (types.StaticTokens, error) {
 	item, err := s.Get(context.TODO(), backend.Key(clusterConfigPrefix, staticTokensPrefix))
 	if err != nil {
 		if trace.IsNotFound(err) {
@@ -133,7 +133,7 @@ func (s *ClusterConfigurationService) GetStaticTokens() (services.StaticTokens, 
 }
 
 // SetStaticTokens sets the list of static tokens used to provision nodes.
-func (s *ClusterConfigurationService) SetStaticTokens(c services.StaticTokens) error {
+func (s *ClusterConfigurationService) SetStaticTokens(c types.StaticTokens) error {
 	value, err := services.MarshalStaticTokens(c)
 	if err != nil {
 		return trace.Wrap(err)
@@ -165,7 +165,7 @@ func (s *ClusterConfigurationService) DeleteStaticTokens() error {
 
 // GetAuthPreference fetches the cluster authentication preferences
 // from the backend and return them.
-func (s *ClusterConfigurationService) GetAuthPreference() (services.AuthPreference, error) {
+func (s *ClusterConfigurationService) GetAuthPreference() (types.AuthPreference, error) {
 	item, err := s.Get(context.TODO(), backend.Key(authPrefix, preferencePrefix, generalPrefix))
 	if err != nil {
 		if trace.IsNotFound(err) {
@@ -179,7 +179,7 @@ func (s *ClusterConfigurationService) GetAuthPreference() (services.AuthPreferen
 
 // SetAuthPreference sets the cluster authentication preferences
 // on the backend.
-func (s *ClusterConfigurationService) SetAuthPreference(preferences services.AuthPreference) error {
+func (s *ClusterConfigurationService) SetAuthPreference(preferences types.AuthPreference) error {
 	value, err := services.MarshalAuthPreference(preferences)
 	if err != nil {
 		return trace.Wrap(err)
@@ -199,7 +199,7 @@ func (s *ClusterConfigurationService) SetAuthPreference(preferences services.Aut
 	return nil
 }
 
-// DeleteAuthPreference deletes services.AuthPreference from the backend.
+// DeleteAuthPreference deletes types.AuthPreference from the backend.
 func (s *ClusterConfigurationService) DeleteAuthPreference(ctx context.Context) error {
 	err := s.Delete(ctx, backend.Key(authPrefix, preferencePrefix, generalPrefix))
 	if err != nil {
@@ -212,7 +212,7 @@ func (s *ClusterConfigurationService) DeleteAuthPreference(ctx context.Context) 
 }
 
 // GetClusterConfig gets services.ClusterConfig from the backend.
-func (s *ClusterConfigurationService) GetClusterConfig(opts ...services.MarshalOption) (services.ClusterConfig, error) {
+func (s *ClusterConfigurationService) GetClusterConfig(opts ...services.MarshalOption) (types.ClusterConfig, error) {
 	item, err := s.Get(context.TODO(), backend.Key(clusterConfigPrefix, generalPrefix))
 	if err != nil {
 		if trace.IsNotFound(err) {
@@ -238,7 +238,7 @@ func (s *ClusterConfigurationService) DeleteClusterConfig() error {
 }
 
 // SetClusterConfig sets services.ClusterConfig on the backend.
-func (s *ClusterConfigurationService) SetClusterConfig(c services.ClusterConfig) error {
+func (s *ClusterConfigurationService) SetClusterConfig(c types.ClusterConfig) error {
 	if err := s.syncClusterConfigWithNetworkingConfig(c); err != nil {
 		return trace.Wrap(err)
 	}
@@ -269,7 +269,7 @@ func (s *ClusterConfigurationService) SetClusterConfig(c services.ClusterConfig)
 // with the networking values that are now stored in ClusterNetworkingConfig,
 // or vice versa.  Intended to facilitate backward compatible transition from
 // legacy ClusterConfig.  DELETE IN 8.0.0
-func (s *ClusterConfigurationService) syncClusterConfigWithNetworkingConfig(clusterConfig services.ClusterConfig) error {
+func (s *ClusterConfigurationService) syncClusterConfigWithNetworkingConfig(clusterConfig types.ClusterConfig) error {
 	if clusterConfig.HasNetworkingConfig() {
 		netConfig, err := clusterConfig.GetNetworkingConfig()
 		if err != nil {
@@ -294,7 +294,7 @@ func (s *ClusterConfigurationService) syncClusterConfigWithNetworkingConfig(clus
 // with the session recording values that are now stored in SessionRecordingConfig,
 // or vice versa.  Intended to facilitate backward compatible transition from
 // legacy ClusterConfig.  DELETE IN 8.0.0
-func (s *ClusterConfigurationService) syncClusterConfigWithSessionRecordingConfig(clusterConfig services.ClusterConfig) error {
+func (s *ClusterConfigurationService) syncClusterConfigWithSessionRecordingConfig(clusterConfig types.ClusterConfig) error {
 	if clusterConfig.HasSessionRecordingConfig() {
 		recConfig, err := clusterConfig.GetSessionRecordingConfig()
 		if err != nil {

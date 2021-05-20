@@ -27,7 +27,7 @@ import (
 
 // DefaultStaticTokens is used to get the default static tokens (empty list)
 // when nothing is specified in file configuration.
-func DefaultStaticTokens() StaticTokens {
+func DefaultStaticTokens() types.StaticTokens {
 	return &types.StaticTokensV2{
 		Kind:    KindStaticTokens,
 		Version: V2,
@@ -83,7 +83,7 @@ func GetStaticTokensSchema(extensionSchema string) string {
 }
 
 // UnmarshalStaticTokens unmarshals the StaticTokens resource from JSON.
-func UnmarshalStaticTokens(bytes []byte, opts ...MarshalOption) (StaticTokens, error) {
+func UnmarshalStaticTokens(bytes []byte, opts ...MarshalOption) (types.StaticTokens, error) {
 	var staticTokens types.StaticTokensV2
 
 	if len(bytes) == 0 {
@@ -121,7 +121,7 @@ func UnmarshalStaticTokens(bytes []byte, opts ...MarshalOption) (StaticTokens, e
 }
 
 // MarshalStaticTokens marshals the StaticTokens resource to JSON.
-func MarshalStaticTokens(staticToken StaticTokens, opts ...MarshalOption) ([]byte, error) {
+func MarshalStaticTokens(staticToken types.StaticTokens, opts ...MarshalOption) ([]byte, error) {
 	cfg, err := CollectOptions(opts)
 	if err != nil {
 		return nil, trace.Wrap(err)

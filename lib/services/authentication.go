@@ -209,8 +209,8 @@ func GetAuthPreferenceSchema(extensionSchema string) string {
 }
 
 // UnmarshalAuthPreference unmarshals the AuthPreference resource from JSON.
-func UnmarshalAuthPreference(bytes []byte, opts ...MarshalOption) (AuthPreference, error) {
-	var authPreference AuthPreferenceV2
+func UnmarshalAuthPreference(bytes []byte, opts ...MarshalOption) (types.AuthPreference, error) {
+	var authPreference types.AuthPreferenceV2
 
 	if len(bytes) == 0 {
 		return nil, trace.BadParameter("missing resource data")
@@ -247,6 +247,6 @@ func UnmarshalAuthPreference(bytes []byte, opts ...MarshalOption) (AuthPreferenc
 }
 
 // MarshalAuthPreference marshals the AuthPreference resource to JSON.
-func MarshalAuthPreference(c AuthPreference, opts ...MarshalOption) ([]byte, error) {
+func MarshalAuthPreference(c types.AuthPreference, opts ...MarshalOption) ([]byte, error) {
 	return json.Marshal(c)
 }

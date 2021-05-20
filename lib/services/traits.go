@@ -17,6 +17,7 @@ limitations under the License.
 package services
 
 import (
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/utils/parse"
 
@@ -25,7 +26,7 @@ import (
 )
 
 // TraitsToRoles maps the supplied traits to a list of teleport role names.
-func TraitsToRoles(ms TraitMappingSet, traits map[string][]string) []string {
+func TraitsToRoles(ms types.TraitMappingSet, traits map[string][]string) []string {
 	var roles []string
 	traitsToRoles(ms, traits, func(role string, expanded bool) {
 		roles = append(roles, role)
@@ -37,7 +38,7 @@ func TraitsToRoles(ms TraitMappingSet, traits map[string][]string) []string {
 // this function directly rather than calling TraitsToRoles and then building matchers from
 // the resulting list since this function forces any roles which include substitutions to
 // be literal matchers.
-func TraitsToRoleMatchers(ms TraitMappingSet, traits map[string][]string) ([]parse.Matcher, error) {
+func TraitsToRoleMatchers(ms types.TraitMappingSet, traits map[string][]string) ([]parse.Matcher, error) {
 	var matchers []parse.Matcher
 	var firstErr error
 	traitsToRoles(ms, traits, func(role string, expanded bool) {
@@ -68,7 +69,7 @@ func TraitsToRoleMatchers(ms TraitMappingSet, traits map[string][]string) ([]par
 }
 
 // traitsToRoles maps the supplied traits to teleport role names and passes them to a collector.
-func traitsToRoles(ms TraitMappingSet, traits map[string][]string, collect func(role string, expanded bool)) {
+func traitsToRoles(ms types.TraitMappingSet, traits map[string][]string, collect func(role string, expanded bool)) {
 	for _, mapping := range ms {
 		for traitName, traitValues := range traits {
 			if traitName != mapping.Trait {

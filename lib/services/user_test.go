@@ -79,7 +79,7 @@ func (s *UserSuite) TestOIDCMapping(c *check.C) {
 	}
 	testCases := []struct {
 		comment  string
-		mappings []ClaimMapping
+		mappings []types.ClaimMapping
 		inputs   []input
 	}{
 		{
@@ -93,7 +93,7 @@ func (s *UserSuite) TestOIDCMapping(c *check.C) {
 		},
 		{
 			comment: "simple mappings",
-			mappings: []ClaimMapping{
+			mappings: []types.ClaimMapping{
 				{Claim: "role", Value: "admin", Roles: []string{"admin", "bob"}},
 				{Claim: "role", Value: "user", Roles: []string{"user"}},
 			},
@@ -127,7 +127,7 @@ func (s *UserSuite) TestOIDCMapping(c *check.C) {
 		},
 		{
 			comment: "regexp mappings match",
-			mappings: []ClaimMapping{
+			mappings: []types.ClaimMapping{
 				{Claim: "role", Value: "^admin-(.*)$", Roles: []string{"role-$1", "bob"}},
 			},
 			inputs: []input{
@@ -160,7 +160,7 @@ func (s *UserSuite) TestOIDCMapping(c *check.C) {
 		},
 		{
 			comment: "empty expands are skipped",
-			mappings: []ClaimMapping{
+			mappings: []types.ClaimMapping{
 				{Claim: "role", Value: "^admin-(.*)$", Roles: []string{"$2", "bob"}},
 			},
 			inputs: []input{
@@ -173,7 +173,7 @@ func (s *UserSuite) TestOIDCMapping(c *check.C) {
 		},
 		{
 			comment: "glob wildcard match",
-			mappings: []ClaimMapping{
+			mappings: []types.ClaimMapping{
 				{Claim: "role", Value: "*", Roles: []string{"admin"}},
 			},
 			inputs: []input{
@@ -192,8 +192,8 @@ func (s *UserSuite) TestOIDCMapping(c *check.C) {
 	}
 
 	for i, testCase := range testCases {
-		conn := OIDCConnectorV2{
-			Spec: OIDCConnectorSpecV2{
+		conn := types.OIDCConnectorV2{
+			Spec: types.OIDCConnectorSpecV2{
 				ClaimsToRoles: testCase.mappings,
 			},
 		}
@@ -203,8 +203,8 @@ func (s *UserSuite) TestOIDCMapping(c *check.C) {
 			c.Assert(outRoles, check.DeepEquals, input.roles, comment)
 		}
 
-		samlConn := SAMLConnectorV2{
-			Spec: SAMLConnectorSpecV2{
+		samlConn := types.SAMLConnectorV2{
+			Spec: types.SAMLConnectorSpecV2{
 				AttributesToRoles: claimMappingsToAttributeMappings(testCase.mappings),
 			},
 		}
@@ -218,10 +218,10 @@ func (s *UserSuite) TestOIDCMapping(c *check.C) {
 
 // claimMappingsToAttributeMappings converts oidc claim mappings to
 // attribute mappings, used in tests
-func claimMappingsToAttributeMappings(in []ClaimMapping) []AttributeMapping {
-	var out []AttributeMapping
+func claimMappingsToAttributeMappings(in []types.ClaimMapping) []types.AttributeMapping {
+	var out []types.AttributeMapping
 	for _, m := range in {
-		out = append(out, AttributeMapping{
+		out = append(out, types.AttributeMapping{
 			Name:  m.Claim,
 			Value: m.Value,
 			Roles: append([]string{}, m.Roles...),

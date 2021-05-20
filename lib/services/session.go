@@ -55,7 +55,7 @@ func GetWebSessionSchemaWithExtensions(extension string) string {
 
 // ExtendWebSession renews web session and is used to
 // inject additional data in extenstions when session is getting renewed
-func ExtendWebSession(ws WebSession) (WebSession, error) {
+func ExtendWebSession(ws types.WebSession) (types.WebSession, error) {
 	return ws, nil
 }
 

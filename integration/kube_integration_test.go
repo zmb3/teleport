@@ -182,7 +182,7 @@ func (s *KubeSuite) TestKubeExec(c *check.C) {
 	username := s.me.Username
 	kubeGroups := []string{testImpersonationGroup}
 	kubeUsers := []string{"alice@example.com"}
-	role, err := services.NewRole("kubemaster", types.RoleSpecV3{
+	role, err := types.NewRole("kubemaster", types.RoleSpecV3{
 		Allow: types.RoleConditions{
 			Logins:     []string{username},
 			KubeGroups: kubeGroups,
@@ -356,7 +356,7 @@ func (s *KubeSuite) TestKubeDeny(c *check.C) {
 	username := s.me.Username
 	kubeGroups := []string{testImpersonationGroup}
 	kubeUsers := []string{"alice@example.com"}
-	role, err := services.NewRole("kubemaster", types.RoleSpecV3{
+	role, err := types.NewRole("kubemaster", types.RoleSpecV3{
 		Allow: types.RoleConditions{
 			Logins:     []string{username},
 			KubeGroups: kubeGroups,
@@ -411,7 +411,7 @@ func (s *KubeSuite) TestKubePortForward(c *check.C) {
 
 	username := s.me.Username
 	kubeGroups := []string{testImpersonationGroup}
-	role, err := services.NewRole("kubemaster", types.RoleSpecV3{
+	role, err := types.NewRole("kubemaster", types.RoleSpecV3{
 		Allow: types.RoleConditions{
 			Logins:     []string{username},
 			KubeGroups: kubeGroups,
@@ -511,7 +511,7 @@ func (s *KubeSuite) TestKubeTrustedClustersClientCert(c *check.C) {
 	// main cluster has a role and user called main-kube
 	username := s.me.Username
 	mainKubeGroups := []string{testImpersonationGroup}
-	mainRole, err := services.NewRole("main-kube", types.RoleSpecV3{
+	mainRole, err := types.NewRole("main-kube", types.RoleSpecV3{
 		Allow: types.RoleConditions{
 			Logins:     []string{username},
 			KubeGroups: mainKubeGroups,
@@ -547,7 +547,7 @@ func (s *KubeSuite) TestKubeTrustedClustersClientCert(c *check.C) {
 	// using trusted clusters, so remote user will be allowed to assume
 	// role specified by mapping remote role "aux-kube" to local role "main-kube"
 	auxKubeGroups := []string{teleport.TraitInternalKubeGroupsVariable}
-	auxRole, err := services.NewRole("aux-kube", types.RoleSpecV3{
+	auxRole, err := types.NewRole("aux-kube", types.RoleSpecV3{
 		Allow: types.RoleConditions{
 			Logins: []string{username},
 			// Note that main cluster can pass it's kubernetes groups
@@ -563,7 +563,7 @@ func (s *KubeSuite) TestKubeTrustedClustersClientCert(c *check.C) {
 	err = main.Process.GetAuthServer().UpsertToken(ctx,
 		services.MustCreateProvisionToken(trustedClusterToken, []teleport.Role{teleport.RoleTrustedCluster}, time.Time{}))
 	c.Assert(err, check.IsNil)
-	trustedCluster := main.Secrets.AsTrustedCluster(trustedClusterToken, services.RoleMap{
+	trustedCluster := main.Secrets.AsTrustedCluster(trustedClusterToken, types.RoleMap{
 		{Remote: mainRole.GetName(), Local: []string{auxRole.GetName()}},
 	})
 	c.Assert(err, check.IsNil)
@@ -772,7 +772,7 @@ func (s *KubeSuite) TestKubeTrustedClustersSNI(c *check.C) {
 	// main cluster has a role and user called main-kube
 	username := s.me.Username
 	mainKubeGroups := []string{testImpersonationGroup}
-	mainRole, err := services.NewRole("main-kube", types.RoleSpecV3{
+	mainRole, err := types.NewRole("main-kube", types.RoleSpecV3{
 		Allow: types.RoleConditions{
 			Logins:     []string{username},
 			KubeGroups: mainKubeGroups,
@@ -812,7 +812,7 @@ func (s *KubeSuite) TestKubeTrustedClustersSNI(c *check.C) {
 	// using trusted clusters, so remote user will be allowed to assume
 	// role specified by mapping remote role "aux-kube" to local role "main-kube"
 	auxKubeGroups := []string{teleport.TraitInternalKubeGroupsVariable}
-	auxRole, err := services.NewRole("aux-kube", types.RoleSpecV3{
+	auxRole, err := types.NewRole("aux-kube", types.RoleSpecV3{
 		Allow: types.RoleConditions{
 			Logins: []string{username},
 			// Note that main cluster can pass it's kubernetes groups
@@ -828,7 +828,7 @@ func (s *KubeSuite) TestKubeTrustedClustersSNI(c *check.C) {
 	err = main.Process.GetAuthServer().UpsertToken(ctx,
 		services.MustCreateProvisionToken(trustedClusterToken, []teleport.Role{teleport.RoleTrustedCluster}, time.Time{}))
 	c.Assert(err, check.IsNil)
-	trustedCluster := main.Secrets.AsTrustedCluster(trustedClusterToken, services.RoleMap{
+	trustedCluster := main.Secrets.AsTrustedCluster(trustedClusterToken, types.RoleMap{
 		{Remote: mainRole.GetName(), Local: []string{auxRole.GetName()}},
 	})
 	c.Assert(err, check.IsNil)
@@ -1019,14 +1019,14 @@ func (s *KubeSuite) TestKubeDisconnect(c *check.C) {
 	testCases := []disconnectTestCase{
 		{
 			options: types.RoleOptions{
-				ClientIdleTimeout: services.NewDuration(500 * time.Millisecond),
+				ClientIdleTimeout: types.NewDuration(500 * time.Millisecond),
 			},
 			disconnectTimeout: 2 * time.Second,
 		},
 		{
 			options: types.RoleOptions{
-				DisconnectExpiredCert: services.NewBool(true),
-				MaxSessionTTL:         services.NewDuration(3 * time.Second),
+				DisconnectExpiredCert: types.NewBool(true),
+				MaxSessionTTL:         types.NewDuration(3 * time.Second),
 			},
 			disconnectTimeout: 6 * time.Second,
 		},
@@ -1054,7 +1054,7 @@ func (s *KubeSuite) runKubeDisconnectTest(c *check.C, tc disconnectTestCase) {
 
 	username := s.me.Username
 	kubeGroups := []string{testImpersonationGroup}
-	role, err := services.NewRole("kubemaster", types.RoleSpecV3{
+	role, err := types.NewRole("kubemaster", types.RoleSpecV3{
 		Options: tc.options,
 		Allow: types.RoleConditions{
 			Logins:     []string{username},
@@ -1194,8 +1194,8 @@ func kubeProxyClient(cfg kubeProxyConfig) (*kubernetes.Clientset, *rest.Config, 
 	}
 	ttl := roles.AdjustSessionTTL(10 * time.Minute)
 
-	ca, err := authServer.GetCertAuthority(services.CertAuthID{
-		Type:       services.HostCA,
+	ca, err := authServer.GetCertAuthority(types.CertAuthID{
+		Type:       types.HostCA,
 		DomainName: clusterName.GetClusterName(),
 	}, true)
 	if err != nil {
