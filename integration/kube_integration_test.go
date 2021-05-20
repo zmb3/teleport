@@ -561,7 +561,7 @@ func (s *KubeSuite) TestKubeTrustedClustersClientCert(c *check.C) {
 	c.Assert(err, check.IsNil)
 	trustedClusterToken := "trusted-clsuter-token"
 	err = main.Process.GetAuthServer().UpsertToken(ctx,
-		services.MustCreateProvisionToken(trustedClusterToken, []teleport.Role{teleport.RoleTrustedCluster}, time.Time{}))
+		services.MustCreateProvisionToken(trustedClusterToken, []types.SystemRole{types.RoleTrustedCluster}, time.Time{}))
 	c.Assert(err, check.IsNil)
 	trustedCluster := main.Secrets.AsTrustedCluster(trustedClusterToken, types.RoleMap{
 		{Remote: mainRole.GetName(), Local: []string{auxRole.GetName()}},
@@ -826,7 +826,7 @@ func (s *KubeSuite) TestKubeTrustedClustersSNI(c *check.C) {
 	c.Assert(err, check.IsNil)
 	trustedClusterToken := "trusted-cluster-token"
 	err = main.Process.GetAuthServer().UpsertToken(ctx,
-		services.MustCreateProvisionToken(trustedClusterToken, []teleport.Role{teleport.RoleTrustedCluster}, time.Time{}))
+		services.MustCreateProvisionToken(trustedClusterToken, []types.SystemRole{types.RoleTrustedCluster}, time.Time{}))
 	c.Assert(err, check.IsNil)
 	trustedCluster := main.Secrets.AsTrustedCluster(trustedClusterToken, types.RoleMap{
 		{Remote: mainRole.GetName(), Local: []string{auxRole.GetName()}},

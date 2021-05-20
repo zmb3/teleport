@@ -35,7 +35,7 @@ import (
 
 // NewAdminContext returns new admin auth context
 func NewAdminContext() (*Context, error) {
-	authContext, err := contextForBuiltinRole(BuiltinRole{Role: teleport.RoleAdmin, Username: fmt.Sprintf("%v", teleport.RoleAdmin)}, nil)
+	authContext, err := contextForBuiltinRole(BuiltinRole{Role: types.RoleAdmin, Username: fmt.Sprintf("%v", types.RoleAdmin)}, nil)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -238,11 +238,11 @@ func (a *authorizer) authorizeBuiltinRole(ctx context.Context, r BuiltinRole) (*
 }
 
 func (a *authorizer) authorizeRemoteBuiltinRole(r RemoteBuiltinRole) (*Context, error) {
-	if r.Role != teleport.RoleProxy {
+	if r.Role != types.RoleProxy {
 		return nil, trace.AccessDenied("access denied for remote %v connecting to cluster", r.Role)
 	}
 	roles, err := services.FromSpec(
-		string(teleport.RoleRemoteProxy),
+		string(types.RoleRemoteProxy),
 		types.RoleSpecV3{
 			Allow: types.RoleConditions{
 				Namespaces: []string{types.Wildcard},
@@ -281,7 +281,7 @@ func (a *authorizer) authorizeRemoteBuiltinRole(r RemoteBuiltinRole) (*Context, 
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	user.SetRoles([]string{string(teleport.RoleRemoteProxy)})
+	user.SetRoles([]string{string(types.RoleRemoteProxy)})
 	return &Context{
 		User:             user,
 		Checker:          RemoteBuiltinRoleSet{roles},
@@ -291,9 +291,9 @@ func (a *authorizer) authorizeRemoteBuiltinRole(r RemoteBuiltinRole) (*Context, 
 }
 
 // GetCheckerForBuiltinRole returns checkers for embedded builtin role
-func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordingConfig, role teleport.Role) (services.RoleSet, error) {
+func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordingConfig, role types.SystemRole) (services.RoleSet, error) {
 	switch role {
-	case teleport.RoleAuth:
+	case types.RoleAuth:
 		return services.FromSpec(
 			role.String(),
 			types.RoleSpecV3{
@@ -304,9 +304,9 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 					},
 				},
 			})
-	case teleport.RoleProvisionToken:
+	case types.RoleProvisionToken:
 		return services.FromSpec(role.String(), types.RoleSpecV3{})
-	case teleport.RoleNode:
+	case types.RoleNode:
 		return services.FromSpec(
 			role.String(),
 			types.RoleSpecV3{
@@ -332,7 +332,7 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 					},
 				},
 			})
-	case teleport.RoleApp:
+	case types.RoleApp:
 		return services.FromSpec(
 			role.String(),
 			types.RoleSpecV3{
@@ -359,7 +359,7 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 					},
 				},
 			})
-	case teleport.RoleDatabase:
+	case types.RoleDatabase:
 		return services.FromSpec(
 			role.String(),
 			types.RoleSpecV3{
@@ -383,7 +383,7 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 					},
 				},
 			})
-	case teleport.RoleProxy:
+	case types.RoleProxy:
 		// if in recording mode, return a different set of permissions than regular
 		// mode. recording proxy needs to be able to generate host certificates.
 		if services.IsRecordAtProxy(recConfig.GetMode()) {
@@ -505,7 +505,7 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 					},
 				},
 			})
-	case teleport.RoleSignup:
+	case types.RoleSignup:
 		return services.FromSpec(
 			role.String(),
 			types.RoleSpecV3{
@@ -517,7 +517,7 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 					},
 				},
 			})
-	case teleport.RoleAdmin:
+	case types.RoleAdmin:
 		return services.FromSpec(
 			role.String(),
 			types.RoleSpecV3{
@@ -534,7 +534,7 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 					},
 				},
 			})
-	case teleport.RoleNop:
+	case types.RoleNop:
 		return services.FromSpec(
 			role.String(),
 			types.RoleSpecV3{
@@ -543,7 +543,7 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 					Rules:      []types.Rule{},
 				},
 			})
-	case teleport.RoleKube:
+	case types.RoleKube:
 		return services.FromSpec(
 			role.String(),
 			types.RoleSpecV3{
@@ -695,7 +695,7 @@ type BuiltinRole struct {
 	GetSessionRecordingConfig GetSessionRecordingConfigFunc
 
 	// Role is the builtin role this username is associated with
-	Role teleport.Role
+	Role types.SystemRole
 
 	// Username is for authentication tracking purposes
 	Username string
@@ -709,12 +709,12 @@ type BuiltinRole struct {
 
 // IsServer returns true if the role is one of the builtin server roles.
 func (r BuiltinRole) IsServer() bool {
-	return r.Role == teleport.RoleProxy ||
-		r.Role == teleport.RoleNode ||
-		r.Role == teleport.RoleAuth ||
-		r.Role == teleport.RoleApp ||
-		r.Role == teleport.RoleKube ||
-		r.Role == teleport.RoleDatabase
+	return r.Role == types.RoleProxy ||
+		r.Role == types.RoleNode ||
+		r.Role == types.RoleAuth ||
+		r.Role == types.RoleApp ||
+		r.Role == types.RoleKube ||
+		r.Role == types.RoleDatabase
 }
 
 // GetServerID extracts the identity from the full name. The username
@@ -763,7 +763,7 @@ type RemoteUserRoleSet struct {
 // Teleport service.
 type RemoteBuiltinRole struct {
 	// Role is the builtin role of the user
-	Role teleport.Role
+	Role types.SystemRole
 
 	// Username is for authentication tracking purposes
 	Username string

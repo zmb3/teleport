@@ -319,12 +319,12 @@ func TestGetAdditionalPrincipals(t *testing.T) {
 		},
 	}
 	tests := []struct {
-		role           teleport.Role
+		role           types.SystemRole
 		wantPrincipals []string
 		wantDNS        []string
 	}{
 		{
-			role: teleport.RoleProxy,
+			role: types.RoleProxy,
 			wantPrincipals: []string{
 				"global-hostname",
 				"proxy-public-1",
@@ -352,7 +352,7 @@ func TestGetAdditionalPrincipals(t *testing.T) {
 			},
 		},
 		{
-			role: teleport.RoleAuth,
+			role: types.RoleAuth,
 			wantPrincipals: []string{
 				"global-hostname",
 				"auth-public-1",
@@ -361,7 +361,7 @@ func TestGetAdditionalPrincipals(t *testing.T) {
 			wantDNS: []string{},
 		},
 		{
-			role: teleport.RoleAdmin,
+			role: types.RoleAdmin,
 			wantPrincipals: []string{
 				"global-hostname",
 				"auth-public-1",
@@ -370,7 +370,7 @@ func TestGetAdditionalPrincipals(t *testing.T) {
 			wantDNS: []string{},
 		},
 		{
-			role: teleport.RoleNode,
+			role: types.RoleNode,
 			wantPrincipals: []string{
 				"global-hostname",
 				"global-uuid",
@@ -381,7 +381,7 @@ func TestGetAdditionalPrincipals(t *testing.T) {
 			wantDNS: []string{},
 		},
 		{
-			role: teleport.RoleKube,
+			role: types.RoleKube,
 			wantPrincipals: []string{
 				"global-hostname",
 				string(teleport.PrincipalLocalhost),
@@ -394,7 +394,7 @@ func TestGetAdditionalPrincipals(t *testing.T) {
 			wantDNS: []string{},
 		},
 		{
-			role: teleport.RoleApp,
+			role: types.RoleApp,
 			wantPrincipals: []string{
 				"global-hostname",
 				"global-uuid",
@@ -402,7 +402,7 @@ func TestGetAdditionalPrincipals(t *testing.T) {
 			wantDNS: []string{},
 		},
 		{
-			role: teleport.Role("unknown"),
+			role: types.SystemRole("unknown"),
 			wantPrincipals: []string{
 				"global-hostname",
 			},

@@ -32,6 +32,7 @@ import (
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth/testauthority"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/fixtures"
@@ -250,7 +251,7 @@ func (s *KeyAgentTestSuite) TestHostCertVerification(c *check.C) {
 	// Generate a host certificate for node with role "node".
 	_, hostPub, err := keygen.GenerateKeyPair("")
 	c.Assert(err, check.IsNil)
-	roles, err := teleport.ParseRoles("node")
+	roles, err := types.ParseTeleportRoles("node")
 	c.Assert(err, check.IsNil)
 	hostCertBytes, err := keygen.GenerateHostCert(services.HostCertParams{
 		PrivateCASigningKey: caPriv,

@@ -719,7 +719,7 @@ func (s *IntSuite) TestUUIDBasedProxy(c *check.C) {
 			return "", trace.Wrap(err)
 		}
 
-		ident, err := node.GetIdentity(teleport.RoleNode)
+		ident, err := node.GetIdentity(types.RoleNode)
 		if err != nil {
 			return "", trace.Wrap(err)
 		}
@@ -1752,7 +1752,7 @@ func (s *IntSuite) TestMapRoles(c *check.C) {
 	c.Assert(err, check.IsNil)
 	trustedClusterToken := "trusted-cluster-token"
 	err = main.Process.GetAuthServer().UpsertToken(ctx,
-		services.MustCreateProvisionToken(trustedClusterToken, []teleport.Role{teleport.RoleTrustedCluster}, time.Time{}))
+		services.MustCreateProvisionToken(trustedClusterToken, []types.SystemRole{types.RoleTrustedCluster}, time.Time{}))
 	c.Assert(err, check.IsNil)
 	trustedCluster := main.Secrets.AsTrustedCluster(trustedClusterToken, types.RoleMap{
 		{Remote: mainDevs, Local: []string{auxDevs}},
@@ -2078,7 +2078,7 @@ func (s *IntSuite) trustedClusters(c *check.C, test trustedClusterTest) {
 	c.Assert(err, check.IsNil)
 
 	trustedClusterToken := "trusted-cluster-token"
-	tokenResource, err := types.NewProvisionToken(trustedClusterToken, []teleport.Role{teleport.RoleTrustedCluster}, time.Time{})
+	tokenResource, err := types.NewProvisionToken(trustedClusterToken, []types.SystemRole{types.RoleTrustedCluster}, time.Time{})
 	c.Assert(err, check.IsNil)
 	if test.useLabels {
 		meta := tokenResource.GetMetadata()
@@ -2293,7 +2293,7 @@ func (s *IntSuite) TestTrustedTunnelNode(c *check.C) {
 	c.Assert(err, check.IsNil)
 	trustedClusterToken := "trusted-cluster-token"
 	err = main.Process.GetAuthServer().UpsertToken(ctx,
-		services.MustCreateProvisionToken(trustedClusterToken, []teleport.Role{teleport.RoleTrustedCluster}, time.Time{}))
+		services.MustCreateProvisionToken(trustedClusterToken, []types.SystemRole{types.RoleTrustedCluster}, time.Time{}))
 	c.Assert(err, check.IsNil)
 	trustedCluster := main.Secrets.AsTrustedCluster(trustedClusterToken, types.RoleMap{
 		{Remote: mainDevs, Local: []string{auxDevs}},
@@ -3791,7 +3791,7 @@ func (s *IntSuite) TestRotateTrustedClusters(c *check.C) {
 	c.Assert(err, check.IsNil)
 	trustedClusterToken := "trusted-clsuter-token"
 	err = svc.GetAuthServer().UpsertToken(ctx,
-		services.MustCreateProvisionToken(trustedClusterToken, []teleport.Role{teleport.RoleTrustedCluster}, time.Time{}))
+		services.MustCreateProvisionToken(trustedClusterToken, []types.SystemRole{types.RoleTrustedCluster}, time.Time{}))
 	c.Assert(err, check.IsNil)
 	trustedCluster := main.Secrets.AsTrustedCluster(trustedClusterToken, types.RoleMap{
 		{Remote: mainDevs, Local: []string{auxDevs}},
