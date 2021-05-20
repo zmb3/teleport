@@ -358,14 +358,14 @@ func UnmarshalServer(bytes []byte, kind string, opts ...MarshalOption) (Server, 
 		return nil, trace.BadParameter("missing server data")
 	}
 
-	var h ResourceHeader
+	var h types.ResourceHeader
 	if err = utils.FastUnmarshal(bytes, &h); err != nil {
 		return nil, trace.Wrap(err)
 	}
 
 	switch h.Version {
 	case V2:
-		var s ServerV2
+		var s types.ServerV2
 
 		if cfg.SkipValidation {
 			if err := utils.FastUnmarshal(bytes, &s); err != nil {
@@ -409,7 +409,7 @@ func MarshalServer(server Server, opts ...MarshalOption) ([]byte, error) {
 	}
 
 	switch server := server.(type) {
-	case *ServerV2:
+	case *types.ServerV2:
 		if version := server.GetVersion(); version != V2 {
 			return nil, trace.BadParameter("mismatched server version %v and type %T", version, server)
 		}
@@ -428,7 +428,7 @@ func MarshalServer(server Server, opts ...MarshalOption) ([]byte, error) {
 
 // UnmarshalServers unmarshals a list of Server resources.
 func UnmarshalServers(bytes []byte) ([]Server, error) {
-	var servers []ServerV2
+	var servers []types.ServerV2
 
 	err := utils.FastUnmarshal(bytes, &servers)
 	if err != nil {

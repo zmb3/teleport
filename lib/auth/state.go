@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
@@ -135,10 +136,10 @@ func (p *ProcessStorage) ReadIdentity(name string, role teleport.Role) (*Identit
 // WriteIdentity writes identity to the backend.
 func (p *ProcessStorage) WriteIdentity(name string, id Identity) error {
 	res := IdentityV2{
-		ResourceHeader: services.ResourceHeader{
+		ResourceHeader: types.ResourceHeader{
 			Kind:    services.KindIdentity,
 			Version: services.V2,
-			Metadata: services.Metadata{
+			Metadata: types.Metadata{
 				Name: name,
 			},
 		},
@@ -168,7 +169,7 @@ func (p *ProcessStorage) WriteIdentity(name string, id Identity) error {
 // StateV2 is a local process state.
 type StateV2 struct {
 	// ResourceHeader is a common resource header.
-	services.ResourceHeader
+	types.ResourceHeader
 	// Spec is a process spec.
 	Spec StateSpecV2 `json:"spec"`
 }
@@ -190,13 +191,13 @@ func (s *StateV2) CheckAndSetDefaults() error {
 // StateSpecV2 is a state spec.
 type StateSpecV2 struct {
 	// Rotation holds local process rotation state.
-	Rotation services.Rotation `json:"rotation"`
+	Rotation types.Rotation `json:"rotation"`
 }
 
 // IdentityV2 specifies local host identity.
 type IdentityV2 struct {
 	// ResourceHeader is a common resource header.
-	services.ResourceHeader
+	types.ResourceHeader
 	// Spec is the identity spec.
 	Spec IdentitySpecV2 `json:"spec"`
 }

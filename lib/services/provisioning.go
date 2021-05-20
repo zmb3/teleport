@@ -79,7 +79,7 @@ func UnmarshalProvisionToken(data []byte, opts ...MarshalOption) (ProvisionToken
 		return nil, trace.Wrap(err)
 	}
 
-	var h ResourceHeader
+	var h types.ResourceHeader
 	err = utils.FastUnmarshal(data, &h)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -87,7 +87,7 @@ func UnmarshalProvisionToken(data []byte, opts ...MarshalOption) (ProvisionToken
 
 	switch h.Version {
 	case "":
-		var p ProvisionTokenV1
+		var p types.ProvisionTokenV1
 		err := utils.FastUnmarshal(data, &p)
 		if err != nil {
 			return nil, trace.Wrap(err)
@@ -98,7 +98,7 @@ func UnmarshalProvisionToken(data []byte, opts ...MarshalOption) (ProvisionToken
 		}
 		return v2, nil
 	case V2:
-		var p ProvisionTokenV2
+		var p types.ProvisionTokenV2
 		if cfg.SkipValidation {
 			if err := utils.FastUnmarshal(data, &p); err != nil {
 				return nil, trace.BadParameter(err.Error())

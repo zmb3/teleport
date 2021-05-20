@@ -67,7 +67,7 @@ func UnmarshalReverseTunnel(bytes []byte, opts ...MarshalOption) (ReverseTunnel,
 	if len(bytes) == 0 {
 		return nil, trace.BadParameter("missing tunnel data")
 	}
-	var h ResourceHeader
+	var h types.ResourceHeader
 	err := json.Unmarshal(bytes, &h)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -79,7 +79,7 @@ func UnmarshalReverseTunnel(bytes []byte, opts ...MarshalOption) (ReverseTunnel,
 
 	switch h.Version {
 	case V2:
-		var r ReverseTunnelV2
+		var r types.ReverseTunnelV2
 		if cfg.SkipValidation {
 			if err := utils.FastUnmarshal(bytes, &r); err != nil {
 				return nil, trace.BadParameter(err.Error())
@@ -111,7 +111,7 @@ func MarshalReverseTunnel(reverseTunnel ReverseTunnel, opts ...MarshalOption) ([
 	}
 
 	switch reverseTunnel := reverseTunnel.(type) {
-	case *ReverseTunnelV2:
+	case *types.ReverseTunnelV2:
 		if version := reverseTunnel.GetVersion(); version != V2 {
 			return nil, trace.BadParameter("mismatched reverse tunnel version %v and type %T", version, reverseTunnel)
 		}

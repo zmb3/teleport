@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/utils"
 
@@ -23,7 +24,7 @@ type SemaphoreLockConfig struct {
 	// and defaults to 1/2 expiry.  Used to accelerate tests.
 	TickRate time.Duration
 	// Params holds the semaphore lease acquisition parameters.
-	Params AcquireSemaphoreRequest
+	Params types.AcquireSemaphoreRequest
 }
 
 // CheckAndSetDefaults checks and sets default parameters
@@ -56,7 +57,7 @@ func (l *SemaphoreLockConfig) CheckAndSetDefaults() error {
 // semaphore lease keepalive operations.
 type SemaphoreLock struct {
 	cfg       SemaphoreLockConfig
-	lease0    SemaphoreLease
+	lease0    types.SemaphoreLease
 	retry     utils.Retry
 	ticker    *time.Ticker
 	doneC     chan struct{}
@@ -244,7 +245,7 @@ func GetSemaphoreSchema() string {
 
 // UnmarshalSemaphore unmarshals the Semaphore resource from JSON.
 func UnmarshalSemaphore(bytes []byte, opts ...MarshalOption) (Semaphore, error) {
-	var semaphore SemaphoreV3
+	var semaphore types.SemaphoreV3
 
 	if len(bytes) == 0 {
 		return nil, trace.BadParameter("missing resource data")
@@ -287,7 +288,7 @@ func MarshalSemaphore(semaphore Semaphore, opts ...MarshalOption) ([]byte, error
 		return nil, trace.Wrap(err)
 	}
 	switch semaphore := semaphore.(type) {
-	case *SemaphoreV3:
+	case *types.SemaphoreV3:
 		if version := semaphore.GetVersion(); version != V3 {
 			return nil, trace.BadParameter("mismatched semaphore version %v and type %T", version, semaphore)
 		}

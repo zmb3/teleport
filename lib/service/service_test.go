@@ -28,10 +28,10 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/reversetunnel"
-	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/utils/testlog"
 
@@ -272,7 +272,7 @@ func (s *ServiceTestSuite) TestInitExternalLog(c *check.C) {
 
 		cmt := check.Commentf("tt[%v]: %+v", i, tt)
 
-		loggers, err := initExternalLog(context.Background(), services.AuditConfig{
+		loggers, err := initExternalLog(context.Background(), types.AuditConfig{
 			AuditEventsURI: tt.events,
 		}, t.Log)
 

@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/trace"
 )
@@ -90,7 +91,7 @@ func GetGithubConnectorSchema() string {
 
 // UnmarshalGithubConnector unmarshals the GithubConnector resource from JSON.
 func UnmarshalGithubConnector(bytes []byte) (GithubConnector, error) {
-	var h ResourceHeader
+	var h types.ResourceHeader
 	if err := json.Unmarshal(bytes, &h); err != nil {
 		return nil, trace.Wrap(err)
 	}

@@ -267,11 +267,11 @@ func (p *certAuthorityParser) parse(event backend.Event) (services.Resource, err
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
-		return &services.ResourceHeader{
+		return &types.ResourceHeader{
 			Kind:    services.KindCertAuthority,
 			SubKind: caType,
 			Version: services.V2,
-			Metadata: services.Metadata{
+			Metadata: types.Metadata{
 				Name:      name,
 				Namespace: defaults.Namespace,
 			},
@@ -594,7 +594,7 @@ func (p *roleParser) parse(event backend.Event) (services.Resource, error) {
 }
 
 func newAccessRequestParser(m map[string]string) (*accessRequestParser, error) {
-	var filter services.AccessRequestFilter
+	var filter types.AccessRequestFilter
 	if err := filter.FromMap(m); err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -606,7 +606,7 @@ func newAccessRequestParser(m map[string]string) (*accessRequestParser, error) {
 }
 
 type accessRequestParser struct {
-	filter      services.AccessRequestFilter
+	filter      types.AccessRequestFilter
 	matchPrefix []byte
 	matchSuffix []byte
 }
@@ -738,11 +738,11 @@ func (p *tunnelConnectionParser) parse(event backend.Event) (services.Resource, 
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
-		return &services.ResourceHeader{
+		return &types.ResourceHeader{
 			Kind:    services.KindTunnelConnection,
 			SubKind: clusterName,
 			Version: services.V2,
-			Metadata: services.Metadata{
+			Metadata: types.Metadata{
 				Name:      name,
 				Namespace: defaults.Namespace,
 			},
@@ -806,7 +806,7 @@ func (p *appServerParser) parse(event backend.Event) (services.Resource, error) 
 func newAppSessionParser() *webSessionParser {
 	return &webSessionParser{
 		baseParser: baseParser{matchPrefix: backend.Key(appsPrefix, sessionsPrefix)},
-		hdr: services.ResourceHeader{
+		hdr: types.ResourceHeader{
 			Kind:    services.KindWebSession,
 			SubKind: services.KindAppSession,
 			Version: services.V2,
@@ -817,7 +817,7 @@ func newAppSessionParser() *webSessionParser {
 func newWebSessionParser() *webSessionParser {
 	return &webSessionParser{
 		baseParser: baseParser{matchPrefix: backend.Key(webPrefix, sessionsPrefix)},
-		hdr: services.ResourceHeader{
+		hdr: types.ResourceHeader{
 			Kind:    services.KindWebSession,
 			SubKind: services.KindWebSession,
 			Version: services.V2,
@@ -827,7 +827,7 @@ func newWebSessionParser() *webSessionParser {
 
 type webSessionParser struct {
 	baseParser
-	hdr services.ResourceHeader
+	hdr types.ResourceHeader
 }
 
 func (p *webSessionParser) parse(event backend.Event) (services.Resource, error) {
@@ -910,7 +910,7 @@ func (p *databaseServerParser) parse(event backend.Event) (services.Resource, er
 		return &types.DatabaseServerV3{
 			Kind:    types.KindDatabaseServer,
 			Version: types.V3,
-			Metadata: services.Metadata{
+			Metadata: types.Metadata{
 				Name:        name,
 				Namespace:   defaults.Namespace,
 				Description: hostID, // Pass host ID via description field for the cache.
@@ -988,26 +988,26 @@ func resourceHeader(event backend.Event, kind, version string, offset int) (serv
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return &services.ResourceHeader{
+	return &types.ResourceHeader{
 		Kind:    kind,
 		Version: version,
-		Metadata: services.Metadata{
+		Metadata: types.Metadata{
 			Name:      string(name),
 			Namespace: defaults.Namespace,
 		},
 	}, nil
 }
 
-func resourceHeaderWithTemplate(event backend.Event, hdr services.ResourceHeader, offset int) (services.Resource, error) {
+func resourceHeaderWithTemplate(event backend.Event, hdr types.ResourceHeader, offset int) (services.Resource, error) {
 	name, err := base(event.Item.Key, offset)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return &services.ResourceHeader{
+	return &types.ResourceHeader{
 		Kind:    hdr.Kind,
 		SubKind: hdr.SubKind,
 		Version: hdr.Version,
-		Metadata: services.Metadata{
+		Metadata: types.Metadata{
 			Name:      string(name),
 			Namespace: defaults.Namespace,
 		},

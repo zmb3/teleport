@@ -19,6 +19,7 @@ package services
 import (
 	"fmt"
 
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/trace"
 )
@@ -46,7 +47,7 @@ func UnmarshalResetPasswordToken(bytes []byte, opts ...MarshalOption) (ResetPass
 		return nil, trace.BadParameter("missing resource data")
 	}
 
-	var token ResetPasswordTokenV3
+	var token types.ResetPasswordTokenV3
 	schema := fmt.Sprintf(V2SchemaTemplate, MetadataSchema, ResetPasswordTokenSpecV3Template, DefaultDefinitions)
 	err := utils.UnmarshalWithSchema(schema, &token, bytes)
 	if err != nil {

@@ -19,6 +19,7 @@ package services
 import (
 	"fmt"
 
+	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/trace"
 )
@@ -59,7 +60,7 @@ func UnmarshalRemoteCluster(bytes []byte, opts ...MarshalOption) (RemoteCluster,
 		return nil, trace.Wrap(err)
 	}
 
-	var cluster RemoteClusterV3
+	var cluster types.RemoteClusterV3
 
 	if len(bytes) == 0 {
 		return nil, trace.BadParameter("missing resource data")
@@ -100,7 +101,7 @@ func MarshalRemoteCluster(remoteCluster RemoteCluster, opts ...MarshalOption) ([
 	}
 
 	switch remoteCluster := remoteCluster.(type) {
-	case *RemoteClusterV3:
+	case *types.RemoteClusterV3:
 		if version := remoteCluster.GetVersion(); version != V3 {
 			return nil, trace.BadParameter("mismatched remote cluster version %v and type %T", version, remoteCluster)
 		}

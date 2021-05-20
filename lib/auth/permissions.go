@@ -243,10 +243,10 @@ func (a *authorizer) authorizeRemoteBuiltinRole(r RemoteBuiltinRole) (*Context, 
 	}
 	roles, err := services.FromSpec(
 		string(teleport.RoleRemoteProxy),
-		services.RoleSpecV3{
-			Allow: services.RoleConditions{
+		types.RoleSpecV3{
+			Allow: types.RoleConditions{
 				Namespaces: []string{services.Wildcard},
-				Rules: []services.Rule{
+				Rules: []types.Rule{
 					services.NewRule(services.KindNode, services.RO()),
 					services.NewRule(services.KindProxy, services.RO()),
 					services.NewRule(services.KindCertAuthority, services.ReadNoSecrets()),
@@ -296,23 +296,23 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 	case teleport.RoleAuth:
 		return services.FromSpec(
 			role.String(),
-			services.RoleSpecV3{
-				Allow: services.RoleConditions{
+			types.RoleSpecV3{
+				Allow: types.RoleConditions{
 					Namespaces: []string{services.Wildcard},
-					Rules: []services.Rule{
+					Rules: []types.Rule{
 						services.NewRule(services.KindAuthServer, services.RW()),
 					},
 				},
 			})
 	case teleport.RoleProvisionToken:
-		return services.FromSpec(role.String(), services.RoleSpecV3{})
+		return services.FromSpec(role.String(), types.RoleSpecV3{})
 	case teleport.RoleNode:
 		return services.FromSpec(
 			role.String(),
-			services.RoleSpecV3{
-				Allow: services.RoleConditions{
+			types.RoleSpecV3{
+				Allow: types.RoleConditions{
 					Namespaces: []string{services.Wildcard},
-					Rules: []services.Rule{
+					Rules: []types.Rule{
 						services.NewRule(services.KindNode, services.RW()),
 						services.NewRule(services.KindSSHSession, services.RW()),
 						services.NewRule(services.KindEvent, services.RW()),
@@ -335,10 +335,10 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 	case teleport.RoleApp:
 		return services.FromSpec(
 			role.String(),
-			services.RoleSpecV3{
-				Allow: services.RoleConditions{
+			types.RoleSpecV3{
+				Allow: types.RoleConditions{
 					Namespaces: []string{services.Wildcard},
-					Rules: []services.Rule{
+					Rules: []types.Rule{
 						services.NewRule(services.KindEvent, services.RW()),
 						services.NewRule(services.KindProxy, services.RO()),
 						services.NewRule(services.KindCertAuthority, services.ReadNoSecrets()),
@@ -362,10 +362,10 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 	case teleport.RoleDatabase:
 		return services.FromSpec(
 			role.String(),
-			services.RoleSpecV3{
-				Allow: services.RoleConditions{
+			types.RoleSpecV3{
+				Allow: types.RoleConditions{
 					Namespaces: []string{services.Wildcard},
-					Rules: []services.Rule{
+					Rules: []types.Rule{
 						services.NewRule(services.KindEvent, services.RW()),
 						services.NewRule(services.KindProxy, services.RO()),
 						services.NewRule(services.KindCertAuthority, services.ReadNoSecrets()),
@@ -389,11 +389,11 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 		if services.IsRecordAtProxy(recConfig.GetMode()) {
 			return services.FromSpec(
 				role.String(),
-				services.RoleSpecV3{
-					Allow: services.RoleConditions{
+				types.RoleSpecV3{
+					Allow: types.RoleConditions{
 						Namespaces:    []string{services.Wildcard},
 						ClusterLabels: services.Labels{services.Wildcard: []string{services.Wildcard}},
-						Rules: []services.Rule{
+						Rules: []types.Rule{
 							services.NewRule(services.KindProxy, services.RW()),
 							services.NewRule(services.KindOIDCRequest, services.RW()),
 							services.NewRule(services.KindSSHSession, services.RW()),
@@ -449,11 +449,11 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 		}
 		return services.FromSpec(
 			role.String(),
-			services.RoleSpecV3{
-				Allow: services.RoleConditions{
+			types.RoleSpecV3{
+				Allow: types.RoleConditions{
 					Namespaces:    []string{services.Wildcard},
 					ClusterLabels: services.Labels{services.Wildcard: []string{services.Wildcard}},
-					Rules: []services.Rule{
+					Rules: []types.Rule{
 						services.NewRule(services.KindProxy, services.RW()),
 						services.NewRule(services.KindOIDCRequest, services.RW()),
 						services.NewRule(services.KindSSHSession, services.RW()),
@@ -508,10 +508,10 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 	case teleport.RoleSignup:
 		return services.FromSpec(
 			role.String(),
-			services.RoleSpecV3{
-				Allow: services.RoleConditions{
+			types.RoleSpecV3{
+				Allow: types.RoleConditions{
 					Namespaces: []string{services.Wildcard},
-					Rules: []services.Rule{
+					Rules: []types.Rule{
 						services.NewRule(services.KindAuthServer, services.RO()),
 						services.NewRule(services.KindClusterAuthPreference, services.RO()),
 					},
@@ -520,16 +520,16 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 	case teleport.RoleAdmin:
 		return services.FromSpec(
 			role.String(),
-			services.RoleSpecV3{
-				Options: services.RoleOptions{
+			types.RoleSpecV3{
+				Options: types.RoleOptions{
 					MaxSessionTTL: services.MaxDuration(),
 				},
-				Allow: services.RoleConditions{
+				Allow: types.RoleConditions{
 					Namespaces:    []string{services.Wildcard},
 					Logins:        []string{},
 					NodeLabels:    services.Labels{services.Wildcard: []string{services.Wildcard}},
 					ClusterLabels: services.Labels{services.Wildcard: []string{services.Wildcard}},
-					Rules: []services.Rule{
+					Rules: []types.Rule{
 						services.NewRule(services.Wildcard, services.RW()),
 					},
 				},
@@ -537,19 +537,19 @@ func GetCheckerForBuiltinRole(clusterName string, recConfig types.SessionRecordi
 	case teleport.RoleNop:
 		return services.FromSpec(
 			role.String(),
-			services.RoleSpecV3{
-				Allow: services.RoleConditions{
+			types.RoleSpecV3{
+				Allow: types.RoleConditions{
 					Namespaces: []string{},
-					Rules:      []services.Rule{},
+					Rules:      []types.Rule{},
 				},
 			})
 	case teleport.RoleKube:
 		return services.FromSpec(
 			role.String(),
-			services.RoleSpecV3{
-				Allow: services.RoleConditions{
+			types.RoleSpecV3{
+				Allow: types.RoleConditions{
 					Namespaces: []string{services.Wildcard},
-					Rules: []services.Rule{
+					Rules: []types.Rule{
 						services.NewRule(services.KindKubeService, services.RW()),
 						services.NewRule(services.KindEvent, services.RW()),
 						services.NewRule(services.KindCertAuthority, services.ReadNoSecrets()),
