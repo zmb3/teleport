@@ -137,8 +137,8 @@ func (p *ProcessStorage) ReadIdentity(name string, role teleport.Role) (*Identit
 func (p *ProcessStorage) WriteIdentity(name string, id Identity) error {
 	res := IdentityV2{
 		ResourceHeader: types.ResourceHeader{
-			Kind:    services.KindIdentity,
-			Version: services.V2,
+			Kind:    types.KindIdentity,
+			Version: types.V2,
 			Metadata: types.Metadata{
 				Name: name,
 			},
@@ -176,8 +176,8 @@ type StateV2 struct {
 
 // CheckAndSetDefaults checks and sets defaults values.
 func (s *StateV2) CheckAndSetDefaults() error {
-	s.Kind = services.KindState
-	s.Version = services.V2
+	s.Kind = types.KindState
+	s.Version = types.V2
 	// for state resource name does not matter
 	if s.Metadata.Name == "" {
 		s.Metadata.Name = stateName
@@ -204,8 +204,8 @@ type IdentityV2 struct {
 
 // CheckAndSetDefaults checks and sets defaults values.
 func (s *IdentityV2) CheckAndSetDefaults() error {
-	s.Kind = services.KindIdentity
-	s.Version = services.V2
+	s.Kind = types.KindIdentity
+	s.Version = types.V2
 	if err := s.Metadata.CheckAndSetDefaults(); err != nil {
 		return trace.Wrap(err)
 	}

@@ -4419,7 +4419,7 @@ func (s *IntSuite) TestList(c *check.C) {
 		{
 			inRoleName: "worker-and-database",
 			inLogin:    "baz",
-			inLabels:   types.Labels{services.Wildcard: []string{services.Wildcard}},
+			inLabels:   types.Labels{types.Wildcard: []string{types.Wildcard}},
 			outNodes:   []string{"server-01", "server-02"},
 		},
 	}

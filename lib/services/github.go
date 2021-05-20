@@ -96,7 +96,7 @@ func UnmarshalGithubConnector(bytes []byte) (types.GithubConnector, error) {
 		return nil, trace.Wrap(err)
 	}
 	switch h.Version {
-	case V3:
+	case types.V3:
 		var c types.GithubConnectorV3
 		if err := utils.UnmarshalWithSchema(GetGithubConnectorSchema(), &c, bytes); err != nil {
 			return nil, trace.Wrap(err)
@@ -119,7 +119,7 @@ func MarshalGithubConnector(githubConnector types.GithubConnector, opts ...Marsh
 
 	switch githubConnector := githubConnector.(type) {
 	case *types.GithubConnectorV3:
-		if version := githubConnector.GetVersion(); version != V3 {
+		if version := githubConnector.GetVersion(); version != types.V3 {
 			return nil, trace.BadParameter("mismatched github connector version %v and type %T", version, githubConnector)
 		}
 		if !cfg.PreserveResourceID {

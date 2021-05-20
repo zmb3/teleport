@@ -364,7 +364,7 @@ func UnmarshalServer(bytes []byte, kind string, opts ...MarshalOption) (types.Se
 	}
 
 	switch h.Version {
-	case V2:
+	case types.V2:
 		var s types.ServerV2
 
 		if cfg.SkipValidation {
@@ -410,7 +410,7 @@ func MarshalServer(server types.Server, opts ...MarshalOption) ([]byte, error) {
 
 	switch server := server.(type) {
 	case *types.ServerV2:
-		if version := server.GetVersion(); version != V2 {
+		if version := server.GetVersion(); version != types.V2 {
 			return nil, trace.BadParameter("mismatched server version %v and type %T", version, server)
 		}
 		if !cfg.PreserveResourceID {

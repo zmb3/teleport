@@ -72,7 +72,7 @@ func UnmarshalWebSession(bytes []byte, opts ...MarshalOption) (types.WebSession,
 		return nil, trace.Wrap(err)
 	}
 	switch h.Version {
-	case V2:
+	case types.V2:
 		var ws types.WebSessionV2
 		if err := utils.UnmarshalWithSchema(GetWebSessionSchema(), &ws, bytes); err != nil {
 			return nil, trace.BadParameter(err.Error())
@@ -105,7 +105,7 @@ func MarshalWebSession(webSession types.WebSession, opts ...MarshalOption) ([]by
 
 	switch webSession := webSession.(type) {
 	case *types.WebSessionV2:
-		if version := webSession.GetVersion(); version != V2 {
+		if version := webSession.GetVersion(); version != types.V2 {
 			return nil, trace.BadParameter("mismatched web session version %v and type %T", version, webSession)
 		}
 		if !cfg.PreserveResourceID {
@@ -130,7 +130,7 @@ func MarshalWebToken(webToken types.WebToken, opts ...MarshalOption) ([]byte, er
 
 	switch webToken := webToken.(type) {
 	case *types.WebTokenV3:
-		if version := webToken.GetVersion(); version != V3 {
+		if version := webToken.GetVersion(); version != types.V3 {
 			return nil, trace.BadParameter("mismatched web token version %v and type %T", version, webToken)
 		}
 		if !cfg.PreserveResourceID {
@@ -158,7 +158,7 @@ func UnmarshalWebToken(bytes []byte, opts ...MarshalOption) (types.WebToken, err
 		return nil, trace.Wrap(err)
 	}
 	switch hdr.Version {
-	case V3:
+	case types.V3:
 		var token types.WebTokenV3
 		if err := utils.UnmarshalWithSchema(GetWebTokenSchema(), &token, bytes); err != nil {
 			return nil, trace.BadParameter("invalid web token: %v", err.Error())

@@ -97,7 +97,7 @@ func UnmarshalProvisionToken(data []byte, opts ...MarshalOption) (types.Provisio
 			v2.SetResourceID(cfg.ID)
 		}
 		return v2, nil
-	case V2:
+	case types.V2:
 		var p types.ProvisionTokenV2
 		if cfg.SkipValidation {
 			if err := utils.FastUnmarshal(data, &p); err != nil {
@@ -128,7 +128,7 @@ func MarshalProvisionToken(provisionToken types.ProvisionToken, opts ...MarshalO
 
 	switch provisionToken := provisionToken.(type) {
 	case *types.ProvisionTokenV2:
-		if version := provisionToken.GetVersion(); version != V2 {
+		if version := provisionToken.GetVersion(); version != types.V2 {
 			return nil, trace.BadParameter("mismatched provision token version %v and type %T", version, provisionToken)
 		}
 		if !cfg.PreserveResourceID {
@@ -138,7 +138,7 @@ func MarshalProvisionToken(provisionToken types.ProvisionToken, opts ...MarshalO
 			copy.SetResourceID(0)
 			provisionToken = &copy
 		}
-		if cfg.GetVersion() == V1 {
+		if cfg.GetVersion() == types.V1 {
 			return utils.FastMarshal(provisionToken.V1())
 		}
 		return utils.FastMarshal(provisionToken)
