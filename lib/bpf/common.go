@@ -25,7 +25,7 @@ import (
 	"context"
 	"unsafe"
 
-	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/events"
 	"github.com/gravitational/teleport/lib/utils"
@@ -146,7 +146,7 @@ func IsHostCompatible() error {
 	// To find the cgroup ID of a program, bpf_get_current_cgroup_id is needed
 	// which was introduced in 4.18.
 	// https://github.com/torvalds/linux/commit/bf6fa2c893c5237b48569a13fa3c673041430b6c
-	minKernel := semver.New(teleport.EnhancedRecordingMinKernel)
+	minKernel := semver.New(constants.EnhancedRecordingMinKernel)
 	version, err := utils.KernelVersion()
 	if err != nil {
 		return trace.Wrap(err)

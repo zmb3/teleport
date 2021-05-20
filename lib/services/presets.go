@@ -19,6 +19,7 @@ package services
 import (
 	"github.com/gravitational/teleport"
 
+	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/pborman/uuid"
@@ -37,7 +38,7 @@ func NewPresetEditorRole() types.Role {
 		},
 		Spec: types.RoleSpecV3{
 			Options: types.RoleOptions{
-				CertificateFormat: teleport.CertificateFormatStandard,
+				CertificateFormat: constants.CertificateFormatStandard,
 				MaxSessionTTL:     types.NewDuration(defaults.MaxCertDuration),
 				PortForwarding:    types.NewBoolOption(true),
 				ForwardAgent:      types.NewBool(true),
@@ -76,7 +77,7 @@ func NewPresetAccessRole() types.Role {
 		},
 		Spec: types.RoleSpecV3{
 			Options: types.RoleOptions{
-				CertificateFormat: teleport.CertificateFormatStandard,
+				CertificateFormat: constants.CertificateFormatStandard,
 				MaxSessionTTL:     types.NewDuration(defaults.MaxCertDuration),
 				PortForwarding:    types.NewBoolOption(true),
 				ForwardAgent:      types.NewBool(true),
@@ -116,7 +117,7 @@ func NewPresetAuditorRole() types.Role {
 		},
 		Spec: types.RoleSpecV3{
 			Options: types.RoleOptions{
-				CertificateFormat: teleport.CertificateFormatStandard,
+				CertificateFormat: constants.CertificateFormatStandard,
 				MaxSessionTTL:     types.NewDuration(defaults.MaxCertDuration),
 			},
 			Allow: types.RoleConditions{

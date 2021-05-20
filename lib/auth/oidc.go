@@ -25,6 +25,7 @@ import (
 	"net/url"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/events"
@@ -477,7 +478,7 @@ func (a *Server) createOIDCUser(p *createUserParams) (types.User, error) {
 				User: types.UserRef{Name: teleport.UserSystem},
 				Time: a.clock.Now().UTC(),
 				Connector: &types.ConnectorRef{
-					Type:     teleport.OIDC,
+					Type:     constants.OIDC,
 					ID:       p.connectorName,
 					Identity: p.username,
 				},

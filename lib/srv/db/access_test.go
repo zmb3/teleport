@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -537,7 +538,7 @@ func withSelfHostedPostgres(name string) withDatabaseOption {
 				Protocol:      defaults.ProtocolPostgres,
 				URI:           net.JoinHostPort("localhost", postgresServer.Port()),
 				Version:       teleport.Version,
-				Hostname:      teleport.APIDomain,
+				Hostname:      constants.APIDomain,
 				HostID:        testCtx.hostID,
 				DynamicLabels: dynamicLabels,
 			})
@@ -566,7 +567,7 @@ func withRDSPostgres(name, authToken string) withDatabaseOption {
 				Protocol:      defaults.ProtocolPostgres,
 				URI:           net.JoinHostPort("localhost", postgresServer.Port()),
 				Version:       teleport.Version,
-				Hostname:      teleport.APIDomain,
+				Hostname:      constants.APIDomain,
 				HostID:        testCtx.hostID,
 				DynamicLabels: dynamicLabels,
 				AWS: types.AWS{
@@ -600,7 +601,7 @@ func withRedshiftPostgres(name, authToken string) withDatabaseOption {
 				Protocol:      defaults.ProtocolPostgres,
 				URI:           net.JoinHostPort("localhost", postgresServer.Port()),
 				Version:       teleport.Version,
-				Hostname:      teleport.APIDomain,
+				Hostname:      constants.APIDomain,
 				HostID:        testCtx.hostID,
 				DynamicLabels: dynamicLabels,
 				AWS: types.AWS{
@@ -638,7 +639,7 @@ func withCloudSQLPostgres(name, authToken string) withDatabaseOption {
 				Protocol:      defaults.ProtocolPostgres,
 				URI:           net.JoinHostPort("localhost", postgresServer.Port()),
 				Version:       teleport.Version,
-				Hostname:      teleport.APIDomain,
+				Hostname:      constants.APIDomain,
 				HostID:        testCtx.hostID,
 				DynamicLabels: dynamicLabels,
 				GCP: types.GCPCloudSQL{
@@ -672,7 +673,7 @@ func withSelfHostedMySQL(name string) withDatabaseOption {
 				Protocol:      defaults.ProtocolMySQL,
 				URI:           net.JoinHostPort("localhost", mysqlServer.Port()),
 				Version:       teleport.Version,
-				Hostname:      teleport.APIDomain,
+				Hostname:      constants.APIDomain,
 				HostID:        testCtx.hostID,
 				DynamicLabels: dynamicLabels,
 			})
@@ -702,7 +703,7 @@ func withRDSMySQL(name, authUser, authToken string) withDatabaseOption {
 				Protocol:      defaults.ProtocolMySQL,
 				URI:           net.JoinHostPort("localhost", mysqlServer.Port()),
 				Version:       teleport.Version,
-				Hostname:      teleport.APIDomain,
+				Hostname:      constants.APIDomain,
 				HostID:        testCtx.hostID,
 				DynamicLabels: dynamicLabels,
 				AWS: types.AWS{
