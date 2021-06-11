@@ -222,6 +222,7 @@ resource "aws_lb_target_group" "proxy_web" {
   port     = 3080
   vpc_id   = aws_vpc.teleport.id
   protocol = "TCP"
+  count    = 1
 }
 
 // Proxy web listener (using letsencrypt)
@@ -229,6 +230,7 @@ resource "aws_lb_listener" "proxy_web" {
   load_balancer_arn = aws_lb.proxy.arn
   port              = "443"
   protocol          = "TCP"
+  count             = 1
 
   default_action {
     target_group_arn = aws_lb_target_group.proxy_web[0].arn
