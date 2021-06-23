@@ -35,14 +35,42 @@ A Cert Store can be used to:
 type Store interface {
   // extends client.Credentials to authenticate a client
   client.Credentials
-  // store certs
-	Store(certs) error
-  // when current certs expire
-	Expires() time.Time
-  // used by the Auth server when signing new certificates
-  PublicKey() []byte
+  // store signed client key
+	Save(key Key) error
+  // when current certs expire (with offset)
+	Expires(offset int) time.Time
+  // TTL defines how long new certs should live for. Note that it
+  // will be limited on the server side by the user's max_session_ttl
+  TTL() time.Duration
   // signal that these certificates have been changed
   Refresh() <- chan struct{}
+  // Close associated resources, including Refresh channel
+  Close() error
+}
+
+// Key describes a complete (signed) client key
+// pulled from lib/client/interfaces
+type Key struct {
+  // Priv is a PEM encoded private key
+  Priv []byte `json:"Priv,omitempty"`
+  // Pub is a public key used to sign certs
+  Pub []byte `json:"Pub,omitempty"`
+  // Cert is an SSH client certificate
+  Cert []byte `json:"Cert,omitempty"`
+  // TLSCert is a PEM encoded client TLS x509 certificate.
+  // It's used to authenticate to the Teleport APIs.
+  TLSCert []byte `json:"TLSCert,omitempty"`
+  // KubeTLSCerts are TLS certificates (PEM-encoded) for individual
+  // kubernetes clusters. Map key is a kubernetes cluster name.
+  KubeTLSCerts map[string][]byte `json:"KubeCerts,omitempty"`
+  // DBTLSCerts are PEM-encoded TLS certificates for database access.
+  // Map key is the database service name.
+  DBTLSCerts map[string][]byte `json:"DBCerts,omitempty"`
+  // AppTLSCerts are TLS certificates for application access.
+  // Map key is the application name.
+  AppTLSCerts map[string][]byte `json:"AppCerts,omitempty"`
+  // TrustedCA is a list of trusted certificate authorities
+  TrustedCA []auth.TrustedCerts
 }
 ```
 
@@ -79,10 +107,6 @@ type Agent struct {
   Client Client
   // the agent's certificates store
   CertStore Store
-  // TTL will define how long new certs generated through the Agent will 
-  // live for. Note that it will be limited on the server side by the
-  // user's max_session_ttl.
-  TTL time.Duration
 }
 ```
 
@@ -122,6 +146,12 @@ The agent will use `client.GenerateUserCerts` to retrieve newly signed certifica
 ##### Refresh Client connection
 
 The agent will watch its store's `Refresh` channel in order to refresh the client connection when needed. This may be caused by the Cert Agent writing to the `Store` itself, or by an external actor.
+
+### Monitoring
+
+It is possible that one, some, or all of the Cert Stores that the Cert Agent is managing have become invalid. For example, this could happen due to the certs being invalid before the Cert Agent is started up or because there was significant server downtime. Whatever the case, it should be simple for a user to find out that there is an issue and resolve it.
+
+This can be done with a simple alerting mechanism via prometheus.
 
 ### RBAC restriction
 
