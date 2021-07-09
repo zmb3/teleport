@@ -7,19 +7,139 @@ state: draft
 
 ## What
 
-Provide a way for long living automated clients to retrieve new User certificates as needed.
+Provide a way for long living external clients and servers to retrieve new Teleport certificates as needed.
 
 ## Why
 
-Presently, there is no good way to keep client certificates secure and valid for long durations. In order to gain access for an extended period of time, one must retrieve a set of long lived certificates. There are a few security and UX issues with this approach.
+Presently, there is no good way to keep client/server certificates secure and valid for long durations without them being in direct contact with the Teleport Auth server, like a Teleport Node.
+
+In order for a client or server outside of a Teleport Cluster to gain access for an extended period of time, they must retrieve a set of long lived certificates. There are a few security and UX issues with this approach.
 
 - Long lived certificates are less secure than short lived certificates.
-- The User CA may be rotated due to a security breach or a scheduled rotation. When this happens, all User certificates will lose access, after a grace period, and need to be manually refreshed.
-- Eventually, long lived certificates will expire after their TTL. Then they need to be manually refreshed, which puts a strain on administrators and could lead to downtime if neglected.
+- The Teleport CAs may be rotated due to a security breach or a scheduled rotation. When this happens, all certificates will lose access, after a grace period, and need to be manually refreshed.
+- Eventually, long lived certificates will expire after their TTL. Then they need to be manually refreshed, which puts a strain on administrators and could lead to downtime if neglected or forgotten.
+
+It should be possible to set up an external client or server with auto-rotating certificates, similar to a Teleport Node.
 
 ## Details
 
-Cert agent will be a new standalone client with the responsibility of continuously renewing a set of certificates before they lose access. Before explaining how the agent will function, we need to create a new abstraction for certificates to enable the agent.
+Teleport Cert Bot will be a new Teleport service that will maintain cluster membership similarly to a Teleport Node.
+
+Cert Bot will be responsible for rotating and renewing a set or sets of certificates as needed, thereby granting the users of such certificates pseudo-membership to the Teleport Cluster.
+
+Cert Bot will also be responsible for providing a way for the Teleport cluster to monitor its certificates and providing a pathway to the auth server for revoking access of a set of certificate, likely utilizing a [Lock](https://github.com/gravitational/teleport/pull/7286).
+
+### Use Cases
+
+Cert Bot can do two things:
+
+1. Provide user certificates and the Teleport Host CA certificate to a client.
+ - The Teleport API client can make use of both x509 and SSH certificates to make API requests to the Teleport Auth server.
+ - ??? A Teleport Application Access CLI can use x509 certificates.
+ - ??? Automation tooling like Ansible can make use of SSH certificates.
+
+2. Provide host certificates and the Teleport User CA certificate to a server.
+ - ??? Application Access CLI can use x509 certificates.
+ - OpenSSH servers can use SSH certificates to maintain membership to a Teleport Cluster with short lived certificates.
+
+### UX
+
+#### tbot binary
+
+`tbot start` can be run from the command line in a similar fashion to `teleport start`. `tbot` will start up a Cert Bot, connect it to the Teleport Auth server as a new Node, and begin refreshing certs specified by the `--cert` flag.
+
+```bash
+# exactly the same syntax as `teleport start`
+$ tbot start --token=[token] --auth-server=proxy.example.com
+    --cert="tls,/var/lib/nginx,nginx -s reload" \
+    --cert="openssh,/etc/ssh/,systemctl reload sshd"
+```
+
+`--cert` is a one-liner tuple (format, target, reload command) that must be provided at least once.
+ - `format` (required) is a certificate format, such as `file`, `tls`, `openssh`, `kubernetes`, or `db` (matches `tctl auth sign` formats).
+ - `target` (required) is a directory, file, or other location where certs are stored, depending on the `format`. `tbot` will read the certs from the `target` and rotate or refresh them using the data already stored in them, meaning the certs must be generated with `tctl auth sign` first.
+ - `reload command` (optional) is a bash command to run after Cert Bot successfully rotates or renews a set of certificates.
+
+#### User flow
+
+1. Create certificates for tbot to manage
+  ```bash
+  $ tctl auth sign --format=openssh --host=ssh.example.com --out=/etc/ssh/ssh.example.com --ttl=1h
+  The credentials have been written to ssh.example.com, ssh.example.com-cert.pub
+  $ tctl auth sign --format=file --user=api-client --out=/etc/api-client-identity --ttl=1h
+  The credentials have been written to api-client-identity
+  ```
+
+2. Create a `tbot` join token
+  ```bash
+  $ tctl tokens add --type=tbot
+  The invite token: f68d2ccab54708afd06a00c4a044f323
+  This token will expire in 60 minutes 
+  ```
+
+3. Start `tbot`
+  ```bash
+  $ tbot start --token=f68d2ccab54708afd06a00c4a044f323 --auth-server=proxy.example.com
+    --cert="openssh,/etc/ssh/ssh.example.com,systemctl reload sshd"
+    --cert="file,/etc/api-client-identity" # The underlying API client will automatically reload
+  ```
+
+4. Use the certificates in an external client/server.
+  - The ssh server is already running and will automatically reload with `systemctl reload sshd` when the SSH or CA certificate is updated.
+  - ```go
+    // Create clt, it will automatically detect changes to "/etc/api-client-identity" and reload its connection
+    clt, err := client.New(ctx, client.Config{
+      Addrs: []string{"auth.example.com:3025"},
+      Credentials: client.LoadIdentity("/etc/api-client-identity"),
+    })
+    ```
+
+### Implementation
+
+Add a new built in role "CertAgent" which can generate user certs with impersonation, has * impersonation.
+
+### Monitoring
+
+An open question, how will we track certificates intended to be used by a bot? You can do tctl nodes ls to get a list of all nodes and tctl users ls to get a list of all users. Will certificates issued to the Certificate Bot behave differently? Probably, for example, for host certificates we probably want to register that there is an active certificate but don't allow tsh ssh to connect to that host (because OpenSSH won't be heartbeating information about where its alive).
+
+### Implementation Details
+
+
+#### Cert Bot client
+
+Teleport Cert Bot will need access to the following API endpoints in order to watch for rotation state changes and update certificates.
+
+```go
+type Client interface {
+  // Generates TLS and SSH certificates for the user in the request
+  GenerateUserCerts(ctx context.Context, req proto.UserCertsRequest) (*proto.Certs, error)
+  // GenerateHostCerts will be converted to gRPC and updated to match GenerateUserCerts
+  GenerateHostCerts(ctx context.Context, req proto.HostCertsRequest) (*proto.Certs, error)
+  // Can be used to watch CA rotation state changes on types.CertAuthority
+  NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error)
+}
+```
+
+### API Client 
+
+
+
+
+
+
+
+
+
+
+
+
+## Why
+
+
+
+## Details
+
+
 
 ### Cert Store
 
@@ -91,9 +211,9 @@ More stores can be added in the future to support:
 
 The Cert Store will watch it's certificates for updates, whether it's a file change or something else. When this occurs, it will send a message on its `refresh` channel.
 
-Refresh only uses a single channel, so the `Store` can only be used by a single Cert Agent. Additional Cert Agents will be prevented from using a used `Store` object.
+Refresh only uses a single channel, so the `Store` can only be used by a single Cert Bot. Additional Cert Bots will be prevented from using a used `Store` object.
 
-### Cert Agent
+### Cert Bot
 
 The Agent will:
  - hold a Cert Store 
@@ -123,13 +243,7 @@ For these reasons, this idea will be saved for a future discussion.
 
 The agent only needs access to a few client methods in order to perform its job.
 
-```go
-type Client interface {
-  NewWatcher(ctx context.Context, watch types.Watch) (types.Watcher, error)
-  GenerateUserCerts(ctx context.Context, req proto.UserCertsRequest) (*proto.Certs, error)
-  RefreshConnection(ctx context.Context, creds Credentials) error
-}
-```
+
 
 #### Watch for certificate expiration
 
@@ -145,11 +259,11 @@ The agent will use `client.GenerateUserCerts` to retrieve newly signed certifica
 
 ##### Refresh Client connection
 
-The agent will watch its store's `Refresh` channel in order to refresh the client connection when needed. This may be caused by the Cert Agent writing to the `Store` itself, or by an external actor.
+The agent will watch its store's `Refresh` channel in order to refresh the client connection when needed. This may be caused by the Cert Bot writing to the `Store` itself, or by an external actor.
 
 ### Monitoring
 
-It is possible that one, some, or all of the Cert Stores that the Cert Agent is managing have become invalid. For example, this could happen due to the certs being invalid before the Cert Agent is started up or because there was significant server downtime. Whatever the case, it should be simple for a user to find out that there is an issue and resolve it.
+It is possible that one, some, or all of the Cert Stores that the Cert Bot is managing have become invalid. For example, this could happen due to the certs being invalid before the Cert Bot is started up or because there was significant server downtime. Whatever the case, it should be simple for a user to find out that there is an issue and resolve it.
 
 This can be done with a simple alerting mechanism via prometheus.
 
@@ -190,7 +304,7 @@ func (c *Client) RefreshConnection(creds Credentials) error {
 }
 ```
 
-Now, a new client can simply start up a Cert Agent to automatically keep its credentials refreshed. This can be added to the end of the client constructor.
+Now, a new client can simply start up a Cert Bot to automatically keep its credentials refreshed. This can be added to the end of the client constructor.
 
 ```go
 // connect client to server
@@ -208,10 +322,10 @@ if ok && config.RunCertAgent {
 
 #### tsh and tctl
 
-If desired, `tsh` and `tctl` could integrate Cert Agent functionality. This could be useful for Teleport users who orchestrate `tsh` and `tctl` to run automated processes.
+If desired, `tsh` and `tctl` could integrate Cert Bot functionality. This could be useful for Teleport users who orchestrate `tsh` and `tctl` to run automated processes.
 
-`tctl auth sign --certagent` could be used to generate new certificates and automatically start up a new Certificate Agent Service using the certificates as a Store. All `--format` options would be supported. 
+`tctl auth sign --certbot` could be used to generate new certificates and automatically start up a new Certificate Agent Service using the certificates as a Store. All `--format` options would be supported. 
 
-`tsh login` and `tsh [db|app|kube] login` could also support the `--certagent` flag for all available formats.
+`tsh login` and `tsh [db|app|kube] login` could also support the `--certbot` flag for all available formats.
 
-Note that the `reissue_certificates` role option would need to be enabled, so normal users won't be able to run a Cert Agent to refresh their `tsh login` credentials.
+Note that the `reissue_certificates` role option would need to be enabled, so normal users won't be able to run a Cert Bot to refresh their `tsh login` credentials.
