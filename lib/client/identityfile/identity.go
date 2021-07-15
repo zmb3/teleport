@@ -227,6 +227,149 @@ func Write(cfg WriteConfig) (filesWritten []string, err error) {
 	return filesWritten, nil
 }
 
+// Readconfig holds the necessary information to read an identity file.
+type Readconfig struct {
+	// Path is the output path used to write the identity file.
+	Path string
+	// Format is the output format of the identity file.
+	Format Format
+}
+
+// Read reads user credentials from disk in a specified format.
+func Read(cfg Readconfig) (*client.Key, error) {
+	if cfg.Path == "" {
+		return nil, trace.BadParameter("identity path is not specified")
+	}
+
+	switch cfg.Format {
+	// dump user identity into a single file:
+	// case FormatFile:
+	// 	idFile, err := identityfile.Read(cfg.Path)
+	// 	if err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+
+	// 	key := &client.Key{
+	// 		Priv: idFile.PrivateKey,
+	// 		Cert: idFile.Certs.SSH,
+	// 		TLSCert: idFile.Certs.TLS,
+	// 	}
+
+	// 	// append trusted host certificate authorities
+	// 	for _, ca := range cfg.Key.TrustedCA {
+	// 		// append ssh ca certificates
+	// 		for _, publicKey := range ca.HostCertificates {
+	// 			data, err := sshutils.MarshalAuthorizedHostsFormat(ca.ClusterName, publicKey, nil)
+	// 			if err != nil {
+	// 				return nil, trace.Wrap(err)
+	// 			}
+	// 			idFile.CACerts.SSH = append(idFile.CACerts.SSH, []byte(data))
+	// 		}
+	// 		// append tls ca certificates
+	// 		idFile.CACerts.TLS = append(idFile.CACerts.TLS, ca.TLSCertificates...)
+	// 	}
+
+	// 	if err := identityfile.Write(idFile, cfg.OutputPath); err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+
+	// dump user identity into separate files:
+	case FormatOpenSSH:
+		key, err := ioutil.ReadFile(cfg.Path)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		cert, err := ioutil.ReadFile(keypaths.IdentitySSHCertPath(cfg.Path))
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		return &client.Key{
+			Cert: cert,
+			Priv: key,
+		}, nil
+
+	// case FormatTLS, FormatDatabase:
+	// 	keyPath := cfg.OutputPath + ".key"
+	// 	certPath := cfg.OutputPath + ".crt"
+	// 	casPath := cfg.OutputPath + ".cas"
+	// 	filesWritten = append(filesWritten, keyPath, certPath, casPath)
+	// 	if err := checkOverwrite(cfg.OverwriteDestination, filesWritten...); err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+
+	// 	err = ioutil.WriteFile(certPath, cfg.Key.TLSCert, identityfile.FilePermissions)
+	// 	if err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+
+	// 	err = ioutil.WriteFile(keyPath, cfg.Key.Priv, identityfile.FilePermissions)
+	// 	if err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+	// 	var caCerts []byte
+	// 	for _, ca := range cfg.Key.TrustedCA {
+	// 		for _, cert := range ca.TLSCertificates {
+	// 			caCerts = append(caCerts, cert...)
+	// 		}
+	// 	}
+	// 	err = ioutil.WriteFile(casPath, caCerts, identityfile.FilePermissions)
+	// 	if err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+
+	// // FormatMongo is the same as FormatTLS or FormatDatabase certificate and
+	// // key are concatenated in the same .crt file which is what Mongo expects.
+	// case FormatMongo:
+	// 	certPath := cfg.OutputPath + ".crt"
+	// 	casPath := cfg.OutputPath + ".cas"
+	// 	filesWritten = append(filesWritten, certPath, casPath)
+	// 	if err := checkOverwrite(cfg.OverwriteDestination, filesWritten...); err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+	// 	err = ioutil.WriteFile(certPath, append(cfg.Key.TLSCert, cfg.Key.Priv...), identityfile.FilePermissions)
+	// 	if err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+	// 	var caCerts []byte
+	// 	for _, ca := range cfg.Key.TrustedCA {
+	// 		for _, cert := range ca.TLSCertificates {
+	// 			caCerts = append(caCerts, cert...)
+	// 		}
+	// 	}
+	// 	err = ioutil.WriteFile(casPath, caCerts, identityfile.FilePermissions)
+	// 	if err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+
+	// case FormatKubernetes:
+	// 	filesWritten = append(filesWritten, cfg.OutputPath)
+	// 	if err := checkOverwrite(cfg.OverwriteDestination, filesWritten...); err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+	// 	// Clean up the existing file, if it exists.
+	// 	//
+	// 	// kubeconfig.Update would try to parse it and merge in new
+	// 	// credentials, which is not what we want.
+	// 	if err := os.Remove(cfg.OutputPath); err != nil && !os.IsNotExist(err) {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+
+	// 	if err := kubeconfig.Update(cfg.OutputPath, kubeconfig.Values{
+	// 		TeleportClusterName: cfg.Key.ClusterName,
+	// 		ClusterAddr:         cfg.KubeProxyAddr,
+	// 		Credentials:         cfg.Key,
+	// 	}); err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+
+	default:
+		return nil, trace.BadParameter("unsupported identity format: %q, use one of %q", cfg.Format, KnownFormats)
+	}
+	return nil, nil
+}
+
 func checkOverwrite(force bool, paths ...string) error {
 	var existingFiles []string
 	// Check if the destination file exists.
