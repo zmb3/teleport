@@ -485,6 +485,7 @@ func (b *EtcdBackend) CompareAndSwap(ctx context.Context, expected backend.Item,
 		if trace.IsNotFound(err) {
 			return nil, trace.CompareFailed(err.Error())
 		}
+		return nil, trace.Wrap(err)
 	}
 	if !re.Succeeded {
 		return nil, trace.CompareFailed("key %q did not match expected value", string(expected.Key))
