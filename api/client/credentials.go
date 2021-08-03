@@ -244,7 +244,6 @@ func (c *profileCreds) Dialer(cfg Config) (ContextDialer, error) {
 		*sshConfig,
 		cfg.KeepAlivePeriod,
 		cfg.DialTimeout,
-		c.profile.WebProxyAddr,
 		cfg.InsecureAddressDiscovery,
 	), nil
 }

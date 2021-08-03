@@ -20,6 +20,7 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -37,7 +38,6 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/gravitational/trace"
 	"github.com/gravitational/trace/trail"
-	"golang.org/x/crypto/ssh"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials"
@@ -62,15 +62,13 @@ func init() {
 type Client struct {
 	// c contains configuration values for the client.
 	c Config
-	// tlsConfig is the *tls.Config for a successfully connected client.
-	tlsConfig *tls.Config
-	// dialer is the ContextDialer for a successfully connected client.
-	dialer ContextDialer
+	// cc contains configuration values used by the client to connect to an auth server.
+	cc connectConfig
 	// conn is a grpc connection to the auth server.
 	conn *grpc.ClientConn
 	// grpc is the gRPC client specification for the auth server.
 	grpc proto.AuthServiceClient
-	// closedFlag is set to indicate that the connnection is closed.
+	// closedFlag is set to indicate that the connection is closed.
 	// It's a pointer to allow the Client struct to be copied.
 	closedFlag *int32
 	// callOpts configure calls made by this client.
@@ -102,11 +100,10 @@ func New(ctx context.Context, cfg Config) (clt *Client, err error) {
 }
 
 // newClient constructs a new client.
-func newClient(cfg Config, dialer ContextDialer, tlsConfig *tls.Config) *Client {
+func newClient(cfg Config, connectCfg connectConfig) *Client {
 	return &Client{
 		c:          cfg,
-		dialer:     dialer,
-		tlsConfig:  tlsConfig,
+		cc:         connectCfg,
 		closedFlag: new(int32),
 	}
 }
@@ -120,52 +117,71 @@ func connectInBackground(ctx context.Context, cfg Config) (*Client, error) {
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
+
+	// get connectCfg for either the cfg dialer, or the first auth address.
+	var connectCfg connectConfig
 	if cfg.Dialer != nil {
-		return dialerConnect(ctx, connectParams{
-			cfg:       cfg,
-			tlsConfig: tlsConfig,
-			dialer:    cfg.Dialer,
-		})
+		connectCfg = connectConfig{
+			tlsConfig:    tlsConfig,
+			addr:         constants.APIDomain,
+			dialer:       cfg.Dialer,
+			errorMessage: "failed to connect using cfg dialer",
+		}
 	} else if len(cfg.Addrs) != 0 {
-		return authConnect(ctx, connectParams{
-			cfg:       cfg,
-			tlsConfig: tlsConfig,
-			addr:      cfg.Addrs[0],
-		})
+		connectCfg = connectConfig{
+			tlsConfig:    tlsConfig,
+			addr:         cfg.Addrs[0],
+			dialer:       NewDirectDialer(cfg.KeepAlivePeriod, cfg.DialTimeout),
+			errorMessage: fmt.Sprintf("failed to connect to addr %v as an auth server", cfg.Addrs[0]),
+		}
+	} else {
+		return nil, trace.BadParameter("must provide Dialer or Addrs in config")
 	}
-	return nil, trace.BadParameter("must provide Dialer or Addrs in config")
+
+	clt := newClient(cfg, connectCfg)
+	if err := clt.dialGRPC(ctx); err != nil {
+		return nil, trace.Wrap(err)
+	}
+	return clt, nil
 }
 
 // connect connects the client to the server using the Credentials and
 // Dialer/Addresses provided in the client's config. Multiple goroutines are started
-// to make dial attempts with different combinations of dialers and credentials. The
+// to make dial attempts with different combinations of connect parameters. The
 // first client to successfully connect is used to populate the client's connection
 // attributes. If none successfully connect, an aggregated error is returned.
 func connect(ctx context.Context, cfg Config) (*Client, error) {
+	// cancel ctx is used to close unused client connections
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	var wg sync.WaitGroup
 
-	// sendError is used to send errors to errChan with context.
-	errChan := make(chan error)
-	sendError := func(err error) {
-		select {
-		case <-ctx.Done():
-		case errChan <- trace.Wrap(err):
-		}
+	// Aggregate errors from goroutines
+	var errs []error
+	var errsMux sync.Mutex
+	appendErr := func(err error) {
+		errsMux.Lock()
+		// Add a new line to make aggregated errs human readable.
+		errs = append(errs, trace.Wrap(err, ""))
+		errsMux.Unlock()
 	}
 
-	// syncConnect is used to concurrently create multiple clients
-	// with the different combination of connection parameters.
-	// The first successful client to be sent to cltChan will be returned.
+	// Gather all connection methods from cfg
+	connectConfigs, err := getConnectConfigs(cfg)
+	if err != nil {
+		appendErr(trace.Wrap(err, "Failed to create some connect parameters"))
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(len(connectConfigs))
 	cltChan := make(chan *Client)
-	syncConnect := func(ctx context.Context, connect connectFunc, params connectParams) {
-		wg.Add(1)
-		go func() {
+
+	// Connect with each set of connection configs synchronously.
+	// The first successfully connected client will be set to cltChan.
+	for _, p := range connectConfigs {
+		go func(clt *Client) {
 			defer wg.Done()
-			clt, err := connect(ctx, params)
-			if err != nil {
-				sendError(trace.Wrap(err))
+			if err := clt.dialGRPC(ctx); err != nil {
+				appendErr(trace.Wrap(err))
 				return
 			}
 			select {
@@ -173,185 +189,120 @@ func connect(ctx context.Context, cfg Config) (*Client, error) {
 			case <-ctx.Done():
 				clt.Close()
 			}
-		}()
+		}(newClient(cfg, p))
 	}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		// Connect with provided credentials.
-		for _, creds := range cfg.Credentials {
-			tlsConfig, err := creds.TLSConfig()
-			if err != nil {
-				sendError(trace.Wrap(err))
-				continue
-			}
-
-			sshConfig, err := creds.SSHClientConfig()
-			if err != nil && !trace.IsNotImplemented(err) {
-				sendError(trace.Wrap(err))
-				continue
-			}
-
-			// Connect with dialer provided in config.
-			if cfg.Dialer != nil {
-				syncConnect(ctx, dialerConnect, connectParams{
-					cfg:       cfg,
-					tlsConfig: tlsConfig,
-				})
-			}
-
-			// Connect with dialer provided in creds.
-			if dialer, err := creds.Dialer(cfg); err != nil {
-				if !trace.IsNotImplemented(err) {
-					sendError(trace.Wrap(err, "failed to retrieve dialer from creds of type %T", creds))
-				}
-			} else {
-				syncConnect(ctx, dialerConnect, connectParams{
-					cfg:       cfg,
-					tlsConfig: tlsConfig,
-					dialer:    dialer,
-				})
-			}
-
-			// Attempt to connect to each address as Auth, Proxy, and Tunnel
-			for _, addr := range cfg.Addrs {
-				syncConnect(ctx, authConnect, connectParams{
-					cfg:       cfg,
-					tlsConfig: tlsConfig,
-					addr:      addr,
-				})
-				if sshConfig != nil {
-					syncConnect(ctx, proxyConnect, connectParams{
-						cfg:       cfg,
-						tlsConfig: tlsConfig,
-						sshConfig: sshConfig,
-						addr:      addr,
-					})
-					syncConnect(ctx, tunnelConnect, connectParams{
-						cfg:       cfg,
-						tlsConfig: tlsConfig,
-						sshConfig: sshConfig,
-						addr:      addr,
-					})
-				}
-			}
-		}
-	}()
-
-	// Start goroutine to wait for wait group.
+	// Once all connection methods have been attempted, close the cltChan
 	go func() {
 		wg.Wait()
-		// Close errChan to return errors.
-		close(errChan)
+		close(cltChan)
 	}()
 
-	var errs []error
-	for {
-		select {
-		// Use the first client to successfully connect in syncConnect.
-		case clt := <-cltChan:
-			return clt, nil
-		case err, ok := <-errChan:
-			if ok {
-				// Add a new line to make errs human readable.
-				errs = append(errs, trace.Wrap(err, ""))
-				continue
-			}
-			// errChan is closed, return errors.
+	select {
+	case clt, ok := <-cltChan:
+		if !ok { // cltChan closed, return errors
 			if len(errs) == 0 {
-				if len(cfg.Addrs) == 0 && cfg.Dialer == nil {
-					// Some credentials don't require these fields. If no errors propagate, then they need to provide these fields.
-					return nil, trace.BadParameter("no connection methods found, try providing Dialer or Addrs in config")
-				}
-				// This case should never be reached with config validation and above case.
-				return nil, trace.Errorf("no connection methods found")
+				// Some credentials don't require these fields. If no errors propagate,
+				// then they probably need to provide these fields.
+				return nil, trace.BadParameter("no connection methods found, try providing Dialer or Addrs in config")
 			}
 			return nil, trace.Wrap(trace.NewAggregate(errs...), "all connection methods failed")
-		case <-ctx.Done():
-			return nil, trace.Wrap(ctx.Err())
+		}
+		return clt, nil
+	case <-ctx.Done():
+		return nil, trace.Wrap(ctx.Err())
+	}
+}
+
+// getConnectConfigs gets every possible set of connect config values from the given client config.
+// If there are any errors, they will be returned as an aggregate alongside all successfully created configs.
+func getConnectConfigs(cfg Config) ([]connectConfig, error) {
+	var connectConfigs []connectConfig
+	var errs []error
+
+	for _, creds := range cfg.Credentials {
+		// gather common connect config values
+		tlsConfig, err := creds.TLSConfig()
+		if err != nil {
+			errs = append(errs, trace.Wrap(err))
+		}
+		sshConfig, err := creds.SSHClientConfig()
+		if err != nil && !trace.IsNotImplemented(err) {
+			errs = append(errs, trace.Wrap(err))
+		}
+
+		// use client config dialer
+		if cfg.Dialer != nil {
+			connectConfigs = append(connectConfigs, connectConfig{
+				tlsConfig:    tlsConfig,
+				addr:         constants.APIDomain,
+				dialer:       cfg.Dialer,
+				errorMessage: "failed to connect using cfg dialer",
+			})
+		}
+
+		// use credential dialer
+		if dialer, err := creds.Dialer(cfg); err == nil {
+			connectConfigs = append(connectConfigs, connectConfig{
+				tlsConfig:    tlsConfig,
+				addr:         constants.APIDomain,
+				dialer:       dialer,
+				errorMessage: fmt.Sprintf("failed to connect using dialer from credentials of type %T", creds),
+			})
+		} else if !trace.IsNotImplemented(err) {
+			errs = append(errs, trace.Wrap(err, "failed to retrieve dialer from creds of type %T", creds))
+		}
+
+		// use addrs alongside Auth, Proxy, and Tunnel dialers
+		for _, addr := range cfg.Addrs {
+			connectConfigs = append(connectConfigs, connectConfig{
+				tlsConfig:    tlsConfig,
+				addr:         addr,
+				dialer:       NewDirectDialer(cfg.KeepAlivePeriod, cfg.DialTimeout),
+				errorMessage: fmt.Sprintf("failed to connect to addr %v as an auth server", addr),
+			})
+			if sshConfig != nil {
+				connectConfigs = append(connectConfigs, connectConfig{
+					tlsConfig:    tlsConfig,
+					addr:         addr,
+					dialer:       NewProxyDialer(*sshConfig, cfg.KeepAlivePeriod, cfg.DialTimeout, cfg.InsecureAddressDiscovery),
+					errorMessage: fmt.Sprintf("failed to connect to addr %v as a web proxy", addr),
+				})
+				connectConfigs = append(connectConfigs, connectConfig{
+					tlsConfig:    tlsConfig,
+					addr:         addr,
+					dialer:       newTunnelDialer(*sshConfig, cfg.KeepAlivePeriod, cfg.DialTimeout),
+					errorMessage: fmt.Sprintf("failed to connect to addr %v as a reverse tunnel proxy", addr),
+				})
+			}
 		}
 	}
-}
-
-type connectFunc func(ctx context.Context, params connectParams) (*Client, error)
-type connectParams struct {
-	cfg       Config
-	addr      string
-	tlsConfig *tls.Config
-	dialer    ContextDialer
-	sshConfig *ssh.ClientConfig
-}
-
-func authConnect(ctx context.Context, params connectParams) (*Client, error) {
-	dialer := NewDirectDialer(params.cfg.KeepAlivePeriod, params.cfg.DialTimeout)
-	clt := newClient(params.cfg, dialer, params.tlsConfig)
-	if err := clt.dialGRPC(ctx, params.addr); err != nil {
-		return nil, trace.Wrap(err, "failed to connect to addr %v as an auth server", params.addr)
-	}
-	return clt, nil
-}
-
-func tunnelConnect(ctx context.Context, params connectParams) (*Client, error) {
-	if params.sshConfig == nil {
-		return nil, trace.BadParameter("must provide ssh client config")
-	}
-	dialer := newTunnelDialer(*params.sshConfig, params.cfg.KeepAlivePeriod, params.cfg.DialTimeout)
-	clt := newClient(params.cfg, dialer, params.tlsConfig)
-	if err := clt.dialGRPC(ctx, params.addr); err != nil {
-		return nil, trace.Wrap(err, "failed to connect to addr %v as a reverse tunnel proxy", params.addr)
-	}
-	return clt, nil
-}
-
-func proxyConnect(ctx context.Context, params connectParams) (*Client, error) {
-	if params.sshConfig == nil {
-		return nil, trace.BadParameter("must provide ssh client config")
-	}
-	dialer := NewProxyDialer(*params.sshConfig, params.cfg.KeepAlivePeriod, params.cfg.DialTimeout, params.addr, params.cfg.InsecureAddressDiscovery)
-	clt := newClient(params.cfg, dialer, params.tlsConfig)
-	if err := clt.dialGRPC(ctx, params.addr); err != nil {
-		return nil, trace.Wrap(err, "failed to connect to addr %v as a web proxy", params.addr)
-	}
-	return clt, nil
-}
-
-func dialerConnect(ctx context.Context, params connectParams) (*Client, error) {
-	if params.dialer == nil {
-		if params.cfg.Dialer == nil {
-			return nil, trace.BadParameter("must provide dialer to connectParams.dialer or params.cfg.Dialer")
-		}
-		params.dialer = params.cfg.Dialer
-	}
-	clt := newClient(params.cfg, params.dialer, params.tlsConfig)
-	if err := clt.dialGRPC(ctx, constants.APIDomain); err != nil {
-		return nil, trace.Wrap(err, "failed to connect using pre-defined dialer")
-	}
-	return clt, nil
+	return connectConfigs, trace.NewAggregate(errs...)
 }
 
 // dialGRPC dials a connection between server and client. If withBlock is true,
 // the dial will block until the connection is up, rather than returning
 // immediately and connecting to the server in the background.
-func (c *Client) dialGRPC(ctx context.Context, addr string) error {
+func (c *Client) dialGRPC(ctx context.Context) error {
 	dialContext, cancel := context.WithTimeout(ctx, c.c.DialTimeout)
 	defer cancel()
 
 	dialOpts := append([]grpc.DialOption{}, c.c.DialOpts...)
-	dialOpts = append(dialOpts, grpc.WithContextDialer(c.grpcDialer()))
 	dialOpts = append(dialOpts,
+		grpc.WithContextDialer(c.grpcDialer()),
 		grpc.WithUnaryInterceptor(metadata.UnaryClientInterceptor),
-		grpc.WithStreamInterceptor(metadata.StreamClientInterceptor))
+		grpc.WithStreamInterceptor(metadata.StreamClientInterceptor),
+	)
+
 	// Only set transportCredentials if tlsConfig is set. This makes it possible
 	// to explicitly provide gprc.WithInsecure in the client's dial options.
-	if c.tlsConfig != nil {
-		dialOpts = append(dialOpts, grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConfig)))
+	if c.cc.tlsConfig != nil {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(credentials.NewTLS(c.cc.tlsConfig)))
 	}
 
 	var err error
-	if c.conn, err = grpc.DialContext(dialContext, addr, dialOpts...); err != nil {
-		return trace.Wrap(err)
+	if c.conn, err = grpc.DialContext(dialContext, c.cc.addr, dialOpts...); err != nil {
+		return trace.Wrap(err, c.cc.errorMessage)
 	}
 	c.grpc = proto.NewAuthServiceClient(c.conn)
 
@@ -364,7 +315,7 @@ func (c *Client) grpcDialer() func(ctx context.Context, addr string) (net.Conn, 
 		if c.isClosed() {
 			return nil, trace.ConnectionProblem(nil, "client is closed")
 		}
-		conn, err := c.dialer.DialContext(ctx, "tcp", addr)
+		conn, err := c.cc.dialer.DialContext(ctx, "tcp", addr)
 		if err != nil {
 			return nil, trace.ConnectionProblem(err, "failed to dial: %v", err)
 		}
@@ -450,14 +401,27 @@ func (c *Config) CheckAndSetDefaults() error {
 	return nil
 }
 
+// connectConfig is a aset of configuration values used to connect a client to an auth server.
+type connectConfig struct {
+	// dialer is the ContextDialer used to connect.
+	dialer ContextDialer
+	// tlsConfig is the *tls.Config used to connect.
+	tlsConfig *tls.Config
+	// addr is the address to connect to.
+	addr string
+	// errorMessage is an optional custom error message
+	// to wrap initial connection errors with.
+	errorMessage string
+}
+
 // Config returns the tls.Config the client connected with.
 func (c *Client) Config() *tls.Config {
-	return c.tlsConfig
+	return c.cc.tlsConfig
 }
 
 // Dialer returns the ContextDialer the client connected with.
 func (c *Client) Dialer() ContextDialer {
-	return c.dialer
+	return c.cc.dialer
 }
 
 // GetConnection returns GRPC connection.
