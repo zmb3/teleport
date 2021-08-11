@@ -104,7 +104,6 @@ An open question, how will we track certificates intended to be used by a bot? Y
 
 ### Implementation Details
 
-
 #### Cert Bot client
 
 Teleport Cert Bot will need access to the following API endpoints in order to watch for rotation state changes and update certificates.
@@ -120,26 +119,7 @@ type Client interface {
 }
 ```
 
-### API Client 
-
-
-
-
-
-
-
-
-
-
-
-
-## Why
-
-
-
-## Details
-
-
+### Previous Implementation details
 
 ### Cert Store
 
@@ -242,8 +222,6 @@ For these reasons, this idea will be saved for a future discussion.
 #### Cert Client
 
 The agent only needs access to a few client methods in order to perform its job.
-
-
 
 #### Watch for certificate expiration
 
