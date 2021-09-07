@@ -1346,6 +1346,62 @@ func (a *ServerWithRoles) NewKeepAliver(ctx context.Context) (types.KeepAliver, 
 	return nil, trace.NotImplemented(notImplementedMessage)
 }
 
+type RenewableCertsRequest struct {
+	Token     string `json:"token"`
+	PublicKey []byte `json:"public_key"`
+	// TODO: TTL
+}
+
+func (r *RenewableCertsRequest) CheckAndSetDefaults() error {
+	if len(r.Token) == 0 {
+		return trace.BadParameter("missing token")
+	}
+	if len(r.PublicKey) == 0 {
+		return trace.BadParameter("missing public key")
+	}
+
+	return nil
+}
+
+// GenerateInitialRenewableUserCerts generates renewable certs for a non-interactive user
+// using a previously issued single-use token.
+//
+// The token's TTL is enforced, and if the operation is succesful the token is destroyed.
+func (a *ServerWithRoles) GenerateInitialRenewableUserCerts(req RenewableCertsRequest) (*proto.Certs, error) {
+	if err := req.CheckAndSetDefaults(); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	token, err := a.authServer.GetUserToken(context.Background(), req.Token)
+	if err != nil {
+		return nil, trace.AccessDenied("the token is not valid")
+	}
+
+	if err := a.authServer.verifyUserToken(token, UserTokenTypeBot); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	pr := proto.UserCertsRequest{
+		PublicKey: req.PublicKey,
+		Username:  token.GetUser(),
+		Expires:   a.authServer.GetClock().Now().Add(defaults.DefaultRenewableCertTTL),
+		// TODO: allow scoping to a specific SSH node with NodeName and Usage
+	}
+	// request that the certificate be marked renewable
+	certs, err := a.generateUserCerts(context.Background(), pr, certRequestRenewable())
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	// TODO: we might not want this (if the bot can support mutiple certs, it may need to use this multiple times)
+	if err := a.authServer.DeleteUserToken(context.Background(), req.Token); err != nil {
+		log.Warnf("could not delete user token %v after generating certs: %v",
+			backend.MaskKeyName(req.Token), err)
+	}
+
+	return certs, nil
+}
+
 // GenerateUserCerts generates users certificates
 func (a *ServerWithRoles) GenerateUserCerts(ctx context.Context, req proto.UserCertsRequest) (*proto.Certs, error) {
 	return a.generateUserCerts(ctx, req)
@@ -1358,7 +1414,9 @@ func (a *ServerWithRoles) generateUserCerts(ctx context.Context, req proto.UserC
 
 	// this prevents clients who have no chance at getting a cert and impersonating anyone
 	// from enumerating local users and hitting database
-	if !a.hasBuiltinRole(string(types.RoleAdmin)) && !a.context.Checker.CanImpersonateSomeone() && req.Username != a.context.User.GetName() {
+	if !a.hasBuiltinRole(string(types.RoleAdmin)) &&
+		!a.context.Checker.CanImpersonateSomeone() &&
+		req.Username != a.context.User.GetName() {
 		return nil, trace.AccessDenied("access denied: impersonation is not allowed")
 	}
 
@@ -1399,19 +1457,26 @@ func (a *ServerWithRoles) generateUserCerts(ctx context.Context, req proto.UserC
 		return nil, trace.AccessDenied("access denied")
 	}
 
-	// For users renewing certificates limit the TTL to the duration of the session, to prevent
-	// users renewing certificates forever.
+	// For users renewing their own certificates
 	if req.Username == a.context.User.GetName() {
-		expires := a.context.Identity.GetIdentity().Expires
-		if expires.IsZero() {
+		identity := a.context.Identity.GetIdentity()
+		sessionExpires := identity.Expires
+		if sessionExpires.IsZero() {
 			log.Warningf("Encountered identity with no expiry: %v and denied request. Must be internal logic error.", a.context.Identity)
 			return nil, trace.AccessDenied("access denied")
 		}
-		if req.Expires.After(expires) {
-			req.Expires = expires
-		}
 		if req.Expires.Before(a.authServer.GetClock().Now()) {
 			return nil, trace.AccessDenied("access denied: client credentials have expired, please relogin.")
+		}
+
+		// if these credentials are not renewable, we limit the TTL to the duration of the session
+		// (this prevents users renewing their certificates forever)
+		if req.Expires.After(sessionExpires) {
+			if !identity.Renewable {
+				req.Expires = sessionExpires
+			} else if max := a.authServer.GetClock().Now().Add(defaults.MaxRenewableCertTTL); req.Expires.After(max) {
+				req.Expires = max
+			}
 		}
 	}
 
@@ -3489,6 +3554,34 @@ func (a *ServerWithRoles) CreateAuthenticateChallenge(ctx context.Context, req *
 // CreatePrivilegeToken is implemented by AuthService.CreatePrivilegeToken.
 func (a *ServerWithRoles) CreatePrivilegeToken(ctx context.Context, req *proto.CreatePrivilegeTokenRequest) (*types.UserTokenV3, error) {
 	return a.authServer.CreatePrivilegeToken(ctx, req)
+}
+
+func (a *ServerWithRoles) UpsertBot(ctx context.Context, bot types.Bot) (*types.KeepAlive, error) {
+	// TODO: figure out appropriate namespace approach - we're ignoring bot.GetNamespace() here
+	if err := a.action(apidefaults.Namespace, types.KindBot, types.VerbCreate); err != nil {
+		return nil, trace.Wrap(err)
+	}
+	if err := a.action(apidefaults.Namespace, types.KindBot, types.VerbUpdate); err != nil {
+		return nil, trace.Wrap(err)
+	}
+	return a.authServer.UpsertBot(ctx, bot)
+}
+
+func (a *ServerWithRoles) GetBots(ctx context.Context, namespace string, opts ...services.MarshalOption) ([]types.Bot, error) {
+	if err := a.action(apidefaults.Namespace, types.KindBot, types.VerbList); err != nil {
+		return nil, trace.Wrap(err)
+	}
+	if err := a.action(apidefaults.Namespace, types.KindBot, types.VerbRead); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	bots, err := a.authServer.GetBots(ctx, namespace, opts...)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	// TODO do all users have access to all bots, or do we need to filter some of these out?
+	return bots, nil
 }
 
 // NewAdminAuthServer returns auth server authorized as admin,

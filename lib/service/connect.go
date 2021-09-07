@@ -461,10 +461,7 @@ func (process *TeleportProcess) periodicSyncRotationState() error {
 // syncRotationCycle executes a rotation cycle that returns:
 //
 // * nil whenever rotation state leads to teleport reload event
-// * error whenever rotation sycle has to be restarted
-//
-// the function accepts extra delay timer extraDelay in case if parent
-// function needs a
+// * error whenever rotation cycle has to be restarted
 func (process *TeleportProcess) syncRotationStateCycle() error {
 	connectors := process.getConnectors()
 	if len(connectors) == 0 {

@@ -1,0 +1,10 @@
+go 1.16
+
+directory (
+    .
+    ./api
+)
+
+replace (
+	github.com/gravitational/teleport/api => ./api
+)

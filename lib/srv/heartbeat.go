@@ -78,10 +78,11 @@ type HeartbeatMode int
 // CheckAndSetDefaults checks values and sets defaults
 func (h HeartbeatMode) CheckAndSetDefaults() error {
 	switch h {
-	case HeartbeatModeNode, HeartbeatModeProxy, HeartbeatModeAuth, HeartbeatModeKube, HeartbeatModeApp, HeartbeatModeDB, HeartbeatModeWindowsDesktopService, HeartbeatModeWindowsDesktop:
+	case HeartbeatModeNode, HeartbeatModeProxy, HeartbeatModeAuth, HeartbeatModeKube, HeartbeatModeApp,
+		HeartbeatModeDB, HeartbeatModeWindowsDesktopService, HeartbeatModeWindowsDesktop, HeartbeatModeBot:
 		return nil
 	default:
-		return trace.BadParameter("unrecognized mode")
+		return trace.BadParameter("unrecognized mode %q", h.String())
 	}
 }
 
@@ -104,6 +105,8 @@ func (h HeartbeatMode) String() string {
 		return "WindowsDesktopService"
 	case HeartbeatModeWindowsDesktop:
 		return "WindowsDesktop"
+	case HeartbeatModeBot:
+		return "Bot"
 	default:
 		return fmt.Sprintf("<unknown: %v>", int(h))
 	}
@@ -130,6 +133,8 @@ const (
 	HeartbeatModeWindowsDesktopService
 	// HeartbeatModeWindowsDesktop sets heatbeat mode to windows desktop.
 	HeartbeatModeWindowsDesktop
+	// HeartbeatModeBot sets heartbeat mode to certificate renewal bot.
+	HeartbeatModeBot
 )
 
 // NewHeartbeat returns a new instance of heartbeat
@@ -171,10 +176,10 @@ type HeartbeatConfig struct {
 	GetServerInfo GetServerInfoFn
 	// ServerTTL is a server TTL used in announcements
 	ServerTTL time.Duration
-	// KeepAlivePeriod is a period between lights weight
+	// KeepAlivePeriod is a period between lightweight
 	// keep alive calls, that only update TTLs and don't consume
-	// bandwidh, also is used to derive time between
-	// failed attempts as well for auth and proxy modes
+	// bandwidth. It is also used to derive the time between
+	// failed attempts for auth and proxy modes.
 	KeepAlivePeriod time.Duration
 	// AnnouncePeriod is a period between announce calls,
 	// when client sends full server specification
@@ -535,6 +540,27 @@ func (h *Heartbeat) announce() error {
 			h.nextAnnounce = h.Clock.Now().UTC().Add(h.AnnouncePeriod)
 			h.notifySend()
 			h.setState(HeartbeatStateAnnounceWait)
+			return nil
+		case HeartbeatModeBot:
+			bot, ok := h.current.(types.Bot)
+			if !ok {
+				return trace.BadParameter("expected types.Bot, got %#v", h.current)
+			}
+			keepAlive, err := h.Announcer.UpsertBot(h.cancelCtx, bot)
+			if err != nil {
+				return trace.Wrap(err)
+			}
+			h.notifySend()
+			keepAliver, err := h.Announcer.NewKeepAliver(h.cancelCtx)
+			if err != nil {
+				h.reset(HeartbeatStateInit)
+				return trace.Wrap(err)
+			}
+			h.nextAnnounce = h.Clock.Now().UTC().Add(h.AnnouncePeriod)
+			h.nextKeepAlive = h.Clock.Now().UTC().Add(h.KeepAlivePeriod)
+			h.keepAlive = keepAlive
+			h.keepAliver = keepAliver
+			h.setState(HeartbeatStateKeepAliveWait)
 			return nil
 		default:
 			return trace.BadParameter("unknown mode %q", h.Mode)

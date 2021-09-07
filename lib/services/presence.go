@@ -231,4 +231,9 @@ type Presence interface {
 	DeleteWindowsDesktopService(ctx context.Context, name string) error
 	// DeleteAllWindowsDesktopServices removes all Windows desktop services.
 	DeleteAllWindowsDesktopServices(context.Context) error
+
+	// GetBots returns a list of registered certificate renewal bots.
+	GetBots(ctx context.Context, namespace string, opts ...MarshalOption) ([]types.Bot, error)
+	// UpsertBot resigters a certificate renewal bot.
+	UpsertBot(context.Context, types.Bot) (*types.KeepAlive, error)
 }

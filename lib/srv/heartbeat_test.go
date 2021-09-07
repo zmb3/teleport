@@ -33,7 +33,7 @@ import (
 
 // TestHeartbeatKeepAlive tests keep alive cycle used for nodes and apps.
 func TestHeartbeatKeepAlive(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		name       string
 		mode       HeartbeatMode
 		makeServer func() types.Resource
@@ -326,6 +326,14 @@ func (f *fakeAnnouncer) UpsertApplicationServer(ctx context.Context, s types.App
 
 func (f *fakeAnnouncer) UpsertDatabaseServer(ctx context.Context, s types.DatabaseServer) (*types.KeepAlive, error) {
 	f.upsertCalls[HeartbeatModeDB]++
+	if f.err != nil {
+		return nil, f.err
+	}
+	return &types.KeepAlive{}, nil
+}
+
+func (f *fakeAnnouncer) UpsertBot(ctx context.Context, b types.Bot) (*types.KeepAlive, error) {
+	f.upsertCalls[HeartbeatModeBot]++
 	if f.err != nil {
 		return nil, f.err
 	}

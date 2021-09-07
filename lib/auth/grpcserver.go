@@ -3425,6 +3425,43 @@ func (g *GRPCServer) CreatePrivilegeToken(ctx context.Context, req *proto.Create
 	return token, trace.Wrap(err)
 }
 
+// GetBots gets certificate renewal bots.
+func (g *GRPCServer) GetBots(ctx context.Context, req *proto.GetBotsRequest) (*proto.GetBotsResponse, error) {
+	auth, err := g.authenticate(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	bots, err := auth.GetBots(ctx, req.GetNamespace())
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	var result []*types.BotV3
+	for _, b := range bots {
+		bot, ok := b.(*types.BotV3)
+		if !ok {
+			return nil, trace.BadParameter("unexpected type %T", b)
+		}
+		result = append(result, bot)
+	}
+	return &proto.GetBotsResponse{
+		Bots: result,
+	}, nil
+}
+
+// UpsertBot registers a certificate renewal bot.
+func (g *GRPCServer) UpsertBot(ctx context.Context, req *proto.UpsertBotRequest) (*types.KeepAlive, error) {
+	auth, err := g.authenticate(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	keepAlive, err := auth.UpsertBot(ctx, req.GetBot())
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	return keepAlive, nil
+}
+
 // GRPCServerConfig specifies GRPC server configuration
 type GRPCServerConfig struct {
 	// APIConfig is GRPC server API configuration

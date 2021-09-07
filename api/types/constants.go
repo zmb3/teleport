@@ -230,6 +230,9 @@ const (
 	// KindNetworkRestrictions are restrictions for SSH sessions
 	KindNetworkRestrictions = "network_restrictions"
 
+	// KindBot is a certificate renewal bot resource.
+	KindBot = "bot"
+
 	// MetaNameNetworkRestrictions is the exact name of the singleton resource for
 	// network restrictions
 	MetaNameNetworkRestrictions = "network-restrictions"

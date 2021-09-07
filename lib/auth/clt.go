@@ -535,6 +535,24 @@ func (c *Client) GenerateToken(ctx context.Context, req GenerateTokenRequest) (s
 	return token, nil
 }
 
+func (c *Client) GenerateInitialRenewableUserCerts(req RenewableCertsRequest) (*proto.Certs, error) {
+	if err := req.CheckAndSetDefaults(); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	out, err := c.PostJSON(c.Endpoint("tokens", "register", "user"), req)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	var response proto.Certs
+	if err := json.Unmarshal(out.Bytes(), &response); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return &response, nil
+}
+
 // RegisterUsingToken calls the auth service API to register a new node using a registration token
 // which was previously issued via GenerateToken.
 func (c *Client) RegisterUsingToken(req RegisterUsingTokenRequest) (*proto.Certs, error) {
@@ -1644,6 +1662,16 @@ func (c *Client) GetAppServers(ctx context.Context, namespace string, opts ...se
 	return resp, nil
 }
 
+// GetBots gets all certificate renewal bots.
+func (c *Client) GetBots(ctx context.Context, namespace string, opts ...services.MarshalOption) ([]types.Bot, error) {
+	bots, err := c.APIClient.GetBots(ctx, namespace)
+	if err != nil {
+		return nil, trail.FromGRPC(err)
+	}
+
+	return bots, nil
+}
+
 // GetDatabaseServers returns all registered database proxy servers.
 func (c *Client) GetDatabaseServers(ctx context.Context, namespace string, opts ...services.MarshalOption) ([]types.DatabaseServer, error) {
 	resp, err := c.APIClient.GetDatabaseServers(ctx, namespace)
@@ -1813,6 +1841,10 @@ type IdentityService interface {
 	// text format, signs it using User Certificate Authority signing key and
 	// returns the resulting certificates.
 	GenerateUserCerts(ctx context.Context, req proto.UserCertsRequest) (*proto.Certs, error)
+
+	// GenerateInitialRenewableUserCerts generates renewable certs for a non-interactive user
+	// using a previously issued single-use token.
+	GenerateInitialRenewableUserCerts(req RenewableCertsRequest) (*proto.Certs, error)
 
 	// GenerateUserSingleUseCerts is like GenerateUserCerts but issues a
 	// certificate for a single session

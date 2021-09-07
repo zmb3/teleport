@@ -68,6 +68,9 @@ type Announcer interface {
 	CreateWindowsDesktop(context.Context, types.WindowsDesktop) error
 	// UpdateWindowsDesktop updates a Windows desktop host.
 	UpdateWindowsDesktop(context.Context, types.WindowsDesktop) error
+
+	// UpsertBot registers a certificate renewal bot.
+	UpsertBot(context.Context, types.Bot) (*types.KeepAlive, error)
 }
 
 // ReadAccessPoint is an API interface implemented by a certificate authority (CA)
@@ -196,6 +199,8 @@ type ReadAccessPoint interface {
 
 	// GetWindowsDesktops returns windows desktop hosts.
 	GetWindowsDesktopServices(ctx context.Context) ([]types.WindowsDesktopService, error)
+	// GetBots returns certificate renewal bots
+	GetBots(ctx context.Context, namespace string, opts ...services.MarshalOption) ([]types.Bot, error)
 }
 
 // AccessPoint is an API interface implemented by a certificate authority (CA)
@@ -394,6 +399,11 @@ func (w *Wrapper) CreateWindowsDesktop(ctx context.Context, d types.WindowsDeskt
 // UpdateWindowsDesktop updates a Windows desktop host.
 func (w *Wrapper) UpdateWindowsDesktop(ctx context.Context, d types.WindowsDesktop) error {
 	return w.NoCache.UpdateWindowsDesktop(ctx, d)
+}
+
+// UpsertBot registers a certificate renewal bot.
+func (w *Wrapper) UpsertBot(ctx context.Context, bot types.Bot) (*types.KeepAlive, error) {
+	return w.NoCache.UpsertBot(ctx, bot)
 }
 
 // NewCachingAcessPoint returns new caching access point using

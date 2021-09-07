@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"strconv"
 	"time"
 
 	"github.com/gravitational/teleport"
@@ -126,6 +127,9 @@ type Identity struct {
 	ClientIP string
 	// AWSRoleARNs is a list of allowed AWS role ARNs user can assume.
 	AWSRoleARNs []string
+	// Renewable indicates that this identity is allowed to renew it's
+	// own credentials. This is only enabled for certificate renewal bots.
+	Renewable bool
 }
 
 // RouteToApp holds routing information for applications.
@@ -254,6 +258,10 @@ var (
 	// allowed AWS role ARNs into a certificate.
 	AWSRoleARNsASN1ExtensionOID = asn1.ObjectIdentifier{1, 3, 9999, 1, 12}
 
+	// RenewableCertificateASN1ExtensionOID is an extension ID used to indicate
+	// that a certificate may be renewed by a certificate renewal bot.
+	RenewableCertificateASN1ExtensionOID = asn1.ObjectIdentifier{1, 3, 9999, 1, 13}
+
 	// DatabaseServiceNameASN1ExtensionOID is an extension ID used when encoding/decoding
 	// database service name into certificates.
 	DatabaseServiceNameASN1ExtensionOID = asn1.ObjectIdentifier{1, 3, 9999, 2, 1}
@@ -375,6 +383,13 @@ func (id *Identity) Subject() (pkix.Name, error) {
 				Value: id.AWSRoleARNs[i],
 			})
 	}
+	if id.Renewable {
+		subject.ExtraNames = append(subject.ExtraNames,
+			pkix.AttributeTypeAndValue{
+				Type:  RenewableCertificateASN1ExtensionOID,
+				Value: "true",
+			})
+	}
 	if id.TeleportCluster != "" {
 		subject.ExtraNames = append(subject.ExtraNames,
 			pkix.AttributeTypeAndValue{
@@ -451,7 +466,6 @@ func (id *Identity) Subject() (pkix.Name, error) {
 				Value: id.Impersonator,
 			})
 	}
-
 	return subject, nil
 }
 
@@ -473,7 +487,6 @@ func FromSubject(subject pkix.Name, expires time.Time) (*Identity, error) {
 			return nil, trace.Wrap(err)
 		}
 	}
-
 	for _, attr := range subject.Names {
 		switch {
 		case attr.Type.Equal(KubeUsersASN1ExtensionOID):
@@ -520,6 +533,11 @@ func FromSubject(subject pkix.Name, expires time.Time) (*Identity, error) {
 			val, ok := attr.Value.(string)
 			if ok {
 				id.AWSRoleARNs = append(id.AWSRoleARNs, val)
+			}
+		case attr.Type.Equal(RenewableCertificateASN1ExtensionOID):
+			val, ok := attr.Value.(string)
+			if ok {
+				id.Renewable, _ = strconv.ParseBool(val)
 			}
 		case attr.Type.Equal(TeleportClusterASN1ExtensionOID):
 			val, ok := attr.Value.(string)

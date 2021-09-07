@@ -1470,6 +1470,63 @@ func (s *PresenceService) DeleteAllWindowsDesktopServices(ctx context.Context) e
 	return s.DeleteRange(ctx, startKey, backend.RangeEnd(startKey))
 }
 
+// GetBots gets all certificate renewal bots.
+func (s *PresenceService) GetBots(ctx context.Context, namespace string, opts ...services.MarshalOption) ([]types.Bot, error) {
+	if namespace == "" {
+		return nil, trace.BadParameter("missing namespace")
+	}
+
+	startKey := backend.Key(botsPrefix, namespace)
+	result, err := s.GetRange(ctx, startKey, backend.RangeEnd(startKey), backend.NoLimit)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	bots := make([]types.Bot, len(result.Items))
+	for i, item := range result.Items {
+		bot, err := services.UnmarshalBot(
+			item.Value,
+			services.AddOptions(opts,
+				services.WithResourceID(item.ID),
+				services.WithExpires(item.Expires))...)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		bots[i] = bot
+	}
+
+	return bots, nil
+}
+
+// UpsertBot registers new certificate renewal bot.
+func (s *PresenceService) UpsertBot(ctx context.Context, bot types.Bot) (*types.KeepAlive, error) {
+	if err := bot.CheckAndSetDefaults(); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	value, err := services.MarshalBot(bot)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	lease, err := s.Put(ctx, backend.Item{
+		Key:     backend.Key(botsPrefix, bot.GetNamespace(), bot.GetHostID(), bot.GetName()),
+		Value:   value,
+		Expires: bot.Expiry(),
+		ID:      bot.GetResourceID(),
+	})
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	if bot.Expiry().IsZero() {
+		return &types.KeepAlive{}, nil
+	}
+	return &types.KeepAlive{
+		Type:    types.KeepAlive_BOT,
+		LeaseID: lease.ID,
+		Name:    bot.GetName(),
+	}, nil
+}
+
 const (
 	localClusterPrefix           = "localCluster"
 	reverseTunnelsPrefix         = "reverseTunnels"
@@ -1487,4 +1544,5 @@ const (
 	semaphoresPrefix             = "semaphores"
 	kubeServicesPrefix           = "kubeServices"
 	windowsDesktopServicesPrefix = "windowsDesktopServices"
+	botsPrefix                   = "bots"
 )

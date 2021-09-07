@@ -60,7 +60,7 @@ func NewProvisionToken(token string, roles SystemRoles, expires time.Time) (Prov
 }
 
 // MustCreateProvisionToken returns a new valid provision token
-// or panics, used in testes
+// or panics, used in tests
 func MustCreateProvisionToken(token string, roles SystemRoles, expires time.Time) ProvisionToken {
 	t, err := NewProvisionToken(token, roles, expires)
 	if err != nil {

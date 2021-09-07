@@ -836,7 +836,7 @@ func (c *Cache) notify(ctx context.Context, event Event) {
 // 1. Every client is connected to the database fan-out
 // system. This system creates a buffered channel for every
 // client and tracks the channel overflow. Thanks to channels every client gets its
-// own unique iterator over the event stream. If client looses connection
+// own unique iterator over the event stream. If client loses connection
 // or fails to keep up with the stream, the server will terminate
 // the channel and client will have to re-initialize.
 //
@@ -1565,4 +1565,14 @@ func (c *Cache) GetWindowsDesktop(ctx context.Context, name string) (types.Windo
 	}
 	defer rg.Release()
 	return rg.windowsDesktops.GetWindowsDesktop(ctx, name)
+}
+
+// GetBots gets all certificate renewal bots.
+func (c *Cache) GetBots(ctx context.Context, namespace string, opts ...services.MarshalOption) ([]types.Bot, error) {
+	rg, err := c.read()
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	defer rg.Release()
+	return rg.presence.GetBots(ctx, namespace, opts...)
 }

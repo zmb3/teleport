@@ -36,14 +36,14 @@ message KeepAlive {
         (gogoproto.nullable) = false,
         (gogoproto.jsontag) = "expires"
     ];
-    // Type is the type of keep alive, used by servers. At the moment only
-    // "node", "app" and "database" are supported.
+    // Type is the type of keep alive used by servers.
     enum KeepAliveType {
         UNKNOWN = 0;
         NODE = 1;
         APP = 2;
         DATABASE = 3;
         WINDOWS_DESKTOP = 4;
+        BOT = 5;
     }
     KeepAliveType Type = 9 [ (gogoproto.jsontag) = "type" ];
     // HostID is an optional UUID of the host the resource belongs to.
@@ -1060,6 +1060,9 @@ enum UserTokenUsage {
     USER_TOKEN_RECOVER_PASSWORD = 1;
     // USER_TOKEN_RECOVER_MFA is a request to recover a MFA.
     USER_TOKEN_RECOVER_MFA = 2;
+    // USER_TOKEN_RENEWAL_BOT is a request to generate certificates
+    // for a bot user.
+    USER_TOKEN_RENEWAL_BOT = 3;
 }
 
 message UserTokenSpecV3 {
@@ -2617,4 +2620,24 @@ message RecoveryCode {
     bytes HashedCode = 1 [ (gogoproto.jsontag) = "hashed_code" ];
     // IsUsed determines if this recovery code was used.
     bool IsUsed = 2 [ (gogoproto.jsontag) = "is_used" ];
+}
+
+// BotV3 represents a certificate renewal bot.
+message BotV3 {
+    option (gogoproto.goproto_stringer) = false;
+    option (gogoproto.stringer) = false;
+
+    // Header is the common resource header.
+    ResourceHeader Header = 1
+        [ (gogoproto.nullable) = false, (gogoproto.jsontag) = "", (gogoproto.embed) = true ];
+
+    // Spec is the bot spec.
+    BotSpecV3 Spec = 2 [ (gogoproto.nullable) = false, (gogoproto.jsontag) = "spec" ];
+}
+
+// BotSpecV3 is the bot spec.
+message BotSpecV3 {
+    // HostID is the ID of the host the bot is running on.
+    string HostID = 1 [ (gogoproto.jsontag) = "host_id" ];
+    // TODO: certs
 }

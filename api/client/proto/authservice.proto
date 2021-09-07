@@ -119,6 +119,8 @@ message Event {
         types.AppServerV3 AppServer = 29 [ (gogoproto.jsontag) = "app_server,omitempty" ];
         // App is an application resource.
         types.AppV3 App = 30 [ (gogoproto.jsontag) = "app,omitempty" ];
+        // Bot is a resource for certificate renewal bots.
+        types.BotV3 Bot = 31 [ (gogoproto.jsontag) = "bot,omitempty" ];
     }
 }
 
@@ -519,6 +521,20 @@ message DeleteAllAppServersRequest {
     // Namespace is the namespace for application.
     string Namespace = 1 [ (gogoproto.jsontag) = "namespace" ];
 }
+
+// GetBotsRequest are the parameters used to request certificate renewal bots.
+message GetBotsRequest {
+    // Namespace is the namespace for bot.
+    string Namespace = 1 [ (gogoproto.jsontag) = "namespace" ];
+}
+
+// GetBotsResponse contains all requested certificate renewal bots.
+message GetBotsResponse {
+    // Bots is a slice of types.Bot that represent certificate renewal bots.
+    repeated types.BotV3 Bots = 1 [ (gogoproto.jsontag) = "bots" ];
+}
+
+message UpsertBotRequest { types.BotV3 Bot = 1 [ (gogoproto.jsontag) = "bot" ]; }
 
 // GenerateAppTokenRequest are the parameters used to request an application
 // token.
@@ -1408,6 +1424,11 @@ service AuthService {
     rpc DeleteAllAppServers(DeleteAllAppServersRequest) returns (google.protobuf.Empty) {
         option deprecated = true;
     };
+
+    // GetBots gets all certificate renewal bots.
+    rpc GetBots(GetBotsRequest) returns (GetBotsResponse);
+    // UpsertBot registers a new certificate renewal bot.
+    rpc UpsertBot(UpsertBotRequest) returns (types.KeepAlive);
 
     // GenerateAppToken will generate a JWT token for application access.
     rpc GenerateAppToken(GenerateAppTokenRequest) returns (GenerateAppTokenResponse);

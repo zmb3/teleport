@@ -62,7 +62,8 @@ func (r *roleCollection) writeText(w io.Writer) error {
 			r.GetMetadata().Name,
 			strings.Join(r.GetLogins(services.Allow), ","),
 			printNodeLabels(r.GetNodeLabels(services.Allow)),
-			printActions(r.GetRules(services.Allow))})
+			printActions(r.GetRules(services.Allow)),
+		})
 	}
 	_, err := t.AsBuffer().WriteTo(w)
 	return trace.Wrap(err)
@@ -330,7 +331,8 @@ func (c *trustedClusterCollection) resources() (r []types.Resource) {
 
 func (c *trustedClusterCollection) writeText(w io.Writer) error {
 	t := asciitable.MakeTable([]string{
-		"Name", "Enabled", "Token", "Proxy Address", "Reverse Tunnel Address", "Role Map"})
+		"Name", "Enabled", "Token", "Proxy Address", "Reverse Tunnel Address", "Role Map",
+	})
 	for _, tc := range c.trustedClusters {
 		t.AddRow([]string{
 			tc.GetName(),
@@ -719,6 +721,20 @@ func (c *windowsDesktopCollection) writeText(w io.Writer) error {
 	t := asciitable.MakeTable([]string{"UUID", "Address"})
 	for _, desktop := range c.desktops {
 		t.AddRow([]string{desktop.GetName(), desktop.GetAddr()})
+	}
+	_, err := t.AsBuffer().WriteTo(w)
+	return trace.Wrap(err)
+}
+
+type botCollection struct {
+	bots []types.Bot
+}
+
+func (c *botCollection) writeText(w io.Writer) error {
+	t := asciitable.MakeTable([]string{"ID", "Name", "Locked"})
+	for _, bot := range c.bots {
+		// TODO: assign a real UUID
+		t.AddRow([]string{bot.GetHostID(), bot.GetName(), "No"})
 	}
 	_, err := t.AsBuffer().WriteTo(w)
 	return trace.Wrap(err)

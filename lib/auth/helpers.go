@@ -429,6 +429,7 @@ func generateCertificate(authServer *Server, identity TestIdentity) ([]byte, []b
 			routeToCluster: identity.RouteToCluster,
 			checker:        checker,
 			traits:         user.GetTraits(),
+			renewable:      id.Identity.Renewable,
 		})
 		if err != nil {
 			return nil, nil, trace.Wrap(err)
@@ -671,6 +672,20 @@ func TestUser(username string) TestIdentity {
 		I: LocalUser{
 			Username: username,
 			Identity: tlsca.Identity{Username: username},
+		},
+	}
+}
+
+// TestUser returns a TestIdentity for a local user
+// with renewable credentials.
+func TestRenewableUser(username string) TestIdentity {
+	return TestIdentity{
+		I: LocalUser{
+			Username: username,
+			Identity: tlsca.Identity{
+				Username:  username,
+				Renewable: true,
+			},
 		},
 	}
 }

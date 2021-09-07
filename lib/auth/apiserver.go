@@ -174,6 +174,7 @@ func NewAPIServer(config *APIConfig) (http.Handler, error) {
 	// Tokens
 	srv.POST("/:version/tokens", srv.withAuth(srv.generateToken))
 	srv.POST("/:version/tokens/register", srv.withAuth(srv.registerUsingToken))
+	srv.POST("/:version/tokens/register/user", srv.withAuth(srv.generateInitialRenewableUserCerts))
 	srv.POST("/:version/tokens/register/auth", srv.withAuth(srv.registerNewAuthServer))
 
 	// active sesssions
@@ -1024,6 +1025,20 @@ func (s *APIServer) generateToken(auth ClientI, w http.ResponseWriter, r *http.R
 		return nil, trace.Wrap(err)
 	}
 	return token, nil
+}
+
+func (s *APIServer) generateInitialRenewableUserCerts(auth ClientI, w http.ResponseWriter, r *http.Request, _ httprouter.Params, version string) (interface{}, error) {
+	var req RenewableCertsRequest
+	if err := httplib.ReadJSON(r, &req); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	certs, err := auth.GenerateInitialRenewableUserCerts(req)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return certs, nil
 }
 
 // registerUsingTokenResponseJSON is equivalent to proto.Certs, but

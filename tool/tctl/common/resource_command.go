@@ -235,6 +235,7 @@ func (rc *ResourceCommand) GetAll(client auth.ClientI) error {
 
 // Create updates or inserts one or many resources
 func (rc *ResourceCommand) Create(client auth.ClientI) (err error) {
+	fmt.Printf("resource command client is %T\n", client)
 	var reader io.Reader
 	if rc.filename == "" {
 		reader = os.Stdin

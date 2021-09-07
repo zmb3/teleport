@@ -230,6 +230,7 @@ func connect(ctx context.Context, cfg Config) (*Client, error) {
 						sshConfig: sshConfig,
 						addr:      addr,
 					})
+
 					syncConnect(ctx, tunnelConnect, connectParams{
 						cfg:       cfg,
 						tlsConfig: tlsConfig,
@@ -1120,6 +1121,21 @@ func (c *Client) GenerateDatabaseCert(ctx context.Context, req *proto.DatabaseCe
 		return nil, trail.FromGRPC(err)
 	}
 	return resp, nil
+}
+
+// UpsertBot registers a new cerificate renewal bot.
+func (c *Client) UpsertBot(ctx context.Context, bot types.Bot) (*types.KeepAlive, error) {
+	b, ok := bot.(*types.BotV3)
+	if !ok {
+		return nil, trace.BadParameter("invalid type %T", bot)
+	}
+	keepAlive, err := c.grpc.UpsertBot(ctx, &proto.UpsertBotRequest{
+		Bot: b,
+	}, c.callOpts...)
+	if err != nil {
+		return nil, trail.FromGRPC(err)
+	}
+	return keepAlive, nil
 }
 
 // GetRole returns role by name
@@ -2154,4 +2170,19 @@ func (c *Client) CreateAuthenticateChallenge(ctx context.Context, in *proto.Crea
 func (c *Client) CreatePrivilegeToken(ctx context.Context, req *proto.CreatePrivilegeTokenRequest) (*types.UserTokenV3, error) {
 	resp, err := c.grpc.CreatePrivilegeToken(ctx, req, c.callOpts...)
 	return resp, trail.FromGRPC(err)
+}
+
+// GetBots gets all certificate renewal bots.
+func (c *Client) GetBots(ctx context.Context, namespace string) ([]types.Bot, error) {
+	resp, err := c.grpc.GetBots(ctx, &proto.GetBotsRequest{Namespace: namespace}, c.callOpts...)
+	if err != nil {
+		return nil, trail.FromGRPC(err)
+	}
+
+	var bots []types.Bot
+	for _, bot := range resp.GetBots() {
+		bots = append(bots, bot)
+	}
+
+	return bots, nil
 }
