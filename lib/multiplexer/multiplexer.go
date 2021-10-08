@@ -29,6 +29,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"reflect"
 	"sync"
 	"time"
 
@@ -175,8 +176,10 @@ func (m *Mux) Serve() error {
 	backoffTimer := time.NewTicker(5 * time.Second)
 	defer backoffTimer.Stop()
 	for {
+		m.Debug("accept conn")
 		conn, err := m.Listener.Accept()
 		if err == nil {
+			m.WithField("remoteAddr", conn.RemoteAddr().String()).Debugf("Received conn on mx, type: %v", reflect.TypeOf(conn))
 			if tcpConn, ok := conn.(*net.TCPConn); ok {
 				tcpConn.SetKeepAlive(true)
 				tcpConn.SetKeepAlivePeriod(3 * time.Minute)
@@ -219,6 +222,7 @@ func (m *Mux) detectAndForward(conn net.Conn) {
 		return
 	}
 
+	m.WithField("remoteAddr", connWrapper.RemoteAddr().String()).Debug("Forwarding Proto %v", connWrapper.protocol)
 	switch connWrapper.protocol {
 	case ProtoTLS:
 		if m.DisableTLS {
@@ -269,6 +273,11 @@ func (m *Mux) detectAndForward(conn net.Conn) {
 
 func detect(conn net.Conn, enableProxyProtocol bool) (*Conn, error) {
 	reader := bufio.NewReader(conn)
+
+	b, _ := reader.Peek(1000)
+	log.WithFields(log.Fields{
+		trace.Component: teleport.Component("mx"),
+	}).Debugf("peeked Conn: %v", string(b))
 
 	// the first attempt is to parse optional proxy
 	// protocol line that is injected by load balancers
