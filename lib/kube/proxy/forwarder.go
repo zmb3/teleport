@@ -1410,28 +1410,48 @@ func (s *clusterSession) dial(ctx context.Context, network string) (net.Conn, er
 
 // TODO(awly): unit test this
 func (f *Forwarder) newClusterSession(ctx authContext) (*clusterSession, error) {
-	if ctx.teleportCluster.isRemote {
-		return f.newClusterSessionRemoteCluster(ctx)
-	}
-	return f.newClusterSessionSameCluster(ctx)
-}
-
-func (f *Forwarder) newClusterSessionRemoteCluster(ctx authContext) (*clusterSession, error) {
+	var err error
 	sess := &clusterSession{
 		parent:      f,
 		authContext: ctx,
 	}
-	var err error
-	sess.tlsConfig, err = f.getOrRequestClientCreds(ctx)
-	if err != nil {
-		f.log.Warningf("Failed to get certificate for %v: %v.", ctx, err)
-		return nil, trace.AccessDenied("access denied: failed to authenticate with auth server")
-	}
-	// remote clusters use special hardcoded URL,
-	// and use a special dialer
-	sess.kubeClusterEndpoints = []kubeClusterEndpoint{{addr: reversetunnel.LocalKubernetes}}
-	transport := f.newTransport(sess.Dial, sess.tlsConfig)
 
+	// Try to use local credentials first, then remote credentials.
+	creds, localErr := f.getLocalCreds(ctx)
+	if creds != nil {
+		sess.creds = creds
+		sess.tlsConfig = creds.tlsConfig
+		f.log.Debugf("Handling kubernetes session for %v using local credentials.", ctx)
+	} else {
+		sess.tlsConfig, err = f.getOrRequestClientCreds(ctx)
+		if err != nil {
+			f.log.Warningf("Failed to get certificate for %v: %v.", ctx, err)
+			return nil, trace.AccessDenied("access denied: failed to authenticate with auth server")
+		}
+		f.log.Debugf("Forwarding kubernetes session for %v to remote kubernetes_service instance.", ctx)
+	}
+
+	if err := sess.setEndpoints(); err != nil {
+		if ctx.kubeCluster == ctx.teleportCluster.name {
+			// Looks like a local cluster, return the local creds error instead
+			return nil, localErr
+		}
+		return nil, trace.Wrap(err)
+	}
+
+	var transport http.RoundTripper = f.newTransport(sess.Dial, sess.tlsConfig)
+	if sess.creds != nil {
+		// When running inside Kubernetes cluster or using auth/exec providers,
+		// kubeconfig provides a transport wrapper that adds a bearer token to
+		// requests
+		//
+		// When forwarding request to a remote cluster, this is not needed
+		// as the proxy uses client cert auth to reach out to remote proxy.
+		transport, err = sess.creds.wrapTransport(transport)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+	}
 	sess.forwarder, err = forward.New(
 		forward.FlushInterval(100*time.Millisecond),
 		forward.RoundTripper(transport),
@@ -1445,19 +1465,31 @@ func (f *Forwarder) newClusterSessionRemoteCluster(ctx authContext) (*clusterSes
 	return sess, nil
 }
 
-func (f *Forwarder) newClusterSessionSameCluster(ctx authContext) (*clusterSession, error) {
-	sess, localErr := f.newClusterSessionLocal(ctx)
-	if localErr == nil {
-		return sess, nil
+func (s *clusterSession) setEndpoints() error {
+	if s.creds != nil {
+		s.kubeClusterEndpoints = []kubeClusterEndpoint{{addr: s.creds.targetAddr}}
+		return nil
 	}
 
+	if s.teleportCluster.isRemote {
+		// remote clusters use special hardcoded URL, and use a special dialer
+		s.kubeClusterEndpoints = []kubeClusterEndpoint{{addr: reversetunnel.LocalKubernetes}}
+		return nil
+	}
+
+	// This session will talk to a kubernetes_service, which should handle
+	// audit logging. Avoid duplicate logging.
+	s.noAuditEvents = true
+
+	var err error
+	s.kubeClusterEndpoints, err = s.parent.getKubeEndpoints(s.authContext)
+	return trace.Wrap(err)
+}
+
+func (f *Forwarder) getKubeEndpoints(ctx authContext) ([]kubeClusterEndpoint, error) {
 	kubeServices, err := f.cfg.CachingAuthClient.GetKubeServices(f.ctx)
 	if err != nil && !trace.IsNotFound(err) {
 		return nil, trace.Wrap(err)
-	}
-
-	if len(kubeServices) == 0 && ctx.kubeCluster == ctx.teleportCluster.name {
-		return nil, localErr
 	}
 
 	// Validate that the requested kube cluster is registered.
@@ -1479,15 +1511,10 @@ outer:
 	if len(endpoints) == 0 {
 		return nil, trace.NotFound("kubernetes cluster %q is not found in teleport cluster %q", ctx.kubeCluster, ctx.teleportCluster.name)
 	}
-	return f.newClusterSessionDirect(ctx, endpoints)
+	return endpoints, nil
 }
 
-func (f *Forwarder) newClusterSessionLocal(ctx authContext) (*clusterSession, error) {
-	f.log.Debugf("Handling kubernetes session for %v using local credentials.", ctx)
-	sess := &clusterSession{
-		parent:      f,
-		authContext: ctx,
-	}
+func (f *Forwarder) getLocalCreds(ctx authContext) (*kubeCreds, error) {
 	if len(f.creds) == 0 {
 		return nil, trace.NotFound("this Teleport process is not configured for direct Kubernetes access; you likely need to 'tsh login' into a leaf cluster or 'tsh kube login' into a different kubernetes cluster")
 	}
@@ -1495,69 +1522,7 @@ func (f *Forwarder) newClusterSessionLocal(ctx authContext) (*clusterSession, er
 	if !ok {
 		return nil, trace.NotFound("kubernetes cluster %q not found", ctx.kubeCluster)
 	}
-	sess.creds = creds
-	sess.kubeClusterEndpoints = []kubeClusterEndpoint{{addr: creds.targetAddr}}
-	sess.tlsConfig = creds.tlsConfig
-
-	// When running inside Kubernetes cluster or using auth/exec providers,
-	// kubeconfig provides a transport wrapper that adds a bearer token to
-	// requests
-	//
-	// When forwarding request to a remote cluster, this is not needed
-	// as the proxy uses client cert auth to reach out to remote proxy.
-	transport, err := creds.wrapTransport(f.newTransport(sess.Dial, sess.tlsConfig))
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	sess.forwarder, err = forward.New(
-		forward.FlushInterval(100*time.Millisecond),
-		forward.RoundTripper(transport),
-		forward.WebsocketDial(sess.Dial),
-		forward.Logger(f.log),
-		forward.ErrorHandler(fwdutils.ErrorHandlerFunc(f.formatForwardResponseError)),
-	)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return sess, nil
-}
-
-func (f *Forwarder) newClusterSessionDirect(ctx authContext, endpoints []kubeClusterEndpoint) (*clusterSession, error) {
-	if len(endpoints) == 0 {
-		return nil, trace.BadParameter("no kube cluster endpoints provided")
-	}
-
-	f.log.WithField("kube_service.endpoints", endpoints).Debugf("Kubernetes session for %v forwarded to remote kubernetes_service instance.", ctx)
-
-	sess := &clusterSession{
-		parent:      f,
-		authContext: ctx,
-		// This session talks to a kubernetes_service, which should handle
-		// audit logging. Avoid duplicate logging.
-		noAuditEvents: true,
-	}
-	sess.kubeClusterEndpoints = endpoints
-
-	var err error
-	sess.tlsConfig, err = f.getOrRequestClientCreds(ctx)
-	if err != nil {
-		f.log.Warningf("Failed to get certificate for %v: %v.", ctx, err)
-		return nil, trace.AccessDenied("access denied: failed to authenticate with auth server")
-	}
-
-	transport := f.newTransport(sess.Dial, sess.tlsConfig)
-	sess.forwarder, err = forward.New(
-		forward.FlushInterval(100*time.Millisecond),
-		forward.RoundTripper(transport),
-		forward.WebsocketDial(sess.Dial),
-		forward.Logger(f.log),
-		forward.ErrorHandler(fwdutils.ErrorHandlerFunc(f.formatForwardResponseError)),
-	)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return sess, nil
+	return creds, nil
 }
 
 // DialFunc is a network dialer function that returns a network connection
