@@ -1362,6 +1362,8 @@ service AuthService {
     // CreateResetPasswordToken resets users current password and second factors and creates a reset
     // password token.
     rpc CreateResetPasswordToken(CreateResetPasswordTokenRequest) returns (types.UserTokenV3);
+    // CreateBotToken creates a new bot onboarding user token.
+    rpc CreateBotJoinToken(CreateResetPasswordTokenRequest) returns (types.UserTokenV3);
 
     // GetUser gets a user resource by name.
     rpc GetUser(GetUserRequest) returns (types.UserV2);

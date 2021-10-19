@@ -681,6 +681,16 @@ func (c *Client) CreateResetPasswordToken(ctx context.Context, req *proto.Create
 	return token, nil
 }
 
+// CreateBotToken creates a bot token
+func (c *Client) CreateBotJoinToken(ctx context.Context, req *proto.CreateResetPasswordTokenRequest) (types.UserToken, error) {
+	token, err := c.grpc.CreateBotJoinToken(ctx, req, c.callOpts...)
+	if err != nil {
+		return nil, trail.FromGRPC(err)
+	}
+
+	return token, nil
+}
+
 // GetAccessRequests retrieves a list of all access requests matching the provided filter.
 func (c *Client) GetAccessRequests(ctx context.Context, filter types.AccessRequestFilter) ([]types.AccessRequest, error) {
 	rsp, err := c.grpc.GetAccessRequests(ctx, &filter, c.callOpts...)

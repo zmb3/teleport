@@ -148,16 +148,36 @@ func (c *BotsCommand) AddBot(client auth.ClientI) error {
 	}
 	fmt.Println("created user", userName)
 
-	// token, err := client.GenerateToken(context.Background(), auth.GenerateTokenRequest{
-	// 	Roles:  types.SystemRoles{types.RoleProvisionToken, types.RoleNode},
-	// 	TTL:    time.Hour * 24 * 30,
-	// 	Token:  "token", // TODO remove me
-	// 	Labels: map[string]string{"bot": c.botName},
-	// })
-	// if err != nil {
-	// 	return trace.Wrap(err)
-	// }
-	// fmt.Println("generated token for bot:", token)
+	// TODO: we create a User for the bot. CreateBotJoinToken authorizes for
+	// Update/Bot, even though we then create a token for the associated User.
+	// Is this sane?
+
+	// Create the user token, used by the bot to generate user SSH certificates.
+	userToken, err := client.CreateBotJoinToken(context.TODO(), auth.CreateUserTokenRequest{
+		Name: userName,
+		TTL:  time.Hour,
+		Type: auth.UserTokenTypeBot,
+	})
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	fmt.Println("user token: ", userToken)
+
+	// TODO: reuse the user token for the host token?
+
+	// Create the node join token, used by the bot to join the cluster and fetch
+	// host certificates.
+	token, err := client.GenerateToken(context.Background(), auth.GenerateTokenRequest{
+		Roles:  types.SystemRoles{types.RoleProvisionToken, types.RoleNode},
+		TTL:    time.Hour * 24 * 30,
+		Token:  "token", // TODO remove me
+		Labels: map[string]string{"bot": c.botName},
+	})
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	fmt.Println("generated token for bot:", token)
 
 	return nil
 }

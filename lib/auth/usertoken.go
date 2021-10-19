@@ -205,6 +205,69 @@ func (s *Server) CreateResetPasswordToken(ctx context.Context, req CreateUserTok
 	return s.GetUserToken(ctx, token.GetName())
 }
 
+func (s *Server) CreateBotJoinToken(ctx context.Context, req CreateUserTokenRequest) (types.UserToken, error) {
+	err := req.CheckAndSetDefaults()
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	if req.Type != UserTokenTypeBot {
+		return nil, trace.BadParameter("invalid bot token request type")
+	}
+
+	_, err = s.GetUser(req.Name, false)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	// TODO: ensure that the user is a bot user?
+
+	token, err := s.newUserToken(req)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	// TODO: deleteUserTokens?
+	createdToken, err := s.Identity.CreateUserToken(ctx, token)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	log.Debugf("created bot join token for request %+v", req)
+	log.Debugf("initial user token: %+v", token)
+	log.Debugf("created user token: %+v", createdToken)
+
+	// TODO: audit log event. partially implemented, may need events.proto and
+	// dynamic.go, etc (unless we can reuse existing UserTokenCreate event)
+	// if err := s.emitter.EmitAuditEvent(ctx, &apievents.UserTokenCreate{
+	// 	Metadata: apievents.Metadata{
+	// 		Type: events.BotTokenCreateEvent,
+	// 		Code: events.ResetPasswordTokenCreateCode,
+	// 	},
+	// 	UserMetadata: apievents.UserMetadata{
+	// 		User:         ClientUsername(ctx),
+	// 		Impersonator: ClientImpersonator(ctx),
+	// 	},
+	// 	ResourceMetadata: apievents.ResourceMetadata{
+	// 		Name:    req.Name,
+	// 		TTL:     req.TTL.String(),
+	// 		Expires: s.GetClock().Now().UTC().Add(req.TTL),
+	// 	},
+	// }); err != nil {
+	// 	log.WithError(err).Warn("Failed to emit create reset password token event.")
+	// }
+
+	tokens, err := s.GetUserTokens(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	for i, token := range tokens {
+		log.Debugf("token %d: %+v", i, token)
+	}
+
+	return s.GetUserToken(ctx, token.GetName())
+}
+
 func (s *Server) resetMFA(ctx context.Context, user string) error {
 	devs, err := s.Identity.GetMFADevices(ctx, user, false)
 	if err != nil {
@@ -395,6 +458,7 @@ func formatUserTokenURL(proxyHost string, tokenID string, reqType string) (strin
 		u.Path = fmt.Sprintf("/web/recovery/steps/%v/verify", tokenID)
 	}
 
+	// TODO: case for UserTokenTypeBot?
 	return u.String(), nil
 }
 

@@ -670,6 +670,34 @@ func (g *GRPCServer) CreateResetPasswordToken(ctx context.Context, req *proto.Cr
 	return r, nil
 }
 
+func (g *GRPCServer) CreateBotJoinToken(ctx context.Context, req *proto.CreateResetPasswordTokenRequest) (*types.UserTokenV3, error) {
+	auth, err := g.authenticate(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	if req == nil {
+		req = &proto.CreateResetPasswordTokenRequest{}
+	}
+
+	token, err := auth.CreateBotJoinToken(ctx, CreateUserTokenRequest{
+		Name: req.Name,
+		TTL:  time.Duration(req.TTL),
+		Type: req.Type,
+	})
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	r, ok := token.(*types.UserTokenV3)
+	if !ok {
+		err = trace.BadParameter("unexpected UserToken type %T", token)
+		return nil, trace.Wrap(err)
+	}
+
+	return r, nil
+}
+
 func (g *GRPCServer) RotateResetPasswordTokenSecrets(ctx context.Context, req *proto.RotateUserTokenSecretsRequest) (*types.UserTokenSecretsV3, error) {
 	auth, err := g.authenticate(ctx)
 	if err != nil {
@@ -2122,7 +2150,7 @@ func userSingleUseCertsGenerate(ctx context.Context, actx *grpcContext, req prot
 	}
 
 	// Generate the cert.
-	certs, err := actx.generateUserCerts(ctx, req, certRequestMFAVerified(mfaDev.Id), certRequestClientIP(clientIP))
+	certs, err := actx.generateUserCerts(ctx, req, false, certRequestMFAVerified(mfaDev.Id), certRequestClientIP(clientIP))
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

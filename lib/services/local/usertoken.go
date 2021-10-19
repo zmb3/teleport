@@ -19,6 +19,7 @@ package local
 import (
 	"bytes"
 	"context"
+	"fmt"
 
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/backend"
@@ -119,6 +120,7 @@ func (s *IdentityService) CreateUserToken(ctx context.Context, token types.UserT
 		Value:   value,
 		Expires: token.Expiry(),
 	}
+	fmt.Printf("CreateUserToken: key=(%+v, %+v, %+v), item=%+v\n", userTokenPrefix, token.GetName(), paramsPrefix, item)
 	_, err = s.Create(ctx, item)
 	if err != nil {
 		return nil, trace.Wrap(err)
