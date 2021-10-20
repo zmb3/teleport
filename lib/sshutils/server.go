@@ -19,6 +19,7 @@ limitations under the License.
 package sshutils
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -417,6 +418,10 @@ func (s *Server) HandleConnection(conn net.Conn) {
 	if err != nil {
 		log.Errorf(err.Error())
 	}
+	s.log.Debugf("RemoteAddr HandleConnection: %v", remoteAddr)
+	reader := bufio.NewReader(conn)
+	b, _ := reader.Peek(1000)
+	s.log.Debugf("peeked Server Conn: %v", string(b))
 	if err := s.limiter.AcquireConnection(remoteAddr); err != nil {
 		if trace.IsLimitExceeded(err) {
 			proxyConnectionLimitHitCount.Inc()
