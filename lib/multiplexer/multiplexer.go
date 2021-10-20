@@ -62,7 +62,8 @@ type Config struct {
 	// DisableDB disables database access proxy listener
 	DisableDB bool
 	// ID is an identifier used for debugging purposes
-	ID string
+	ID           string
+	DebugEnabled bool
 }
 
 // CheckAndSetDefaults verifies configuration and sets defaults
@@ -169,6 +170,12 @@ func (m *Mux) Wait() {
 	<-m.waitContext.Done()
 }
 
+func (m *Mux) debugf(fmt string, args ...interface{}) {
+	if m.DebugEnabled {
+		m.Debugf(fmt, args)
+	}
+}
+
 // Serve is a blocking function that serves on the listening socket
 // and accepts requests. Every request is served in a separate goroutine
 func (m *Mux) Serve() error {
@@ -179,7 +186,7 @@ func (m *Mux) Serve() error {
 		m.Debug("accept conn")
 		conn, err := m.Listener.Accept()
 		if err == nil {
-			m.WithField("remoteAddr", conn.RemoteAddr().String()).Debugf("Received conn on mx, type: %v", reflect.TypeOf(conn))
+			m.debugf("Received conn on mx, type: %v", reflect.TypeOf(conn))
 			if tcpConn, ok := conn.(*net.TCPConn); ok {
 				tcpConn.SetKeepAlive(true)
 				tcpConn.SetKeepAlivePeriod(3 * time.Minute)
@@ -206,6 +213,7 @@ func (m *Mux) detectAndForward(conn net.Conn) {
 		conn.Close()
 		return
 	}
+
 	connWrapper, err := detect(conn, m.EnableProxyProtocol)
 	if err != nil {
 		if trace.Unwrap(err) != io.EOF {
@@ -215,6 +223,10 @@ func (m *Mux) detectAndForward(conn net.Conn) {
 		return
 	}
 
+	reader := bufio.NewReader(conn)
+	b, _ := reader.Peek(1000)
+	m.debugf("peeked Conn: %v", string(b))
+
 	err = conn.SetReadDeadline(time.Time{})
 	if err != nil {
 		m.Warning(trace.DebugReport(err))
@@ -222,7 +234,7 @@ func (m *Mux) detectAndForward(conn net.Conn) {
 		return
 	}
 
-	m.WithField("remoteAddr", connWrapper.RemoteAddr().String()).Debug("Forwarding Proto %v", connWrapper.protocol)
+	m.debugf("Forwarding Proto %v", connWrapper.protocol)
 	switch connWrapper.protocol {
 	case ProtoTLS:
 		if m.DisableTLS {
@@ -273,11 +285,6 @@ func (m *Mux) detectAndForward(conn net.Conn) {
 
 func detect(conn net.Conn, enableProxyProtocol bool) (*Conn, error) {
 	reader := bufio.NewReader(conn)
-
-	b, _ := reader.Peek(1000)
-	log.WithFields(log.Fields{
-		trace.Component: teleport.Component("mx"),
-	}).Debugf("peeked Conn: %v", string(b))
 
 	// the first attempt is to parse optional proxy
 	// protocol line that is injected by load balancers

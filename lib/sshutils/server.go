@@ -24,7 +24,6 @@ import (
 	"encoding/json"
 	"io"
 	"net"
-	"reflect"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -412,7 +411,6 @@ func (s *Server) trackUserConnections(delta int32) int32 {
 // and proxies, proxies and servers, servers and auth, etc).
 //
 func (s *Server) HandleConnection(conn net.Conn) {
-	s.log.WithField("remoteAddr", conn.RemoteAddr().String()).Debugf("Received conn on server, type: %v", reflect.TypeOf(conn))
 	// initiate an SSH connection, note that we don't need to close the conn here
 	// in case of error as ssh server takes care of this
 	remoteAddr, _, err := net.SplitHostPort(conn.RemoteAddr().String())
