@@ -3,15 +3,18 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
+	"crypto/x509"
+	"encoding/pem"
 	"log"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gravitational/teleport"
 	api "github.com/gravitational/teleport/api/client"
+	"github.com/gravitational/teleport/api/client/proto"
 	apidefaults "github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
+	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/auth/native"
 	"github.com/gravitational/teleport/lib/client"
@@ -28,7 +31,7 @@ import (
 
 // TODO: CLI arguments for all of these
 var (
-	token      = "b344521794d75acada79ff780de66557"
+	token      = "d01285c4dc18a0462506bf8d58a2b249"
 	authServer = "localhost:3025"
 	nodeName   = "test3"
 	dest       = "dir:/Users/tim/certs"
@@ -54,25 +57,60 @@ func insecureUserClient() (*auth.Client, error) {
 	tlsConfig := utils.TLSConfig([]uint16{})
 	tlsConfig.Time = clock.Now
 
+	// TODO: this is obviously evil
 	tlsConfig.InsecureSkipVerify = true
 
 	addr := utils.MustParseAddr(authServer)
-	client, err := auth.NewClient(api.Config{
+	return auth.NewClient(api.Config{
 		Addrs: utils.NetAddrsToStrings([]utils.NetAddr{*addr}),
 		Credentials: []api.Credentials{
 			api.LoadTLS(tlsConfig),
 		},
 	})
+}
+
+func authenticatedUserClient(privateKey []byte, certs *proto.Certs) (*auth.Client, error) {
+	clock := clockwork.NewRealClock()
+	tlsConfig := utils.TLSConfig([]uint16{})
+	tlsConfig.Time = clock.Now
+
+	// TODO: Shamelessly stolen from Identity.TLSConfig. Can we reuse that?
+	tlsCert, err := tls.X509KeyPair(certs.TLS, privateKey)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	return client, nil
+	certPool := x509.NewCertPool()
+	for j := range certs.TLSCACerts {
+		parsedCert, err := tlsca.ParseCertificatePEM(certs.TLSCACerts[j])
+		if err != nil {
+			return nil, trace.Wrap(err, "failed to parse CA certificate")
+		}
+		certPool.AddCert(parsedCert)
+	}
+
+	tlsConfig.Certificates = []tls.Certificate{tlsCert}
+	tlsConfig.RootCAs = certPool
+	tlsConfig.ClientCAs = certPool
+
+	// TODO: How do we get the server name securely? Do we trust user input?
+	tlsConfig.ServerName = apiutils.EncodeClusterName("nuc.example.com")
+
+	// TODO: evil. why is this needed?
+	tlsConfig.InsecureSkipVerify = true
+
+	addr := utils.MustParseAddr(authServer)
+	return auth.NewClient(api.Config{
+		Addrs: utils.NetAddrsToStrings([]utils.NetAddr{*addr}),
+		Credentials: []api.Credentials{
+			api.LoadTLS(tlsConfig),
+		},
+	})
 }
 
 func mainUserCerts() error {
-	// TODO: obviously the ssh public key needs to be persisted
-	_, ssh, _, err := generateKeys()
+	// TODO: obviously the sshPublicKey public key needs to be persisted
+	tlsPrivateKey, sshPublicKey, _, err := generateKeys()
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -86,53 +124,70 @@ func mainUserCerts() error {
 
 	certs, err := client.GenerateInitialRenewableUserCerts(auth.RenewableCertsRequest{
 		Token:     token,
-		PublicKey: ssh,
+		PublicKey: sshPublicKey,
 	})
 	if err != nil {
 		return trace.WrapWithMessage(err, "Could not generate initial user certificates")
 	}
 
-	fmt.Printf("certs: %+v\n", certs)
+	//fmt.Printf("certs: %+v\n", certs)
 
-	return nil
-}
+	decodedCert, _ := pem.Decode(certs.TLS)
+	tlsCert, err := x509.ParseCertificate(decodedCert.Bytes)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	log.Printf("cert: %+v", tlsCert)
 
-func generateUserCerts(tc *tls.Config) error {
-	_, ssh, _, err := generateKeys()
+	log.Println("attempting to create authenticated client")
+	client, err = authenticatedUserClient(tlsPrivateKey, certs)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
-	//addr := utils.MustParseAddr(authServer)
+	log.Println("attempting to renew user certs")
+	certs, err = client.GenerateUserCerts(context.Background(), proto.UserCertsRequest{
+		PublicKey: sshPublicKey,
+		Username:  tlsCert.Subject.CommonName,
+		Expires:   time.Now().Add(time.Hour),
+	})
+	if err != nil {
+		return trace.Wrap(err)
+	}
 
-	// ds, err := renew.ParseDestinationSpec(dest)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	decodedCert, _ = pem.Decode(certs.TLS)
+	tlsCert, err = x509.ParseCertificate(decodedCert.Bytes)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	log.Printf("renewed cert: %+v", tlsCert)
 
-	// store, err := renew.NewDestination(ds)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	return nil
+}
+
+func generateUserCerts(tc *tls.Config) (private []byte, certs *proto.Certs, err error) {
+	private, ssh, _, err := generateKeys()
+	if err != nil {
+		return nil, nil, trace.Wrap(err)
+	}
 
 	client, err := auth.NewClient(api.Config{
 		Addrs:       []string{authServer},
 		Credentials: []api.Credentials{api.LoadTLS(tc)},
 	})
 	if err != nil {
-		return trace.Wrap(err)
+		return nil, nil, trace.Wrap(err)
 	}
 
-	certs, err := client.GenerateInitialRenewableUserCerts(auth.RenewableCertsRequest{
+	certs, err = client.GenerateInitialRenewableUserCerts(auth.RenewableCertsRequest{
 		Token:     token,
 		PublicKey: ssh,
 	})
 	if err != nil {
-		return trace.Wrap(err)
+		return nil, nil, trace.Wrap(err)
 	}
 
-	fmt.Printf("certs: %+v\n", certs)
-	return nil
+	return
 }
 
 func mainHostCerts() error {
@@ -205,11 +260,6 @@ func mainHostCerts() error {
 
 	if err := startServiceHeartbeat(client, id.ID.HostUUID); err != nil {
 		return trace.Wrap(err)
-	}
-
-	log.Println("attempting to generate user certs")
-	if err := generateUserCerts(tc); err != nil {
-		return err
 	}
 
 	// log.Println("generating user certs")
