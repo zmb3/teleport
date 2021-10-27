@@ -1,6 +1,6 @@
-# This Dockerfile makes the "build box": the container used to build official
-# releases of Teleport and its documentation.
-FROM centos:6
+# Use the CentOS 6 compilers buildbox that comes with an updated version of
+# gcc and ld.
+FROM quay.io/gravitational/teleport-buildbox-centos6-compilers:v0.0.1
 
 ENV LANGUAGE=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
@@ -14,11 +14,6 @@ RUN sed -i 's%^mirrorlist%#mirrorlist%g' /etc/yum.repos.d/* && \
     yum makecache fast && \
     yum -y install gcc pam-devel glibc-devel net-tools tree git zip && \
     yum clean all
-
-# Create /opt directory from pre-built assets of gcc and binutils. Both are
-# needed to build programs that use CGO starting with Go 1.17. See
-# Dockerfile-centos6-assets for more details.
-RUN cd / && curl -L https://s3.amazonaws.com/clientbuilds.gravitational.io/go/centos6-assets.tar.gz | tar -xz
 
 ARG UID
 ARG GID

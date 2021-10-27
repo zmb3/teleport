@@ -4408,8 +4408,61 @@ volumes:
   - name: debrepo
     claim:
       name: drone-s3-debrepo-pvc
+
+---
+kind: pipeline
+type: kubernetes
+name: build-buildbox-centos6-compilers
+trigger:
+  event:
+    - custom
+workspace:
+  path: /go/src/github.com/gravitational/teleport
+clone:
+  disable: true
+steps:
+- name: Check out code
+  image: docker:git
+  commands:
+  - git clone https://github.com/gravitational/${DRONE_REPO_NAME}.git .
+  - git checkout ${DRONE_BRANCH}
+- name: Wait for docker
+  image: docker
+  commands:
+  - timeout 30s /bin/sh -c 'while [ ! -S /var/run/docker.sock ]; do sleep 1; done'
+  volumes:
+  - name: dockersock
+    path: /var/run
+- name: Create image
+  image: docker
+  commands:
+  - apk add --no-cache make
+  - docker login -u="$$QUAYIO_DOCKER_USERNAME" -p="$$QUAYIO_DOCKER_PASSWORD" quay.io
+  - make -C build.assets buildbox-centos6-compilers
+  - docker tag quay.io/gravitational/teleport-buildbox-centos6-compilers quay.io/gravitational/teleport-buildbox-centos6-compilers:$VERSION
+  - docker images
+  - docker push quay.io/gravitational/teleport-buildbox-centos6-compilers:$VERSION
+  environment:
+    QUAYIO_DOCKER_PASSWORD:
+      from_secret: QUAYIO_DOCKER_PASSWORD
+    QUAYIO_DOCKER_USERNAME:
+      from_secret: QUAYIO_DOCKER_USERNAME
+  volumes:
+  - name: dockersock
+    path: /var/run
+services:
+- name: Start Docker
+  image: docker:dind
+  privileged: true
+  volumes:
+  - name: dockersock
+    path: /var/run
+volumes:
+- name: dockersock
+  temp: {}
+
 ---
 kind: signature
-hmac: ea445ef1fd711e97f21dbb008ac98a207f94f6a13ba9609f31b6c761a24b3eeb
+hmac: bc8f9d12efc6c16c0ea9890866663b23e609a4177ead75a46cffdd98a346a7ae
 
 ...

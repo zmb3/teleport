@@ -30,6 +30,7 @@ GOGO_PROTO_TAG ?= v1.3.2
 BUILDBOX=quay.io/gravitational/teleport-buildbox:$(RUNTIME)
 BUILDBOX_FIPS=quay.io/gravitational/teleport-buildbox-fips:$(RUNTIME)
 BUILDBOX_CENTOS6=quay.io/gravitational/teleport-buildbox-centos6:$(RUNTIME)
+BUILDBOX_CENTOS6_COMPILERS=quay.io/gravitational/teleport-buildbox-centos6-compilers
 BUILDBOX_ARM=quay.io/gravitational/teleport-buildbox-arm:$(RUNTIME)
 BUILDBOX_ARM_FIPS=quay.io/gravitational/teleport-buildbox-arm-fips:$(RUNTIME)
 
@@ -144,8 +145,12 @@ buildbox-centos6:
 		--cache-from $(BUILDBOX_CENTOS6) \
 		--tag $(BUILDBOX_CENTOS6) -f Dockerfile-centos6 .
 
-# CentOS 6 FIPS builds were removed in Teleport 7.0
-# https://github.com/gravitational/teleport/issues/7207
+# buildbox-centos6-compilers create CentOS 6 image with updated compilers to
+# support Go 1.17.
+.PHONY: buildbox-centos6-compilers
+buildbox-centos6-compilers:
+	docker build \
+		--tag $(BUILDBOX_CENTOS6_COMPILERS) -f Dockerfile-centos6-compilers .
 
 #
 # Builds a Docker buildbox for ARMv7/ARM64 builds
@@ -335,8 +340,11 @@ test-docs: docsbox
 	docker run -i $(NOROOT) -v $$(pwd)/..:/src/content/$(DOCS_VERSION) $(DOCSBOX) \
 		/bin/sh -c "yarn markdown-lint-external-links"
 
-# build-centos6-assets builds assets needed by CentOS 6 in a container.
-.PHONY: build-centos6-assets
-build-centos6-assets:
-	docker build -t buildbox-centos6-assets -f Dockerfile-centos6-assets .
-	docker run -v $$(pwd):/centos6.assets -it buildbox-centos6-assets cp /centos6-assets.tar.gz /centos6.assets
+# publish-centos6-compilers will kick off a build on Drone to create and
+# publish a CentOS 6 compilers buildbox.
+.PHONY: publish-centos6-compilers
+publish-centos6-compilers:
+	# Make sure VERSION is set on the command line "make publish-centos6-compilers VERSION=x.y.z".
+	@test $(VERSION)
+	curl -sk -H "Authorization: Bearer ${DRONE_TOKEN}" \
+		-X POST "${DRONE_SERVER}/api/repos/gravitational/teleport/builds?branch=$(BRANCH_NAME)&VERSION=v$(VERSION)" | jq .
