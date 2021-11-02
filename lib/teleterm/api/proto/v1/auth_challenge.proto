@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package teleport.terminal.v1;
+
+option go_package = "github.com/gravitational/teleport/lib/teleterm/v1";
+
+message AuthChallengeU2F {
+    string key_handle = 1;
+    string challenge = 2;
+    string app_id = 3;
+    string version = 4;
+}
+
+message ChallengeU2F {}
+
+message ChallengeTOTP {}
+
+message SolvedChallengeU2F {}
+
+message SolvedChallengeTOTP {}

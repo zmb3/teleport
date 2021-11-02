@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package teleport.terminal.v1;
+
+option go_package = "github.com/gravitational/teleport/lib/teleterm/v1";
+
+// AuthSettings contains the form of authentication the auth server supports.
+message AuthSettings {
+    // Type is the type of authentication, can be either local or oidc.
+    string type = 1;
+    // SecondFactor is the type of second factor to use in authentication.
+    // Supported options are: off, otp, and u2f.
+    string second_factor = 2;
+    // OIDC contains OIDC connector settings needed for authentication.
+    repeated AuthProvider auth_providers = 4;
+    // HasMessageOfTheDay is a flag indicating that the cluster has MOTD
+    // banner text that must be retrieved, displayed and acknowledged by
+    // the user.
+    bool has_message_of_the_day = 5;
+}
+
+// SSOSettings is SSO provider settings
+message AuthProvider {
+    // Type is the auth provider type (github|oidc|etc)
+    string type = 1;
+    // Name is the internal name of the connector.
+    string name = 2;
+    // Display is the display name for the connector.
+    string display = 3;
+}

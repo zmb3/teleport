@@ -560,6 +560,7 @@ func readProfile(profileDir string, profileName string) (*ProfileStatus, error) 
 		Username:    profile.Username,
 		ClusterName: profile.SiteName,
 	}
+
 	key, err := store.GetKey(idx, WithAllCerts...)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -669,6 +670,9 @@ func readProfile(profileDir string, profileName string) (*ProfileStatus, error) 
 		AWSRolesARNs:   tlsID.AWSRoleARNs,
 	}, nil
 }
+
+// TODO (alexeyk): make proper renames everywhere
+var StatusFromFile = readProfile
 
 // StatusCurrent returns the active profile status.
 func StatusCurrent(profileDir, proxyHost string) (*ProfileStatus, error) {
@@ -2066,7 +2070,6 @@ func (tc *TeleportClient) ConnectToProxy(ctx context.Context) (*ProxyClient, err
 // successful.
 func (tc *TeleportClient) connectToProxy(ctx context.Context) (*ProxyClient, error) {
 	sshProxyAddr := tc.Config.SSHProxyAddr
-
 	hostKeyCallback := tc.HostKeyCallback
 	authMethods := append([]ssh.AuthMethod{}, tc.Config.AuthMethods...)
 	clusterName := func() string { return tc.SiteName }
@@ -2110,6 +2113,7 @@ func (tc *TeleportClient) connectToProxy(ctx context.Context) (*ProxyClient, err
 		signers, err := tc.localAgent.certsForCluster("")
 		// errNoLocalKeyStore is returned when running in the proxy. The proxy
 		// should be passing auth methods via tc.Config.AuthMethods.
+
 		if err != nil && !errors.Is(err, errNoLocalKeyStore) && !trace.IsNotFound(err) {
 			return nil, trace.Wrap(err)
 		}
@@ -2304,6 +2308,52 @@ func (tc *TeleportClient) LogoutAll() error {
 		return trace.Wrap(err)
 	}
 	return nil
+}
+
+// SSOLogin logs the user into a Teleport cluster using SSO login
+func (tc *TeleportClient) SSOLogin(ctx context.Context, providerType, providerName string) (*Key, error) {
+	// generate a new keypair. the public key will be signed via proxy if client's
+	// password+OTP are valid
+	key, err := NewKey()
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	response, err := tc.ssoLogin(ctx, providerName, key.Pub, providerType)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	// in this case identity is returned by the proxy
+	tc.Username = response.Username
+	if tc.localAgent != nil {
+		tc.localAgent.username = response.Username
+	}
+
+	// Check that a host certificate for at least one cluster was returned.
+	if len(response.HostSigners) == 0 {
+		return nil, trace.BadParameter("bad response from the server: expected at least one certificate, got 0")
+	}
+
+	// extract the new certificate out of the response
+	key.Cert = response.Cert
+	key.TLSCert = response.TLSCert
+	if tc.KubernetesCluster != "" {
+		key.KubeTLSCerts[tc.KubernetesCluster] = response.TLSCert
+	}
+	if tc.DatabaseService != "" {
+		key.DBTLSCerts[tc.DatabaseService] = response.TLSCert
+	}
+	key.TrustedCA = response.HostSigners
+
+	// Store the requested cluster name in the key.
+	key.ClusterName = tc.SiteName
+	if key.ClusterName == "" {
+		rootClusterName := key.TrustedCA[0].ClusterName
+		key.ClusterName = rootClusterName
+		tc.SiteName = rootClusterName
+	}
+
+	return key, nil
 }
 
 // Login logs the user into a Teleport cluster by talking to a Teleport proxy.
