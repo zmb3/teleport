@@ -125,6 +125,30 @@ RUN (git clone https://github.com/gogo/protobuf.git ${GOPATH}/src/github.com/gog
      git reset --hard ${GOGO_PROTO_TAG} && \
      make install)
 
+# Install buf
+RUN BIN="/usr/local/bin" && \
+    VERSION="1.0.0-rc1" && \
+    BINARY_NAME="buf" && \
+    curl -sSL \
+     "https://github.com/bufbuild/buf/releases/download/v${VERSION}/${BINARY_NAME}-$(uname -s)-$(uname -m)" \
+    -o "${BIN}/${BINARY_NAME}" && \
+    chmod +x "${BIN}/${BINARY_NAME}"
+
+# Install node
+ARG NODE_VERSION=v15.14.0
+ENV NODE_URL="https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz"
+ENV NODE_PATH="/usr/local/lib/node-${NODE_VERSION}-linux-x64"
+ENV PATH="$PATH:${NODE_PATH}/bin"
+RUN (curl -o /tmp/nodejs.tar.xz -L ${NODE_URL} && tar -xJf /tmp/nodejs.tar.xz -C /usr/local/lib)
+
+# Install js proto tools
+RUN (npm install --global grpc-tools@1.11.2)
+#RUN (npm install --global ts-protoc-gen@0.15.0)
+
+RUN (npm install --global grpc_tools_node_protoc_ts@5.0.1)
+
+RUN go install github.com/golang/protobuf/protoc-gen-go@v1.4.3
+
 ENV PROTO_INCLUDE "/usr/local/include":"${GOPATH}/src":"${GOPATH}/src/github.com/gogo/protobuf/protobuf":"${GOGOPROTO_ROOT}":"${GOGOPROTO_ROOT}/protobuf":"${GOPATH}/src/github.com/gravitational/teleport/lib/services"
 
 # Install PAM module and policies for testing.

@@ -580,6 +580,21 @@ func (proxy *ProxyClient) GetAppServers(ctx context.Context, namespace string) (
 	return servers, nil
 }
 
+// GetAppServers returns a list of application servers.
+func (proxy *ProxyClient) GetUser(ctx context.Context, username string) (types.User, error) {
+	authClient, err := proxy.CurrentClusterAccessPoint(ctx, false)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	user, err := authClient.GetUser(username, false)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return user, nil
+}
+
 // CreateAppSession creates a new application access session.
 func (proxy *ProxyClient) CreateAppSession(ctx context.Context, req types.CreateAppSessionRequest) (types.WebSession, error) {
 	clusterName, err := proxy.RootClusterName()
@@ -590,6 +605,7 @@ func (proxy *ProxyClient) CreateAppSession(ctx context.Context, req types.Create
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
+
 	ws, err := authClient.CreateAppSession(ctx, req)
 	if err != nil {
 		return nil, trace.Wrap(err)

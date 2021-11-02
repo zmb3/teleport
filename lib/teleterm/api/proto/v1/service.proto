@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package teleport.terminal.v1;
+
+option go_package = "github.com/gravitational/teleport/lib/teleterm/v1";
+
+import "google/protobuf/empty.proto";
+import "v1/cluster.proto";
+import "v1/auth_challenge.proto";
+import "v1/database.proto";
+import "v1/gateway.proto";
+import "v1/server.proto";
+import "v1/auth_settings.proto";
+
+// Note: following Google API Style guide (mostly)
+// https://cloud.google.com/apis/design/.
+
+service TerminalService {
+    // CreateCluster
+    rpc CreateCluster(CreateClusterRequest) returns (Cluster);
+    // ListClusters
+    rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
+    // GetAuthSettings
+    rpc GetAuthSettings(GetAuthSettingsRequest) returns (AuthSettings);
+    // ListDatabases
+    rpc ListDatabases(ListDatabasesRequest) returns (ListDatabasesResponse);
+    // CreateGateway
+    rpc CreateGateway(CreateGatewayRequest) returns (Gateway);
+    // ListGateways
+    rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse);
+    // DeleteGateway
+    rpc DeleteGateway(DeleteGatewayRequest) returns (EmptyResponse);
+    // ListServers
+    rpc ListServers(ListServersRequest) returns (ListServersResponse);
+    // CreateAuthChallenge
+    rpc CreateAuthChallenge(CreateAuthChallengeRequest) returns (CreateAuthChallengeResponse);
+    // CreateAuthChallenge
+    rpc SolveAuthChallenge(SolveAuthChallengeRequest) returns (SolveAuthChallengeResponse);
+    // CreateAuthSSOChallenge
+    rpc CreateAuthSSOChallenge(CreateAuthSSOChallengeRequest) returns (EmptyResponse);
+    // GetCluster
+    rpc GetCluster(GetClusterRequest) returns (Cluster);
+}
+
+message GetClusterRequest { string cluster_uri = 1; }
+
+message CreateClusterRequest {
+    // name is the cluster name
+    string name = 1;
+}
+
+message ListClustersRequest {}
+
+message ListClustersResponse { repeated Cluster clusters = 1; }
+
+message CreateClusterLoginChallengeRequest {
+    string cluster_id = 1;
+
+    // Login and password are currently required to generate Teleport challenges.
+    string login = 2;
+    string password = 3;
+}
+
+message SolveClusterLoginChallengeResponse {
+    // TODO(codingllama): Relay whatever we need for the UI.
+}
+
+message ListDatabasesRequest {
+    // cluster_uri is the cluster uri
+    string cluster_uri = 3;
+}
+
+message ListDatabasesResponse { repeated Database databases = 1; }
+
+message CreateGatewayRequest {
+    string target_uri = 1;
+    string port = 2;
+}
+
+message ListGatewaysRequest { repeated string cluster_ids = 3; }
+
+message ListGatewaysResponse { repeated Gateway gateways = 1; }
+
+message DeleteGatewayRequest { string gateway_uri = 1; }
+
+message ListServersRequest { string cluster_uri = 1; }
+
+message ListServersResponse { repeated Server servers = 1; }
+
+// GetAuthSettingsRequest is the get cluster auth settings request
+message GetAuthSettingsRequest {
+    // cluster_uri is the cluster uri
+    string cluster_uri = 1;
+}
+
+message EmptyResponse {}
+
+message CreateAuthChallengeRequest {
+    string cluster_uri = 1;
+    string user = 2;
+    string password = 3;
+}
+
+message CreateAuthSSOChallengeRequest {
+    string cluster_uri = 1;
+    string provider_name = 2;
+    string provider_type = 3;
+}
+
+message CreateAuthChallengeResponse {
+    ChallengeU2F u2f = 1;
+    ChallengeTOTP otp = 2;
+}
+
+message SolveAuthChallengeRequest {
+    string cluster_uri = 1;
+    string challenge_id = 2;
+
+    // TODO(alex-kovoy): temporary workaround
+    string user = 3;
+    string password = 4;
+    SolvedChallengeU2F utf = 5;
+    SolvedChallengeTOTP totp = 6;
+}
+
+message SolveAuthChallengeResponse {}

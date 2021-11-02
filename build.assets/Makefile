@@ -23,7 +23,7 @@ LIBBPF_VERSION ?= 0.3.1
 UID := $$(id -u)
 GID := $$(id -g)
 
-PROTOC_VER ?= 3.6.1
+PROTOC_VER ?= 3.13.0
 PROTOC_PLATFORM := linux-x86_64
 GOGO_PROTO_TAG ?= v1.3.2
 
