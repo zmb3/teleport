@@ -12,12 +12,24 @@ message Cluster {
     string name = 2;
     // connected indicates if connection to the cluster has been established
     bool connected = 3;
-    // acl is the cluster access control list of the logged-in user
-    ClusterACL acl = 4;
+    // User is the cluster access control list of the logged-in user
+    LoggedInUser logged_in_user = 4;
 }
 
-// ClusterACL is the access control list of the user
-message ClusterACL {
+// LoggedInUser describes a logged-in user
+message LoggedInUser {
+    // name is the user name
+    string name = 1;
+    // roles is the user roles
+    repeated string roles = 2;
+    // ssh_logins is the user ssh logins
+    repeated string ssh_logins = 3;
+    // acl is the user acl
+    ACL acl = 4;
+}
+
+// ACL is the access control list of the user
+message ACL {
     // sessions defines access to recorded sessions
     ResourceAccess sessions = 1;
     // auth_connectors defines access to auth.connectors
@@ -40,8 +52,6 @@ message ClusterACL {
     ResourceAccess dbs = 10;
     // kubeservers defines access to kubernetes servers.
     ResourceAccess kubeservers = 11;
-    // SSH ssh_logins access to servers
-    repeated string ssh_logins = 12;
     // access_requests defines access to access requests
     ResourceAccess access_requests = 13;
 }

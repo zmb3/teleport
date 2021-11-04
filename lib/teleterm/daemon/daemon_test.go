@@ -113,7 +113,7 @@ func FTestS(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func FFTestS(t *testing.T) {
+func TestS(t *testing.T) {
 	d, err := daemon.New(daemon.Config{
 		Dir:                profileDir,
 		InsecureSkipVerify: true,
@@ -123,23 +123,23 @@ func FFTestS(t *testing.T) {
 	err = d.Init()
 	require.NoError(t, err)
 
-	cluster, err := d.CreateCluster(context.TODO(), "localhost:4080")
-	require.NoError(t, err)
-
-	//cluster, err := d.GetCluster("/clusters/localhost")
+	//cluster, err := d.CreateCluster(context.TODO(), "localhost:4080")
 	//require.NoError(t, err)
 
-	//err = cluster.LocalLogin(context.TODO(), "papa", "123123", "fd")
-	//require.NoError(t, err)
-
-	err = cluster.SSOLogin(context.Background(), "oidc", "google")
+	cluster, err := d.GetCluster("/clusters/localhost")
 	require.NoError(t, err)
+
+	err = cluster.LocalLogin(context.TODO(), "papa", "123123", "fd")
+	require.Error(t, err)
+
+	//err = cluster.SSOLogin(context.Background(), "oidc", "google")
+	//require.NoError(t, err)
 
 	fmt.Println("ISCONNECTED: ", cluster.Connected())
 
-	dbs, err := cluster.GetDatabases(context.TODO())
-	fmt.Print("AAAAAAAAAAAAAA:", dbs)
-	require.Error(t, err)
+	//dbs, err := cluster.GetDatabases(context.TODO())
+	//fmt.Print("AAAAAAAAAAAAAA:", dbs)
+	//require.NoError(t, err)
 
 	//_, err = cluster.SyncAuthPreference(context.TODO())
 }

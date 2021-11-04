@@ -77,18 +77,21 @@ func (c *Cluster) GetRoles(ctx context.Context) ([]*types.Role, error) {
 	return roles, nil
 }
 
-// GetUser returns currently logged-in user
-func (c *Cluster) GetUser(ctx context.Context) (types.User, error) {
-	proxyClient, err := c.clusterClient.ConnectToProxy(ctx)
-	if err != nil {
-		return nil, trace.Wrap(err)
+// GetLoggedInUser returns currently logged-in user
+func (c *Cluster) GetLoggedInUser() LoggedInUser {
+	return LoggedInUser{
+		Name:      c.status.Username,
+		SSHLogins: c.status.Logins,
+		Roles:     c.status.Roles,
 	}
-	defer proxyClient.Close()
+}
 
-	user, err := proxyClient.GetUser(ctx, c.status.Username)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	return user, nil
+// LoggedInUser is the currently logged-in user
+type LoggedInUser struct {
+	// Name is the user name
+	Name string
+	// SSHLogins is the user sshlogins
+	SSHLogins []string
+	// Roles is the user roles
+	Roles []string
 }

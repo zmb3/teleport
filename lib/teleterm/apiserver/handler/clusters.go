@@ -56,8 +56,15 @@ func (s *Handler) GetCluster(ctx context.Context, req *api.GetClusterRequest) (*
 }
 
 func newAPICluster(cluster *daemon.Cluster) *api.Cluster {
+	loggedInUser := cluster.GetLoggedInUser()
 	return &api.Cluster{
 		Uri:       cluster.URI,
 		Name:      cluster.Name,
-		Connected: cluster.Connected()}
+		Connected: cluster.Connected(),
+		LoggedInUser: &api.LoggedInUser{
+			Name:      loggedInUser.Name,
+			SshLogins: loggedInUser.SSHLogins,
+			Roles:     loggedInUser.Roles,
+		},
+	}
 }
