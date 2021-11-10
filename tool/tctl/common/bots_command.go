@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,6 +30,7 @@ import (
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/service"
+	"github.com/gravitational/teleport/lib/tlsca"
 	"github.com/gravitational/trace"
 )
 
@@ -114,6 +116,22 @@ func (c *BotsCommand) ListBots(client auth.ClientI) error {
 	return nil
 }
 
+var startMessageTemplate = template.Must(template.New("node").Parse(`The bot token: {{.token}}.
+This token will expire in {{.minutes}} minutes.
+
+Run this on the new bot node to join the cluster:
+
+> tbot start \
+   --token={{.token}} \{{range .ca_pins}}
+   --ca-pin={{.}} \{{end}}
+   --auth-server={{.auth_server}}
+
+Please note:
+
+  - This invitation token will expire in {{.minutes}} minutes
+  - {{.auth_server}} must be reachable from the new node
+`))
+
 // AddBot adds a new certificate renewal bot to the cluster.
 func (c *BotsCommand) AddBot(client auth.ClientI) error {
 	// At this point, we don't know whether the bot will be
@@ -140,13 +158,20 @@ func (c *BotsCommand) AddBot(client auth.ClientI) error {
 		return trace.Wrap(err)
 	}
 
+	// TODO: originally this gives the user an impersonation role for... itself
+	// (probably in hopes of being able to issue certs for a named role rather
+	// than a user, which appears to be impossible)
 	user.SetRoles([]string{roleName})
+
 	// user.SetTraits(nil)
 
 	if err := client.CreateUser(context.TODO(), user); err != nil {
 		return trace.Wrap(err)
 	}
 	fmt.Println("created user", userName)
+
+	// TODO: make this user configurable via CLI?
+	ttl := time.Hour * 24 * 7
 
 	// TODO: we create a User for the bot. CreateBotJoinToken authorizes for
 	// Update/Bot, even though we then create a token for the associated User.
@@ -164,14 +189,16 @@ func (c *BotsCommand) AddBot(client auth.ClientI) error {
 
 	fmt.Println("user token: ", userToken)
 
-	// TODO: reuse the user token for the host token?
-
 	// Create the node join token, used by the bot to join the cluster and fetch
 	// host certificates.
+	// To ease the UX, we'll now create a host token that explicitly re-uses
+	// the user token.
+	// TODO: can the bot join as only one type (auto-expiring the other), or
+	// should it always join as both?
 	token, err := client.GenerateToken(context.Background(), auth.GenerateTokenRequest{
 		Roles:  types.SystemRoles{types.RoleProvisionToken, types.RoleNode},
-		TTL:    time.Hour * 24 * 30,
-		Token:  "token", // TODO remove me
+		TTL:    ttl,
+		Token:  userToken.GetName(),
 		Labels: map[string]string{"bot": c.botName},
 	})
 	if err != nil {
@@ -179,7 +206,31 @@ func (c *BotsCommand) AddBot(client auth.ClientI) error {
 	}
 	fmt.Println("generated token for bot:", token)
 
-	return nil
+	// Calculate the CA pins for this cluster. The CA pins are used by the
+	// client to verify the identity of the Auth Server.
+	localCAResponse, err := client.GetClusterCACert()
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	caPins, err := tlsca.CalculatePins(localCAResponse.TLSCA)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	authServers, err := client.GetAuthServers()
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	if len(authServers) == 0 {
+		return trace.Errorf("This cluster does not have any auth servers running.")
+	}
+
+	return startMessageTemplate.Execute(os.Stdout, map[string]interface{}{
+		"token":       token,
+		"minutes":     int(ttl.Minutes()),
+		"ca_pins":     caPins,
+		"auth_server": authServers[0].GetAddr(),
+	})
 }
 
 func (c *BotsCommand) addImpersonatorRole(client auth.ClientI, userName, roleName string) error {

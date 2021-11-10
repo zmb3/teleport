@@ -5,13 +5,17 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
-	"log"
 	"strings"
 
+	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/trace"
+	"github.com/sirupsen/logrus"
 )
+
+var log = logrus.WithFields(logrus.Fields{
+	trace.Component: teleport.ComponentTSH,
+})
 
 type DestinationType string
 
@@ -88,7 +92,7 @@ func ParseDestinationSpec(s string) (*DestinationSpec, error) {
 	}, nil
 }
 
-func SaveIdentity(id *auth.Identity, d Destination) error {
+func SaveIdentity(id *Identity, d Destination) error {
 	for _, data := range []struct {
 		name string
 		data []byte
@@ -98,8 +102,9 @@ func SaveIdentity(id *auth.Identity, d Destination) error {
 		{TLSCACertsKey, bytes.Join(id.TLSCACertsBytes, []byte("$"))},
 		{SSHCACertsKey, bytes.Join(id.SSHCACertBytes, []byte("\n"))},
 		{PrivateKeyKey, id.KeyBytes},
-		{MetadataKey, []byte(id.ID.HostUUID)},
+		//{MetadataKey, []byte(id.ID.HostUUID)},
 	} {
+		log.Debugf("Writing %s", data.name)
 		if err := d.Write(data.name, data.data); err != nil {
 			return trace.Wrap(err, "could not write to %v", data.name)
 		}
@@ -107,11 +112,12 @@ func SaveIdentity(id *auth.Identity, d Destination) error {
 	return nil
 }
 
-func LoadIdentity(d Destination) (*auth.Identity, error) {
+func LoadIdentity(d Destination) (*Identity, error) {
 	// TODO: encode the whole thing using the identityfile package?
 	var key, tlsCA, sshCA []byte
 	var certs proto.Certs
 	var err error
+
 	for _, item := range []struct {
 		name string
 		out  *[]byte
@@ -134,5 +140,5 @@ func LoadIdentity(d Destination) (*auth.Identity, error) {
 	log.Printf("got %d SSH CA certs", len(certs.SSHCACerts))
 	log.Printf("got %d TLS CA certs", len(certs.TLSCACerts))
 
-	return auth.ReadIdentityFromKeyPair(key, &certs)
+	return ReadIdentityFromKeyPair(key, &certs)
 }

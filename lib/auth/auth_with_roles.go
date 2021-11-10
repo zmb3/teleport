@@ -1372,8 +1372,6 @@ func (a *ServerWithRoles) GenerateInitialRenewableUserCerts(req RenewableCertsRe
 		return nil, trace.Wrap(err)
 	}
 
-	log.Debugf("Token: %+v", req)
-
 	token, err := a.authServer.GetUserToken(context.Background(), req.Token)
 	if err != nil {
 		log.Debugf("Could not fetch bot token: %+v", err)
