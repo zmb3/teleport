@@ -21,6 +21,8 @@ import (
 type Identity struct {
 	// KeyBytes is a PEM encoded private key
 	KeyBytes []byte
+	// SSHPublicKeyBytes contains bytes of the original SSH public key
+	SSHPublicKeyBytes []byte
 	// CertBytes is a PEM encoded SSH host cert
 	CertBytes []byte
 	// TLSCertBytes is a PEM encoded TLS x509 client certificate
@@ -142,8 +144,8 @@ func (i *Identity) TLSConfig(cipherSuites []uint16) (*tls.Config, error) {
 }
 
 // ReadIdentityFromKeyPair reads SSH and TLS identity from key pair.
-func ReadIdentityFromKeyPair(privateKey []byte, certs *proto.Certs) (*Identity, error) {
-	identity, err := ReadSSHIdentityFromKeyPair(privateKey, certs.SSH)
+func ReadIdentityFromKeyPair(privateKey []byte, publicKey []byte, certs *proto.Certs) (*Identity, error) {
+	identity, err := ReadSSHIdentityFromKeyPair(privateKey, publicKey, certs.SSH)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -206,9 +208,13 @@ func ReadTLSIdentityFromKeyPair(keyBytes, certBytes []byte, caCertsBytes [][]byt
 }
 
 // ReadSSHIdentityFromKeyPair reads identity from initialized keypair
-func ReadSSHIdentityFromKeyPair(keyBytes, certBytes []byte) (*Identity, error) {
+func ReadSSHIdentityFromKeyPair(keyBytes, publicKeyBytes, certBytes []byte) (*Identity, error) {
 	if len(keyBytes) == 0 {
 		return nil, trace.BadParameter("PrivateKey: missing private key")
+	}
+
+	if len(publicKeyBytes) == 0 {
+		return nil, trace.BadParameter("PublicKey: missing public key")
 	}
 
 	if len(certBytes) == 0 {
@@ -271,12 +277,11 @@ func ReadSSHIdentityFromKeyPair(keyBytes, certBytes []byte) (*Identity, error) {
 	}
 
 	return &Identity{
-		ClusterName: clusterName,
-		KeyBytes:    keyBytes,
-		CertBytes:   certBytes,
-		KeySigner:   certSigner,
-		Cert:        cert,
+		ClusterName:       clusterName,
+		KeyBytes:          keyBytes,
+		SSHPublicKeyBytes: publicKeyBytes,
+		CertBytes:         certBytes,
+		KeySigner:         certSigner,
+		Cert:              cert,
 	}, nil
 }
-
-// TODO: we'll probably need some Identity.ToAuthIdentity conversion

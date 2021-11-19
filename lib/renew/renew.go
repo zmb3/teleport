@@ -42,6 +42,9 @@ const (
 	// The same private key is used for SSH and TLS certificates.
 	PrivateKeyKey = "key"
 
+	// PublicKeyKey is the ssh public key, required for successful SSH connections.
+	PublicKeyKey = "key.pub"
+
 	// MetadataKey is the name under which additional metadata exists in a destination.
 	MetadataKey = "meta"
 )
@@ -102,6 +105,7 @@ func SaveIdentity(id *Identity, d Destination) error {
 		{TLSCACertsKey, bytes.Join(id.TLSCACertsBytes, []byte("$"))},
 		{SSHCACertsKey, bytes.Join(id.SSHCACertBytes, []byte("\n"))},
 		{PrivateKeyKey, id.KeyBytes},
+		{PublicKeyKey, id.SSHPublicKeyBytes},
 		//{MetadataKey, []byte(id.ID.HostUUID)},
 	} {
 		log.Debugf("Writing %s", data.name)
@@ -114,7 +118,7 @@ func SaveIdentity(id *Identity, d Destination) error {
 
 func LoadIdentity(d Destination) (*Identity, error) {
 	// TODO: encode the whole thing using the identityfile package?
-	var key, tlsCA, sshCA []byte
+	var key, sshPublicKey, tlsCA, sshCA []byte
 	var certs proto.Certs
 	var err error
 
@@ -127,6 +131,7 @@ func LoadIdentity(d Destination) (*Identity, error) {
 		{TLSCACertsKey, &tlsCA},
 		{SSHCACertsKey, &sshCA},
 		{PrivateKeyKey, &key},
+		{PublicKeyKey, &sshPublicKey},
 	} {
 		*item.out, err = d.Read(item.name)
 		if err != nil {
@@ -137,8 +142,7 @@ func LoadIdentity(d Destination) (*Identity, error) {
 	certs.SSHCACerts = bytes.Split(sshCA, []byte("\n"))
 	certs.TLSCACerts = bytes.Split(tlsCA, []byte("$"))
 
-	log.Printf("got %d SSH CA certs", len(certs.SSHCACerts))
-	log.Printf("got %d TLS CA certs", len(certs.TLSCACerts))
+	log.Debugf("Loaded %d SSH CA certs and %d TLS CA certs", len(certs.SSHCACerts), len(certs.TLSCACerts))
 
-	return ReadIdentityFromKeyPair(key, &certs)
+	return ReadIdentityFromKeyPair(key, sshPublicKey, &certs)
 }
