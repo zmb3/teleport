@@ -1440,19 +1440,9 @@ func (a *ServerWithRoles) generateUserCerts(ctx context.Context, req proto.UserC
 	var roles []string
 	var traits wrappers.Traits
 
-	log.Debugf(
-		"req username: %+v, context user: %+v, has builtin: %+v, can impersonate: %+v",
-		req.Username,
-		a.context.User.GetName(),
-		a.hasBuiltinRole(string(types.RoleAdmin)),
-		a.context.Checker.CanImpersonateSomeone(),
-	)
-
 	// this prevents clients who have no chance at getting a cert and impersonating anyone
 	// from enumerating local users and hitting database
 	if !a.hasBuiltinRole(string(types.RoleAdmin)) && !a.context.Checker.CanImpersonateSomeone() {
-		log.Debugf("user: %+v, roles: %+v", a.context.User, a.context.User.GetRoles())
-
 		if req.Username != a.context.User.GetName() && !(allowNopUser && isNopUser(a.context.User)) {
 			return nil, trace.AccessDenied("access denied: impersonation is not allowed")
 		}
@@ -1667,6 +1657,13 @@ func (a *ServerWithRoles) generateUserCerts(ctx context.Context, req proto.UserC
 	for _, o := range opts {
 		o(&certReq)
 	}
+
+	// If the user is renewing a renewable cert, make sure the renewable flag
+	// remains for subsequent requests.
+	if req.Username == a.context.User.GetName() && a.context.Identity.GetIdentity().Renewable {
+		certReq.renewable = true
+	}
+
 	certs, err := a.authServer.generateUserCert(certReq)
 	if err != nil {
 		return nil, trace.Wrap(err)

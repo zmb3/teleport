@@ -221,21 +221,16 @@ func (s *Server) CreateBotJoinToken(ctx context.Context, req CreateUserTokenRequ
 	}
 
 	// TODO: ensure that the user is a bot user?
-
 	token, err := s.newUserToken(req)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
 	// TODO: deleteUserTokens?
-	createdToken, err := s.Identity.CreateUserToken(ctx, token)
+	_, err = s.Identity.CreateUserToken(ctx, token)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-
-	log.Debugf("created bot join token for request %+v", req)
-	log.Debugf("initial user token: %+v", token)
-	log.Debugf("created user token: %+v", createdToken)
 
 	// TODO: audit log event. partially implemented, may need events.proto and
 	// dynamic.go, etc (unless we can reuse existing UserTokenCreate event)
@@ -256,14 +251,6 @@ func (s *Server) CreateBotJoinToken(ctx context.Context, req CreateUserTokenRequ
 	// }); err != nil {
 	// 	log.WithError(err).Warn("Failed to emit create reset password token event.")
 	// }
-
-	tokens, err := s.GetUserTokens(ctx)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	for i, token := range tokens {
-		log.Debugf("token %d: %+v", i, token)
-	}
 
 	return s.GetUserToken(ctx, token.GetName())
 }
