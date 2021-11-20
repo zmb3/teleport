@@ -1,10 +1,24 @@
+/*
+Copyright 2021 Gravitational, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package bot
 
 import (
 	"math/rand"
 	"time"
-
-	"github.com/gravitational/trace"
 )
 
 func init() {
@@ -26,7 +40,7 @@ var (
 
 		// Teleport Terminal.
 		"alex-kovoy": reviewer{group: "Terminal", set: "A"},
-		"kimlisa":    reviewer{group: "Terminal", set: "B"},
+		"kimlisa":    reviewer{group: "Terminal", set: "A"},
 		"gzdunek":    reviewer{group: "Terminal", set: "B"},
 		"rudream":    reviewer{group: "Terminal", set: "B"},
 
@@ -87,37 +101,57 @@ var (
 		// OOO.
 		"nklaassen": false,
 	}
+
+	defaultReviewers = []string{"r0mant", "russjones", "zmb3"}
 )
 
-// getReviewers returns a list of reviewers to assign for a particular user.
-func getReviewers(name string) ([]string, error) {
+// GetCodeReviewers returns a list of code reviewers for this author.
+func GetCodeReviewers(name string) ([]string, error) {
+	// External contributors get assign the default reviewer set. Default
+	// reviewers will triage and re-assign.
 	v, ok := codeReviewers[name]
 	if !ok {
-		return nil, trace.BadParameter("invalid reviewer %v", name)
+		return defaultReviewers, nil
 	}
+	return getCodeReviewers(name, v.group)
+}
 
-	switch v.group {
-	// For non-core team members, assign to team leads for dispatch.
-	case "Internal":
-		return []string{"r0mant", "russjones", "zmb3"}, nil
-	// For non-subteam core, randomly assign.
-	case "Core":
-		return assign(name, "Core")
-	// For subteams, assign within the subteam most of the time.
-	default:
-		if rand.Intn(9) > 7 {
-			return assign(name, "Core")
+func getCodeReviewers(name string, group string) ([]string, error) {
+	switch group {
+	// Terminal team does own reviews.
+	case "Terminal":
+		return getReviewers(name, "Terminal")
+	// Core and Database Access does internal team reviews most of the time,
+	// however 30% of the time reviews are cross-team.
+	case "Database Access", "Core":
+		if rand.Intn(10) > 7 {
+			return getReviewers(name, "Core", "Database Access")
 		}
-		return assign(name, v.group)
+		return getReviewers(name, group)
+	// Non-Core reviews get assigned to default reviews who will re-assign to
+	// appropriate reviewers.
+	default:
+		return defaultReviewers, nil
 	}
 }
 
-func assign(name string, skipGroup string) ([]string, error) {
+func getReviewers(name string, selectGroup ...string) ([]string, error) {
+	// Get two sets of reviewers whose union is all potential reviewers.
+	setA, setB := getReviewerSets(name, selectGroup)
+
+	// Randomly select a reviewer from each set and return a pair of reviewers.
+	return []string{
+		setA[rand.Intn(len(setA))],
+		setB[rand.Intn(len(setB))],
+	}, nil
+}
+
+func getReviewerSets(name string, selectGroup []string) ([]string, []string) {
 	var setA []string
 	var setB []string
 
 	for k, v := range codeReviewers {
-		if v.group != skipGroup {
+		if skipGroup(v.group, selectGroup) {
 			continue
 		}
 		if _, ok := reviewerOmit[k]; ok {
@@ -135,8 +169,14 @@ func assign(name string, skipGroup string) ([]string, error) {
 		}
 	}
 
-	return []string{
-		setA[rand.Intn(len(setA))],
-		setB[rand.Intn(len(setB))],
-	}, nil
+	return setA, setB
+}
+
+func skipGroup(group string, selectGroup []string) bool {
+	for _, s := range selectGroup {
+		if group == s {
+			return false
+		}
+	}
+	return true
 }

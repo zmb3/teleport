@@ -55,6 +55,19 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), workflowRunTimeout)
 	defer cancel()
 
+	//// Remove any stale workflow runs. As only the current workflow run should
+	//// be shown because it is the workflow that reflects the correct state of
+	//// the pull request.
+	////
+	//// Note: This is run for all workflow runs triggered by an event from an
+	//// internal contributor, but has to be run again in cron workflow because
+	//// workflows triggered by external contributors do not grant the Github
+	//// Actions token the correct permissions to dismiss workflow runs.
+	//err := c.dismissStaleWorkflowRuns(ctx, pr.RepoOwner, pr.RepoName, pr.BranchName)
+	//if err != nil {
+	//	return trace.Wrap(err)
+	//}
+
 	client := makeGithubClient(ctx, *token)
 	switch subcommand {
 	case ci.AssignSubcommand:

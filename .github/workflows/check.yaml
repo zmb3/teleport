@@ -10,6 +10,7 @@ on:
     type: [submitted, edited, dismissed]
   pull_request_target: 
     types: [assigned, opened, reopened, ready_for_review, synchronize]
+
 # Limit the permissions on the GitHub token for this workflow to the subset
 # that is required. In this case, the check workflow needs to invalidate
 # reviews and delete workflow runs, so it needs write access to "actions" and
