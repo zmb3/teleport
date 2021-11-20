@@ -81,7 +81,7 @@ func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
 	var docs bool
 	var code bool
 
-	files, err := getFiles(ctx)
+	files, err := listFiles(ctx)
 	if err != nil {
 		return false, true, trace.Wrap(err)
 	}
@@ -97,8 +97,8 @@ func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
 	return docs, code, nil
 }
 
-// getFiles returns a slice of files within the PR.
-func (b *Bot) getFiles() ([]string, error) {
+// listFiles returns a slice of files within the PR.
+func (b *Bot) listFiles() ([]string, error) {
 	c := b.Environment.Client
 	pr := b.Environment.Metadata
 

@@ -1,9 +1,12 @@
 /*
 Copyright 2021 Gravitational, Inc.
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
+
     http://www.apache.org/licenses/LICENSE-2.0
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +21,13 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
+
+	"github.com/gravitational/teleport/.github/workflows/ci"
+	"github.com/gravitational/teleport/.github/workflows/ci/pkg/environment"
 
 	"github.com/gravitational/trace"
+
+	"github.com/google/go-github/v37/github"
 )
 
 // Check checks if all the reviewers have approved the pull request in the current context.
@@ -37,10 +44,10 @@ func (c *Bot) Check(ctx context.Context) error {
 // external contributors, approvals from internal team members will not be
 // invalidated when new changes are pushed to the PR.
 func (b *Bot) checkInternal(ctx context.Context) error {
-	pr := c.Environment.Metadata
+	pr := b.Environment.Metadata
 
 	// Get list of all reviews that have been submitted from GitHub.
-	reviews, err := b.listReviews(ctx)
+	reviews, err := b.listReviews(ctx, pr.Number)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -56,28 +63,61 @@ func (b *Bot) checkInternal(ctx context.Context) error {
 	return nil
 }
 
+func (b *Bot) listReviews(ctx context.Context, number int) ([]review, error) {
+	c := b.Environment.Client
+	pr := b.Environment.Metadata
+
+	var reviews []review
+
+	opt := &github.ListOptions{
+		Page:    0,
+		PerPage: 100,
+	}
+	for {
+		page, resp, err := c.PullRequests.ListReviews(ctx, pr.RepoOwner, pr.RepoName, number, opt)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		for _, r := range page {
+			reviews = append(reviews, review{
+				name:  r.GetUser().GetLogin(),
+				state: r.GetState(),
+			})
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	return reviews, nil
+}
+
 func checkAdmins(reviews []review) bool {
 	for _, review := range reviews {
-		if contains(defaultReviewers, review.name) && review.approved {
+		if contains(defaultReviewers, review.name) && review.state == ci.Approved {
 			return true
 		}
 	}
 	return false
-
 }
 
-func checkReviewers() error {
-	setA, setB, err := getReviewerSets(pr.Author)
-
-}
-
-func contains(s []int, e int) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
+func checkReviewers(reviews []review) error {
+	setA, setB, err := getReviewerSets(pr.Author, []string{"Core", "Database Access", "Terminal"})
+	if err != nil {
+		return trace.Wrap(err)
 	}
-	return false
+
+	if !contains(setA, reviews) {
+		return trace.BadParameter("")
+	}
+	if !contains(setB, reviews) {
+		return trace.BadParameter("")
+	}
+	return trace.BadParameter("")
+
 }
 
 // checkExternal is called to check if a PR reviewed and approved by the
@@ -214,15 +254,6 @@ func splitReviews(headSHA string, reviews map[string]review) (valid, obsolete ma
 //	return mostRecent(currentReviewsSlice), nil
 //}
 //
-
-// review is a pull request review
-type review struct {
-	name        string
-	status      string
-	commitID    string
-	id          int64
-	submittedAt *time.Time
-}
 
 // validateReviewFields validates required fields exist and passes them
 // through a restrictive allow list (alphanumerics only). This is done to
@@ -504,3 +535,20 @@ func (c *Bot) invalidateApprovals(ctx context.Context, reviews map[string]review
 //	}
 //	return nil
 //}
+
+type review struct {
+	name  string
+	state string
+	//commitID    string
+	//id          int64
+	//submittedAt time.Time
+}
+
+func contains(s []int, e int) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
