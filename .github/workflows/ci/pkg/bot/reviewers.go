@@ -102,51 +102,55 @@ var (
 		"nklaassen": false,
 	}
 
-	defaultReviewers = []string{"r0mant", "russjones", "zmb3"}
+	defaultCodeReviewers = []string{"r0mant", "russjones", "zmb3"}
+
+	defaultDocsReviewers = []string{"klizhentas"}
 )
 
+func GetDocsReviewers() []string {
+	return defaultCodeReviewers
+
+}
+
 // GetCodeReviewers returns a list of code reviewers for this author.
-func GetCodeReviewers(name string) ([]string, error) {
-	// External contributors get assign the default reviewer set. Default
-	// reviewers will triage and re-assign.
-	v, ok := codeReviewers[name]
-	if !ok {
-		return defaultReviewers, nil
-	}
-	return getCodeReviewers(name, v.group)
-}
-
-func getCodeReviewers(name string, group string) ([]string, error) {
-	switch group {
-	// Terminal team does own reviews.
-	case "Terminal":
-		return getReviewers(name, "Terminal")
-	// Core and Database Access does internal team reviews most of the time,
-	// however 30% of the time reviews are cross-team.
-	case "Database Access", "Core":
-		if rand.Intn(10) > 7 {
-			return getReviewers(name, "Core", "Database Access")
-		}
-		return getReviewers(name, group)
-	// Non-Core reviews get assigned to default reviews who will re-assign to
-	// appropriate reviewers.
-	default:
-		return defaultReviewers, nil
-	}
-}
-
-func getReviewers(name string, selectGroup ...string) ([]string, error) {
-	// Get two sets of reviewers whose union is all potential reviewers.
-	setA, setB := getReviewerSets(name, selectGroup)
+func GetCodeReviewers(name string) []string {
+	// Get code reviewer sets for this PR author.
+	setA, setB := GetCodeReviewerSets(name)
 
 	// Randomly select a reviewer from each set and return a pair of reviewers.
 	return []string{
 		setA[rand.Intn(len(setA))],
 		setB[rand.Intn(len(setB))],
-	}, nil
+	}
 }
 
-func getReviewerSets(name string, selectGroup []string) ([]string, []string) {
+func GetCodeReviewerSets(name string) ([]string, []string) {
+	// External contributors get assigned from the default reviewer set. Default
+	// reviewers will triage and re-assign.
+	v, ok := codeReviewers[name]
+	if !ok {
+		return defaultCodeReviewers, defaultCodeReviewers
+	}
+
+	switch v.group {
+	// Terminal team does own reviews.
+	case "Terminal":
+		return getReviewerSets(name, v.group)
+	// Core and Database Access does internal team reviews most of the time,
+	// however 30% of the time reviews are cross-team.
+	case "Database Access", "Core":
+		if rand.Intn(10) > 7 {
+			return getReviewerSets(name, "Core", "Database Access")
+		}
+		return getReviewerSets(name, v.group)
+	// Non-Core, but internal Teleport authors, get assigned default reviews who
+	// will re-assign to appropriate reviewers.
+	default:
+		return defaultCodeReviewers, defaultCodeReviewers
+	}
+}
+
+func getReviewerSets(name string, selectGroup ...string) ([]string, []string) {
 	var setA []string
 	var setB []string
 

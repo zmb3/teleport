@@ -31,13 +31,13 @@ func (b *Bot) Assign(ctx context.Context) error {
 	c := b.Environment.Client
 	pr := b.Environment.Metadata
 
-	reviewers, err := b.getReviewers()
+	reviewers, err := b.getReviewers(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
 	_, _, err = c.PullRequests.RequestReviewers(ctx,
-		pr.RepoOwner, pr.RepoName, pullReq.Number,
+		pr.RepoOwner, pr.RepoName, pr.Number,
 		github.ReviewersRequest{
 			Reviewers: reviewers,
 		})
@@ -63,14 +63,14 @@ func (b *Bot) getReviewers(ctx context.Context) ([]string, error) {
 
 	switch {
 	case docs && code:
-		reviewers = append(reviewers, docsReviewers)
-		reviewers = append(reviewers, GetCodeReviewers(pr.Author))
+		reviewers = append(reviewers, GetDocsReviewers()...)
+		reviewers = append(reviewers, GetCodeReviewers(pr.Author)...)
 	case !docs && code:
-		reviewers = append(reviewers, GetCodeReviewers(pr.Author))
+		reviewers = append(reviewers, GetCodeReviewers(pr.Author)...)
 	case docs && !code:
-		reviewers = append(reviewers, docsReviewers)
+		reviewers = append(reviewers, GetDocsReviewers()...)
 	case !docs && !code:
-		return defaultReviewers, nil
+		reviewers = append(reviewers, GetCodeReviewers(pr.Author)...)
 	}
 
 	return reviewers, nil
@@ -81,7 +81,7 @@ func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
 	var docs bool
 	var code bool
 
-	files, err := listFiles(ctx)
+	files, err := b.listFiles(ctx)
 	if err != nil {
 		return false, true, trace.Wrap(err)
 	}
@@ -98,7 +98,7 @@ func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
 }
 
 // listFiles returns a slice of files within the PR.
-func (b *Bot) listFiles() ([]string, error) {
+func (b *Bot) listFiles(ctx context.Context) ([]string, error) {
 	c := b.Environment.Client
 	pr := b.Environment.Metadata
 
@@ -124,7 +124,7 @@ func (b *Bot) listFiles() ([]string, error) {
 		opt.Page = resp.NextPage
 	}
 
-	return file, nil
+	return files, nil
 }
 
 func hasDocChanges(filename string) bool {
