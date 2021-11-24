@@ -14,19 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package reviewer
+package review
 
 import (
 	"math/rand"
 	"time"
 
-	"github.com/gravitational/teleport/.github/workflows/ci"
-
 	"github.com/gravitational/trace"
 )
 
 type Config struct {
-	CodeReviewers        map[string]ci.Reviewer
+	CodeReviewers        map[string]reviewer
 	CodeReviewersOmit    map[string]bool
 	DefaultCodeReviewers []string
 
@@ -49,28 +47,29 @@ func (c *Config) CheckAndSetDefaults() error {
 	return nil
 }
 
-type Reviewers struct {
+type Assignments struct {
 	c *Config
 }
 
-func NewReviewers(c *Config) (*Reviewers, error) {
+func NewAssignments(c *Config) (*Assignments, error) {
 	rand.Seed(time.Now().UnixNano())
 
 	if err := c.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return &Reviewers{
+
+	return &Assignments{
 		c: c,
 	}, nil
 }
 
-func (r *Reviewers) GetDocsReviewers() []string {
-	return r.c.DefaultCodeReviewers
-
+// GetDocsReviewers returns a list of docs reviewers.
+func (r *Assignments) GetDocsReviewers() []string {
+	return r.c.DefaultDocsReviewers
 }
 
 // GetCodeReviewers returns a list of code reviewers for this author.
-func (r *Reviewers) GetCodeReviewers(name string) []string {
+func (r *Assignments) GetCodeReviewers(name string) []string {
 	// Get code reviewer sets for this PR author.
 	setA, setB := r.GetCodeReviewerSets(name)
 
@@ -81,7 +80,7 @@ func (r *Reviewers) GetCodeReviewers(name string) []string {
 	}
 }
 
-func (r *Reviewers) GetCodeReviewerSets(name string) ([]string, []string) {
+func (r *Assignments) GetCodeReviewerSets(name string) ([]string, []string) {
 	// External contributors get assigned from the default reviewer set. Default
 	// reviewers will triage and re-assign.
 	v, ok := r.c.CodeReviewers[name]
@@ -89,17 +88,17 @@ func (r *Reviewers) GetCodeReviewerSets(name string) ([]string, []string) {
 		return r.c.DefaultCodeReviewers, r.c.DefaultCodeReviewers
 	}
 
-	switch v.Group {
+	switch v.group {
 	// Terminal team does own reviews.
 	case "Terminal":
-		return r.getReviewerSets(name, v.Group)
+		return r.getReviewerSets(name, v.group)
 	// Core and Database Access does internal team reviews most of the time,
 	// however 30% of the time reviews are cross-team.
 	case "Database Access", "Core":
 		if rand.Intn(10) > 7 {
 			return r.getReviewerSets(name, "Core", "Database Access")
 		}
-		return r.getReviewerSets(name, v.Group)
+		return r.getReviewerSets(name, v.group)
 	// Non-Core, but internal Teleport authors, get assigned default reviews who
 	// will re-assign to appropriate reviewers.
 	default:
@@ -107,12 +106,12 @@ func (r *Reviewers) GetCodeReviewerSets(name string) ([]string, []string) {
 	}
 }
 
-func (r *Reviewers) getReviewerSets(name string, selectGroup ...string) ([]string, []string) {
+func (r *Assignments) getReviewerSets(name string, selectGroup ...string) ([]string, []string) {
 	var setA []string
 	var setB []string
 
 	for k, v := range r.c.CodeReviewers {
-		if skipGroup(v.Group, selectGroup) {
+		if skipGroup(v.group, selectGroup) {
 			continue
 		}
 		if _, ok := r.c.CodeReviewersOmit[k]; ok {
@@ -123,7 +122,7 @@ func (r *Reviewers) getReviewerSets(name string, selectGroup ...string) ([]strin
 			continue
 		}
 
-		if v.Set == "A" {
+		if v.set == "A" {
 			setA = append(setA, k)
 		} else {
 			setB = append(setB, k)

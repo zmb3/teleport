@@ -20,9 +20,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gravitational/teleport/.github/workflows/ci"
-	"github.com/gravitational/teleport/.github/workflows/ci/pkg/environment"
-	"github.com/gravitational/teleport/.github/workflows/ci/pkg/reviewer"
+	//"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
+	//"github.com/gravitational/teleport/.github/workflows/ci/pkg/review"
 
 	"github.com/google/go-github/v37/github"
 	"github.com/stretchr/testify/require"
@@ -46,19 +45,19 @@ func TestGetReviewers(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			r, err := reviewer.NewReviewers(&reviewer.Config{
-				CodeReviewers: map[string]ci.Reviewer{
-					"foo": ci.Reviewers{},
-				},
-			})
+			//r, err := review.NewReviewers(&reviewer.Config{
+			//	CodeReviewers: map[string]ci.Reviewer{
+			//		"foo": ci.Reviewers{},
+			//	},
+			//})
 			// Build the bot itself.
 			b, err := New(&Config{
-				env: &environment.Environment{
-					Author:       test.author,
-					Organization: "foo",
-					Repository:   "bar",
-					Number:       0,
-				},
+				//env: &environment.Environment{
+				//	Author:       test.author,
+				//	Organization: "foo",
+				//	Repository:   "bar",
+				//	Number:       0,
+				//},
 				gh: &fakeGithub{
 					files: test.files,
 				},

@@ -17,16 +17,19 @@ limitations under the License.
 package bot
 
 import (
-	"github.com/gravitational/teleport/.github/workflows/ci/pkg/environment"
-	"github.com/gravitational/teleport/.github/workflows/ci/pkg/reviewer"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/review"
 
 	"github.com/gravitational/trace"
 )
 
 type Config struct {
-	gh  gh
-	env *environment.Environment
-	r   *reviewer.Reviewers
+	// gh is a GitHub client.
+	gh gh
+
+	// env holds information about the workflow run event.
+	env *env.Event
+
+	r *review.Mapping
 }
 
 func (c *Config) CheckAndSetDefaults() error {
