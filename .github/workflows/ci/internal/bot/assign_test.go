@@ -18,18 +18,40 @@ package bot
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
-	//"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
-	//"github.com/gravitational/teleport/.github/workflows/ci/pkg/review"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/review"
 
-	"github.com/google/go-github/v37/github"
 	"github.com/stretchr/testify/require"
 )
 
 // TestGetReviewers checks if a PR can be parsed and appropriately assigned a
 // docs or code reviewer.
 func TestGetReviewers(t *testing.T) {
+	r, err := review.NewAssignments(&review.Config{
+		// Code reviewers.
+		CodeReviewers: map[string]review.Reviewer{
+			"1": review.Reviewer{Group: "Core", Set: "A"},
+			"2": review.Reviewer{Group: "Core", Set: "A"},
+			"3": review.Reviewer{Group: "Core", Set: "B"},
+			"4": review.Reviewer{Group: "Core", Set: "B"},
+		},
+		CodeReviewersOmit: map[string]bool{
+			"4": true,
+		},
+		// Docs reviewers.
+		DocsReviewers: map[string]review.Reviewer{
+			"5": review.Reviewer{Group: "Core", Set: "A"},
+		},
+		DocsReviewersOmit: map[string]bool{},
+		// Default reviewers.
+		DefaultReviewers: []string{"1", "2"},
+	})
+	require.NoError(t, err)
+
 	tests := []struct {
 		desc      string
 		files     []string
@@ -37,27 +59,62 @@ func TestGetReviewers(t *testing.T) {
 		reviewers []string
 	}{
 		{
-			desc:      "docs",
-			files:     []string{"docs/docs.md"},
-			author:    "foo",
-			reviewers: []string{},
+			desc: "code-only",
+			files: []string{
+				"file.go",
+			},
+			author:    "0",
+			reviewers: []string{"1", "2", "3"},
 		},
+		{
+			desc: "code-only-self-review-gets-defaults",
+			files: []string{
+				"docs/docs.md",
+				"file.go",
+			},
+			author:    "1",
+			reviewers: []string{"2", "3"},
+		},
+		//{
+		//	desc: "code-only-omit",
+		//	files: []string{
+		//		"docs/docs.md",
+		//		"file.go",
+		//	},
+		//	author:    "1",
+		//	reviewers: []string{"2", "3", "4", "5"},
+		//},
+		//{
+		//	desc:      "docs-only",
+		//	files:     []string{"docs/docs.md"},
+		//	author:    "1",
+		//	reviewers: []string{"6"},
+		//},
+		//{
+		//	desc:      "docs-only-self-review-gets-defaults",
+		//	files:     []string{"docs/docs.md"},
+		//	author:    "5",
+		//	reviewers: []string{"1", "2"},
+		//},
+		//{
+		//	desc: "docs-and-code",
+		//	files: []string{
+		//		"docs/docs.md",
+		//		"file.go",
+		//	},
+		//	author:    "1",
+		//	reviewers: []string{"2", "3", "4", "5"},
+		//},
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			//r, err := review.NewReviewers(&reviewer.Config{
-			//	CodeReviewers: map[string]ci.Reviewer{
-			//		"foo": ci.Reviewers{},
-			//	},
-			//})
-			// Build the bot itself.
 			b, err := New(&Config{
-				//env: &environment.Environment{
-				//	Author:       test.author,
-				//	Organization: "foo",
-				//	Repository:   "bar",
-				//	Number:       0,
-				//},
+				env: &env.Event{
+					Author:       test.author,
+					Organization: "",
+					Repository:   "",
+					Number:       0,
+				},
 				gh: &fakeGithub{
 					files: test.files,
 				},
@@ -65,10 +122,19 @@ func TestGetReviewers(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			// Run assignment and make sure assigned reviewers match expected reviewers.
+			// Run assignment.
 			reviewers, err := b.getReviewers(context.Background())
 			require.NoError(t, err)
-			require.ElementsMatch(t, reviewers, test.reviewers)
+
+			fmt.Printf("--> reviewers: %v.\n", reviewers)
+
+			//require.ElementsMatch(t, reviewers, test.reviewers)
+
+			// Because assignment contains some random selection, make sure the assigned
+			// reviewers come from the super set of potential reviewers.
+			for _, v := range reviewers {
+				require.Contains(t, test.reviewers, v)
+			}
 		})
 	}
 }
@@ -77,10 +143,14 @@ type fakeGithub struct {
 	files []string
 }
 
-func (f *fakeGithub) RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers github.ReviewersRequest) error {
+func (f *fakeGithub) RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers []string) error {
 	return nil
 }
 
 func (f *fakeGithub) ListFiles(ctx context.Context, organization string, repository string, number int) ([]string, error) {
 	return f.files, nil
+}
+
+func (f *fakeGithub) ListReviews(ctx context.Context, organization string, repository string, number int) ([]github.Review, error) {
+	return nil, nil
 }

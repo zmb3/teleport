@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package bot
+package github
 
 import (
 	"context"
@@ -24,32 +24,45 @@ import (
 	"github.com/google/go-github/v37/github"
 )
 
-type gh interface {
+type Client interface {
 	// RequestReviewers is used to assign reviewers to a PR.
-	RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers github.ReviewersRequest) error
+	RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers []string) error
 
 	// ListFiles is used to list all the files within a PR.
 	ListFiles(ctx context.Context, organization string, repository string, number int) ([]string, error)
 
-	//ListReviews(context.Context, int) error
+	// ListReviews is used to list all submitted reviews for a PR.
+	ListReviews(ctx context.Context, organization string, repository string, number int) ([]Review, error)
+
 	//DismissReview(context.Context) error
 }
 
-type ghClient struct {
+type client struct {
 	client *github.Client
 }
 
-func NewGithubClient() (*ghClient, error) {
-	return &ghClient{}, nil
+func NewClient() (*client, error) {
+	return &client{}, nil
 }
 
-func (c *ghClient) RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers github.ReviewersRequest) error {
+func (c *client) RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers []string) error {
+	_, _, err := c.client.PullRequests.RequestReviewers(ctx,
+		organization,
+		repository,
+		number,
+		github.ReviewersRequest{
+			Reviewers: reviewers,
+		})
+	if err != nil {
+		return trace.Wrap(err)
+	}
 	return nil
 }
 
-func (c *ghClient) ListFiles(ctx context.Context, organization string, repository string, number int) ([]string, error) {
+func (c *client) ListFiles(ctx context.Context, organization string, repository string, number int) ([]string, error) {
 	var files []string
 
+	// TODO(russjones): Break after n iterations to prevent an infinite loop.
 	opt := &github.ListOptions{
 		Page:    0,
 		PerPage: 100,
@@ -71,6 +84,44 @@ func (c *ghClient) ListFiles(ctx context.Context, organization string, repositor
 	}
 
 	return files, nil
+}
+
+type Review struct {
+	Author string
+	State  string
+	//commitID    string
+	//id          int64
+	//submittedAt time.Time
+}
+
+func (c *client) ListReviews(ctx context.Context, organization string, repository string, number int) ([]Review, error) {
+	var reviews []Review
+
+	// TODO(russjones): Break after n iterations to prevent an infinite loop.
+	opt := &github.ListOptions{
+		Page:    0,
+		PerPage: 100,
+	}
+	for {
+		page, resp, err := c.client.PullRequests.ListReviews(ctx, organization, repository, number, opt)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		for _, r := range page {
+			reviews = append(reviews, Review{
+				Author: r.GetUser().GetLogin(),
+				State:  r.GetState(),
+			})
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	return reviews, nil
 }
 
 //func (g *ghClient) ListReviews(context.Context, int) error {

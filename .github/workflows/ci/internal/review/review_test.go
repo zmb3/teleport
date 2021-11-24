@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestGetCodeReviewerSets tests team only and cross-team review assignment.
 func TestGetCodeReviewerSets(t *testing.T) {
 	r, err := NewAssignments(&Config{
 		CodeReviewers: map[string]reviewer{
@@ -47,14 +48,35 @@ func TestGetCodeReviewerSets(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Team only assignment.
-	setA, setB := r.GetCodeReviewerSets("t-foo")
-	require.ElementsMatch(t, setA, []string{"t-bar"})
-	require.ElementsMatch(t, setB, []string{"t-baz", "t-qux"})
-
-	// TODO(russjones): Fix to get deterministic behavior.
-	// Cross-team assignment.
-	setA, setB = r.GetCodeReviewerSets("d-foo")
-	require.ElementsMatch(t, setA, []string{"d-bar", "c-bar", "c-foo"})
-	require.ElementsMatch(t, setB, []string{"d-baz", "d-qux", "c-baz", "c-qux"})
+	tests := []struct {
+		desc       string
+		name       string
+		percentage int
+		setA       []string
+		setB       []string
+	}{
+		{
+			desc:       "team-only-assignment",
+			name:       "t-foo",
+			percentage: 0,
+			setA:       []string{"t-bar"},
+			setB:       []string{"t-baz", "t-qux"},
+		},
+		{
+			desc:       "cross-team-assignment",
+			name:       "d-foo",
+			percentage: 100,
+			setA:       []string{"d-bar", "c-bar", "c-foo"},
+			setB:       []string{"d-baz", "d-qux", "c-baz", "c-qux"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			setA, setB := r.GetCodeReviewerSets(test.name, test.percentage)
+			require.ElementsMatch(t, setA, test.setA)
+			require.ElementsMatch(t, setB, test.setB)
+		})
+	}
 }
+
+// TODO(russjones): test docs and code

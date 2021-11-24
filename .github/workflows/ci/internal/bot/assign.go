@@ -20,11 +20,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/gravitational/teleport/.github/workflows/ci"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal"
 
 	"github.com/gravitational/trace"
-
-	"github.com/google/go-github/v37/github"
 )
 
 // Assign will assign reviewers for this PR.
@@ -43,9 +41,7 @@ func (b *Bot) Assign(ctx context.Context) error {
 		b.c.env.Organization,
 		b.c.env.Repository,
 		b.c.env.Number,
-		github.ReviewersRequest{
-			Reviewers: reviewers,
-		})
+		reviewers)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -63,12 +59,12 @@ func (b *Bot) getReviewers(ctx context.Context) ([]string, error) {
 
 	switch {
 	case docs && code:
-		reviewers = append(reviewers, b.c.r.GetDocsReviewers()...)
+		reviewers = append(reviewers, b.c.r.GetDocsReviewers(b.c.env.Author)...)
 		reviewers = append(reviewers, b.c.r.GetCodeReviewers(b.c.env.Author)...)
 	case !docs && code:
 		reviewers = append(reviewers, b.c.r.GetCodeReviewers(b.c.env.Author)...)
 	case docs && !code:
-		reviewers = append(reviewers, b.c.r.GetDocsReviewers()...)
+		reviewers = append(reviewers, b.c.r.GetDocsReviewers(b.c.env.Author)...)
 	case !docs && !code:
 		reviewers = append(reviewers, b.c.r.GetCodeReviewers(b.c.env.Author)...)
 	}
@@ -101,11 +97,11 @@ func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
 }
 
 func hasDocChanges(filename string) bool {
-	if strings.HasPrefix(filename, ci.VendorPrefix) {
+	if strings.HasPrefix(filename, internal.VendorPrefix) {
 		return false
 	}
-	return strings.HasPrefix(filename, ci.DocsPrefix) ||
-		strings.HasSuffix(filename, ci.MdSuffix) ||
-		strings.HasSuffix(filename, ci.MdxSuffix) ||
-		strings.HasPrefix(filename, ci.RfdPrefix)
+	return strings.HasPrefix(filename, internal.DocsPrefix) ||
+		strings.HasSuffix(filename, internal.MdSuffix) ||
+		strings.HasSuffix(filename, internal.MdxSuffix) ||
+		strings.HasPrefix(filename, internal.RfdPrefix)
 }

@@ -16,24 +16,22 @@ limitations under the License.
 
 package bot
 
-/*
 import (
 	"context"
 
-	"github.com/gravitational/teleport/.github/workflows/ci"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
 
 	"github.com/gravitational/trace"
-
-	"github.com/google/go-github/v37/github"
 )
 
 // Check checks if all the reviewers have approved the pull request in the current context.
-func (c *Bot) Check(ctx context.Context) error {
-	pr := c.Environment.Metadata
-	if c.Environment.IsInternal(pr.Author) {
-		return c.checkInternal(ctx)
-	}
-	return c.checkExternal(ctx)
+func (b *Bot) Check(ctx context.Context) error {
+	//pr := c.Environment.Metadata
+	//if c.Environment.IsInternal(pr.Author) {
+	//}
+	//return c.checkExternal(ctx)
+	return b.checkInternal(ctx)
 }
 
 // checkInternal is called to check if a PR reviewed and approved by the
@@ -41,49 +39,50 @@ func (c *Bot) Check(ctx context.Context) error {
 // external contributors, approvals from internal team members will not be
 // invalidated when new changes are pushed to the PR.
 func (b *Bot) checkInternal(ctx context.Context) error {
-	pr := b.Environment.Metadata
-
 	// Get list of all reviews that have been submitted from GitHub.
-	reviews, err := b.listReviews(ctx, pr.Number)
+	reviews, err := b.c.gh.ListReviews(ctx,
+		b.c.env.Organization,
+		b.c.env.Repository,
+		b.c.env.Number)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
 	// If an admin has has approved the PR, pass check right away.
-	if err := checkAdmins(reviews); err == nil {
+	if err := b.checkAdmins(reviews); err == nil {
 		return nil
 	}
 
 	// Go through regular approval process.
-	if err := checkReviewers(pr.Author, reviews); err != nil {
+	if err := b.checkReviewers(b.c.env.Author, reviews); err != nil {
 		return trace.Wrap(err)
 	}
 	return nil
 }
 
-func checkAdmins(reviews []review) error {
-	if check(defaultCodeReviewers, reviews) {
+func (b *Bot) checkAdmins(reviews []github.Review) error {
+	if check(b.c.r.GetDefaultReviewers(), reviews) {
 		return nil
 	}
 
-	// TODO: Build log/error message here.
+	// TODO(russjones): Build log/error message here.
 	return trace.BadParameter("...")
 }
 
-func checkReviewers(name string, reviews []review) error {
-	setA, setB := GetCodeReviewerSets(name)
+func (b *Bot) checkReviewers(name string, reviews []github.Review) error {
+	setA, setB := b.c.r.GetCodeReviewerSets(name, 100)
 
 	if check(setA, reviews) && check(setB, reviews) {
 		return nil
 	}
-	// TODO: Build log/error message here.
+	// TODO(russjones): Build log/error message here.
 
 	return trace.BadParameter("...")
 }
 
-func check(reviewers []string, reviews []review) bool {
+func check(reviewers []string, reviews []github.Review) bool {
 	for _, review := range reviews {
-		if contains(reviewers, review.name) && review.state == ci.Approved {
+		if contains(reviewers, review.Author) && review.State == internal.Approved {
 			return true
 		}
 	}
@@ -270,46 +269,6 @@ func (c *Bot) checkExternal(ctx context.Context) error {
 //	return c.Assign(ctx)
 //}
 
-type review struct {
-	name  string
-	state string
-	//commitID    string
-	//id          int64
-	//submittedAt time.Time
-}
-
-func (b *Bot) listReviews(ctx context.Context, number int) ([]review, error) {
-	c := b.Environment.Client
-	pr := b.Environment.Metadata
-
-	var reviews []review
-
-	opt := &github.ListOptions{
-		Page:    0,
-		PerPage: 100,
-	}
-	for {
-		page, resp, err := c.PullRequests.ListReviews(ctx, pr.RepoOwner, pr.RepoName, number, opt)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-
-		for _, r := range page {
-			reviews = append(reviews, review{
-				name:  r.GetUser().GetLogin(),
-				state: r.GetState(),
-			})
-		}
-
-		if resp.NextPage == 0 {
-			break
-		}
-		opt.Page = resp.NextPage
-	}
-
-	return reviews, nil
-}
-
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
@@ -318,4 +277,3 @@ func contains(s []string, e string) bool {
 	}
 	return false
 }
-*/

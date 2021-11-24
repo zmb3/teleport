@@ -14,18 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package environment
+package env
 
-// Environment is the execution environment of the workflow.
-type Environment struct {
+type Event struct {
 	Author       string
 	Number       int
 	Organization string
 	Repository   string
 }
 
-func Read() (*Environment, error) {
-	return &Environment{}, nil
+func Read() (*Event, error) {
+	return &Event{}, nil
 }
 
 /*
