@@ -16,30 +16,66 @@ limitations under the License.
 
 package bot
 
-import "context"
+import (
+	"context"
 
-type github interface {
-	ListFiles(context.Context, int) ([]string, error)
-	ListReviews(context.Context, int) error
-	RequestReviewers(context.Context)
-	DismissReview(context.Context) error
+	"github.com/gravitational/trace"
+
+	"github.com/google/go-github/v37/github"
+)
+
+type gh interface {
+	// RequestReviewers is used to assign reviewers to a PR.
+	RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers github.ReviewersRequest) error
+
+	// ListFiles is used to list all the files within a PR.
+	ListFiles(ctx context.Context, organization string, repository string, number int) ([]string, error)
+
+	//ListReviews(context.Context, int) error
+	//DismissReview(context.Context) error
 }
 
-type githubClient struct {
+type ghClient struct {
+	client *github.Client
 }
 
-func newGithubClient() (*githubClient, error) {
-	return nil, nil
+func NewGithubClient() (*ghClient, error) {
+	return &ghClient{}, nil
 }
 
-func (g *github) ListFiles(context.Context, int) ([]string, error) {
+func (c *ghClient) RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers github.ReviewersRequest) error {
+	return nil
 }
 
-func (g *github) ListReviews(context.Context, int) error {
+func (c *ghClient) ListFiles(ctx context.Context, organization string, repository string, number int) ([]string, error) {
+	var files []string
+
+	opt := &github.ListOptions{
+		Page:    0,
+		PerPage: 100,
+	}
+	for {
+		page, resp, err := c.client.PullRequests.ListFiles(ctx, organization, repository, number, opt)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		for _, file := range page {
+			files = append(files, file.GetFilename())
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	return files, nil
 }
 
-func (g *github) RequestReviewers(context.Context) {
-}
-
-func (g *github) DismissReview(context.Context) error {
-}
+//func (g *ghClient) ListReviews(context.Context, int) error {
+//}
+//
+//
+//func (g *ghClient) DismissReview(context.Context) error {
+//}

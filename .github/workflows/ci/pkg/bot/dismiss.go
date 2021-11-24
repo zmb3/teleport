@@ -1,9 +1,12 @@
 /*
 Copyright 2021 Gravitational, Inc.
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
+
     http://www.apache.org/licenses/LICENSE-2.0
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -13,21 +16,7 @@ limitations under the License.
 
 package bot
 
-import (
-	"context"
-	"fmt"
-	"net/http"
-	"net/url"
-	"path"
-	"sort"
-
-	"github.com/google/go-github/v37/github"
-	"github.com/gravitational/teleport/.github/workflows/ci"
-	"github.com/gravitational/trace"
-
-	log "github.com/sirupsen/logrus"
-)
-
+/*
 // DimissStaleWorkflowRuns dismisses stale workflow runs for external contributors.
 // Dismissing stale workflows for external contributors is done on a cron job and checks the whole repo for
 // stale runs on PRs.
@@ -47,15 +36,15 @@ func (c *Bot) DimissStaleWorkflowRuns(ctx context.Context) error {
 	for _, pull := range pullReqs {
 		err := validatePullRequestFields(pull)
 		if err != nil {
-			// We do not want to stop dismissing stale workflow runs for the remaining PRs if there 
+			// We do not want to stop dismissing stale workflow runs for the remaining PRs if there
 			// is a validation error, skip this iteration. Keep stale runs on PRs that have invalid fields in the event the
-			// invalid fields were malicious input. 
-			log.Error(err) 
+			// invalid fields were malicious input.
+			log.Error(err)
 			continue
 		}
 		err = c.dismissStaleWorkflowRuns(ctx, *pull.Base.User.Login, *pull.Base.Repo.Name, *pull.Head.Ref)
 		if err != nil {
-			// Log the error, keep trying to dimiss remaining stale runs. 
+			// Log the error, keep trying to dimiss remaining stale runs.
 			log.Error(err)
 		}
 	}
@@ -157,3 +146,4 @@ const (
 	// a request to delete a workflow run to the Github API.
 	scheme = "https"
 )
+*/

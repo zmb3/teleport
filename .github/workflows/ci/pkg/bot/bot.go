@@ -17,21 +17,27 @@ limitations under the License.
 package bot
 
 import (
+	"github.com/gravitational/teleport/.github/workflows/ci/pkg/environment"
+	"github.com/gravitational/teleport/.github/workflows/ci/pkg/reviewer"
+
 	"github.com/gravitational/trace"
 )
 
 type Config struct {
-	gh github
+	gh  gh
+	env *environment.Environment
+	r   *reviewer.Reviewers
 }
 
 func (c *Config) CheckAndSetDefaults() error {
-	var err error
-
 	if c.gh == nil {
-		c.gh, err = newGithubClient()
-		if err != nil {
-			return trace.Wrap(err)
-		}
+		return trace.BadParameter("github client required")
+	}
+	if c.env == nil {
+		return trace.BadParameter("environment required")
+	}
+	if c.r == nil {
+		return trace.BadParameter("reviewers missing")
 	}
 
 	return nil

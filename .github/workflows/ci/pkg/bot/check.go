@@ -16,6 +16,7 @@ limitations under the License.
 
 package bot
 
+/*
 import (
 	"context"
 
@@ -317,3 +318,4 @@ func contains(s []string, e string) bool {
 	}
 	return false
 }
+*/

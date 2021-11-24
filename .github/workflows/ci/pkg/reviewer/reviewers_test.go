@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package bot
+package reviewer
 
 //func TestGetReviewerSets(t *testing.T) {
 //	// Team only assignment.

@@ -27,17 +27,22 @@ import (
 	"github.com/google/go-github/v37/github"
 )
 
+// Assign will assign reviewers for this PR.
+//
+// Assign works by parsing the PR, discovering the changes, and returning a
+// set of reviewers determined by: content of the PR, if the author is internal
+// or external, and team they are on.
 func (b *Bot) Assign(ctx context.Context) error {
-	c := b.Environment.Client
-	pr := b.Environment.Metadata
-
 	reviewers, err := b.getReviewers(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
-	_, _, err = c.PullRequests.RequestReviewers(ctx,
-		pr.RepoOwner, pr.RepoName, pr.Number,
+	// Request GitHub assign reviewers to this PR.
+	err = b.c.gh.RequestReviewers(ctx,
+		b.c.env.Organization,
+		b.c.env.Repository,
+		b.c.env.Number,
 		github.ReviewersRequest{
 			Reviewers: reviewers,
 		})
@@ -48,12 +53,7 @@ func (b *Bot) Assign(ctx context.Context) error {
 	return nil
 }
 
-// getReviewers will parse the PR, discover the changes, and return a set of
-// reviewers determined by the content of the PR, if the author is internal or
-// external, and team they are on.
 func (b *Bot) getReviewers(ctx context.Context) ([]string, error) {
-	pr := b.Environment.Metadata
-
 	docs, code, err := b.parseChanges(ctx)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -63,14 +63,14 @@ func (b *Bot) getReviewers(ctx context.Context) ([]string, error) {
 
 	switch {
 	case docs && code:
-		reviewers = append(reviewers, GetDocsReviewers()...)
-		reviewers = append(reviewers, GetCodeReviewers(pr.Author)...)
+		reviewers = append(reviewers, b.c.r.GetDocsReviewers()...)
+		reviewers = append(reviewers, b.c.r.GetCodeReviewers(b.c.env.Author)...)
 	case !docs && code:
-		reviewers = append(reviewers, GetCodeReviewers(pr.Author)...)
+		reviewers = append(reviewers, b.c.r.GetCodeReviewers(b.c.env.Author)...)
 	case docs && !code:
-		reviewers = append(reviewers, GetDocsReviewers()...)
+		reviewers = append(reviewers, b.c.r.GetDocsReviewers()...)
 	case !docs && !code:
-		reviewers = append(reviewers, GetCodeReviewers(pr.Author)...)
+		reviewers = append(reviewers, b.c.r.GetCodeReviewers(b.c.env.Author)...)
 	}
 
 	return reviewers, nil
@@ -81,7 +81,10 @@ func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
 	var docs bool
 	var code bool
 
-	files, err := b.listFiles(ctx)
+	files, err := b.c.gh.ListFiles(ctx,
+		b.c.env.Organization,
+		b.c.env.Repository,
+		b.c.env.Number)
 	if err != nil {
 		return false, true, trace.Wrap(err)
 	}
@@ -95,36 +98,6 @@ func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
 
 	}
 	return docs, code, nil
-}
-
-// listFiles returns a slice of files within the PR.
-func (b *Bot) listFiles(ctx context.Context) ([]string, error) {
-	c := b.Environment.Client
-	pr := b.Environment.Metadata
-
-	var files []string
-
-	opt := &github.ListOptions{
-		Page:    0,
-		PerPage: 100,
-	}
-	for {
-		page, resp, err := c.PullRequests.ListFiles(ctx, pr.RepoOwner, pr.RepoName, pr.Number, opt)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-
-		for _, file := range page {
-			files = append(files, file.GetFilename())
-		}
-
-		if resp.NextPage == 0 {
-			break
-		}
-		opt.Page = resp.NextPage
-	}
-
-	return files, nil
 }
 
 func hasDocChanges(filename string) bool {

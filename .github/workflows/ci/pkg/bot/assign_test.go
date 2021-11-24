@@ -20,31 +20,68 @@ import (
 	"context"
 	"testing"
 
+	"github.com/gravitational/teleport/.github/workflows/ci"
+	"github.com/gravitational/teleport/.github/workflows/ci/pkg/environment"
+	"github.com/gravitational/teleport/.github/workflows/ci/pkg/reviewer"
+
+	"github.com/google/go-github/v37/github"
 	"github.com/stretchr/testify/require"
 )
 
 // TestGetReviewers checks if a PR can be parsed and appropriately assigned a
 // docs or code reviewer.
 func TestGetReviewers(t *testing.T) {
-	b, err := New(&Config{})
-	require.NoError(t, err)
-
-	tests := map[string]struct {
-		input string
-		sep   string
-		want  []string
+	tests := []struct {
+		desc      string
+		files     []string
+		author    string
+		reviewers []string
 	}{
-		"simple":       {input: "a/b/c", sep: "/", want: []string{"a", "b", "c"}},
-		"wrong sep":    {input: "a/b/c", sep: ",", want: []string{"a/b/c"}},
-		"no sep":       {input: "abc", sep: "/", want: []string{"abc"}},
-		"trailing sep": {input: "a/b/c/", sep: "/", want: []string{"a", "b", "c"}},
+		{
+			desc:      "docs",
+			files:     []string{"docs/docs.md"},
+			author:    "foo",
+			reviewers: []string{},
+		},
 	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			reviewers, err := b.getReviewers(context.Background())
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			r, err := reviewer.NewReviewers(&reviewer.Config{
+				CodeReviewers: map[string]ci.Reviewer{
+					"foo": ci.Reviewers{},
+				},
+			})
+			// Build the bot itself.
+			b, err := New(&Config{
+				env: &environment.Environment{
+					Author:       test.author,
+					Organization: "foo",
+					Repository:   "bar",
+					Number:       0,
+				},
+				gh: &fakeGithub{
+					files: test.files,
+				},
+				r: r,
+			})
 			require.NoError(t, err)
 
+			// Run assignment and make sure assigned reviewers match expected reviewers.
+			reviewers, err := b.getReviewers(context.Background())
+			require.NoError(t, err)
+			require.ElementsMatch(t, reviewers, test.reviewers)
 		})
 	}
+}
+
+type fakeGithub struct {
+	files []string
+}
+
+func (f *fakeGithub) RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers github.ReviewersRequest) error {
+	return nil
+}
+
+func (f *fakeGithub) ListFiles(ctx context.Context, organization string, repository string, number int) ([]string, error) {
+	return f.files, nil
 }
