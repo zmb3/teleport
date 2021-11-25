@@ -18,7 +18,6 @@ package bot
 
 import (
 	"context"
-	"math/rand"
 	"strings"
 
 	"github.com/gravitational/teleport/.github/workflows/ci/internal"
@@ -79,11 +78,11 @@ func (b *Bot) getDocsReviewers(author string) []string {
 }
 
 func (b *Bot) getCodeReviewers(author string) []string {
-	setA, setB := b.c.r.GetAssigningSets(author)
+	setA, setB := b.c.r.GetCodeReviewers(author)
 
 	return []string{
-		setA[rand.Intn(len(setA))],
-		setB[rand.Intn(len(setB))],
+		setA[b.c.rand.Intn(len(setA))],
+		setB[b.c.rand.Intn(len(setB))],
 	}
 }
 

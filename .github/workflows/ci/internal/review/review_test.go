@@ -22,61 +22,115 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestGetCodeReviewerSets tests team only and cross-team review assignment.
-func TestGetCodeReviewerSets(t *testing.T) {
+// TestGetCodeReviewers tests code review assignments.
+func TestGetCodeReviewers(t *testing.T) {
 	r, err := NewAssignments(&Config{
-		CodeReviewers: map[string]reviewer{
-			// Teleport Terminal.
-			"t-foo": reviewer{group: "Terminal", set: "A"},
-			"t-bar": reviewer{group: "Terminal", set: "A"},
-			"t-baz": reviewer{group: "Terminal", set: "B"},
-			"t-qux": reviewer{group: "Terminal", set: "B"},
-			// Database Access.
-			"d-foo": reviewer{group: "Database Access", set: "A"},
-			"d-bar": reviewer{group: "Database Access", set: "A"},
-			"d-baz": reviewer{group: "Database Access", set: "B"},
-			"d-qux": reviewer{group: "Database Access", set: "B"},
-			// Core.
-			"c-foo": reviewer{group: "Core", set: "A"},
-			"c-bar": reviewer{group: "Core", set: "A"},
-			"c-baz": reviewer{group: "Core", set: "B"},
-			"c-qux": reviewer{group: "Core", set: "B"},
+		// Code.
+		CodeReviewers: map[string]Reviewer{
+			"1": Reviewer{Group: "Core", Set: "A"},
+			"2": Reviewer{Group: "Core", Set: "A"},
+			"3": Reviewer{Group: "Core", Set: "A"},
+			"4": Reviewer{Group: "Core", Set: "B"},
+			"5": Reviewer{Group: "Core", Set: "B"},
+			"6": Reviewer{Group: "Core", Set: "B"},
+			"7": Reviewer{Group: "Internal", Set: "A"},
 		},
-		CodeReviewersOmit:    map[string]bool{},
-		DefaultCodeReviewers: []string{},
-		DefaultDocsReviewers: []string{},
+		CodeReviewersOmit: map[string]bool{
+			"6": true,
+		},
+		// Docs.
+		DocsReviewers:     map[string]Reviewer{},
+		DocsReviewersOmit: map[string]bool{},
+		// Defaults.
+		DefaultReviewers: []string{
+			"1",
+			"2",
+			"7",
+		},
 	})
 	require.NoError(t, err)
 
 	tests := []struct {
-		desc       string
-		name       string
-		percentage int
-		setA       []string
-		setB       []string
+		desc   string
+		author string
+		setA   []string
+		setB   []string
 	}{
 		{
-			desc:       "team-only-assignment",
-			name:       "t-foo",
-			percentage: 0,
-			setA:       []string{"t-bar"},
-			setB:       []string{"t-baz", "t-qux"},
+			desc:   "skip-self-assign",
+			author: "1",
+			setA:   []string{"2", "3"},
+			setB:   []string{"4", "5"},
 		},
 		{
-			desc:       "cross-team-assignment",
-			name:       "d-foo",
-			percentage: 100,
-			setA:       []string{"d-bar", "c-bar", "c-foo"},
-			setB:       []string{"d-baz", "d-qux", "c-baz", "c-qux"},
+			desc:   "skip-omitted-user",
+			author: "3",
+			setA:   []string{"1", "2"},
+			setB:   []string{"4", "5"},
+		},
+		{
+			desc:   "external-gets-default",
+			author: "10",
+			setA:   []string{"1", "2", "7"},
+			setB:   []string{"1", "2", "7"},
+		},
+		{
+			desc:   "internal-gets-defaults",
+			author: "7",
+			setA:   []string{"1", "2"},
+			setB:   []string{"1", "2"},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			setA, setB := r.GetCodeReviewerSets(test.name, test.percentage)
+			setA, setB := r.GetCodeReviewers(test.author)
 			require.ElementsMatch(t, setA, test.setA)
 			require.ElementsMatch(t, setB, test.setB)
 		})
 	}
 }
 
-// TODO(russjones): test docs and code
+// TestGetDocsReviewers tests docs assignments.
+func TestGetDocsReviewers(t *testing.T) {
+	r, err := NewAssignments(&Config{
+		// Code.
+		CodeReviewers:     map[string]Reviewer{},
+		CodeReviewersOmit: map[string]bool{},
+		// Docs.
+		DocsReviewers: map[string]Reviewer{
+			"1": Reviewer{Group: "Core", Set: "A"},
+		},
+		DocsReviewersOmit: map[string]bool{
+			"2": true,
+		},
+		// Defaults.
+		DefaultReviewers: []string{
+			"3",
+			"4",
+		},
+	})
+	require.NoError(t, err)
+
+	tests := []struct {
+		desc      string
+		author    string
+		reviewers []string
+	}{
+		{
+			desc:      "self-review-gets-defaults",
+			author:    "1",
+			reviewers: []string{"3", "4"},
+		},
+		{
+			desc:      "normal-assign",
+			author:    "5",
+			reviewers: []string{"1"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			reviewers := r.GetDocsReviewers(test.author)
+			require.ElementsMatch(t, reviewers, test.reviewers)
+		})
+	}
+}

@@ -17,6 +17,9 @@ limitations under the License.
 package bot
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
 	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
 	"github.com/gravitational/teleport/.github/workflows/ci/internal/review"
@@ -25,6 +28,8 @@ import (
 )
 
 type Config struct {
+	rand *rand.Rand
+
 	// gh is a GitHub client.
 	gh github.Client
 
@@ -36,6 +41,9 @@ type Config struct {
 }
 
 func (c *Config) CheckAndSetDefaults() error {
+	if c.rand == nil {
+		c.rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+	}
 	if c.gh == nil {
 		return trace.BadParameter("github client required")
 	}

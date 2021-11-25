@@ -17,9 +17,6 @@ limitations under the License.
 package review
 
 import (
-	"math/rand"
-	"time"
-
 	"github.com/gravitational/trace"
 )
 
@@ -34,18 +31,24 @@ type Config struct {
 }
 
 func (c *Config) CheckAndSetDefaults() error {
-	//if c.CodeReviewers == nil {
-	//	return trace.BadParameter("code reviewers missing")
-	//}
-	//if c.CodeReviewersOmit == nil {
-	//	return trace.BadParameter("code reviewers omit missing")
-	//}
-	//if c.DefaultCodeReviewers == nil {
-	//	return trace.BadParameter("default code reviewers missing")
-	//}
-	//if c.DefaultDocsReviewers == nil {
-	//	return trace.BadParameter("default docs reviewers missing")
-	//}
+	if c.CodeReviewers == nil {
+		return trace.BadParameter("code reviewers missing")
+	}
+	if c.CodeReviewersOmit == nil {
+		return trace.BadParameter("code reviewers omit missing")
+	}
+
+	if c.DocsReviewers == nil {
+		return trace.BadParameter("docs reviewers missing")
+	}
+	if c.DocsReviewersOmit == nil {
+		return trace.BadParameter("docs reviewers omit missing")
+	}
+
+	if c.DefaultReviewers == nil {
+		return trace.BadParameter("default reviewers missing")
+	}
+
 	return nil
 }
 
@@ -54,8 +57,6 @@ type Assignments struct {
 }
 
 func NewAssignments(c *Config) (*Assignments, error) {
-	rand.Seed(time.Now().UnixNano())
-
 	if err := c.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -65,94 +66,64 @@ func NewAssignments(c *Config) (*Assignments, error) {
 	}, nil
 }
 
-func (r *Assignments) GetDefaultReviewers() []string {
-	return r.c.DefaultReviewers
+func (r *Assignments) GetCodeReviewers(author string) ([]string, []string) {
+	defaultReviewers := r.GetDefaultReviewers(author)
+
+	// External contributors get assigned from the default reviewer set. Default
+	// reviewers will triage and re-assign.
+	v, ok := r.c.CodeReviewers[author]
+	if !ok {
+		return defaultReviewers, defaultReviewers
+	}
+
+	switch v.Group {
+	case "Terminal", "Core":
+		return getReviewerSets(author, v.Group, r.c.CodeReviewers, r.c.CodeReviewersOmit)
+	// Non-Core, but internal Teleport authors, get assigned default reviews who
+	// will re-assign to appropriate reviewers.
+	default:
+		return defaultReviewers, defaultReviewers
+	}
 }
 
-// GetDocsReviewers returns a list of docs reviewers.
 func (r *Assignments) GetDocsReviewers(author string) []string {
-	var reviewers []string
-	for k, _ := range r.c.DocsReviewers {
-		// Skip author, can't review own PR.
-		if k == author {
-			continue
-		}
-		reviewers = append(reviewers, k)
-	}
+	setA, setB := getReviewerSets(author, "Core", r.c.DocsReviewers, r.c.DocsReviewersOmit)
+	reviewers := append(setA, setB...)
 
 	// If no docs reviewers were assigned, assign default reviews.
 	if len(reviewers) == 0 {
-		return r.c.DefaultReviewers
+		return r.GetDefaultReviewers(author)
 	}
 	return reviewers
 }
 
-//// GetCodeReviewers returns a list of code reviewers for this author.
-//func (r *Assignments) GetCodeReviewers(author string) []string {
-//	// Get code reviewer sets for this PR author.
-//	setA, setB := r.GetCodeReviewerSets(author)
-//
-//	// Randomly select a reviewer from each set and return a pair of reviewers.
-//	return []string{
-//		setA[rand.Intn(len(setA))],
-//		setB[rand.Intn(len(setB))],
-//	}
-//}
-
-func (r *Assignments) GetAssigningSets(author string) ([]string, []string) {
-	// External contributors get assigned from the default reviewer set. Default
-	// reviewers will triage and re-assign.
-	v, ok := r.c.CodeReviewers[author]
-	if !ok {
-		return r.c.DefaultReviewers, r.c.DefaultReviewers
-	}
-
-	switch v.Group {
-	// Terminal team does own reviews.
-	case "Terminal":
-		return r.getReviewerSets(author, v.Group)
-	// Core and Database Access does internal team reviews most of the time,
-	// however 30% of the time reviews are cross-team.
-	case "Database Access", "Core":
-		if rand.Intn(100) < 30 {
-			return r.getReviewerSets(author, "Core", "Database Access")
+func (r *Assignments) GetDefaultReviewers(author string) []string {
+	var reviewers []string
+	for _, v := range r.c.DefaultReviewers {
+		if v == author {
+			continue
 		}
-		return r.getReviewerSets(author, v.Group)
-	// Non-Core, but internal Teleport authors, get assigned default reviews who
-	// will re-assign to appropriate reviewers.
-	default:
-		return r.c.DefaultReviewers, r.c.DefaultReviewers
+		reviewers = append(reviewers, v)
 	}
+	return reviewers
 }
 
-func (r *Assignments) GetCheckingSets(author string) ([]string, []string) {
-	// External contributors get assigned from the default reviewer set. Default
-	// reviewers will triage and re-assign.
-	v, ok := r.c.CodeReviewers[author]
-	if !ok {
-		return r.c.DefaultReviewers, r.c.DefaultReviewers
-	}
-
-	switch v.Group {
-	// Terminal team does own reviews.
-	case "Terminal":
-		return r.getReviewerSets(author, v.Group)
-	case "Database Access", "Core":
-		return r.getReviewerSets(author, "Core", "Database Access")
-	default:
-		return r.c.DefaultReviewers, r.c.DefaultReviewers
-	}
+func (r *Assignments) IsInternal(author string) bool {
+	_, ok := r.c.CodeReviewers[author]
+	return ok
 }
 
-func (r *Assignments) getReviewerSets(author string, selectGroup ...string) ([]string, []string) {
+func getReviewerSets(author string, group string, reviewers map[string]Reviewer, reviewersOmit map[string]bool) ([]string, []string) {
 	var setA []string
 	var setB []string
 
-	for k, v := range r.c.CodeReviewers {
-		if skipGroup(v.Group, selectGroup) {
+	for k, v := range reviewers {
+		// Only assign within a group.
+		if v.Group != group {
 			continue
 		}
-		if _, ok := r.c.CodeReviewersOmit[k]; ok {
+		// Skip over reviewers that are marked as omit.
+		if _, ok := reviewersOmit[k]; ok {
 			continue
 		}
 		// Skip author, can't review own PR.
@@ -168,22 +139,4 @@ func (r *Assignments) getReviewerSets(author string, selectGroup ...string) ([]s
 	}
 
 	return setA, setB
-}
-
-func skipGroup(group string, selectGroup []string) bool {
-	for _, s := range selectGroup {
-		if group == s {
-			return false
-		}
-	}
-	return true
-}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }

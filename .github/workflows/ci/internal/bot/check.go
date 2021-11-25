@@ -53,7 +53,7 @@ func (b *Bot) checkInternal(ctx context.Context) error {
 	}
 
 	// Go through regular approval process.
-	if err := b.checkReviewers(b.c.env.Author, reviews); err != nil {
+	if err := b.checkReviewers(ctx, b.c.env.Author, reviews); err != nil {
 		return trace.Wrap(err)
 	}
 	return nil
@@ -66,8 +66,38 @@ func (b *Bot) checkAdmins(reviews []github.Review) error {
 	return trace.BadParameter("missing admin approval")
 }
 
-func (b *Bot) checkReviewers(author string, reviews []github.Review) error {
-	setA, setB := b.c.r.GetCheckingSets(author)
+func (b *Bot) checkReviewers(ctx context.Context, author string, reviews []github.Review) error {
+	docs, code, err := b.parseChanges(ctx)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	if docs {
+		if err := b.checkDocsReviews(author, reviews); err != nil {
+			return trace.Wrap(err)
+		}
+	}
+	if code {
+		if err = b.checkCodeReviews(author, reviews); err != nil {
+			return trace.Wrap(err)
+		}
+	}
+
+	return nil
+}
+
+func (b *Bot) checkDocsReviews(author string, reviews []github.Review) error {
+	reviewers := b.c.r.GetDocsReviewers(author)
+
+	if check(reviewers, reviews) {
+		return nil
+	}
+
+	return trace.BadParameter("requires at least one approval from %v", reviewers)
+}
+
+func (b *Bot) checkCodeReviews(author string, reviews []github.Review) error {
+	setA, setB := b.c.r.GetCodeReviewers(author)
 
 	if check(setA, reviews) && check(setB, reviews) {
 		return nil
