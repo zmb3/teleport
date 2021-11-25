@@ -16,6 +16,117 @@ limitations under the License.
 
 package bot
 
+import (
+	"context"
+	"testing"
+
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/review"
+
+	"github.com/stretchr/testify/require"
+)
+
+// TODO(russjones): Test cross-team approvals.
+
+func TestCheckInternal(t *testing.T) {
+	r, err := review.NewAssignments(&review.Config{
+		// Code reviewers.
+		CodeReviewers: map[string]review.Reviewer{
+			"1": review.Reviewer{Group: "Core", Set: "A"},
+			"2": review.Reviewer{Group: "Core", Set: "A"},
+			"3": review.Reviewer{Group: "Core", Set: "A"},
+			"4": review.Reviewer{Group: "Core", Set: "B"},
+			"5": review.Reviewer{Group: "Core", Set: "B"},
+			"6": review.Reviewer{Group: "Core", Set: "B"},
+		},
+		// Docs reviewers.
+		DocsReviewers: map[string]review.Reviewer{
+			"6": review.Reviewer{Group: "Core", Set: "A"},
+		},
+		DocsReviewersOmit: map[string]bool{},
+		// Default reviewers.
+		DefaultReviewers: []string{"1", "2"},
+	})
+	require.NoError(t, err)
+
+	tests := []struct {
+		desc    string
+		reviews []github.Review
+		author  string
+		err     bool
+	}{
+		{
+			desc:    "no-reviews",
+			author:  "1",
+			reviews: []github.Review{},
+			err:     true,
+		},
+		{
+			desc:   "no-approvals",
+			author: "1",
+			reviews: []github.Review{
+				github.Review{Author: "1", State: ""},
+				github.Review{Author: "2", State: ""},
+			},
+			err: true,
+		},
+		{
+			desc:   "one-approval-non-admin",
+			author: "1",
+			reviews: []github.Review{
+				github.Review{Author: "3", State: "APPROVED"},
+				github.Review{Author: "4", State: ""},
+			},
+			err: true,
+		},
+		{
+			desc:   "one-approval-admin",
+			author: "1",
+			reviews: []github.Review{
+				github.Review{Author: "2", State: "APPROVED"},
+				github.Review{Author: "3", State: ""},
+				github.Review{Author: "4", State: ""},
+			},
+			err: false,
+		},
+		{
+			desc:   "two-approvals",
+			author: "1",
+			reviews: []github.Review{
+				github.Review{Author: "2", State: "APPROVED"},
+				github.Review{Author: "3", State: "APPROVED"},
+			},
+			err: false,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			b, err := New(&Config{
+				env: &env.Event{
+					Author:       test.author,
+					Organization: "",
+					Repository:   "",
+					Number:       0,
+				},
+				gh: &fakeGithub{
+					files:   []string{"code.go"},
+					reviews: test.reviews,
+				},
+				r: r,
+			})
+			require.NoError(t, err)
+
+			err = b.checkInternal(context.Background())
+			if test.err {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 //func TestApproved(t *testing.T) {
 //	bot := &Bot{Environment: &environment.PullRequestEnvironment{}}
 //	pull := &environment.Metadata{Author: "test"}

@@ -19,7 +19,6 @@ package bot
 import (
 	"context"
 
-	"github.com/gravitational/teleport/.github/workflows/ci/internal"
 	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
 
 	"github.com/gravitational/trace"
@@ -64,26 +63,25 @@ func (b *Bot) checkAdmins(reviews []github.Review) error {
 	if check(b.c.r.GetDefaultReviewers(), reviews) {
 		return nil
 	}
-
-	// TODO(russjones): Build log/error message here.
-	return trace.BadParameter("...")
+	return trace.BadParameter("missing admin approval")
 }
 
-func (b *Bot) checkReviewers(name string, reviews []github.Review) error {
-	setA, setB := b.c.r.GetCodeReviewerSets(name, 100)
+func (b *Bot) checkReviewers(author string, reviews []github.Review) error {
+	setA, setB := b.c.r.GetCheckingSets(author)
 
 	if check(setA, reviews) && check(setB, reviews) {
 		return nil
 	}
-	// TODO(russjones): Build log/error message here.
 
-	return trace.BadParameter("...")
+	return trace.BadParameter("at least one approval required from each set %v %v", setA, setB)
 }
 
 func check(reviewers []string, reviews []github.Review) bool {
 	for _, review := range reviews {
-		if contains(reviewers, review.Author) && review.State == internal.Approved {
-			return true
+		for _, reviewer := range reviewers {
+			if review.State == "APPROVED" && review.Author == reviewer {
+				return true
+			}
 		}
 	}
 	return false
@@ -269,11 +267,11 @@ func (c *Bot) checkExternal(ctx context.Context) error {
 //	return c.Assign(ctx)
 //}
 
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
+//func contains(s []string, e string) bool {
+//	for _, a := range s {
+//		if a == e {
+//			return true
+//		}
+//	}
+//	return false
+//}

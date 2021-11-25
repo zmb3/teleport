@@ -87,22 +87,22 @@ func (r *Assignments) GetDocsReviewers(author string) []string {
 	return reviewers
 }
 
-// GetCodeReviewers returns a list of code reviewers for this author.
-func (r *Assignments) GetCodeReviewers(author string) []string {
-	// Get code reviewer sets for this PR author.
-	setA, setB := r.GetCodeReviewerSets(author, 30)
+//// GetCodeReviewers returns a list of code reviewers for this author.
+//func (r *Assignments) GetCodeReviewers(author string) []string {
+//	// Get code reviewer sets for this PR author.
+//	setA, setB := r.GetCodeReviewerSets(author)
+//
+//	// Randomly select a reviewer from each set and return a pair of reviewers.
+//	return []string{
+//		setA[rand.Intn(len(setA))],
+//		setB[rand.Intn(len(setB))],
+//	}
+//}
 
-	// Randomly select a reviewer from each set and return a pair of reviewers.
-	return []string{
-		setA[rand.Intn(len(setA))],
-		setB[rand.Intn(len(setB))],
-	}
-}
-
-func (r *Assignments) GetCodeReviewerSets(name string, percentage int) ([]string, []string) {
+func (r *Assignments) GetAssigningSets(author string) ([]string, []string) {
 	// External contributors get assigned from the default reviewer set. Default
 	// reviewers will triage and re-assign.
-	v, ok := r.c.CodeReviewers[name]
+	v, ok := r.c.CodeReviewers[author]
 	if !ok {
 		return r.c.DefaultReviewers, r.c.DefaultReviewers
 	}
@@ -110,14 +110,14 @@ func (r *Assignments) GetCodeReviewerSets(name string, percentage int) ([]string
 	switch v.Group {
 	// Terminal team does own reviews.
 	case "Terminal":
-		return r.getReviewerSets(name, v.Group)
+		return r.getReviewerSets(author, v.Group)
 	// Core and Database Access does internal team reviews most of the time,
 	// however 30% of the time reviews are cross-team.
 	case "Database Access", "Core":
-		if rand.Intn(100) < percentage {
-			return r.getReviewerSets(name, "Core", "Database Access")
+		if rand.Intn(100) < 30 {
+			return r.getReviewerSets(author, "Core", "Database Access")
 		}
-		return r.getReviewerSets(name, v.Group)
+		return r.getReviewerSets(author, v.Group)
 	// Non-Core, but internal Teleport authors, get assigned default reviews who
 	// will re-assign to appropriate reviewers.
 	default:
@@ -125,7 +125,26 @@ func (r *Assignments) GetCodeReviewerSets(name string, percentage int) ([]string
 	}
 }
 
-func (r *Assignments) getReviewerSets(name string, selectGroup ...string) ([]string, []string) {
+func (r *Assignments) GetCheckingSets(author string) ([]string, []string) {
+	// External contributors get assigned from the default reviewer set. Default
+	// reviewers will triage and re-assign.
+	v, ok := r.c.CodeReviewers[author]
+	if !ok {
+		return r.c.DefaultReviewers, r.c.DefaultReviewers
+	}
+
+	switch v.Group {
+	// Terminal team does own reviews.
+	case "Terminal":
+		return r.getReviewerSets(author, v.Group)
+	case "Database Access", "Core":
+		return r.getReviewerSets(author, "Core", "Database Access")
+	default:
+		return r.c.DefaultReviewers, r.c.DefaultReviewers
+	}
+}
+
+func (r *Assignments) getReviewerSets(author string, selectGroup ...string) ([]string, []string) {
 	var setA []string
 	var setB []string
 
@@ -137,7 +156,7 @@ func (r *Assignments) getReviewerSets(name string, selectGroup ...string) ([]str
 			continue
 		}
 		// Skip author, can't review own PR.
-		if k == name {
+		if k == author {
 			continue
 		}
 

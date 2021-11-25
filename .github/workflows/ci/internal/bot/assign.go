@@ -18,6 +18,7 @@ package bot
 
 import (
 	"context"
+	"math/rand"
 	"strings"
 
 	"github.com/gravitational/teleport/.github/workflows/ci/internal"
@@ -59,18 +60,31 @@ func (b *Bot) getReviewers(ctx context.Context) ([]string, error) {
 
 	switch {
 	case docs && code:
-		reviewers = append(reviewers, b.c.r.GetDocsReviewers(b.c.env.Author)...)
-		reviewers = append(reviewers, b.c.r.GetCodeReviewers(b.c.env.Author)...)
+		reviewers = append(reviewers, b.getDocsReviewers(b.c.env.Author)...)
+		reviewers = append(reviewers, b.getCodeReviewers(b.c.env.Author)...)
 	case !docs && code:
-		reviewers = append(reviewers, b.c.r.GetCodeReviewers(b.c.env.Author)...)
+		reviewers = append(reviewers, b.getCodeReviewers(b.c.env.Author)...)
 	case docs && !code:
-		reviewers = append(reviewers, b.c.r.GetDocsReviewers(b.c.env.Author)...)
+		reviewers = append(reviewers, b.getDocsReviewers(b.c.env.Author)...)
 	case !docs && !code:
-		reviewers = append(reviewers, b.c.r.GetCodeReviewers(b.c.env.Author)...)
+		reviewers = append(reviewers, b.getCodeReviewers(b.c.env.Author)...)
 	}
 
 	return reviewers, nil
 
+}
+
+func (b *Bot) getDocsReviewers(author string) []string {
+	return b.c.r.GetDocsReviewers(author)
+}
+
+func (b *Bot) getCodeReviewers(author string) []string {
+	setA, setB := b.c.r.GetAssigningSets(author)
+
+	return []string{
+		setA[rand.Intn(len(setA))],
+		setB[rand.Intn(len(setB))],
+	}
 }
 
 func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {

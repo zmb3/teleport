@@ -18,7 +18,6 @@ package bot
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
@@ -63,48 +62,30 @@ func TestGetReviewers(t *testing.T) {
 			files: []string{
 				"file.go",
 			},
-			author:    "0",
-			reviewers: []string{"1", "2", "3"},
+			author:    "1",
+			reviewers: []string{"2", "3"},
 		},
 		{
-			desc: "code-only-self-review-gets-defaults",
+			desc:      "docs-only",
+			files:     []string{"docs/docs.md"},
+			author:    "1",
+			reviewers: []string{"5"},
+		},
+		{
+			desc:      "docs-only-self-review",
+			files:     []string{"docs/docs.md"},
+			author:    "5",
+			reviewers: []string{"1", "2"},
+		},
+		{
+			desc: "docs-and-code",
 			files: []string{
 				"docs/docs.md",
 				"file.go",
 			},
 			author:    "1",
-			reviewers: []string{"2", "3"},
+			reviewers: []string{"5", "2", "3"},
 		},
-		//{
-		//	desc: "code-only-omit",
-		//	files: []string{
-		//		"docs/docs.md",
-		//		"file.go",
-		//	},
-		//	author:    "1",
-		//	reviewers: []string{"2", "3", "4", "5"},
-		//},
-		//{
-		//	desc:      "docs-only",
-		//	files:     []string{"docs/docs.md"},
-		//	author:    "1",
-		//	reviewers: []string{"6"},
-		//},
-		//{
-		//	desc:      "docs-only-self-review-gets-defaults",
-		//	files:     []string{"docs/docs.md"},
-		//	author:    "5",
-		//	reviewers: []string{"1", "2"},
-		//},
-		//{
-		//	desc: "docs-and-code",
-		//	files: []string{
-		//		"docs/docs.md",
-		//		"file.go",
-		//	},
-		//	author:    "1",
-		//	reviewers: []string{"2", "3", "4", "5"},
-		//},
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
@@ -122,25 +103,17 @@ func TestGetReviewers(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			// Run assignment.
+			// Run and check assignment was correct.
 			reviewers, err := b.getReviewers(context.Background())
 			require.NoError(t, err)
-
-			fmt.Printf("--> reviewers: %v.\n", reviewers)
-
-			//require.ElementsMatch(t, reviewers, test.reviewers)
-
-			// Because assignment contains some random selection, make sure the assigned
-			// reviewers come from the super set of potential reviewers.
-			for _, v := range reviewers {
-				require.Contains(t, test.reviewers, v)
-			}
+			require.ElementsMatch(t, reviewers, test.reviewers)
 		})
 	}
 }
 
 type fakeGithub struct {
-	files []string
+	files   []string
+	reviews []github.Review
 }
 
 func (f *fakeGithub) RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers []string) error {
@@ -152,5 +125,5 @@ func (f *fakeGithub) ListFiles(ctx context.Context, organization string, reposit
 }
 
 func (f *fakeGithub) ListReviews(ctx context.Context, organization string, repository string, number int) ([]github.Review, error) {
-	return nil, nil
+	return f.reviews, nil
 }
