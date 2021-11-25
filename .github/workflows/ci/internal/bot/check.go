@@ -24,13 +24,12 @@ import (
 	"github.com/gravitational/trace"
 )
 
-// Check checks if all the reviewers have approved the pull request in the current context.
+// Check checks if required reviewers have approved the PR.
 func (b *Bot) Check(ctx context.Context) error {
-	//pr := c.Environment.Metadata
-	//if c.Environment.IsInternal(pr.Author) {
-	//}
-	//return c.checkExternal(ctx)
-	return b.checkInternal(ctx)
+	if b.c.r.IsInternal(b.c.env.Author) {
+		return b.checkInternal(ctx)
+	}
+	return b.checkExternal(ctx)
 }
 
 // checkInternal is called to check if a PR reviewed and approved by the
@@ -48,7 +47,7 @@ func (b *Bot) checkInternal(ctx context.Context) error {
 	}
 
 	// If an admin has has approved the PR, pass check right away.
-	if err := b.checkAdmins(reviews); err == nil {
+	if err := b.checkAdmins(b.c.env.Author, reviews); err == nil {
 		return nil
 	}
 
@@ -59,8 +58,8 @@ func (b *Bot) checkInternal(ctx context.Context) error {
 	return nil
 }
 
-func (b *Bot) checkAdmins(reviews []github.Review) error {
-	if check(b.c.r.GetDefaultReviewers(), reviews) {
+func (b *Bot) checkAdmins(author string, reviews []github.Review) error {
+	if check(b.c.r.GetDefaultReviewers(author), reviews) {
 		return nil
 	}
 	return trace.BadParameter("missing admin approval")
