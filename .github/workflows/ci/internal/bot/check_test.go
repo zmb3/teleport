@@ -16,17 +16,7 @@ limitations under the License.
 
 package bot
 
-import (
-	"context"
-	"testing"
-
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/review"
-
-	"github.com/stretchr/testify/require"
-)
-
+/*
 // TODO(russjones): Test cross-team approvals.
 
 func TestCheckInternal(t *testing.T) {
@@ -309,3 +299,4 @@ func TestCheckInternal(t *testing.T) {
 //	}
 //	return &github.CommitsComparison{Files: []*github.CommitFile{}}, nil, nil
 //}
+*/

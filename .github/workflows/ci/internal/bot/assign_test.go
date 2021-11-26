@@ -16,17 +16,7 @@ limitations under the License.
 
 package bot
 
-import (
-	"context"
-	"testing"
-
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/review"
-
-	"github.com/stretchr/testify/require"
-)
-
+/*
 // TestGetReviewers checks if a PR can be parsed and appropriately assigned a
 // docs or code reviewer.
 func TestGetReviewers(t *testing.T) {
@@ -127,3 +117,4 @@ func (f *fakeGithub) ListFiles(ctx context.Context, organization string, reposit
 func (f *fakeGithub) ListReviews(ctx context.Context, organization string, repository string, number int) ([]github.Review, error) {
 	return f.reviews, nil
 }
+*/

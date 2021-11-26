@@ -16,263 +16,74 @@ limitations under the License.
 
 package env
 
-type Event struct {
-	Author       string
+import (
+	"encoding/json"
+	"os"
+	"strings"
+
+	"github.com/gravitational/trace"
+)
+
+type Environment struct {
 	Organization string
 	Repository   string
-	Branch       string
 	Number       int
+	Author       string
+	Branch       string
 }
 
-func Read() (*Event, error) {
-	return &Event{}, nil
-
-	// TODO(russjones): Try and read in Organization and Repository from event, if not, read it in from environment.
-
-}
-
-//func getRepositoryMetadata() (repositoryOwner string, repositoryName string, err error) {
-//	repository := os.Getenv(ci.GithubRepository)
-//	if repository == "" {
-//		return "", "", trace.BadParameter("environment variable GITHUB_REPOSITORY is not set")
-//	}
-//	metadata := strings.Split(repository, "/")
-//	if len(metadata) != 2 {
-//		return "", "", trace.BadParameter("environment variable GITHUB_REPOSITORY is not in the correct format,\n the valid format is '<repo owner>/<repo name>'")
-//	}
-//	return metadata[0], metadata[1], nil
-//}
-
-/*
-// Config is used to configure Environment
-type Config struct {
-	// Context is the context for Environment
-	Context context.Context
-	// Client is the authenticated Github client.
-	Client *github.Client
-	// Reviewers is a map that maps authors to their respective
-	// required reviewers.
-	Reviewers map[string][]string
-	// EventPath is the path of the file with the complete
-	// webhook event payload on the runner.
-	EventPath string
-}
-
-// PullRequestEnvironment contains information about the environment
-type PullRequestEnvironment struct {
-	// Client is the authenticated Github client
-	Client *github.Client
-	// Metadata is the pull request in the
-	// current context.
-	Metadata *Metadata
-	// reviewers is a map of reviewers where the key
-	// is the user name of the author and the value is a list
-	// of required reviewers.
-	reviewers map[string][]string
-	// defaultReviewers is a list of reviewers used for authors whose
-	// usernames are not a key in `reviewers`
-	defaultReviewers []string
-	// action is the action that triggered the workflow.
-	action string
-}
-
-// Metadata is the current pull request metadata
-type Metadata struct {
-	// Author is the pull request author.
-	Author string
-	// RepoName is the repository name that the
-	// current pull request is trying to merge into.
-	RepoName string
-	// RepoOwner is the owner of the repository the
-	// author is trying to merge into.
-	RepoOwner string
-	// Number is the pull request number.
-	Number int
-	// HeadSHA is the commit sha of the author's branch.
-	HeadSHA string
-	// BaseSHA is the commit sha of the base branch.
-	BaseSHA string
-	// Reviewer is the reviewer's Github username.
-	// Only used for pull request review events.
-	Reviewer string
-	// BranchName is the name of the branch the author
-	// is trying to merge in.
-	BranchName string
-}
-
-// CheckAndSetDefaults verifies configuration and sets defaults.
-func (c *Config) CheckAndSetDefaults() error {
-	if c.Context == nil {
-		c.Context = context.Background()
-	}
-	if c.Client == nil {
-		return trace.BadParameter("missing parameter Client")
-	}
-	if c.Reviewers == nil {
-		return trace.BadParameter("missing parameter Reviewers")
-	}
-	if _, ok := c.Reviewers[ci.AnyAuthor]; !ok {
-		return trace.BadParameter(`default reviewers are not set in reviewers map. set default reviewers with a wildcard (*) as a key`)
-	}
-	if c.EventPath == "" {
-		c.EventPath = os.Getenv(ci.GithubEventPath)
-	}
-	return nil
-}
-
-// New creates a new instance of Environment.
-func New(c Config) (*PullRequestEnvironment, error) {
-	err := c.CheckAndSetDefaults()
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	pr, err := GetMetadata(c.EventPath)
+func Read() (*Environment, error) {
+	e, err := readEvent()
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	return &PullRequestEnvironment{
-		Client:           c.Client,
-		reviewers:        c.Reviewers,
-		defaultReviewers: c.Reviewers[ci.AnyAuthor],
-		Metadata:         pr,
-	}, nil
+	var en Environment
+
+	// Read in the organization and repository name from the workflow event. If
+	// it's missing (like in a cron workflow), then read it in from GITHUB_REPOSITORY.
+	en.Organization = e.Repository.Owner.Login
+	en.Repository = e.Repository.Name
+	if en.Organization == "" || en.Repository == "" {
+		en.Organization, en.Repository, err = readEnvironment()
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+	}
+
+	en.Number = e.PullRequest.Number
+	en.Author = e.PullRequest.User.Login
+
+	// TODO(russjones): Can this field be trusted?
+	en.Branch = e.PullRequest.Head.Ref
+
+	return &en, nil
 }
 
-// IsInternal determines if an author is an internal contributor.
-func (e *PullRequestEnvironment) IsInternal(author string) bool {
-	_, ok := e.reviewers[author]
-	return ok
-}
-
-// GetMetadata gets the pull request metadata in the current context.
-func GetMetadata(path string) (*Metadata, error) {
-	file, err := os.Open(path)
+//
+// https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections
+func readEvent() (*Event, error) {
+	f, err := os.Open(os.Getenv("GITHUB_EVENT_PATH"))
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	defer file.Close()
-	body, err := ioutil.ReadAll(file)
-	if err != nil {
+	defer f.Close()
+
+	var e Event
+	if err := json.NewDecoder(f).Decode(&e); err != nil {
 		return nil, trace.Wrap(err)
 	}
-	var actionType action
-	err = json.Unmarshal(body, &actionType)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return getMetadata(body, actionType.Action)
+
+	return &e, nil
 }
 
-func getMetadata(body []byte, action string) (*Metadata, error) {
-	var pr *Metadata
-
-	switch action {
-	case ci.Synchronize:
-		var push PushEvent
-		err := json.Unmarshal(body, &push)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		pr, err = push.toMetadata()
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-	case ci.Assigned, ci.Opened, ci.Reopened, ci.Ready:
-		var pull PullRequestEvent
-		err := json.Unmarshal(body, &pull)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		pr, err = pull.toMetadata()
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-	case ci.Submitted, ci.Created:
-		var rev ReviewEvent
-		err := json.Unmarshal(body, &rev)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		pr, err = rev.toMetadata()
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, trace.BadParameter("unknown action %s", action)
+func readEnvironment() (string, string, error) {
+	parts := strings.Split(os.Getenv("GITHUB_REPOSITORY"), "/")
+	if len(parts) != 2 {
+		return "", "", trace.BadParameter("failed to get organization and/or repository")
 	}
-	return pr, nil
+	if parts[0] == "" || parts[1] == "" {
+		return "", "", trace.BadParameter("invalid organization and/or repository")
+	}
+	return parts[0], parts[1], nil
 }
-
-func (r *ReviewEvent) toMetadata() (*Metadata, error) {
-	m := &Metadata{
-		Number:     r.PullRequest.Number,
-		Author:     r.PullRequest.Author.Login,
-		RepoOwner:  r.Repository.Owner.Name,
-		RepoName:   r.Repository.Name,
-		HeadSHA:    r.PullRequest.Head.SHA,
-		BaseSHA:    r.PullRequest.Base.SHA,
-		BranchName: r.PullRequest.Head.BranchName,
-		Reviewer:   r.Review.User.Login,
-	}
-	if m.Reviewer == "" {
-		return nil, trace.BadParameter("missing reviewer username")
-	}
-	if err := m.validateFields(); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (p *PullRequestEvent) toMetadata() (*Metadata, error) {
-	m := &Metadata{
-		Number:     p.Number,
-		Author:     p.PullRequest.User.Login,
-		RepoOwner:  p.Repository.Owner.Name,
-		RepoName:   p.Repository.Name,
-		HeadSHA:    p.PullRequest.Head.SHA,
-		BaseSHA:    p.PullRequest.Base.SHA,
-		BranchName: p.PullRequest.Head.BranchName,
-	}
-	if err := m.validateFields(); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (s *PushEvent) toMetadata() (*Metadata, error) {
-	m := &Metadata{
-		Number:     s.Number,
-		Author:     s.PullRequest.User.Login,
-		RepoOwner:  s.Repository.Owner.Name,
-		RepoName:   s.Repository.Name,
-		HeadSHA:    s.CommitSHA,
-		BaseSHA:    s.BeforeSHA,
-		BranchName: s.PullRequest.Head.BranchName,
-	}
-	if err := m.validateFields(); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (m *Metadata) validateFields() error {
-	switch {
-	case m.Number == 0:
-		return trace.BadParameter("missing pull request number")
-	case m.Author == "":
-		return trace.BadParameter("missing user login")
-	case m.RepoOwner == "":
-		return trace.BadParameter("missing repository owner")
-	case m.RepoName == "":
-		return trace.BadParameter("missing repository name")
-	case m.HeadSHA == "":
-		return trace.BadParameter("missing head commit sha")
-	case m.BaseSHA == "":
-		return trace.BadParameter("missing base commit sha")
-	case m.BranchName == "":
-		return trace.BadParameter("missing branch name")
-	}
-	return nil
-}
-*/
