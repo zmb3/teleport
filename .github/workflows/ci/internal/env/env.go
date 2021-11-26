@@ -18,14 +18,30 @@ package env
 
 type Event struct {
 	Author       string
-	Number       int
 	Organization string
 	Repository   string
+	Branch       string
+	Number       int
 }
 
 func Read() (*Event, error) {
 	return &Event{}, nil
+
+	// TODO(russjones): Try and read in Organization and Repository from event, if not, read it in from environment.
+
 }
+
+//func getRepositoryMetadata() (repositoryOwner string, repositoryName string, err error) {
+//	repository := os.Getenv(ci.GithubRepository)
+//	if repository == "" {
+//		return "", "", trace.BadParameter("environment variable GITHUB_REPOSITORY is not set")
+//	}
+//	metadata := strings.Split(repository, "/")
+//	if len(metadata) != 2 {
+//		return "", "", trace.BadParameter("environment variable GITHUB_REPOSITORY is not in the correct format,\n the valid format is '<repo owner>/<repo name>'")
+//	}
+//	return metadata[0], metadata[1], nil
+//}
 
 /*
 // Config is used to configure Environment

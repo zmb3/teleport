@@ -16,134 +16,116 @@ limitations under the License.
 
 package bot
 
-/*
-// DimissStaleWorkflowRuns dismisses stale workflow runs for external contributors.
-// Dismissing stale workflows for external contributors is done on a cron job and checks the whole repo for
-// stale runs on PRs.
-func (c *Bot) DimissStaleWorkflowRuns(ctx context.Context) error {
-	clt := c.GithubClient.Client
-	// Get the repository name and owner, on the Github Actions runner the
-	// GITHUB_REPOSITORY environment variable is in the format of
-	// repo-owner/repo-name.
-	repoOwner, repoName, err := getRepositoryMetadata()
+import (
+	"context"
+	"log"
+	"sort"
+
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
+
+	"github.com/gravitational/trace"
+)
+
+// DimissStaleWorkflowRuns dismisses all stale workflow runs within a
+// repository. This is done to dismiss stale workflow runs for external
+// contributors whose workflows run without permissions to run
+// "dismissWorkflowRuns".
+//
+// This is needed because GitHub appends each Check workflow run to the status
+// of a PR instead of replacing the status of an exisiting run.
+func (b *Bot) DimissStaleWorkflowRuns(ctx context.Context) error {
+	pulls, err := b.c.gh.ListPullRequests(ctx,
+		b.c.env.Organization,
+		b.c.env.Repository,
+		"open")
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	pullReqs, _, err := clt.PullRequests.List(ctx, repoOwner, repoName, &github.PullRequestListOptions{State: ci.Open})
-	if err != nil {
-		return trace.Wrap(err)
-	}
-	for _, pull := range pullReqs {
-		err := validatePullRequestFields(pull)
-		if err != nil {
-			// We do not want to stop dismissing stale workflow runs for the remaining PRs if there
-			// is a validation error, skip this iteration. Keep stale runs on PRs that have invalid fields in the event the
-			// invalid fields were malicious input.
-			log.Error(err)
+
+	for _, pull := range pulls {
+		if err := b.dismissStaleWorkflowRuns(ctx, pull.Author, pull.Repository, pull.Head); err != nil {
+			log.Printf("Failed to dismiss workflow: %v %v %v: %v.", pull.Author, pull.Repository, pull.Head, err)
 			continue
 		}
-		err = c.dismissStaleWorkflowRuns(ctx, *pull.Base.User.Login, *pull.Base.Repo.Name, *pull.Head.Ref)
-		if err != nil {
-			// Log the error, keep trying to dimiss remaining stale runs.
-			log.Error(err)
-		}
 	}
+
 	return nil
 }
 
-// dismissStaleWorkflowRuns dismisses stale Check workflow runs.
-// Stale workflow runs are workflow runs that were previously ran and are no longer valid
-// due to a new event triggering thus a change in state. The workflow running in the current context is the source of truth for
-// the state of checks.
-func (c *Bot) dismissStaleWorkflowRuns(ctx context.Context, owner, repoName, branch string) error {
-	// Get the target workflow to know get runs triggered by the `Check` workflow.
-	// The `Check` workflow is being targeted because it is the only workflow
-	// that runs multiple times per PR.
-	workflow, err := c.getCheckWorkflow(ctx, owner, repoName)
-	if err != nil {
-		return trace.Wrap(err)
-	}
-	runs, err := c.getWorkflowRuns(ctx, owner, repoName, branch, *workflow.ID)
+// dismissStaleWorkflowRuns dismisses all but the most recent "Check" workflow run.
+//
+// This is needed because GitHub appends each Check workflow run to the status
+// of a PR instead of replacing the status of an exisiting run.
+func (b *Bot) dismissStaleWorkflowRuns(ctx context.Context, organization string, repository string, branch string) error {
+	check, err := b.findWorkflow(ctx,
+		organization,
+		repository,
+		"Check")
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
-	err = c.deleteRuns(ctx, owner, repoName, runs)
+	runs, err := b.c.gh.ListWorkflowRuns(ctx,
+		organization,
+		repository,
+		branch,
+		check.ID)
 	if err != nil {
 		return trace.Wrap(err)
 	}
+
+	err = b.deleteRuns(ctx,
+		organization,
+		repository,
+		runs)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
 	return nil
+}
+
+func (b *Bot) findWorkflow(ctx context.Context, organization string, repository string, name string) (github.Workflow, error) {
+	workflows, err := b.c.gh.ListWorkflows(ctx, organization, repository)
+	if err != nil {
+		return github.Workflow{}, trace.Wrap(err)
+	}
+
+	var matching []github.Workflow
+	for _, workflow := range workflows {
+		if workflow.Name == name {
+			matching = append(matching, workflow)
+		}
+	}
+
+	if len(matching) == 0 {
+		return github.Workflow{}, trace.NotFound("workflow %v not found", name)
+	}
+	if len(matching) > 1 {
+		return github.Workflow{}, trace.BadParameter("found %v matching workflows", len(matching))
+	}
+	return matching[0], nil
 }
 
 // deleteRuns deletes all workflow runs except the most recent one because that is
 // the run in the current context.
-func (c *Bot) deleteRuns(ctx context.Context, owner, repoName string, runs []*github.WorkflowRun) error {
+func (b *Bot) deleteRuns(ctx context.Context, organization string, repository string, runs []github.Run) error {
 	// Sorting runs by time from oldest to newest.
 	sort.Slice(runs, func(i, j int) bool {
 		time1, time2 := runs[i].CreatedAt, runs[j].CreatedAt
-		return time1.Time.Before(time2.Time)
+		return time1.Before(time2)
 	})
+
 	// Deleting all runs except the most recent one.
 	for i := 0; i < len(runs)-1; i++ {
 		run := runs[i]
-		err := c.deleteRun(ctx, owner, repoName, *run.ID)
+		err := b.c.gh.DeleteWorkflowRun(ctx,
+			organization,
+			repository,
+			run.ID)
 		if err != nil {
 			return trace.Wrap(err)
 		}
 	}
 	return nil
 }
-
-func (c *Bot) getWorkflowRuns(ctx context.Context, owner, repoName, branchName string, workflowID int64) ([]*github.WorkflowRun, error) {
-	clt := c.GithubClient.Client
-	list, _, err := clt.Actions.ListWorkflowRunsByID(ctx, owner, repoName, workflowID, &github.ListWorkflowRunsOptions{Branch: branchName})
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return list.WorkflowRuns, nil
-}
-
-// getCheckWorkflow gets the workflow named 'Check'.
-func (c *Bot) getCheckWorkflow(ctx context.Context, owner, repoName string) (*github.Workflow, error) {
-	clt := c.GithubClient.Client
-	workflows, _, err := clt.Actions.ListWorkflows(ctx, owner, repoName, &github.ListOptions{})
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	for _, w := range workflows.Workflows {
-		if *w.Name == ci.CheckWorkflow {
-			return w, nil
-		}
-	}
-	return nil, trace.NotFound("workflow %s not found", ci.CheckWorkflow)
-}
-
-// deleteRun deletes a workflow run.
-// Note: the go-github client library does not support this endpoint.
-func (c *Bot) deleteRun(ctx context.Context, owner, repo string, runID int64) error {
-	clt := c.GithubClient.Client
-	// Construct url
-	url := url.URL{
-		Scheme: scheme,
-		Host:   githubAPIHostname,
-		Path:   path.Join("repos", owner, repo, "actions", "runs", fmt.Sprint(runID)),
-	}
-	req, err := clt.NewRequest(http.MethodDelete, url.String(), nil)
-	if err != nil {
-		return trace.Wrap(err)
-	}
-	_, err = clt.Do(ctx, req, nil)
-	if err != nil {
-		return trace.Wrap(err)
-	}
-	return nil
-}
-
-const (
-	// githubAPIHostname is the Github API hostname.
-	githubAPIHostname = "api.github.com"
-	// scheme is the protocol scheme used when making
-	// a request to delete a workflow run to the Github API.
-	scheme = "https"
-)
-*/
