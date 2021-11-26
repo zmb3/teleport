@@ -20,8 +20,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/gravitational/teleport/.github/workflows/ci/internal"
-
 	"github.com/gravitational/trace"
 )
 
@@ -55,35 +53,7 @@ func (b *Bot) getReviewers(ctx context.Context) ([]string, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	var reviewers []string
-
-	switch {
-	case docs && code:
-		reviewers = append(reviewers, b.getDocsReviewers(b.c.env.Author)...)
-		reviewers = append(reviewers, b.getCodeReviewers(b.c.env.Author)...)
-	case !docs && code:
-		reviewers = append(reviewers, b.getCodeReviewers(b.c.env.Author)...)
-	case docs && !code:
-		reviewers = append(reviewers, b.getDocsReviewers(b.c.env.Author)...)
-	case !docs && !code:
-		reviewers = append(reviewers, b.getCodeReviewers(b.c.env.Author)...)
-	}
-
-	return reviewers, nil
-
-}
-
-func (b *Bot) getDocsReviewers(author string) []string {
-	return b.c.r.GetDocsReviewers(author)
-}
-
-func (b *Bot) getCodeReviewers(author string) []string {
-	setA, setB := b.c.r.GetCodeReviewers(author)
-
-	return []string{
-		setA[b.c.rand.Intn(len(setA))],
-		setB[b.c.rand.Intn(len(setB))],
-	}
+	return b.c.reviewer.Get(b.c.env.Author, docs, code), nil
 }
 
 func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
@@ -99,7 +69,7 @@ func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
 	}
 
 	for _, file := range files {
-		if hasDocChanges(file) {
+		if hasDocs(file) {
 			docs = true
 		} else {
 			code = true
@@ -109,12 +79,12 @@ func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
 	return docs, code, nil
 }
 
-func hasDocChanges(filename string) bool {
-	if strings.HasPrefix(filename, internal.VendorPrefix) {
+func hasDocs(filename string) bool {
+	if strings.HasPrefix(filename, "vendor/") {
 		return false
 	}
-	return strings.HasPrefix(filename, internal.DocsPrefix) ||
-		strings.HasSuffix(filename, internal.MdSuffix) ||
-		strings.HasSuffix(filename, internal.MdxSuffix) ||
-		strings.HasPrefix(filename, internal.RfdPrefix)
+	return strings.HasPrefix(filename, "docs/") ||
+		strings.HasSuffix(filename, ".md") ||
+		strings.HasSuffix(filename, ".mdx") ||
+		strings.HasPrefix(filename, "rfd/")
 }

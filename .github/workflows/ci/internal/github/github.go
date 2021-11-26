@@ -18,6 +18,7 @@ package github
 
 import (
 	"context"
+	"time"
 
 	"github.com/gravitational/trace"
 
@@ -32,7 +33,7 @@ type Client interface {
 	ListFiles(ctx context.Context, organization string, repository string, number int) ([]string, error)
 
 	// ListReviews is used to list all submitted reviews for a PR.
-	ListReviews(ctx context.Context, organization string, repository string, number int) ([]Review, error)
+	ListReviews(ctx context.Context, organization string, repository string, number int) (map[string]*Review, error)
 
 	//DismissReview(context.Context) error
 }
@@ -87,15 +88,14 @@ func (c *client) ListFiles(ctx context.Context, organization string, repository 
 }
 
 type Review struct {
-	Author string
-	State  string
-	//commitID    string
-	//id          int64
-	//submittedAt time.Time
+	Author      string
+	State       string
+	CommitID    string
+	SubmittedAt time.Time
 }
 
-func (c *client) ListReviews(ctx context.Context, organization string, repository string, number int) ([]Review, error) {
-	var reviews []Review
+func (c *client) ListReviews(ctx context.Context, organization string, repository string, number int) (map[string]*Review, error) {
+	var reviews map[string]*Review
 
 	// TODO(russjones): Break after n iterations to prevent an infinite loop.
 	opt := &github.ListOptions{
@@ -109,10 +109,24 @@ func (c *client) ListReviews(ctx context.Context, organization string, repositor
 		}
 
 		for _, r := range page {
-			reviews = append(reviews, Review{
-				Author: r.GetUser().GetLogin(),
-				State:  r.GetState(),
-			})
+			// TODO(russjones): Validate fields?
+
+			// Always pick up the last submitted review.
+			review, ok := reviews[r.GetUser().GetLogin()]
+			if ok {
+				if r.GetSubmittedAt().After(review.SubmittedAt) {
+					review.State = r.GetState()
+					review.CommitID = r.GetCommitID()
+					review.SubmittedAt = r.GetSubmittedAt()
+				}
+			}
+
+			reviews[r.GetUser().GetLogin()] = &Review{
+				Author:      r.GetUser().GetLogin(),
+				State:       r.GetState(),
+				CommitID:    r.GetCommitID(),
+				SubmittedAt: r.GetSubmittedAt(),
+			}
 		}
 
 		if resp.NextPage == 0 {

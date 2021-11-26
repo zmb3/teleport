@@ -19,25 +19,25 @@ package bot
 import (
 	"context"
 
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
-
 	"github.com/gravitational/trace"
 )
 
 // Check checks if required reviewers have approved the PR.
+//
+// checkInternal is called to check if a PR reviewed and approved by the
+// required reviewers for internal contributors. Unlike approvals for
+// external contributors, approvals from internal team members will not be
+// invalidated when new changes are pushed to the PR.
 func (b *Bot) Check(ctx context.Context) error {
-	if b.c.r.IsInternal(b.c.env.Author) {
+	// TODO(russjones): Add dismiss logic here.
+
+	if b.c.reviewer.IsInternal(b.c.env.Author) {
 		return b.checkInternal(ctx)
 	}
 	return b.checkExternal(ctx)
 }
 
-// checkInternal is called to check if a PR reviewed and approved by the
-// required reviewers for internal contributors. Unlike approvals for
-// external contributors, approvals from internal team members will not be
-// invalidated when new changes are pushed to the PR.
 func (b *Bot) checkInternal(ctx context.Context) error {
-	// Get list of all reviews that have been submitted from GitHub.
 	reviews, err := b.c.gh.ListReviews(ctx,
 		b.c.env.Organization,
 		b.c.env.Repository,
@@ -46,74 +46,16 @@ func (b *Bot) checkInternal(ctx context.Context) error {
 		return trace.Wrap(err)
 	}
 
-	// If an admin has has approved the PR, pass check right away.
-	if err := b.checkAdmins(b.c.env.Author, reviews); err == nil {
-		return nil
-	}
-
-	// Go through regular approval process.
-	if err := b.checkReviewers(ctx, b.c.env.Author, reviews); err != nil {
-		return trace.Wrap(err)
-	}
-	return nil
-}
-
-func (b *Bot) checkAdmins(author string, reviews []github.Review) error {
-	if check(b.c.r.GetDefaultReviewers(author), reviews) {
-		return nil
-	}
-	return trace.BadParameter("missing admin approval")
-}
-
-func (b *Bot) checkReviewers(ctx context.Context, author string, reviews []github.Review) error {
 	docs, code, err := b.parseChanges(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
-	if docs {
-		if err := b.checkDocsReviews(author, reviews); err != nil {
-			return trace.Wrap(err)
-		}
-	}
-	if code {
-		if err = b.checkCodeReviews(author, reviews); err != nil {
-			return trace.Wrap(err)
-		}
+	if err := b.c.reviewer.Check(reviews, b.c.env.Author, docs, code); err != nil {
+		return trace.Wrap(err)
 	}
 
 	return nil
-}
-
-func (b *Bot) checkDocsReviews(author string, reviews []github.Review) error {
-	reviewers := b.c.r.GetDocsReviewers(author)
-
-	if check(reviewers, reviews) {
-		return nil
-	}
-
-	return trace.BadParameter("requires at least one approval from %v", reviewers)
-}
-
-func (b *Bot) checkCodeReviews(author string, reviews []github.Review) error {
-	setA, setB := b.c.r.GetCodeReviewers(author)
-
-	if check(setA, reviews) && check(setB, reviews) {
-		return nil
-	}
-
-	return trace.BadParameter("at least one approval required from each set %v %v", setA, setB)
-}
-
-func check(reviewers []string, reviews []github.Review) bool {
-	for _, review := range reviews {
-		for _, reviewer := range reviewers {
-			if review.State == "APPROVED" && review.Author == reviewer {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func (c *Bot) checkExternal(ctx context.Context) error {

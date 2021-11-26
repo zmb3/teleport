@@ -17,10 +17,16 @@ limitations under the License.
 package review
 
 import (
+	"math/rand"
+	"time"
+
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
 	"github.com/gravitational/trace"
 )
 
 type Config struct {
+	rand *rand.Rand
+
 	CodeReviewers     map[string]Reviewer
 	CodeReviewersOmit map[string]bool
 
@@ -31,6 +37,10 @@ type Config struct {
 }
 
 func (c *Config) CheckAndSetDefaults() error {
+	if c.rand == nil {
+		c.rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+	}
+
 	if c.CodeReviewers == nil {
 		return trace.BadParameter("code reviewers missing")
 	}
@@ -66,51 +76,61 @@ func NewAssignments(c *Config) (*Assignments, error) {
 	}, nil
 }
 
-func (r *Assignments) GetCodeReviewers(author string) ([]string, []string) {
-	defaultReviewers := r.GetDefaultReviewers(author)
-
-	// External contributors get assigned from the default reviewer set. Default
-	// reviewers will triage and re-assign.
-	v, ok := r.c.CodeReviewers[author]
-	if !ok {
-		return defaultReviewers, defaultReviewers
-	}
-
-	switch v.Group {
-	case "Terminal", "Core":
-		return getReviewerSets(author, v.Group, r.c.CodeReviewers, r.c.CodeReviewersOmit)
-	// Non-Core, but internal Teleport authors, get assigned default reviews who
-	// will re-assign to appropriate reviewers.
-	default:
-		return defaultReviewers, defaultReviewers
-	}
-}
-
-func (r *Assignments) GetDocsReviewers(author string) []string {
-	setA, setB := getReviewerSets(author, "Core", r.c.DocsReviewers, r.c.DocsReviewersOmit)
-	reviewers := append(setA, setB...)
-
-	// If no docs reviewers were assigned, assign default reviews.
-	if len(reviewers) == 0 {
-		return r.GetDefaultReviewers(author)
-	}
-	return reviewers
-}
-
-func (r *Assignments) GetDefaultReviewers(author string) []string {
-	var reviewers []string
-	for _, v := range r.c.DefaultReviewers {
-		if v == author {
-			continue
-		}
-		reviewers = append(reviewers, v)
-	}
-	return reviewers
-}
-
 func (r *Assignments) IsInternal(author string) bool {
 	_, ok := r.c.CodeReviewers[author]
 	return ok
+}
+
+// Get will return a list of code reviewers a given author.
+func (r *Assignments) Get(author string, docs bool, code bool) []string {
+	var reviewers []string
+
+	switch {
+	case docs && code:
+		reviewers = append(reviewers, r.getDocsReviewers(author)...)
+		reviewers = append(reviewers, r.getCodeReviewers(author)...)
+	case !docs && code:
+		reviewers = append(reviewers, r.getCodeReviewers(author)...)
+	case docs && !code:
+		reviewers = append(reviewers, r.getDocsReviewers(author)...)
+	// Strange state, an empty commit? Return default code reviewers.
+	case !docs && !code:
+		reviewers = append(reviewers, r.getCodeReviewers(author)...)
+	}
+
+	return reviewers
+}
+
+func (r *Assignments) getDocsReviewers(author string) []string {
+	setA, setB := getReviewerSets(author, "Core", r.c.DocsReviewers, r.c.DocsReviewersOmit)
+	reviewers := append(setA, setB...)
+
+	// If no docs reviewers were assigned, assign default code reviews.
+	if len(reviewers) == 0 {
+		return r.getDefaultReviewers(author)
+	}
+	return reviewers
+}
+
+func (r *Assignments) getCodeReviewers(author string) []string {
+	setA, setB := r.getCodeReviewerSets(author)
+
+	return []string{
+		setA[r.c.rand.Intn(len(setA))],
+		setB[r.c.rand.Intn(len(setB))],
+	}
+}
+
+func (r *Assignments) getCodeReviewerSets(author string) ([]string, []string) {
+	// External and internal non-Core contributors get assigned from the default
+	// reviewer set. Default reviewers will triage and re-assign.
+	v, ok := r.c.CodeReviewers[author]
+	if !ok || v.Group == "Internal" {
+		defaultReviewers := r.getDefaultReviewers(author)
+		return defaultReviewers, defaultReviewers
+	}
+
+	return getReviewerSets(author, v.Group, r.c.CodeReviewers, r.c.CodeReviewersOmit)
 }
 
 func getReviewerSets(author string, group string, reviewers map[string]Reviewer, reviewersOmit map[string]bool) ([]string, []string) {
@@ -126,7 +146,7 @@ func getReviewerSets(author string, group string, reviewers map[string]Reviewer,
 		if _, ok := reviewersOmit[k]; ok {
 			continue
 		}
-		// Skip author, can't review own PR.
+		// Skip author, can't assign/review own PR.
 		if k == author {
 			continue
 		}
@@ -139,4 +159,67 @@ func getReviewerSets(author string, group string, reviewers map[string]Reviewer,
 	}
 
 	return setA, setB
+}
+
+// Check will verify if required reviewers have approved.
+func (r *Assignments) Check(reviews map[string]*github.Review, author string, docs bool, code bool) error {
+	// Skip checks if admins have approved.
+	if check(r.getDefaultReviewers(author), reviews) {
+		return nil
+	}
+
+	if docs {
+		if err := r.checkDocsReviews(author, reviews); err != nil {
+			return trace.Wrap(err)
+		}
+	}
+	if code {
+		if err := r.checkCodeReviews(author, reviews); err != nil {
+			return trace.Wrap(err)
+		}
+	}
+
+	return nil
+}
+
+func (r *Assignments) checkDocsReviews(author string, reviews map[string]*github.Review) error {
+	reviewers := r.getDocsReviewers(author)
+
+	if check(reviewers, reviews) {
+		return nil
+	}
+
+	return trace.BadParameter("requires at least one approval from %v", reviewers)
+}
+
+func (r *Assignments) checkCodeReviews(author string, reviews map[string]*github.Review) error {
+	setA, setB := r.getCodeReviewerSets(author)
+
+	if check(setA, reviews) && check(setB, reviews) {
+		return nil
+	}
+
+	return trace.BadParameter("at least one approval required from each set %v %v", setA, setB)
+}
+
+func (r *Assignments) getDefaultReviewers(author string) []string {
+	var reviewers []string
+	for _, v := range r.c.DefaultReviewers {
+		if v == author {
+			continue
+		}
+		reviewers = append(reviewers, v)
+	}
+	return reviewers
+}
+
+func check(reviewers []string, reviews map[string]*github.Review) bool {
+	for _, review := range reviews {
+		for _, reviewer := range reviewers {
+			if review.State == "APPROVED" && review.Author == reviewer {
+				return true
+			}
+		}
+	}
+	return false
 }
