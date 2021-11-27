@@ -161,16 +161,18 @@ func getReviewerSets(author string, group string, reviewers map[string]Reviewer,
 	return setA, setB
 }
 
-// Check will verify if required reviewers have approved. External approvals
-// are more strict requiring two admin approvals.
-func (r *Assignments) Check(reviews map[string]*github.Review, author string, docs bool, code bool) error {
-	if r.IsInternal(author) {
-		return r.checkInternal(author, reviews, docs, code)
+// CheckExternal requires two admins to approve.
+func (r *Assignments) CheckExternal(author string, reviews map[string]*github.Review) error {
+	reviewers := r.getDefaultReviewers(author)
+
+	if checkN(reviewers, reviews) > 1 {
+		return nil
 	}
-	return r.checkExternal(r.getDefaultReviewers(author), reviews)
+	return trace.BadParameter("at least two approvals required from %v", reviewers)
 }
 
-func (r *Assignments) checkInternal(author string, reviews map[string]*github.Review, docs bool, code bool) error {
+// CheckInternal will verify if required reviewers have approved.
+func (r *Assignments) CheckInternal(author string, reviews map[string]*github.Review, docs bool, code bool) error {
 	// Skip checks if admins have approved.
 	if check(r.getDefaultReviewers(author), reviews) {
 		return nil
@@ -223,13 +225,6 @@ func (r *Assignments) getDefaultReviewers(author string) []string {
 
 func check(reviewers []string, reviews map[string]*github.Review) bool {
 	return checkN(reviewers, reviews) > 0
-}
-
-func (r *Assignments) checkExternal(reviewers []string, reviews map[string]*github.Review) error {
-	if checkN(reviewers, reviews) > 1 {
-		return nil
-	}
-	return trace.BadParameter("at least two approvals required from %v", reviewers)
 }
 
 func checkN(reviewers []string, reviews map[string]*github.Review) int {

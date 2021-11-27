@@ -16,115 +16,107 @@ limitations under the License.
 
 package bot
 
-/*
-func TestNewBot(t *testing.T) {
-	clt := github.NewClient(nil)
+import (
+	"context"
+	"testing"
+
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
+
+	"github.com/stretchr/testify/require"
+)
+
+// TestParseChanges checks that PR contents are correctly parsed for docs and
+// code changes.
+func TestParseChanges(t *testing.T) {
 	tests := []struct {
-		cfg      Config
-		checkErr require.ErrorAssertionFunc
-		expected *Bot
+		desc  string
+		files []string
+		docs  bool
+		code  bool
 	}{
 		{
-			cfg:      Config{Environment: &environment.PullRequestEnvironment{}, GithubClient: clt},
-			checkErr: require.NoError,
+			desc: "code-only",
+			files: []string{
+				"file.go",
+			},
+			docs: false,
+			code: true,
 		},
 		{
-			cfg:      Config{},
-			checkErr: require.Error,
+			desc: "docs-only",
+			files: []string{
+				"docs/docs.md",
+			},
+			docs: true,
+			code: false,
+		},
+		{
+			desc: "code-and-code",
+			files: []string{
+				"file.go",
+				"docs/docs.md",
+			},
+			docs: true,
+			code: true,
+		},
+		{
+			desc:  "no-docs-no-code",
+			files: []string{},
+			docs:  false,
+			code:  false,
 		},
 	}
-	for _, test := range tests {
-		_, err := New(test.cfg)
-		test.checkErr(t, err)
-	}
-}
-
-func TestValidatePullRequestFields(t *testing.T) {
-	testString := "testString"
-	invalidTestString := "&test"
-	tests := []struct {
-		pull     *github.PullRequest
-		checkErr require.ErrorAssertionFunc
-		desc     string
-	}{
-		{
-			pull: &github.PullRequest{
-				Base: &github.PullRequestBranch{User: &github.User{Login: &testString}, Repo: &github.Repository{Name: &testString}},
-				Head: &github.PullRequestBranch{},
-			},
-			checkErr: require.Error,
-			desc:     "missing Head.Ref",
-		},
-		{
-			pull: &github.PullRequest{
-				Base: &github.PullRequestBranch{User: &github.User{Login: &testString}, Repo: &github.Repository{Name: &testString}},
-				Head: &github.PullRequestBranch{Ref: &testString},
-			},
-			checkErr: require.NoError,
-			desc:     "valid pull request",
-		},
-		{
-			pull: &github.PullRequest{
-				Base: &github.PullRequestBranch{User: &github.User{}, Repo: &github.Repository{Name: &testString}},
-				Head: &github.PullRequestBranch{Ref: &testString},
-			},
-			checkErr: require.Error,
-			desc:     "missing Base.User.Login",
-		},
-		{
-			pull: &github.PullRequest{
-				Base: &github.PullRequestBranch{User: &github.User{}, Repo: &github.Repository{Name: &testString}},
-				Head: &github.PullRequestBranch{Ref: &testString},
-			},
-			checkErr: require.Error,
-			desc:     "missing Base.Repo.Name",
-		},
-		{
-			pull: &github.PullRequest{
-
-				Head: &github.PullRequestBranch{Ref: &testString},
-			},
-			checkErr: require.Error,
-			desc:     "missing Base",
-		},
-		{
-			pull: &github.PullRequest{
-				Base: &github.PullRequestBranch{Repo: &github.Repository{Name: &testString}},
-				Head: &github.PullRequestBranch{Ref: &testString},
-			},
-			checkErr: require.Error,
-			desc:     "missing Base.User",
-		},
-		{
-			pull: &github.PullRequest{
-				Base: &github.PullRequestBranch{User: &github.User{}},
-				Head: &github.PullRequestBranch{Ref: &testString},
-			},
-			checkErr: require.Error,
-			desc:     "missing Base.Repo",
-		},
-		{
-			pull: &github.PullRequest{
-				Base: &github.PullRequestBranch{User: &github.User{}, Repo: &github.Repository{Name: &testString}},
-			},
-			checkErr: require.Error,
-			desc:     "missing Head",
-		},
-		{
-			pull: &github.PullRequest{
-				Base: &github.PullRequestBranch{User: &github.User{Login: &testString}, Repo: &github.Repository{Name: &testString}},
-				Head: &github.PullRequestBranch{Ref: &invalidTestString},
-			},
-			checkErr: require.Error,
-			desc:     "invalid pull request branch name, contains illegal character",
-		},
-	}
-
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			err := validatePullRequestFields(test.pull)
-			test.checkErr(t, err)
+			b := &Bot{
+				c: &Config{
+					Environment: &env.Environment{
+						Organization: "foo",
+						Repository:   "bar",
+						Number:       0,
+					},
+					GitHub: &fakeGithub{
+						test.files,
+					},
+				},
+			}
+			docs, code, err := b.parseChanges(context.Background())
+			require.NoError(t, err)
+			require.Equal(t, docs, test.docs)
+			require.Equal(t, code, test.code)
 		})
 	}
 }
-*/
+
+type fakeGithub struct {
+	files []string
+}
+
+func (f *fakeGithub) RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers []string) error {
+	return nil
+}
+
+func (f *fakeGithub) ListReviews(ctx context.Context, organization string, repository string, number int) (map[string]*github.Review, error) {
+	return nil, nil
+}
+
+func (f *fakeGithub) ListPullRequests(ctx context.Context, organization string, repository string, state string) ([]github.PullRequest, error) {
+	return nil, nil
+}
+
+func (f *fakeGithub) ListFiles(ctx context.Context, organization string, repository string, number int) ([]string, error) {
+	return f.files, nil
+}
+
+func (f *fakeGithub) ListWorkflows(ctx context.Context, organization string, repository string) ([]github.Workflow, error) {
+	return nil, nil
+}
+
+func (f *fakeGithub) ListWorkflowRuns(ctx context.Context, organization string, repository string, branch string, workflowID int64) ([]github.Run, error) {
+	return nil, nil
+}
+
+func (f *fakeGithub) DeleteWorkflowRun(ctx context.Context, organization string, repository string, runID int64) error {
+	return nil
+}

@@ -31,6 +31,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// Client implements the GitHub API.
 type Client interface {
 	// RequestReviewers is used to assign reviewers to a PR.
 	RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers []string) error
@@ -58,6 +59,7 @@ type client struct {
 	client *go_github.Client
 }
 
+// New returns a new GitHub client.
 func New(ctx context.Context, token string) (*client, error) {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
@@ -84,12 +86,9 @@ func (c *client) RequestReviewers(ctx context.Context, organization string, repo
 type Review struct {
 	Author      string
 	State       string
-	CommitID    string
 	SubmittedAt time.Time
 }
 
-// TODO(russjones): Field validation.
-// TODO(russjones): Break after n iterations to prevent an infinite loop.
 func (c *client) ListReviews(ctx context.Context, organization string, repository string, number int) (map[string]*Review, error) {
 	var reviews map[string]*Review
 
@@ -113,7 +112,6 @@ func (c *client) ListReviews(ctx context.Context, organization string, repositor
 			if ok {
 				if r.GetSubmittedAt().After(review.SubmittedAt) {
 					review.State = r.GetState()
-					review.CommitID = r.GetCommitID()
 					review.SubmittedAt = r.GetSubmittedAt()
 				}
 			}
@@ -121,7 +119,6 @@ func (c *client) ListReviews(ctx context.Context, organization string, repositor
 			reviews[r.GetUser().GetLogin()] = &Review{
 				Author:      r.GetUser().GetLogin(),
 				State:       r.GetState(),
-				CommitID:    r.GetCommitID(),
 				SubmittedAt: r.GetSubmittedAt(),
 			}
 		}
@@ -138,11 +135,9 @@ func (c *client) ListReviews(ctx context.Context, organization string, repositor
 type PullRequest struct {
 	Author     string
 	Repository string
-	Head       string
+	UnsafeHead string
 }
 
-// TODO(russjones): Field validation.
-// TODO(russjones): Break after n iterations to prevent an infinite loop.
 func (c *client) ListPullRequests(ctx context.Context, organization string, repository string, state string) ([]PullRequest, error) {
 	var pulls []PullRequest
 
@@ -166,7 +161,7 @@ func (c *client) ListPullRequests(ctx context.Context, organization string, repo
 			pulls = append(pulls, PullRequest{
 				Author:     pr.GetUser().GetLogin(),
 				Repository: repository,
-				Head:       pr.GetHead().GetRef(),
+				UnsafeHead: pr.GetHead().GetRef(),
 			})
 
 			if resp.NextPage == 0 {
@@ -179,8 +174,6 @@ func (c *client) ListPullRequests(ctx context.Context, organization string, repo
 	return pulls, nil
 }
 
-// TODO(russjones): Field validation.
-// TODO(russjones): Break after n iterations to prevent an infinite loop.
 func (c *client) ListFiles(ctx context.Context, organization string, repository string, number int) ([]string, error) {
 	var files []string
 
@@ -214,10 +207,9 @@ func (c *client) ListFiles(ctx context.Context, organization string, repository 
 type Workflow struct {
 	ID   int64
 	Name string
+	Path string
 }
 
-// TODO(russjones): Field validation.
-// TODO(russjones): Break after n iterations to prevent an infinite loop.
 func (c *client) ListWorkflows(ctx context.Context, organization string, repository string) ([]Workflow, error) {
 	var workflows []Workflow
 
@@ -241,6 +233,7 @@ func (c *client) ListWorkflows(ctx context.Context, organization string, reposit
 		for _, workflow := range page.Workflows {
 			workflows = append(workflows, Workflow{
 				Name: workflow.GetName(),
+				Path: workflow.GetPath(),
 				ID:   workflow.GetID(),
 			})
 		}
@@ -259,8 +252,6 @@ type Run struct {
 	CreatedAt time.Time
 }
 
-// TODO(russjones): Field validation.
-// TODO(russjones): Break after n iterations to prevent an infinite loop.
 func (c *client) ListWorkflowRuns(ctx context.Context, organization string, repository string, branch string, workflowID int64) ([]Run, error) {
 	var runs []Run
 

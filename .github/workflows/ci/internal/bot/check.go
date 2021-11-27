@@ -23,25 +23,7 @@ import (
 )
 
 // Check checks if required reviewers have approved the PR.
-//
-// checkInternal is called to check if a PR reviewed and approved by the
-// required reviewers for internal contributors. Unlike approvals for
-// external contributors, approvals from internal team members will not be
-// invalidated when new changes are pushed to the PR.
 func (b *Bot) Check(ctx context.Context) error {
-	if b.c.Reviewer.IsInternal(b.c.Environment.Author) {
-		err := b.dismissStaleWorkflowRuns(ctx,
-			b.c.Environment.Organization,
-			b.c.Environment.Repository,
-			b.c.Environment.UnsafeBranch)
-		if err != nil {
-			return trace.Wrap(err)
-		}
-	}
-	return b.check(ctx)
-}
-
-func (b *Bot) check(ctx context.Context) error {
 	reviews, err := b.c.GitHub.ListReviews(ctx,
 		b.c.Environment.Organization,
 		b.c.Environment.Repository,
@@ -50,14 +32,29 @@ func (b *Bot) check(ctx context.Context) error {
 		return trace.Wrap(err)
 	}
 
-	docs, code, err := b.parseChanges(ctx)
-	if err != nil {
-		return trace.Wrap(err)
+	if b.c.Reviewer.IsInternal(b.c.Environment.Author) {
+		// Remove stale "Check" status badges inline for internal reviews.
+		err := b.dismiss(ctx,
+			b.c.Environment.Organization,
+			b.c.Environment.Repository,
+			b.c.Environment.UnsafeBranch)
+		if err != nil {
+			return trace.Wrap(err)
+		}
+
+		docs, code, err := b.parseChanges(ctx)
+		if err != nil {
+			return trace.Wrap(err)
+		}
+
+		if err := b.c.Reviewer.CheckInternal(b.c.Environment.Author, reviews, docs, code); err != nil {
+			return trace.Wrap(err)
+		}
+		return nil
 	}
 
-	if err := b.c.Reviewer.Check(reviews, b.c.Environment.Author, docs, code); err != nil {
+	if err := b.c.Reviewer.CheckExternal(b.c.Environment.Author, reviews); err != nil {
 		return trace.Wrap(err)
 	}
-
 	return nil
 }

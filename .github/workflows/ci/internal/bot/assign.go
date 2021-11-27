@@ -18,7 +18,6 @@ package bot
 
 import (
 	"context"
-	"strings"
 
 	"github.com/gravitational/trace"
 )
@@ -54,37 +53,4 @@ func (b *Bot) getReviewers(ctx context.Context) ([]string, error) {
 	}
 
 	return b.c.Reviewer.Get(b.c.Environment.Author, docs, code), nil
-}
-
-func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
-	var docs bool
-	var code bool
-
-	files, err := b.c.GitHub.ListFiles(ctx,
-		b.c.Environment.Organization,
-		b.c.Environment.Repository,
-		b.c.Environment.Number)
-	if err != nil {
-		return false, true, trace.Wrap(err)
-	}
-
-	for _, file := range files {
-		if hasDocs(file) {
-			docs = true
-		} else {
-			code = true
-		}
-
-	}
-	return docs, code, nil
-}
-
-func hasDocs(filename string) bool {
-	if strings.HasPrefix(filename, "vendor/") {
-		return false
-	}
-	return strings.HasPrefix(filename, "docs/") ||
-		strings.HasSuffix(filename, ".md") ||
-		strings.HasSuffix(filename, ".mdx") ||
-		strings.HasPrefix(filename, "rfd/")
 }

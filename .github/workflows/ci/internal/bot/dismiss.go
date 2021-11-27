@@ -42,8 +42,10 @@ func (b *Bot) Dimiss(ctx context.Context) error {
 	}
 
 	for _, pull := range pulls {
-		if err := b.dismissStaleWorkflowRuns(ctx, pull.Author, pull.Repository, pull.Head); err != nil {
-			log.Printf("Failed to dismiss workflow: %v %v %v: %v.", pull.Author, pull.Repository, pull.Head, err)
+		// HEAD could be controlled by an attacker, however, all this would allow is
+		// the attacker to dismiss a workflow run.
+		if err := b.dismiss(ctx, pull.Author, pull.Repository, pull.UnsafeHead); err != nil {
+			log.Printf("Failed to dismiss workflow: %v %v %v: %v.", pull.Author, pull.Repository, pull.UnsafeHead, err)
 			continue
 		}
 	}
@@ -51,11 +53,11 @@ func (b *Bot) Dimiss(ctx context.Context) error {
 	return nil
 }
 
-// dismissStaleWorkflowRuns dismisses all but the most recent "Check" workflow run.
+// dismiss dismisses all but the most recent "Check" workflow run.
 //
 // This is needed because GitHub appends each Check workflow run to the status
 // of a PR instead of replacing the status of an exisiting run.
-func (b *Bot) dismissStaleWorkflowRuns(ctx context.Context, organization string, repository string, branch string) error {
+func (b *Bot) dismiss(ctx context.Context, organization string, repository string, branch string) error {
 	check, err := b.findWorkflow(ctx,
 		organization,
 		repository,
