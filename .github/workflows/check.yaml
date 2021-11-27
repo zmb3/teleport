@@ -40,6 +40,6 @@ jobs:
           ref: master 
       - name: Installing the latest version of Go.
         uses: actions/setup-go@v2
-        # Run "check-reviewers" subcommand on bot.
+        # Run "check" subcommand on bot.
       - name: Checking reviewers
-        run: cd .github/workflows/ci && go run cmd/main.go --token=${{ secrets.GITHUB_TOKEN }} check-reviewers
+        run: cd .github/workflows/ci && go run cmd/main.go --token=${{ secrets.GITHUB_TOKEN }} check

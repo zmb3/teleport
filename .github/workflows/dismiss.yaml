@@ -12,6 +12,7 @@ on:
   schedule:
     # Runs every 30 minutes
     - cron:  '0,30 * * * *' 
+
 # Limit the permissions on the GitHub token for this workflow to the subset
 # that is required. In this case, the dismiss workflow needs to read reviews and
 # delete workflow runs so it needs write access to "actions" and read to
@@ -27,6 +28,7 @@ permissions:
   repository-projects: none
   security-events: none
   statuses: none
+
 jobs: 
   dismiss-stale-runs:
     name: Dismiss Stale Workflow Runs
@@ -38,6 +40,6 @@ jobs:
           ref: master 
       - name: Installing the latest version of Go.
         uses: actions/setup-go@v2
-        # Run "dismiss-runs" subcommand on bot.
+        # Run "dismiss" subcommand on bot.
       - name: Dismiss
-        run: cd .github/workflows/ci && go run cmd/main.go --token=${{ secrets.GITHUB_TOKEN }} dismiss-runs
+        run: cd .github/workflows/ci && go run cmd/main.go --token=${{ secrets.GITHUB_TOKEN }} dismiss
