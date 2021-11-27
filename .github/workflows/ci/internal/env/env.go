@@ -30,7 +30,11 @@ type Environment struct {
 	Number       int
 	Author       string
 
-	// UnsafeBranch
+	// UnsafeBranch is the name of the branch the workflow is running in. The name
+	// of the branch should not be used in any security sensitive context.
+	//
+	// See the following for more details:
+	// https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections
 	UnsafeBranch string
 }
 
@@ -61,8 +65,6 @@ func New() (*Environment, error) {
 	return &en, nil
 }
 
-//
-// https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections
 func readEvent() (*Event, error) {
 	f, err := os.Open(os.Getenv("GITHUB_EVENT_PATH"))
 	if err != nil {

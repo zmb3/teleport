@@ -17,13 +17,8 @@ limitations under the License.
 package env
 
 type Event struct {
-	//Action string `json:"action"`
-
-	Repository Repository `json:"repository"`
-
+	Repository  Repository  `json:"repository"`
 	PullRequest PullRequest `json:"pull_request"`
-
-	//Review *Review `json:"review,omitempty"`
 }
 
 type Repository struct {
@@ -55,44 +50,3 @@ type Base struct {
 	SHA string `json:"sha"`
 	Ref string `json:"ref"`
 }
-
-//// PushEvent is used for unmarshalling push events
-//type PushEvent struct {
-//	Number      int        `json:"number"`
-//	PullRequest PR         `json:"pull_request"`
-//	Repository  Repository `json:"repository"`
-//	CommitSHA   string     `json:"after"`
-//	BeforeSHA   string     `json:"before"`
-//}
-//
-//// PullRequestEvent s used for unmarshalling pull request events
-//type PullRequestEvent struct {
-//	Number      int        `json:"number"`
-//	PullRequest PR         `json:"pull_request"`
-//	Repository  Repository `json:"repository"`
-//}
-//
-//// ReviewEvent contains metadata about the pull request
-//// review (used for the pull request review event)
-//type ReviewEvent struct {
-//	Review      Review      `json:"review"`
-//	Repository  Repository  `json:"repository"`
-//	PullRequest PullRequest `json:"pull_request"`
-//}
-
-//// Review contains information about the pull request review
-//type Review struct {
-//	User User `json:"user"`
-//}
-//
-//// PR contains information about the pull request (used for the pull request event)
-//type PR struct {
-//	User User
-//	Head Head `json:"head"`
-//	Base Base `json:"base"`
-//}
-
-//// action represents the current action
-//type action struct {
-//	Action string `json:"action"`
-//}
