@@ -33,8 +33,12 @@ type Owner struct {
 type PullRequest struct {
 	User   User `json:"user"`
 	Number int  `json:"number"`
-	Head   Head `json:"head"`
-	Base   Base `json:"base"`
+
+	// UnsafeHead can be attacker controlled and should not be used in any
+	// security sensitive context. See the following link for more details:
+	//
+	// https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections
+	UnsafeHead Head `json:"head"`
 }
 
 type User struct {
@@ -42,11 +46,15 @@ type User struct {
 }
 
 type Head struct {
-	SHA string `json:"sha"`
-	Ref string `json:"ref"`
-}
+	// UnsafeSHA can be attacker controlled and should not be used in any
+	// security sensitive context. See the following link for more details:
+	//
+	// https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections
+	UnsafeSHA string `json:"sha"`
 
-type Base struct {
-	SHA string `json:"sha"`
-	Ref string `json:"ref"`
+	// UnsafeRef can be attacker controlled and should not be used in any
+	// security sensitive context. See the following link for more details:
+	//
+	// https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections
+	UnsafeRef string `json:"ref"`
 }

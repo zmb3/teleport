@@ -24,45 +24,50 @@ import (
 	"github.com/gravitational/trace"
 )
 
+// Environment is the execution environment the workflow is running in.
 type Environment struct {
+	// Organization is the GitHub organization (gravitational).
 	Organization string
-	Repository   string
-	Number       int
-	Author       string
 
-	// UnsafeBranch is the name of the branch the workflow is running in. The name
-	// of the branch should not be used in any security sensitive context.
+	// Repository is the GitHub repository (teleport).
+	Repository string
+
+	// Number is the PR number.
+	Number int
+
+	// Author is the author of the PR.
+	Author string
+
+	// UnsafeBranch is the name of the branch the workflow is running in.
 	//
-	// See the following for more details:
+	// UnsafeBranch can be attacker controlled and should not be used in any
+	// security sensitive context. See the following link for more details:
+	//
 	// https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections
 	UnsafeBranch string
 }
 
+// New returns a new execution environment for the workflow.
 func New() (*Environment, error) {
-	e, err := readEvent()
+	event, err := readEvent()
 	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	var en Environment
-
-	// Read in the organization and repository name from the workflow event. If
-	// it's missing (like in a cron workflow), then read it in from GITHUB_REPOSITORY.
-	en.Organization = e.Repository.Owner.Login
-	en.Repository = e.Repository.Name
-	if en.Organization == "" || en.Repository == "" {
-		en.Organization, en.Repository, err = readEnvironment()
+		organization, repository, err := readEnvironment()
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
+		return &Environment{
+			Organization: organization,
+			Repository:   repository,
+		}, nil
 	}
 
-	en.Number = e.PullRequest.Number
-	en.Author = e.PullRequest.User.Login
-
-	en.UnsafeBranch = e.PullRequest.Head.Ref
-
-	return &en, nil
+	return &Environment{
+		Organization: event.Repository.Owner.Login,
+		Repository:   event.Repository.Name,
+		Number:       event.PullRequest.Number,
+		Author:       event.PullRequest.User.Login,
+		UnsafeBranch: event.PullRequest.UnsafeHead.UnsafeRef,
+	}, nil
 }
 
 func readEvent() (*Event, error) {
@@ -72,12 +77,12 @@ func readEvent() (*Event, error) {
 	}
 	defer f.Close()
 
-	var e Event
-	if err := json.NewDecoder(f).Decode(&e); err != nil {
+	var event Event
+	if err := json.NewDecoder(f).Decode(&event); err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	return &e, nil
+	return &event, nil
 }
 
 func readEnvironment() (string, string, error) {

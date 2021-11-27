@@ -128,3 +128,121 @@ package review
 //		})
 //	}
 //}
+
+//func TestGetReviewersForAuthors(t *testing.T) {
+//	testReviewerMap := map[string][]string{
+//		"*":   {"foo"},
+//		"foo": {"bar", "baz"},
+//	}
+//	tests := []struct {
+//		env      *PullRequestEnvironment
+//		desc     string
+//		user     string
+//		expected []string
+//	}{
+//		{
+//			env:      &PullRequestEnvironment{HasDocsChanges: true, HasCodeChanges: true, reviewers: testReviewerMap},
+//			desc:     "pull request has both code and docs changes",
+//			user:     "foo",
+//			expected: []string{"klizhentas", "bar", "baz"},
+//		},
+//		{
+//			env:      &PullRequestEnvironment{HasDocsChanges: false, HasCodeChanges: true, reviewers: testReviewerMap},
+//			desc:     "pull request has only code changes",
+//			user:     "foo",
+//			expected: []string{"bar", "baz"},
+//		},
+//		{
+//			env:      &PullRequestEnvironment{HasDocsChanges: true, HasCodeChanges: false, reviewers: testReviewerMap},
+//			desc:     "pull request has only docs changes",
+//			user:     "foo",
+//			expected: []string{"klizhentas"},
+//		},
+//		{
+//			env:      &PullRequestEnvironment{HasDocsChanges: false, HasCodeChanges: false, reviewers: testReviewerMap},
+//			desc:     "pull request has no changes",
+//			user:     "foo",
+//			expected: []string{"bar", "baz"},
+//		},
+//	}
+//
+//	for _, test := range tests {
+//		t.Run(test.desc, func(t *testing.T) {
+//			reviewerSlice := test.env.GetReviewersForAuthor(test.user)
+//			require.Equal(t, test.expected, reviewerSlice)
+//		})
+//	}
+//}
+//
+//func TestHasDocsChanges(t *testing.T) {
+//	tests := []struct {
+//		input    string
+//		expected bool
+//	}{
+//		{input: "docs/some-file.txt", expected: true},
+//		{input: "lib/auth/auth.go", expected: false},
+//		{input: "lib/some-file.mdx", expected: true},
+//		{input: "some/random/path.md", expected: true},
+//		{input: "rfd/new-proposal.txt", expected: true},
+//		{input: "doc/file.txt", expected: false},
+//		{input: "", expected: false},
+//		{input: "vendor/file.md", expected: false},
+//	}
+//
+//	for _, test := range tests {
+//		result := hasDocChanges(test.input)
+//		require.Equal(t, test.expected, result)
+//	}
+//}
+//
+//func TestCheckAndSetDefaults(t *testing.T) {
+//	testReviewerMapValid := map[string][]string{
+//		"*":   {"foo"},
+//		"foo": {"bar", "baz"},
+//	}
+//	testReviewerMapInvalid := map[string][]string{
+//		"foo": {"bar", "baz"},
+//	}
+//
+//	client := github.NewClient(nil)
+//	ctx := context.Background()
+//	os.Setenv(ci.GithubEventPath, "path/to/event.json")
+//	tests := []struct {
+//		cfg      Config
+//		desc     string
+//		expected Config
+//		checkErr require.ErrorAssertionFunc
+//	}{
+//		{
+//			cfg:      Config{Client: nil, Reviewers: testReviewerMapValid, Context: ctx, EventPath: "test/path"},
+//			desc:     "Invalid config, Client is nil.",
+//			expected: Config{Client: nil, Reviewers: testReviewerMapValid, Context: ctx, EventPath: "test/path"},
+//			checkErr: require.Error,
+//		},
+//		{
+//			cfg:      Config{Client: client, Reviewers: testReviewerMapInvalid, Context: ctx, EventPath: "test/path"},
+//			desc:     "Invalid config, invalid Reviewer map, missing wildcard key.",
+//			expected: Config{Client: client, Reviewers: testReviewerMapInvalid, Context: ctx, EventPath: "test/path"},
+//			checkErr: require.Error,
+//		},
+//		{
+//			cfg:      Config{Client: client, Context: ctx, EventPath: "test/path"},
+//			desc:     "Invalid config, missing Reviewer map.",
+//			expected: Config{Client: client, Context: ctx, EventPath: "test/path"},
+//			checkErr: require.Error,
+//		},
+//		{
+//			cfg:      Config{Client: client, Context: ctx, Reviewers: testReviewerMapValid},
+//			desc:     "Valid config, EventPath not set.  ",
+//			expected: Config{Client: client, Context: ctx, EventPath: "path/to/event.json", Reviewers: testReviewerMapValid},
+//			checkErr: require.NoError,
+//		},
+//	}
+//	for _, test := range tests {
+//		t.Run(test.desc, func(t *testing.T) {
+//			err := test.cfg.CheckAndSetDefaults()
+//			test.checkErr(t, err)
+//			require.Equal(t, test.expected, test.cfg)
+//		})
+//	}
+//}
