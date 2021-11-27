@@ -122,8 +122,8 @@ func (r *Assignments) getCodeReviewers(author string) []string {
 }
 
 func (r *Assignments) getCodeReviewerSets(author string) ([]string, []string) {
-	// External and internal non-Core contributors get assigned from the default
-	// reviewer set. Default reviewers will triage and re-assign.
+	// Internal non-Core contributors get assigned from the default reviewer set.
+	// Default reviewers will triage and re-assign.
 	v, ok := r.c.CodeReviewers[author]
 	if !ok || v.Group == "Internal" {
 		defaultReviewers := r.getDefaultReviewers(author)
@@ -178,14 +178,26 @@ func (r *Assignments) CheckInternal(author string, reviews map[string]*github.Re
 		return nil
 	}
 
-	if docs {
+	switch {
+	case docs && code:
 		if err := r.checkDocsReviews(author, reviews); err != nil {
 			return trace.Wrap(err)
 		}
-	}
-	if code {
 		if err := r.checkCodeReviews(author, reviews); err != nil {
 			return trace.Wrap(err)
+		}
+	case !docs && code:
+		if err := r.checkCodeReviews(author, reviews); err != nil {
+			return trace.Wrap(err)
+		}
+	case docs && !code:
+		if err := r.checkDocsReviews(author, reviews); err != nil {
+			return trace.Wrap(err)
+		}
+	// Strange state, an empty commit? Check admins.
+	case !docs && !code:
+		if checkN(r.getDefaultReviewers(author), reviews) < 2 {
+			return trace.BadParameter("requires two admins approvals")
 		}
 	}
 
