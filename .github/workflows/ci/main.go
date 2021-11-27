@@ -17,130 +17,87 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
+	"context"
+	"flag"
+	"log"
+	"os"
+	"time"
+
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/bot"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
+	"github.com/gravitational/teleport/.github/workflows/ci/internal/review"
+
+	"github.com/gravitational/trace"
 )
 
 func main() {
-	fmt.Printf("--> hello, world.\n")
+	var token = flag.String("token", "", "token is the Github authentication token.")
+	flag.Parse()
+
+	if len(os.Args) < 2 {
+		log.Fatalf("Subcommand required. %s\n", usage)
+	}
+	subcommand := os.Args[len(os.Args)-1]
+
+	// Cancel run if it takes longer than `workflowRunTimeout`.
+	// Note: To re-run a job go to the Actions tab in the Github repo,
+	// go to the run that failed, and click the `Re-run all jobs` button
+	// in the top right corner.
+	ctx, cancel := context.WithTimeout(context.Background(), workflowTimeout)
+	defer cancel()
+
+	b, err := createBot(ctx, *token)
+	if err != nil {
+		log.Fatalf("Failed to create bot: %v.", err)
+	}
+
+	switch subcommand {
+	case "assign":
+		err = b.Assign(ctx)
+	case "check":
+		err = b.Check(ctx)
+	case "dismiss":
+		err = b.Dimiss(ctx)
+	default:
+		err = trace.BadParameter("unknown subcommand: %v", subcommand)
+	}
+	if err != nil {
+		log.Fatal("Subcommand %v failed: %v.", subcommand, err)
+	}
 }
 
-//import (
-//	"context"
-//	"flag"
-//	"log"
-//	"os"
-//	"time"
-//
-//	"github.com/gravitational/teleport/.github/workflows/ci"
-//	"github.com/gravitational/teleport/.github/workflows/ci/pkg/bot"
-//	bots "github.com/gravitational/teleport/.github/workflows/ci/pkg/bot"
-//	"github.com/gravitational/teleport/.github/workflows/ci/pkg/environment"
-//	"github.com/gravitational/trace"
-//
-//	"github.com/google/go-github/v37/github"
-//	"golang.org/x/oauth2"
-//)
-//
-//const (
-//	usage = "The following subcommands are supported:\n" +
-//		"\tassign-reviewers \n\t assigns reviewers to a pull request.\n" +
-//		"\tcheck-reviewers \n\t checks pull request for required reviewers.\n" +
-//		"\tdismiss-runs \n\t dismisses stale workflow runs for external contributors.\n"
-//
-//	workflowRunTimeout = time.Minute
-//)
-//
-//func main() {
-//	var token = flag.String("token", "", "token is the Github authentication token.")
-//	flag.Parse()
-//
-//	if len(os.Args) < 2 {
-//		log.Fatalf("Subcommand required. %s\n", usage)
-//	}
-//	subcommand := os.Args[len(os.Args)-1]
-//
-//	// Cancel run if it takes longer than `workflowRunTimeout`.
-//	// Note: To re-run a job go to the Actions tab in the Github repo,
-//	// go to the run that failed, and click the `Re-run all jobs` button
-//	// in the top right corner.
-//	ctx, cancel := context.WithTimeout(context.Background(), workflowRunTimeout)
-//	defer cancel()
-//
-//	//// Remove any stale workflow runs. As only the current workflow run should
-//	//// be shown because it is the workflow that reflects the correct state of
-//	//// the pull request.
-//	////
-//	//// Note: This is run for all workflow runs triggered by an event from an
-//	//// internal contributor, but has to be run again in cron workflow because
-//	//// workflows triggered by external contributors do not grant the Github
-//	//// Actions token the correct permissions to dismiss workflow runs.
-//	//err := c.dismissStaleWorkflowRuns(ctx, pr.RepoOwner, pr.RepoName, pr.BranchName)
-//	//if err != nil {
-//	//	return trace.Wrap(err)
-//	//}
-//
-//	client := makeGithubClient(ctx, *token)
-//	switch subcommand {
-//	case ci.AssignSubcommand:
-//		log.Println("Assigning reviewers.")
-//		bot, err := constructBot(ctx, client)
-//		if err != nil {
-//			log.Fatal(err)
-//		}
-//		err = bot.Assign(ctx)
-//		if err != nil {
-//			log.Fatal(err)
-//		}
-//		log.Print("Assign completed.")
-//	case ci.CheckSubcommand:
-//		log.Println("Checking reviewers.")
-//		bot, err := constructBot(ctx, client)
-//		if err != nil {
-//			log.Fatal(err)
-//		}
-//		err = bot.Check(ctx)
-//		if err != nil {
-//			log.Fatal(err)
-//		}
-//		log.Print("Check completed.")
-//	case ci.Dismiss:
-//		log.Println("Dismissing stale runs.")
-//		// Constructing Bot without PullRequestEnvironment.
-//		// Dismiss runs does not need PullRequestEnvironment because PullRequestEnvironment is only
-//		// is used for pull request or PR adjacent (PR reviews, pushes to PRs, PR opening, reopening, etc.) events.
-//		bot, err := bot.New(bots.Config{GithubClient: client})
-//		if err != nil {
-//			log.Fatal(err)
-//		}
-//		err = bot.DimissStaleWorkflowRuns(ctx)
-//		if err != nil {
-//			log.Fatal(err)
-//		}
-//		log.Println("Stale workflow run removal completed.")
-//	default:
-//		log.Fatalf("Unknown subcommand: %v.\n%s", subcommand, usage)
-//	}
-//}
-//
-//func constructBot(ctx context.Context, clt *github.Client) (*bots.Bot, error) {
-//	env, err := environment.New(environment.Config{Client: clt,
-//		Reviewers: ci.Reviewers,
-//		Context:   ctx,
-//	})
-//	if err != nil {
-//		return nil, trace.Wrap(err)
-//	}
-//	bot, err := bots.New(bots.Config{Environment: env, GithubClient: clt})
-//	if err != nil {
-//		return nil, trace.Wrap(err)
-//	}
-//	return bot, nil
-//}
-//
-//func makeGithubClient(ctx context.Context, token string) *github.Client {
-//	ts := oauth2.StaticTokenSource(
-//		&oauth2.Token{AccessToken: token},
-//	)
-//	tc := oauth2.NewClient(ctx, ts)
-//	return github.NewClient(tc)
-//}
+func createBot(ctx context.Context, token string) (*bot.Bot, error) {
+	gh, err := github.New(ctx, token)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	environment, err := env.New()
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	reviewer, err := review.New(review.DefaultConfig)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	b, err := bot.New(&bot.Config{
+		GitHub:      gh,
+		Environment: environment,
+		Reviewer:    reviewer,
+	})
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	return b, nil
+}
+
+const (
+	usage = `The following subcommands are supported:
+  assign     assigns reviewers to a pull request
+  check      checks pull request for required reviewers
+  dismiss    dismisses stale workflow runs for external contributors`
+
+	workflowTimeout = 1 * time.Minute
+)

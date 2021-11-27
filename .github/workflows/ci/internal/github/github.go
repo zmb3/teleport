@@ -27,7 +27,8 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/google/go-github/v37/github"
+	go_github "github.com/google/go-github/v37/github"
+	"golang.org/x/oauth2"
 )
 
 type Client interface {
@@ -54,11 +55,16 @@ type Client interface {
 }
 
 type client struct {
-	client *github.Client
+	client *go_github.Client
 }
 
-func NewClient() (*client, error) {
-	return &client{}, nil
+func New(ctx context.Context, token string) (*client, error) {
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	return &client{
+		client: go_github.NewClient(oauth2.NewClient(ctx, ts)),
+	}, nil
 }
 
 func (c *client) RequestReviewers(ctx context.Context, organization string, repository string, number int, reviewers []string) error {
@@ -66,7 +72,7 @@ func (c *client) RequestReviewers(ctx context.Context, organization string, repo
 		organization,
 		repository,
 		number,
-		github.ReviewersRequest{
+		go_github.ReviewersRequest{
 			Reviewers: reviewers,
 		})
 	if err != nil {
@@ -87,7 +93,7 @@ type Review struct {
 func (c *client) ListReviews(ctx context.Context, organization string, repository string, number int) (map[string]*Review, error) {
 	var reviews map[string]*Review
 
-	opt := &github.ListOptions{
+	opt := &go_github.ListOptions{
 		Page:    0,
 		PerPage: 100,
 	}
@@ -140,9 +146,9 @@ type PullRequest struct {
 func (c *client) ListPullRequests(ctx context.Context, organization string, repository string, state string) ([]PullRequest, error) {
 	var pulls []PullRequest
 
-	opt := &github.PullRequestListOptions{
+	opt := &go_github.PullRequestListOptions{
 		State: state,
-		ListOptions: github.ListOptions{
+		ListOptions: go_github.ListOptions{
 			Page:    0,
 			PerPage: 100,
 		},
@@ -178,7 +184,7 @@ func (c *client) ListPullRequests(ctx context.Context, organization string, repo
 func (c *client) ListFiles(ctx context.Context, organization string, repository string, number int) ([]string, error) {
 	var files []string
 
-	opt := &github.ListOptions{
+	opt := &go_github.ListOptions{
 		Page:    0,
 		PerPage: 100,
 	}
@@ -215,7 +221,7 @@ type Workflow struct {
 func (c *client) ListWorkflows(ctx context.Context, organization string, repository string) ([]Workflow, error) {
 	var workflows []Workflow
 
-	opt := &github.ListOptions{
+	opt := &go_github.ListOptions{
 		Page:    0,
 		PerPage: 100,
 	}
@@ -258,9 +264,9 @@ type Run struct {
 func (c *client) ListWorkflowRuns(ctx context.Context, organization string, repository string, branch string, workflowID int64) ([]Run, error) {
 	var runs []Run
 
-	opt := &github.ListWorkflowRunsOptions{
+	opt := &go_github.ListWorkflowRunsOptions{
 		Branch: branch,
-		ListOptions: github.ListOptions{
+		ListOptions: go_github.ListOptions{
 			Page:    0,
 			PerPage: 100,
 		},

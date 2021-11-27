@@ -30,21 +30,18 @@ import (
 // invalidated when new changes are pushed to the PR.
 func (b *Bot) Check(ctx context.Context) error {
 	if b.c.reviewer.IsInternal(b.c.env.Author) {
-		return b.checkInternal(ctx)
+		err := b.dismissStaleWorkflowRuns(ctx,
+			b.c.env.Organization,
+			b.c.env.Repository,
+			b.c.env.UnsafeBranch)
+		if err != nil {
+			return trace.Wrap(err)
+		}
 	}
-	return b.checkExternal(ctx)
+	return b.check(ctx)
 }
 
-func (b *Bot) checkInternal(ctx context.Context) error {
-	// Dismiss all but the most recent "Check" workflow run.
-	err := b.dismissStaleWorkflowRuns(ctx,
-		b.c.env.Organization,
-		b.c.env.Repository,
-		b.c.env.Branch)
-	if err != nil {
-		return trace.Wrap(err)
-	}
-
+func (b *Bot) check(ctx context.Context) error {
 	reviews, err := b.c.gh.ListReviews(ctx,
 		b.c.env.Organization,
 		b.c.env.Repository,
@@ -62,9 +59,5 @@ func (b *Bot) checkInternal(ctx context.Context) error {
 		return trace.Wrap(err)
 	}
 
-	return nil
-}
-
-func (c *Bot) checkExternal(ctx context.Context) error {
 	return nil
 }

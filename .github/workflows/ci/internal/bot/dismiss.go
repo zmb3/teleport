@@ -26,14 +26,13 @@ import (
 	"github.com/gravitational/trace"
 )
 
-// DimissStaleWorkflowRuns dismisses all stale workflow runs within a
-// repository. This is done to dismiss stale workflow runs for external
-// contributors whose workflows run without permissions to run
-// "dismissWorkflowRuns".
+// Dimiss dismisses all stale workflow runs within a repository. This is done
+// to dismiss stale workflow runs for external contributors whose workflows
+// run without permissions to dismiss stale workflows inline.
 //
 // This is needed because GitHub appends each Check workflow run to the status
 // of a PR instead of replacing the status of an exisiting run.
-func (b *Bot) DimissStaleWorkflowRuns(ctx context.Context) error {
+func (b *Bot) Dimiss(ctx context.Context) error {
 	pulls, err := b.c.gh.ListPullRequests(ctx,
 		b.c.env.Organization,
 		b.c.env.Repository,

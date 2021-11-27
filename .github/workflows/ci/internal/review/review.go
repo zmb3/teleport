@@ -66,7 +66,7 @@ type Assignments struct {
 	c *Config
 }
 
-func NewAssignments(c *Config) (*Assignments, error) {
+func New(c *Config) (*Assignments, error) {
 	if err := c.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -161,8 +161,16 @@ func getReviewerSets(author string, group string, reviewers map[string]Reviewer,
 	return setA, setB
 }
 
-// Check will verify if required reviewers have approved.
+// Check will verify if required reviewers have approved. External approvals
+// are more strict requiring two admin approvals.
 func (r *Assignments) Check(reviews map[string]*github.Review, author string, docs bool, code bool) error {
+	if r.IsInternal(author) {
+		return r.checkInternal(author, reviews, docs, code)
+	}
+	return checkExternal(r.getDefaultReviewers(author), reviews)
+}
+
+func (r *Assignments) checkInternal(author string, reviews map[string]*github.Review, docs bool, code bool) error {
 	// Skip checks if admins have approved.
 	if check(r.getDefaultReviewers(author), reviews) {
 		return nil
@@ -222,4 +230,19 @@ func check(reviewers []string, reviews map[string]*github.Review) bool {
 		}
 	}
 	return false
+}
+
+func checkExternal(reviewers []string, reviews map[string]*github.Review) error {
+	var n int
+	for _, review := range reviews {
+		for _, reviewer := range reviewers {
+			if review.State == "APPROVED" && review.Author == reviewer {
+				n++
+			}
+		}
+	}
+	if n < 2 {
+		return trace.BadParameter("two approving admin reviews required")
+	}
+	return nil
 }

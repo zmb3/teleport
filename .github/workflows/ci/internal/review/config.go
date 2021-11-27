@@ -16,7 +16,7 @@ limitations under the License.
 
 package review
 
-var config = &Config{
+var DefaultConfig = &Config{
 	CodeReviewers: map[string]Reviewer{
 		// Teleport Terminal.
 		"alex-kovoy": Reviewer{Group: "Terminal", Set: "A"},

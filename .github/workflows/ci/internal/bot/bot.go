@@ -25,24 +25,24 @@ import (
 )
 
 type Config struct {
-	// gh is a GitHub client.
-	gh github.Client
+	// GitHub is a GitHub client.
+	GitHub github.Client
 
-	// env holds information about the workflow run event.
-	env *env.Environment
+	// Environment holds information about the workflow run event.
+	Environment *env.Environment
 
-	// r is used to get code and docs reviewers.
-	reviewer *review.Assignments
+	// Reviewer is used to get code and docs reviewers.
+	Reviewer *review.Assignments
 }
 
 func (c *Config) CheckAndSetDefaults() error {
-	if c.gh == nil {
+	if c.GitHub == nil {
 		return trace.BadParameter("github client required")
 	}
-	if c.env == nil {
+	if c.Environment == nil {
 		return trace.BadParameter("environment event required")
 	}
-	if c.reviewer == nil {
+	if c.Reviewer == nil {
 		return trace.BadParameter("reviewers missing")
 	}
 

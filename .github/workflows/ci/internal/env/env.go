@@ -29,10 +29,12 @@ type Environment struct {
 	Repository   string
 	Number       int
 	Author       string
-	Branch       string
+
+	// UnsafeBranch
+	UnsafeBranch string
 }
 
-func Read() (*Environment, error) {
+func New() (*Environment, error) {
 	e, err := readEvent()
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -54,8 +56,7 @@ func Read() (*Environment, error) {
 	en.Number = e.PullRequest.Number
 	en.Author = e.PullRequest.User.Login
 
-	// TODO(russjones): Can this field be trusted?
-	en.Branch = e.PullRequest.Head.Ref
+	en.UnsafeBranch = e.PullRequest.Head.Ref
 
 	return &en, nil
 }
