@@ -35,10 +35,10 @@ func (b *Bot) Assign(ctx context.Context) error {
 	}
 
 	// Request GitHub assign reviewers to this PR.
-	err = b.c.gh.RequestReviewers(ctx,
-		b.c.env.Organization,
-		b.c.env.Repository,
-		b.c.env.Number,
+	err = b.c.GitHub.RequestReviewers(ctx,
+		b.c.Environment.Organization,
+		b.c.Environment.Repository,
+		b.c.Environment.Number,
 		reviewers)
 	if err != nil {
 		return trace.Wrap(err)
@@ -53,17 +53,17 @@ func (b *Bot) getReviewers(ctx context.Context) ([]string, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	return b.c.reviewer.Get(b.c.env.Author, docs, code), nil
+	return b.c.Reviewer.Get(b.c.Environment.Author, docs, code), nil
 }
 
 func (b *Bot) parseChanges(ctx context.Context) (bool, bool, error) {
 	var docs bool
 	var code bool
 
-	files, err := b.c.gh.ListFiles(ctx,
-		b.c.env.Organization,
-		b.c.env.Repository,
-		b.c.env.Number)
+	files, err := b.c.GitHub.ListFiles(ctx,
+		b.c.Environment.Organization,
+		b.c.Environment.Repository,
+		b.c.Environment.Number)
 	if err != nil {
 		return false, true, trace.Wrap(err)
 	}

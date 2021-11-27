@@ -63,7 +63,7 @@ func main() {
 		err = trace.BadParameter("unknown subcommand: %v", subcommand)
 	}
 	if err != nil {
-		log.Fatal("Subcommand %v failed: %v.", subcommand, err)
+		log.Fatalf("Subcommand %v failed: %v.", subcommand, err)
 	}
 }
 
@@ -87,7 +87,7 @@ func createBot(ctx context.Context, token string) (*bot.Bot, error) {
 		Reviewer:    reviewer,
 	})
 	if err != nil {
-		return trace.Wrap(err)
+		return nil, trace.Wrap(err)
 	}
 
 	return b, nil

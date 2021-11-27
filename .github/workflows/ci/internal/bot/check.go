@@ -29,11 +29,11 @@ import (
 // external contributors, approvals from internal team members will not be
 // invalidated when new changes are pushed to the PR.
 func (b *Bot) Check(ctx context.Context) error {
-	if b.c.reviewer.IsInternal(b.c.env.Author) {
+	if b.c.Reviewer.IsInternal(b.c.Environment.Author) {
 		err := b.dismissStaleWorkflowRuns(ctx,
-			b.c.env.Organization,
-			b.c.env.Repository,
-			b.c.env.UnsafeBranch)
+			b.c.Environment.Organization,
+			b.c.Environment.Repository,
+			b.c.Environment.UnsafeBranch)
 		if err != nil {
 			return trace.Wrap(err)
 		}
@@ -42,10 +42,10 @@ func (b *Bot) Check(ctx context.Context) error {
 }
 
 func (b *Bot) check(ctx context.Context) error {
-	reviews, err := b.c.gh.ListReviews(ctx,
-		b.c.env.Organization,
-		b.c.env.Repository,
-		b.c.env.Number)
+	reviews, err := b.c.GitHub.ListReviews(ctx,
+		b.c.Environment.Organization,
+		b.c.Environment.Repository,
+		b.c.Environment.Number)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -55,7 +55,7 @@ func (b *Bot) check(ctx context.Context) error {
 		return trace.Wrap(err)
 	}
 
-	if err := b.c.reviewer.Check(reviews, b.c.env.Author, docs, code); err != nil {
+	if err := b.c.Reviewer.Check(reviews, b.c.Environment.Author, docs, code); err != nil {
 		return trace.Wrap(err)
 	}
 

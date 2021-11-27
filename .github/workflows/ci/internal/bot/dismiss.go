@@ -33,9 +33,9 @@ import (
 // This is needed because GitHub appends each Check workflow run to the status
 // of a PR instead of replacing the status of an exisiting run.
 func (b *Bot) Dimiss(ctx context.Context) error {
-	pulls, err := b.c.gh.ListPullRequests(ctx,
-		b.c.env.Organization,
-		b.c.env.Repository,
+	pulls, err := b.c.GitHub.ListPullRequests(ctx,
+		b.c.Environment.Organization,
+		b.c.Environment.Repository,
 		"open")
 	if err != nil {
 		return trace.Wrap(err)
@@ -64,7 +64,7 @@ func (b *Bot) dismissStaleWorkflowRuns(ctx context.Context, organization string,
 		return trace.Wrap(err)
 	}
 
-	runs, err := b.c.gh.ListWorkflowRuns(ctx,
+	runs, err := b.c.GitHub.ListWorkflowRuns(ctx,
 		organization,
 		repository,
 		branch,
@@ -85,7 +85,7 @@ func (b *Bot) dismissStaleWorkflowRuns(ctx context.Context, organization string,
 }
 
 func (b *Bot) findWorkflow(ctx context.Context, organization string, repository string, name string) (github.Workflow, error) {
-	workflows, err := b.c.gh.ListWorkflows(ctx, organization, repository)
+	workflows, err := b.c.GitHub.ListWorkflows(ctx, organization, repository)
 	if err != nil {
 		return github.Workflow{}, trace.Wrap(err)
 	}
@@ -118,7 +118,7 @@ func (b *Bot) deleteRuns(ctx context.Context, organization string, repository st
 	// Deleting all runs except the most recent one.
 	for i := 0; i < len(runs)-1; i++ {
 		run := runs[i]
-		err := b.c.gh.DeleteWorkflowRun(ctx,
+		err := b.c.GitHub.DeleteWorkflowRun(ctx,
 			organization,
 			repository,
 			run.ID)
