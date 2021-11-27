@@ -1,5 +1,5 @@
-# Workflow will trigger on all pull request (except draft), pull request review, and commit push to a 
-# pull request (synchronize) event types
+# Workflow will trigger on all pull request (except draft), pull request
+# review, and commit push to a pull request (synchronize) event types
 # 
 # NOTE: pull_request_target behaves the same as pull_request except it grants a
 # read/write token to workflows running on a pull request from a fork. While this 
