@@ -20,7 +20,6 @@ import (
 	"context"
 	"flag"
 	"log"
-	"os"
 	"time"
 
 	"github.com/gravitational/teleport/.github/workflows/ci/internal/bot"
@@ -32,27 +31,24 @@ import (
 )
 
 func main() {
-	var token = flag.String("token", "", "token is the Github authentication token.")
-	flag.Parse()
-
-	if len(os.Args) < 2 {
-		log.Fatalf("Subcommand required. %s\n", usage)
+	workflow, token, reviewers, err := parseFlags()
+	if err != nil {
+		log.Fatalf("Failed to parse flags: %v.", err)
 	}
-	subcommand := os.Args[len(os.Args)-1]
 
-	// Cancel run if it takes longer than `workflowRunTimeout`.
-	// Note: To re-run a job go to the Actions tab in the Github repo,
-	// go to the run that failed, and click the `Re-run all jobs` button
-	// in the top right corner.
-	ctx, cancel := context.WithTimeout(context.Background(), workflowTimeout)
+	// Cancel run if it takes longer than 1 minute.
+	//
+	// To re-run a job go to the Actions tab in the Github repo, go to the run
+	// that failed, and click the "Re-run all jobs" button in the top right corner.
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
-	b, err := createBot(ctx, *token)
+	b, err := createBot(ctx, token, reviewers)
 	if err != nil {
 		log.Fatalf("Failed to create bot: %v.", err)
 	}
 
-	switch subcommand {
+	switch workflow {
 	case "assign":
 		err = b.Assign(ctx)
 	case "check":
@@ -60,14 +56,35 @@ func main() {
 	case "dismiss":
 		err = b.Dimiss(ctx)
 	default:
-		err = trace.BadParameter("unknown subcommand: %v", subcommand)
+		err = trace.BadParameter("unknown workflow: %v", workflow)
 	}
 	if err != nil {
-		log.Fatalf("Subcommand %v failed: %v.", subcommand, err)
+		log.Fatalf("Workflow %v failed: %v.", workflow, err)
 	}
 }
 
-func createBot(ctx context.Context, token string) (*bot.Bot, error) {
+func parseFlags() (string, string, string, error) {
+	var (
+		workflow  = flag.String("workflow", "", "specific workflow to run [assign, check, dismiss]")
+		token     = flag.String("token", "", "GitHub authentication token")
+		reviewers = flag.String("reviewers", "", "reviewer assignments")
+	)
+	flag.Parse()
+
+	if *workflow == "" {
+		return "", "", "", trace.BadParameter("workflow missing")
+	}
+	if *token == "" {
+		return "", "", "", trace.BadParameter("token missing")
+	}
+	if *reviewers == "" {
+		return "", "", "", trace.BadParameter("reviewers missing")
+	}
+
+	return *workflow, *token, *reviewers, nil
+}
+
+func createBot(ctx context.Context, token string, reviewers string) (*bot.Bot, error) {
 	gh, err := github.New(ctx, token)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -76,11 +93,10 @@ func createBot(ctx context.Context, token string) (*bot.Bot, error) {
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	reviewer, err := review.New(review.DefaultConfig)
+	reviewer, err := review.FromString(reviewers)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-
 	b, err := bot.New(&bot.Config{
 		GitHub:      gh,
 		Environment: environment,
@@ -92,12 +108,3 @@ func createBot(ctx context.Context, token string) (*bot.Bot, error) {
 
 	return b, nil
 }
-
-const (
-	usage = `The following subcommands are supported:
-  assign     assigns reviewers to a pull request
-  check      checks pull request for required reviewers
-  dismiss    dismisses stale workflow runs for external contributors`
-
-	workflowTimeout = 1 * time.Minute
-)

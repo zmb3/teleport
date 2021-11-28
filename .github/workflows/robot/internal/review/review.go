@@ -17,6 +17,7 @@ limitations under the License.
 package review
 
 import (
+	"encoding/json"
 	"math/rand"
 	"time"
 
@@ -24,16 +25,21 @@ import (
 	"github.com/gravitational/trace"
 )
 
+type Reviewer struct {
+	Team string `json:"team"`
+	Set  string `json:"set"`
+}
+
 type Config struct {
 	rand *rand.Rand
 
-	CodeReviewers     map[string]Reviewer
-	CodeReviewersOmit map[string]bool
+	CodeReviewers     map[string]Reviewer `json:"codeReviewers"`
+	CodeReviewersOmit map[string]bool     `json:"codeReviewersOmit"`
 
-	DocsReviewers     map[string]Reviewer
-	DocsReviewersOmit map[string]bool
+	DocsReviewers     map[string]Reviewer `json:"docsReviewers"`
+	DocsReviewersOmit map[string]bool     `json:"docsReviewersOmit"`
 
-	DefaultReviewers []string
+	DefaultReviewers []string `json:"defaultReviewers"`
 }
 
 func (c *Config) CheckAndSetDefaults() error {
@@ -64,6 +70,20 @@ func (c *Config) CheckAndSetDefaults() error {
 
 type Assignments struct {
 	c *Config
+}
+
+func FromString(reviewers string) (*Assignments, error) {
+	var c Config
+	if err := json.Unmarshal([]byte(reviewers), &c); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	r, err := New(&c)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return r, nil
 }
 
 func New(c *Config) (*Assignments, error) {
@@ -125,21 +145,21 @@ func (r *Assignments) getCodeReviewerSets(author string) ([]string, []string) {
 	// Internal non-Core contributors get assigned from the default reviewer set.
 	// Default reviewers will triage and re-assign.
 	v, ok := r.c.CodeReviewers[author]
-	if !ok || v.Group == "Internal" {
+	if !ok || v.Team == "Internal" {
 		defaultReviewers := r.getDefaultReviewers(author)
 		return defaultReviewers, defaultReviewers
 	}
 
-	return getReviewerSets(author, v.Group, r.c.CodeReviewers, r.c.CodeReviewersOmit)
+	return getReviewerSets(author, v.Team, r.c.CodeReviewers, r.c.CodeReviewersOmit)
 }
 
-func getReviewerSets(author string, group string, reviewers map[string]Reviewer, reviewersOmit map[string]bool) ([]string, []string) {
+func getReviewerSets(author string, team string, reviewers map[string]Reviewer, reviewersOmit map[string]bool) ([]string, []string) {
 	var setA []string
 	var setB []string
 
 	for k, v := range reviewers {
-		// Only assign within a group.
-		if v.Group != group {
+		// Only assign within a team.
+		if v.Team != team {
 			continue
 		}
 		// Skip over reviewers that are marked as omit.
