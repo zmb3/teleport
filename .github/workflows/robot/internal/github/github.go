@@ -83,9 +83,13 @@ func (c *client) RequestReviewers(ctx context.Context, organization string, repo
 	return nil
 }
 
+// Review is a GitHub PR review.
 type Review struct {
-	Author      string
-	State       string
+	// Author is the GitHub login of the user that created the PR.
+	Author string
+	// State is the state of the PR, for example APPROVED or CHANGES_REQUESTED.
+	State string
+	// SubmittedAt is the time the PR was created.
 	SubmittedAt time.Time
 }
 
@@ -94,7 +98,7 @@ func (c *client) ListReviews(ctx context.Context, organization string, repositor
 
 	opt := &go_github.ListOptions{
 		Page:    0,
-		PerPage: 100,
+		PerPage: perPage,
 	}
 	for {
 		page, resp, err := c.client.PullRequests.ListReviews(ctx,
@@ -132,9 +136,14 @@ func (c *client) ListReviews(ctx context.Context, organization string, repositor
 	return reviews, nil
 }
 
+// PullRequest is a Pull Requested submitted to the repository.
 type PullRequest struct {
-	Author     string
+	// Author is the GitHub login of the user that created the PR.
+	Author string
+	// Repository is the name of the repository.
 	Repository string
+	// UnsafeHead is the name of the branch this PR is created from. It is marked
+	// unsafe as it can be attacker controlled.
 	UnsafeHead string
 }
 
@@ -145,7 +154,7 @@ func (c *client) ListPullRequests(ctx context.Context, organization string, repo
 		State: state,
 		ListOptions: go_github.ListOptions{
 			Page:    0,
-			PerPage: 100,
+			PerPage: perPage,
 		},
 	}
 	for {
@@ -179,7 +188,7 @@ func (c *client) ListFiles(ctx context.Context, organization string, repository 
 
 	opt := &go_github.ListOptions{
 		Page:    0,
-		PerPage: 100,
+		PerPage: perPage,
 	}
 	for {
 		page, resp, err := c.client.PullRequests.ListFiles(ctx,
@@ -204,9 +213,13 @@ func (c *client) ListFiles(ctx context.Context, organization string, repository 
 	return files, nil
 }
 
+// Workflow contains information about a workflow.
 type Workflow struct {
-	ID   int64
+	// ID of the workflow.
+	ID int64
+	// Name of the workflow.
 	Name string
+	// Path of the workflow.
 	Path string
 }
 
@@ -215,7 +228,7 @@ func (c *client) ListWorkflows(ctx context.Context, organization string, reposit
 
 	opt := &go_github.ListOptions{
 		Page:    0,
-		PerPage: 100,
+		PerPage: perPage,
 	}
 	for {
 		page, resp, err := c.client.Actions.ListWorkflows(ctx,
@@ -247,8 +260,11 @@ func (c *client) ListWorkflows(ctx context.Context, organization string, reposit
 	return workflows, nil
 }
 
+// Run is a specific workflow run.
 type Run struct {
-	ID        int64
+	// ID of the workflow run.
+	ID int64
+	// CreatedAt time the workflow run was created.
 	CreatedAt time.Time
 }
 
@@ -259,7 +275,7 @@ func (c *client) ListWorkflowRuns(ctx context.Context, organization string, repo
 		Branch: branch,
 		ListOptions: go_github.ListOptions{
 			Page:    0,
-			PerPage: 100,
+			PerPage: perPage,
 		},
 	}
 	for {
@@ -311,3 +327,8 @@ func (c *client) DeleteWorkflowRun(ctx context.Context, organization string, rep
 	}
 	return nil
 }
+
+const (
+	// perPage is the number of items per page to request.
+	perPage = 100
+)

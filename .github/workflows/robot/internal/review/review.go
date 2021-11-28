@@ -21,30 +21,44 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
+	"github.com/gravitational/teleport/.github/workflows/robot/internal/github"
+
 	"github.com/gravitational/trace"
 )
 
+// Reviewer is a code reviewer.
 type Reviewer struct {
+	// Team the reviewer belongs to.
 	Team string `json:"team"`
-	Set  string `json:"set"`
+	// Set of the reviewer. Can be set A or B.
+	Set string `json:"set"`
 }
 
+// Config holds code reviewer configuration.
 type Config struct {
-	rand *rand.Rand
+	// Rand is a random number generator. It is not safe for cryptographic
+	// operations.
+	Rand *rand.Rand
 
+	// CodeReviewers and CodeReviewersOmit is a map of code reviews and code
+	// reviewers to omit.
 	CodeReviewers     map[string]Reviewer `json:"codeReviewers"`
 	CodeReviewersOmit map[string]bool     `json:"codeReviewersOmit"`
 
+	// DocsReviewers and DocsReviewersOmit is a map of docs reviews and docs
+	// reviewers to omit.
 	DocsReviewers     map[string]Reviewer `json:"docsReviewers"`
 	DocsReviewersOmit map[string]bool     `json:"docsReviewersOmit"`
 
+	// DefaultReviewers is a list of reviews that get assigned reviews when no
+	// others match.
 	DefaultReviewers []string `json:"defaultReviewers"`
 }
 
+// CheckAndSetDefaults checks and sets defaults.
 func (c *Config) CheckAndSetDefaults() error {
-	if c.rand == nil {
-		c.rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+	if c.Rand == nil {
+		c.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 	}
 
 	if c.CodeReviewers == nil {
@@ -68,10 +82,12 @@ func (c *Config) CheckAndSetDefaults() error {
 	return nil
 }
 
+// Assignments can be used to assign and check code reviewers.
 type Assignments struct {
 	c *Config
 }
 
+// FromString parses JSON formatted configuration and returns assignments.
 func FromString(reviewers string) (*Assignments, error) {
 	var c Config
 	if err := json.Unmarshal([]byte(reviewers), &c); err != nil {
@@ -86,6 +102,7 @@ func FromString(reviewers string) (*Assignments, error) {
 	return r, nil
 }
 
+// New returns new code review assignments.
 func New(c *Config) (*Assignments, error) {
 	if err := c.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
@@ -96,6 +113,7 @@ func New(c *Config) (*Assignments, error) {
 	}, nil
 }
 
+// IsInternal returns if the author of a PR is internal.
 func (r *Assignments) IsInternal(author string) bool {
 	_, ok := r.c.CodeReviewers[author]
 	return ok
@@ -136,9 +154,20 @@ func (r *Assignments) getCodeReviewers(author string) []string {
 	setA, setB := r.getCodeReviewerSets(author)
 
 	return []string{
-		setA[r.c.rand.Intn(len(setA))],
-		setB[r.c.rand.Intn(len(setB))],
+		setA[r.c.Rand.Intn(len(setA))],
+		setB[r.c.Rand.Intn(len(setB))],
 	}
+}
+
+func (r *Assignments) getDefaultReviewers(author string) []string {
+	var reviewers []string
+	for _, v := range r.c.DefaultReviewers {
+		if v == author {
+			continue
+		}
+		reviewers = append(reviewers, v)
+	}
+	return reviewers
 }
 
 func (r *Assignments) getCodeReviewerSets(author string) ([]string, []string) {
@@ -191,7 +220,9 @@ func (r *Assignments) CheckExternal(author string, reviews map[string]*github.Re
 	return trace.BadParameter("at least two approvals required from %v", reviewers)
 }
 
-// CheckInternal will verify if required reviewers have approved.
+// CheckInternal will verify if required reviewers have approved. Checks if
+// docs and if each set of code reviews have approved. Admins approvals bypass
+// all checks.
 func (r *Assignments) CheckInternal(author string, reviews map[string]*github.Review, docs bool, code bool) error {
 	// Skip checks if admins have approved.
 	if check(r.getDefaultReviewers(author), reviews) {
@@ -244,17 +275,6 @@ func (r *Assignments) checkCodeReviews(author string, reviews map[string]*github
 	return trace.BadParameter("at least one approval required from each set %v %v", setA, setB)
 }
 
-func (r *Assignments) getDefaultReviewers(author string) []string {
-	var reviewers []string
-	for _, v := range r.c.DefaultReviewers {
-		if v == author {
-			continue
-		}
-		reviewers = append(reviewers, v)
-	}
-	return reviewers
-}
-
 func check(reviewers []string, reviews map[string]*github.Review) bool {
 	return checkN(reviewers, reviews) > 0
 }
@@ -263,10 +283,17 @@ func checkN(reviewers []string, reviews map[string]*github.Review) int {
 	var n int
 	for _, review := range reviews {
 		for _, reviewer := range reviewers {
-			if review.State == "APPROVED" && review.Author == reviewer {
+			if review.State == approved && review.Author == reviewer {
 				n++
 			}
 		}
 	}
 	return n
 }
+
+const (
+	// approved is a code review where the reviewer has approved changes.
+	approved = "APPROVED"
+	// changesRequested is a code review where the reviewer has requested changes.
+	changesRequested = "CHANGES_REQUESTED"
+)

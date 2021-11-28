@@ -23,6 +23,9 @@ import (
 )
 
 // Check checks if required reviewers have approved the PR.
+//
+// Team specific reviews require an approval from both sets of reviews.
+// External reviews require approval from admins.
 func (b *Bot) Check(ctx context.Context) error {
 	reviews, err := b.c.GitHub.ListReviews(ctx,
 		b.c.Environment.Organization,

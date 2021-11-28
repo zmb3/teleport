@@ -20,13 +20,14 @@ import (
 	"context"
 	"strings"
 
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/review"
+	"github.com/gravitational/teleport/.github/workflows/robot/internal/env"
+	"github.com/gravitational/teleport/.github/workflows/robot/internal/github"
+	"github.com/gravitational/teleport/.github/workflows/robot/internal/review"
 
 	"github.com/gravitational/trace"
 )
 
+// Config contains configuration for the bot.
 type Config struct {
 	// GitHub is a GitHub client.
 	GitHub github.Client
@@ -38,6 +39,7 @@ type Config struct {
 	Reviewer *review.Assignments
 }
 
+// CheckAndSetDefaults checks and sets defaults.
 func (c *Config) CheckAndSetDefaults() error {
 	if c.GitHub == nil {
 		return trace.BadParameter("github client required")
@@ -52,10 +54,12 @@ func (c *Config) CheckAndSetDefaults() error {
 	return nil
 }
 
+// Bot performs repository management.
 type Bot struct {
 	c *Config
 }
 
+// New returns a new repository management bot.
 func New(c *Config) (*Bot, error) {
 	if err := c.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)

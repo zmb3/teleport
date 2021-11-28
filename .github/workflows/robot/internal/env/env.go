@@ -51,6 +51,8 @@ type Environment struct {
 func New() (*Environment, error) {
 	event, err := readEvent()
 	if err != nil {
+		// If no event exists (for example a cron run), then read in environment
+		// information from the environment.
 		organization, repository, err := readEnvironment()
 		if err != nil {
 			return nil, trace.Wrap(err)
@@ -71,7 +73,7 @@ func New() (*Environment, error) {
 }
 
 func readEvent() (*Event, error) {
-	f, err := os.Open(os.Getenv("GITHUB_EVENT_PATH"))
+	f, err := os.Open(os.Getenv(githubEventPath))
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -86,12 +88,26 @@ func readEvent() (*Event, error) {
 }
 
 func readEnvironment() (string, string, error) {
-	parts := strings.Split(os.Getenv("GITHUB_REPOSITORY"), "/")
+	repository := os.Getenv(githubRepository)
+	if repository == "" {
+		return "", "", trace.BadParameter("%v environment variable missing", githubRepository)
+	}
+	parts := strings.Split(repository, "/")
 	if len(parts) != 2 {
-		return "", "", trace.BadParameter("failed to get organization and/or repository")
+		return "", "", trace.BadParameter("failed to parse organization and/or repository")
 	}
 	if parts[0] == "" || parts[1] == "" {
 		return "", "", trace.BadParameter("invalid organization and/or repository")
 	}
 	return parts[0], parts[1], nil
 }
+
+const (
+	// githubEventPath is an environment variable that contains a path to the
+	// GitHub event for a workflow run.
+	githubEventPath = "GITHUB_EVENT_PATH"
+
+	// githubRepository is an environment variable that contains the organization
+	// and repository name.
+	githubRepository = "GITHUB_REPOSITORY"
+)

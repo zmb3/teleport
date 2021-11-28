@@ -21,7 +21,7 @@ import (
 	"log"
 	"sort"
 
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
+	"github.com/gravitational/teleport/.github/workflows/robot/internal/github"
 
 	"github.com/gravitational/trace"
 )
@@ -30,8 +30,8 @@ import (
 // to dismiss stale workflow runs for external contributors whose workflows
 // run without permissions to dismiss stale workflows inline.
 //
-// This is needed because GitHub appends each Check workflow run to the status
-// of a PR instead of replacing the status of an exisiting run.
+// This is needed because GitHub appends each "Check" workflow run to the status
+// of a PR instead of replacing the "Check" status of the previous run.
 func (b *Bot) Dimiss(ctx context.Context) error {
 	pulls, err := b.c.GitHub.ListPullRequests(ctx,
 		b.c.Environment.Organization,
@@ -55,7 +55,7 @@ func (b *Bot) Dimiss(ctx context.Context) error {
 
 // dismiss dismisses all but the most recent "Check" workflow run.
 //
-// This is needed because GitHub appends each Check workflow run to the status
+// This is needed because GitHub appends each "Check" workflow run to the status
 // of a PR instead of replacing the status of an exisiting run.
 func (b *Bot) dismiss(ctx context.Context, organization string, repository string, branch string) error {
 	check, err := b.findWorkflow(ctx,

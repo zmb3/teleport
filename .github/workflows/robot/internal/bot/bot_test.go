@@ -20,8 +20,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/env"
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
+	"github.com/gravitational/teleport/.github/workflows/robot/internal/env"
+	"github.com/gravitational/teleport/.github/workflows/robot/internal/github"
 
 	"github.com/stretchr/testify/require"
 )

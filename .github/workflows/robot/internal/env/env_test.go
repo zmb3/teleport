@@ -70,9 +70,9 @@ func TestEnvironment(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			err := os.Setenv("GITHUB_REPOSITORY", "foo/bar")
+			err := os.Setenv(githubRepository, "foo/bar")
 			require.NoError(t, err)
-			err = os.Setenv("GITHUB_EVENT_PATH", test.path)
+			err = os.Setenv(githubEventPath, test.path)
 			require.NoError(t, err)
 
 			environment, err := New()

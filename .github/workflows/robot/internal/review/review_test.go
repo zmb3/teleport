@@ -19,7 +19,7 @@ package review
 import (
 	"testing"
 
-	"github.com/gravitational/teleport/.github/workflows/ci/internal/github"
+	"github.com/gravitational/teleport/.github/workflows/robot/internal/github"
 	"github.com/stretchr/testify/require"
 )
 
@@ -264,11 +264,11 @@ func TestCheckExternal(t *testing.T) {
 			reviews: map[string]*github.Review{
 				"3": &github.Review{
 					Author: "3",
-					State:  "APPROVED",
+					State:  approved,
 				},
 				"4": &github.Review{
 					Author: "4",
-					State:  "APPROVED",
+					State:  approved,
 				},
 			},
 			result: false,
@@ -279,11 +279,11 @@ func TestCheckExternal(t *testing.T) {
 			reviews: map[string]*github.Review{
 				"1": &github.Review{
 					Author: "1",
-					State:  "APPROVED",
+					State:  approved,
 				},
 				"4": &github.Review{
 					Author: "4",
-					State:  "APPROVED",
+					State:  approved,
 				},
 			},
 			result: false,
@@ -294,11 +294,11 @@ func TestCheckExternal(t *testing.T) {
 			reviews: map[string]*github.Review{
 				"1": &github.Review{
 					Author: "1",
-					State:  "CHANGES_REQUESTED",
+					State:  changesRequested,
 				},
 				"2": &github.Review{
 					Author: "2",
-					State:  "APPROVED",
+					State:  approved,
 				},
 			},
 			result: false,
@@ -309,11 +309,11 @@ func TestCheckExternal(t *testing.T) {
 			reviews: map[string]*github.Review{
 				"1": &github.Review{
 					Author: "1",
-					State:  "APPROVED",
+					State:  approved,
 				},
 				"2": &github.Review{
 					Author: "2",
-					State:  "APPROVED",
+					State:  approved,
 				},
 			},
 			result: true,
@@ -383,7 +383,7 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "docs-only-non-docs-approval-fail",
 			author: "4",
 			reviews: map[string]*github.Review{
-				"3": &github.Review{Author: "3", State: "APPROVED"},
+				"3": &github.Review{Author: "3", State: approved},
 			},
 			docs:   true,
 			code:   false,
@@ -393,7 +393,7 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "docs-only-docs-approval-success",
 			author: "4",
 			reviews: map[string]*github.Review{
-				"7": &github.Review{Author: "7", State: "APPROVED"},
+				"7": &github.Review{Author: "7", State: approved},
 			},
 			docs:   true,
 			code:   false,
@@ -411,7 +411,7 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-one-approval-fail",
 			author: "4",
 			reviews: map[string]*github.Review{
-				"3": &github.Review{Author: "3", State: "APPROVED"},
+				"3": &github.Review{Author: "3", State: approved},
 			},
 			docs:   false,
 			code:   true,
@@ -421,8 +421,8 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-two-approval-setb-fail",
 			author: "4",
 			reviews: map[string]*github.Review{
-				"5": &github.Review{Author: "5", State: "APPROVED"},
-				"6": &github.Review{Author: "6", State: "APPROVED"},
+				"5": &github.Review{Author: "5", State: approved},
+				"6": &github.Review{Author: "6", State: approved},
 			},
 			docs:   false,
 			code:   true,
@@ -432,8 +432,8 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-one-changes-fail",
 			author: "4",
 			reviews: map[string]*github.Review{
-				"3": &github.Review{Author: "3", State: "APPROVED"},
-				"4": &github.Review{Author: "4", State: "CHANGES_REQUESTED"},
+				"3": &github.Review{Author: "3", State: approved},
+				"4": &github.Review{Author: "4", State: changesRequested},
 			},
 			docs:   false,
 			code:   true,
@@ -443,8 +443,8 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-two-approvals-success",
 			author: "6",
 			reviews: map[string]*github.Review{
-				"3": &github.Review{Author: "3", State: "APPROVED"},
-				"4": &github.Review{Author: "4", State: "APPROVED"},
+				"3": &github.Review{Author: "3", State: approved},
+				"4": &github.Review{Author: "4", State: approved},
 			},
 			docs:   false,
 			code:   true,
@@ -454,7 +454,7 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "docs-and-code-only-docs-approval-fail",
 			author: "6",
 			reviews: map[string]*github.Review{
-				"7": &github.Review{Author: "7", State: "APPROVED"},
+				"7": &github.Review{Author: "7", State: approved},
 			},
 			docs:   true,
 			code:   true,
@@ -464,8 +464,8 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "docs-and-code-only-code-approval-fail",
 			author: "6",
 			reviews: map[string]*github.Review{
-				"3": &github.Review{Author: "3", State: "APPROVED"},
-				"4": &github.Review{Author: "4", State: "APPROVED"},
+				"3": &github.Review{Author: "3", State: approved},
+				"4": &github.Review{Author: "4", State: approved},
 			},
 			docs:   true,
 			code:   true,
@@ -475,9 +475,9 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "docs-and-code-docs-and-code-approval-success",
 			author: "6",
 			reviews: map[string]*github.Review{
-				"3": &github.Review{Author: "3", State: "APPROVED"},
-				"4": &github.Review{Author: "4", State: "APPROVED"},
-				"7": &github.Review{Author: "7", State: "APPROVED"},
+				"3": &github.Review{Author: "3", State: approved},
+				"4": &github.Review{Author: "4", State: approved},
+				"7": &github.Review{Author: "7", State: approved},
 			},
 			docs:   true,
 			code:   true,
@@ -496,7 +496,8 @@ func TestCheckInternal(t *testing.T) {
 	}
 }
 
-func TestFromEnvironment(t *testing.T) {
+// TestFromString tests if configuration is correctly read in from a string.
+func TestFromString(t *testing.T) {
 	r, err := FromString(reviewers)
 	require.NoError(t, err)
 

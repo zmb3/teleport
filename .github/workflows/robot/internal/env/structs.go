@@ -16,6 +16,8 @@ limitations under the License.
 
 package env
 
+// Event is a GitHub event. See the following more more details:
+// https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads
 type Event struct {
 	Repository  Repository  `json:"repository"`
 	PullRequest PullRequest `json:"pull_request"`
