@@ -23,39 +23,7 @@ import (
 	"github.com/gravitational/teleport/lib/teleterm/api/uri"
 
 	"github.com/gravitational/trace"
-
-	"github.com/jonboulle/clockwork"
-	"github.com/sirupsen/logrus"
 )
-
-// Config is the cluster service config
-type Config struct {
-	// Dir is the directory to store cluster profiles
-	Dir string
-	// Clock is a clock for time-related operations
-	Clock clockwork.Clock
-	// InsecureSkipVerify is an option to skip HTTPS cert check
-	InsecureSkipVerify bool
-	// Log is a component logger
-	Log *logrus.Entry
-}
-
-// CheckAndSetDefaults checks the configuration for its validity and sets default values if needed
-func (c *Config) CheckAndSetDefaults() error {
-	if c.Dir == "" {
-		return trace.BadParameter("missing working directory")
-	}
-
-	if c.Clock == nil {
-		c.Clock = clockwork.NewRealClock()
-	}
-
-	if c.Log == nil {
-		c.Log = logrus.NewEntry(logrus.StandardLogger()).WithField(trace.Component, "daemon")
-	}
-
-	return nil
-}
 
 // Service is the cluster service
 type Service struct {
@@ -77,8 +45,8 @@ func (s *Service) GetClusters() []*Cluster {
 	return s.clusters
 }
 
-// CreateCluster creates a new cluster
-func (s *Service) CreateCluster(ctx context.Context, webProxyAddress string) (*Cluster, error) {
+// AddCluster adds a cluster
+func (s *Service) AddCluster(ctx context.Context, webProxyAddress string) (*Cluster, error) {
 	profiles, err := profile.ListProfileNames(s.Dir)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -91,7 +59,7 @@ func (s *Service) CreateCluster(ctx context.Context, webProxyAddress string) (*C
 		}
 	}
 
-	cluster, err := s.newCluster(s.Dir, webProxyAddress)
+	cluster, err := s.addCluster(ctx, s.Dir, webProxyAddress)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -222,8 +190,8 @@ func (s *Service) newClusterFromProfile(name string) (*Cluster, error) {
 	}, nil
 }
 
-// newCluster creates new cluster
-func (s *Service) newCluster(dir, webProxyAddress string) (*Cluster, error) {
+// addCluster adds a new cluster
+func (s *Service) addCluster(ctx context.Context, dir, webProxyAddress string) (*Cluster, error) {
 	if webProxyAddress == "" {
 		return nil, trace.BadParameter("cluster address is missing")
 	}
@@ -238,17 +206,22 @@ func (s *Service) newCluster(dir, webProxyAddress string) (*Cluster, error) {
 	cfg.KeysDir = s.Dir
 	cfg.InsecureSkipVerify = s.InsecureSkipVerify
 
-	if err := cfg.SaveProfile(s.Dir, false); err != nil {
-		return nil, trace.Wrap(err)
-	}
-
 	clusterClient, err := client.NewClient(cfg)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	clusterName := parseClusterName(webProxyAddress)
+	// verify that cluster is reachable before storing it
+	_, err = clusterClient.Ping(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
 
+	if err := cfg.SaveProfile(s.Dir, false); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	clusterName := parseClusterName(webProxyAddress)
 	return &Cluster{
 		URI:           uri.Cluster(clusterName).String(),
 		Name:          clusterName,
@@ -259,7 +232,6 @@ func (s *Service) newCluster(dir, webProxyAddress string) (*Cluster, error) {
 }
 
 // parseClusterName gets cluster name from cluster web proxy address
-// TODO(alex-kovoy): revisit storage layer to allow storing multiple profiles per hostname
 func parseClusterName(webProxyAddress string) string {
 	clusterName, _, err := net.SplitHostPort(webProxyAddress)
 	if err != nil {

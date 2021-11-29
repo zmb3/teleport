@@ -115,7 +115,7 @@ func FTestS(t *testing.T) {
 
 func TestS(t *testing.T) {
 	d, err := daemon.New(daemon.Config{
-		Dir:                profileDir,
+		Dir:                t.TempDir(),
 		InsecureSkipVerify: true,
 	})
 	require.NoError(t, err)
@@ -123,17 +123,17 @@ func TestS(t *testing.T) {
 	err = d.Init()
 	require.NoError(t, err)
 
-	//cluster, err := d.CreateCluster(context.TODO(), "localhost:4080")
-	//require.NoError(t, err)
-
-	cluster, err := d.GetCluster("/clusters/localhost")
+	cluster, err := d.CreateCluster(context.TODO(), "localhost:4080")
 	require.NoError(t, err)
 
-	err = cluster.LocalLogin(context.TODO(), "papa", "123123", "fd")
-	require.Error(t, err)
+	cluster, err = d.GetCluster("/clusters/localhost")
+	require.NoError(t, err)
 
-	//err = cluster.SSOLogin(context.Background(), "oidc", "google")
-	//require.NoError(t, err)
+	//	err = cluster.LocalLogin(context.TODO(), "papa", "123123", "fd")
+	//	require.Error(t, err)
+
+	err = cluster.SSOLogin(context.Background(), "oidc", "google")
+	require.NoError(t, err)
 
 	fmt.Println("ISCONNECTED: ", cluster.Connected())
 

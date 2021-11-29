@@ -21,9 +21,30 @@ import (
 	"github.com/gravitational/trace"
 )
 
-// CreateAuthChallenge creates auth challenge request
-func (s *Handler) CreateAuthChallenge(ctx context.Context, req *api.CreateAuthChallengeRequest) (*api.CreateAuthChallengeResponse, error) {
-	return &api.CreateAuthChallengeResponse{}, nil
+// CreateAuthSSOChallenge creates auth sso challenge and automatically solves it
+func (s *Handler) Login(ctx context.Context, req *api.LoginRequest) (*api.EmptyResponse, error) {
+	cluster, err := s.DaemonService.GetCluster(req.ClusterUri)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	if req.Local != nil {
+		if err := cluster.LocalLogin(ctx, req.Local.User, req.Local.Password, req.Local.Token); err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		return &api.EmptyResponse{}, nil
+	}
+
+	if req.Sso != nil {
+		if err := cluster.SSOLogin(ctx, req.Sso.ProviderType, req.Sso.ProviderName); err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		return &api.EmptyResponse{}, nil
+	}
+
+	return nil, trace.BadParameter("missing login parameters")
 }
 
 // GetAuthSettings returns cluster auth preferences
@@ -39,46 +60,19 @@ func (s *Handler) GetAuthSettings(ctx context.Context, req *api.GetAuthSettingsR
 	}
 
 	result := &api.AuthSettings{
-		Type:          preferences.Type,
-		SecondFactor:  string(preferences.SecondFactor),
-		AuthProviders: []*api.AuthProvider{},
+		PreferredMfa:     string(preferences.PreferredLocalMFA),
+		SecondFactor:     string(preferences.SecondFactor),
+		LocalAuthEnabled: preferences.LocalAuthEnabled,
+		AuthProviders:    []*api.AuthProvider{},
 	}
 
-	for _, provider := range preferences.AuthProviders {
+	for _, provider := range preferences.Providers {
 		result.AuthProviders = append(result.AuthProviders, &api.AuthProvider{
-			Type:    provider.Type,
-			Name:    provider.Name,
-			Display: provider.Display,
+			Type:        provider.Type,
+			Name:        provider.Name,
+			DisplayName: provider.DisplayName,
 		})
 	}
 
 	return result, nil
-}
-
-// CreateAuthSSOChallenge creates auth sso challenge and automatically solves it
-func (s *Handler) CreateAuthSSOChallenge(ctx context.Context, req *api.CreateAuthSSOChallengeRequest) (*api.EmptyResponse, error) {
-	cluster, err := s.DaemonService.GetCluster(req.ClusterUri)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	if err := cluster.SSOLogin(ctx, req.ProviderType, req.ProviderName); err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	return &api.EmptyResponse{}, nil
-}
-
-// SolveAuthChallenge solves auth challenge and logs into a cluster
-func (s *Handler) SolveAuthChallenge(ctx context.Context, req *api.SolveAuthChallengeRequest) (*api.SolveAuthChallengeResponse, error) {
-	cluster, err := s.DaemonService.GetCluster(req.ClusterUri)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	if err := cluster.LocalLogin(ctx, req.User, req.Password, ""); err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	return &api.SolveAuthChallengeResponse{}, nil
 }

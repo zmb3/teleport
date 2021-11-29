@@ -6,14 +6,15 @@ option go_package = "github.com/gravitational/teleport/lib/teleterm/v1";
 
 // AuthSettings contains the form of authentication the auth server supports.
 message AuthSettings {
-    // Type is the type of authentication, can be either local or oidc.
-    string type = 1;
-    // SecondFactor is the type of second factor to use in authentication.
-    // Supported options are: off, otp, and u2f.
+    // local_auth_enabled is a flag that enables local authentication
+    bool local_auth_enabled = 1;
+    // second_factor is the type of second factor to use in authentication.
     string second_factor = 2;
-    // OIDC contains OIDC connector settings needed for authentication.
+    // preferred_mfa is the prefered mfa for local logins
+    string preferred_mfa = 3;
+    // auth_providers contains a list of auth providers
     repeated AuthProvider auth_providers = 4;
-    // HasMessageOfTheDay is a flag indicating that the cluster has MOTD
+    // has_message_of_the_day is a flag indicating that the cluster has MOTD
     // banner text that must be retrieved, displayed and acknowledged by
     // the user.
     bool has_message_of_the_day = 5;
@@ -26,5 +27,5 @@ message AuthProvider {
     // Name is the internal name of the connector.
     string name = 2;
     // Display is the display name for the connector.
-    string display = 3;
+    string display_name = 3;
 }

@@ -44,12 +44,9 @@ func New(cfg Config) (apiServer *APIServer, err error) {
 		return nil, trace.Wrap(err)
 	}
 
-	grpcServer := grpc.NewServer(
-		grpc.Creds(nil),
-		grpc.ChainUnaryInterceptor(
-			withErrorHandling(cfg.Log),
-		),
-	)
+	grpcServer := grpc.NewServer(grpc.Creds(nil), grpc.ChainUnaryInterceptor(
+		withErrorHandling(cfg.Log),
+	))
 
 	api.RegisterTerminalServiceServer(grpcServer, serviceHandler)
 

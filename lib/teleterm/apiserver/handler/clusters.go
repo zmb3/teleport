@@ -35,9 +35,9 @@ func (s *Handler) ListClusters(ctx context.Context, r *api.ListClustersRequest) 
 	}, nil
 }
 
-// CreateCluster creates a new cluster
-func (s *Handler) CreateCluster(ctx context.Context, req *api.CreateClusterRequest) (*api.Cluster, error) {
-	cluster, err := s.DaemonService.CreateCluster(ctx, req.Name)
+// AddCluster creates a new cluster
+func (s *Handler) AddCluster(ctx context.Context, req *api.AddClusterRequest) (*api.Cluster, error) {
+	cluster, err := s.DaemonService.AddCluster(ctx, req.Name)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
