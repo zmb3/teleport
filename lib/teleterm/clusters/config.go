@@ -12,37 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package apiserver
+package clusters
 
 import (
-	"github.com/gravitational/teleport/lib/teleterm/daemon"
-	"github.com/gravitational/trace"
-
+	"github.com/jonboulle/clockwork"
 	"github.com/sirupsen/logrus"
+
+	"github.com/gravitational/trace"
 )
 
-// Config is the APIServer configuration
+// Config is the cluster service config
 type Config struct {
-	// HostAddr is the APIServer host address
-	HostAddr string
-	// Daemon is the terminal daemon service
-	Daemon *daemon.Service
+	// Dir is the directory to store cluster profiles
+	Dir string
+	// Clock is a clock for time-related operations
+	Clock clockwork.Clock
+	// InsecureSkipVerify is an option to skip HTTPS cert check
+	InsecureSkipVerify bool
 	// Log is a component logger
 	Log logrus.FieldLogger
 }
 
-// CheckAndSetDefaults checks and sets default config values.
+// CheckAndSetDefaults checks the configuration for its validity and sets default values if needed
 func (c *Config) CheckAndSetDefaults() error {
-	if c.HostAddr == "" {
-		return trace.BadParameter("missing HostAddr")
+	if c.Dir == "" {
+		return trace.BadParameter("missing working directory")
 	}
 
-	if c.Daemon == nil {
-		return trace.BadParameter("missing daemon service")
+	if c.Clock == nil {
+		c.Clock = clockwork.NewRealClock()
 	}
 
 	if c.Log == nil {
-		c.Log = logrus.WithField(trace.Component, "teleterm: api_server")
+		c.Log = logrus.WithField(trace.Component, "teleterm: storage")
 	}
 
 	return nil

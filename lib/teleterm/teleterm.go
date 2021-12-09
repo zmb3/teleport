@@ -20,7 +20,9 @@ import (
 	"os/signal"
 
 	"github.com/gravitational/teleport/lib/teleterm/apiserver"
+	"github.com/gravitational/teleport/lib/teleterm/clusters"
 	"github.com/gravitational/teleport/lib/teleterm/daemon"
+
 	"github.com/gravitational/trace"
 
 	log "github.com/sirupsen/logrus"
@@ -32,8 +34,13 @@ func Start(ctx context.Context, cfg Config) error {
 		return trace.Wrap(err)
 	}
 
-	daemonService, err := daemon.New(daemon.Config{
+	storage, err := clusters.New(clusters.Config{
 		Dir:                cfg.HomeDir,
+		InsecureSkipVerify: cfg.InsecureSkipVerify,
+	})
+
+	daemonService, err := daemon.New(daemon.Config{
+		Storage:            storage,
 		InsecureSkipVerify: cfg.InsecureSkipVerify,
 	})
 	if err != nil {
@@ -58,9 +65,6 @@ func Start(ctx context.Context, cfg Config) error {
 		serverAPIWait <- err
 	}()
 
-	log.Infof("tshd config: %v", cfg.String())
-	log.Infof("tshd is listening on %v", cfg.Addr)
-
 	// Wait for shutdown signals
 	go func() {
 		c := make(chan os.Signal, len(cfg.ShutdownSignals))
@@ -71,8 +75,11 @@ func Start(ctx context.Context, cfg Config) error {
 		case sig := <-c:
 			log.Infof("Captured %s, stopping service.", sig)
 		}
+		daemonService.Stop()
 		apiServier.Stop()
 	}()
+
+	log.Infof("tshd is listening on %v", cfg.Addr)
 
 	errAPI := <-serverAPIWait
 

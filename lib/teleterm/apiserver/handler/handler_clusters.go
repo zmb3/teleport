@@ -25,8 +25,13 @@ import (
 
 // Lists all existing clusters
 func (s *Handler) ListClusters(ctx context.Context, r *api.ListClustersRequest) (*api.ListClustersResponse, error) {
+	clusters, err := s.DaemonService.GetClusters(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
 	result := []*api.Cluster{}
-	for _, cluster := range s.DaemonService.GetClusters() {
+	for _, cluster := range clusters {
 		result = append(result, newAPICluster(cluster))
 	}
 
@@ -43,6 +48,15 @@ func (s *Handler) AddCluster(ctx context.Context, req *api.AddClusterRequest) (*
 	}
 
 	return newAPICluster(cluster), nil
+}
+
+// RemoveCluster removes a cluster from local system
+func (s *Handler) RemoveCluster(ctx context.Context, req *api.RemoveClusterRequest) (*api.EmptyResponse, error) {
+	if err := s.DaemonService.RemoveCluster(ctx, req.ClusterUri); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return &api.EmptyResponse{}, nil
 }
 
 // GetCluster returns a cluster

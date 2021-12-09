@@ -13,7 +13,7 @@ import (
 )
 
 // withErrorHandling is GRPC middleware that maps internal errors to proper GRPC error codes
-func withErrorHandling(log *logrus.Entry) grpc.UnaryServerInterceptor {
+func withErrorHandling(log logrus.FieldLogger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},

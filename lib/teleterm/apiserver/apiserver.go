@@ -61,7 +61,6 @@ func (s *APIServer) Serve() error {
 // Close terminates the server and closes all open connections
 func (s *APIServer) Stop() {
 	s.grpcServer.GracefulStop()
-	s.Daemon.CloseConnections()
 }
 
 func newListener(host string) (net.Listener, error) {

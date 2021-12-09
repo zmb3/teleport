@@ -18,10 +18,11 @@ import (
 	"context"
 
 	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
+
 	"github.com/gravitational/trace"
 )
 
-// CreateAuthSSOChallenge creates auth sso challenge and automatically solves it
+// Login performs cluster login
 func (s *Handler) Login(ctx context.Context, req *api.LoginRequest) (*api.EmptyResponse, error) {
 	cluster, err := s.DaemonService.GetCluster(req.ClusterUri)
 	if err != nil {
@@ -45,6 +46,15 @@ func (s *Handler) Login(ctx context.Context, req *api.LoginRequest) (*api.EmptyR
 	}
 
 	return nil, trace.BadParameter("missing login parameters")
+}
+
+// Logout performs cluster logout
+func (s *Handler) Logout(ctx context.Context, req *api.LogoutRequest) (*api.EmptyResponse, error) {
+	if err := s.DaemonService.ClusterLogout(ctx, req.ClusterUri); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return &api.EmptyResponse{}, nil
 }
 
 // GetAuthSettings returns cluster auth preferences

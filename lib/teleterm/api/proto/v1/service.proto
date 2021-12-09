@@ -14,6 +14,8 @@ import "v1/auth_settings.proto";
 service TerminalService {
     // AddCluster
     rpc AddCluster(AddClusterRequest) returns (Cluster);
+    // RemoveCluster
+    rpc RemoveCluster(RemoveClusterRequest) returns (EmptyResponse);
     // ListClusters
     rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
     // GetAuthSettings
@@ -24,17 +26,23 @@ service TerminalService {
     rpc CreateGateway(CreateGatewayRequest) returns (Gateway);
     // ListGateways
     rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse);
-    // DeleteGateway
-    rpc DeleteGateway(DeleteGatewayRequest) returns (EmptyResponse);
+    // RemoveGateway
+    rpc RemoveGateway(RemoveGatewayRequest) returns (EmptyResponse);
     // ListServers
     rpc ListServers(ListServersRequest) returns (ListServersResponse);
     // GetCluster
     rpc GetCluster(GetClusterRequest) returns (Cluster);
     // Login
     rpc Login(LoginRequest) returns (EmptyResponse);
+    // ClusterLogin
+    rpc Logout(LogoutRequest) returns (EmptyResponse);
 }
 
+message RemoveClusterRequest { string cluster_uri = 1; }
+
 message GetClusterRequest { string cluster_uri = 1; }
+
+message LogoutRequest { string cluster_uri = 1; }
 
 // LoginRequest describes cluster login request
 message LoginRequest {
@@ -73,7 +81,7 @@ message ListGatewaysRequest { repeated string cluster_ids = 3; }
 
 message ListGatewaysResponse { repeated Gateway gateways = 1; }
 
-message DeleteGatewayRequest { string gateway_uri = 1; }
+message RemoveGatewayRequest { string gateway_uri = 1; }
 
 message ListServersRequest { string cluster_uri = 1; }
 

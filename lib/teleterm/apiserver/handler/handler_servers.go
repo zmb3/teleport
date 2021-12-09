@@ -20,16 +20,12 @@ import (
 
 	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
 	"github.com/gravitational/teleport/lib/teleterm/daemon"
+
 	"github.com/gravitational/trace"
 )
 
 func (s *Handler) ListServers(ctx context.Context, req *api.ListServersRequest) (*api.ListServersResponse, error) {
-	cluster, err := s.DaemonService.GetCluster(req.ClusterUri)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	servers, err := cluster.GetServers(ctx)
+	servers, err := s.DaemonService.ListServers(ctx, req.ClusterUri)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

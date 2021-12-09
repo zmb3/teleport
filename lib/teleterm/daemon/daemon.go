@@ -16,20 +16,18 @@ package daemon
 
 import (
 	"context"
-	"net"
 
-	"github.com/gravitational/teleport/api/profile"
-	"github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/teleterm/api/uri"
+	"github.com/gravitational/teleport/lib/teleterm/clusters"
+	"github.com/gravitational/teleport/lib/teleterm/gateway"
 
 	"github.com/gravitational/trace"
 )
 
-// Service is the cluster service
-type Service struct {
-	Config
-	clusters []*Cluster
-}
+type Cluster = clusters.Cluster
+type Gateway = gateway.Gateway
+type Database = clusters.Database
+type Server = clusters.Server
 
 // Start creates and starts a Teleport Terminal service.
 func New(cfg Config) (*Service, error) {
@@ -37,62 +35,93 @@ func New(cfg Config) (*Service, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	return &Service{Config: cfg}, nil
+	return &Service{
+		Config:   cfg,
+		clusters: map[string]*Cluster{},
+	}, nil
+}
+
+// Init loads clusters from saved profiles
+func (s *Service) Init() error {
+	clusters, err := s.Storage.ReadAll()
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	for _, cluster := range clusters {
+		s.clusters[cluster.URI] = cluster
+	}
+
+	return nil
 }
 
 // GetClusters returns a list of existing clusters
-func (s *Service) GetClusters() []*Cluster {
-	return s.clusters
+func (s *Service) GetClusters(ctx context.Context) ([]*Cluster, error) {
+	clusters := make([]*Cluster, 0, len(s.clusters))
+	for _, item := range s.clusters {
+		clusters = append(clusters, item)
+	}
+
+	return clusters, nil
 }
 
 // AddCluster adds a cluster
 func (s *Service) AddCluster(ctx context.Context, webProxyAddress string) (*Cluster, error) {
-	profiles, err := profile.ListProfileNames(s.Dir)
+	cluster, err := s.Storage.Add(ctx, webProxyAddress)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	clusterName := parseClusterName(webProxyAddress)
-	for _, pname := range profiles {
-		if pname == clusterName {
-			return nil, trace.BadParameter("cluster %v already exists", clusterName)
+	s.clusters[cluster.URI] = cluster
+
+	return cluster, nil
+}
+
+// RemoveCluster removes cluster
+func (s *Service) RemoveCluster(ctx context.Context, clusterURI string) error {
+	cluster, err := s.GetCluster(clusterURI)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	if cluster.Connected() {
+		if err := cluster.Logout(ctx); err != nil {
+			return trace.Wrap(err)
 		}
 	}
 
-	cluster, err := s.addCluster(ctx, s.Dir, webProxyAddress)
-	if err != nil {
-		return nil, trace.Wrap(err)
+	if err := s.Storage.Remove(ctx, cluster.Name); err != nil {
+		return trace.Wrap(err)
 	}
 
-	s.clusters = append(s.clusters, cluster)
-	return cluster, nil
+	// remote from map
+	delete(s.clusters, clusterURI)
+
+	return nil
 }
 
 // GetCluster returns a cluster by its name
 func (s *Service) GetCluster(clusterURI string) (*Cluster, error) {
-	for _, cluster := range s.clusters {
-		if cluster.URI == clusterURI {
-			return cluster, nil
-		}
+	if cluster, exists := s.clusters[clusterURI]; exists {
+		return cluster, nil
 	}
 
 	return nil, trace.NotFound("cluster is not found: %v", clusterURI)
 }
 
-// Init loads clusters from saved profiles
-func (s *Service) Init() error {
-	pfNames, err := profile.ListProfileNames(s.Dir)
+func (s *Service) ClusterLogout(ctx context.Context, clusterURI string) error {
+	cluster, err := s.GetCluster(clusterURI)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
-	for _, name := range pfNames {
-		cluster, err := s.newClusterFromProfile(name)
-		if err != nil {
-			return trace.Wrap(err)
-		}
+	if err := cluster.Logout(ctx); err != nil {
+		return trace.Wrap(err)
+	}
 
-		s.clusters = append(s.clusters, cluster)
+	// Re-init the cluster from its profile because logout has many side-effects
+	if s.clusters[cluster.URI], err = s.Storage.Read(cluster.Name); err != nil {
+		return trace.Wrap(err)
 	}
 
 	return nil
@@ -100,8 +129,8 @@ func (s *Service) Init() error {
 
 // CreateGateway creates a gateway
 func (s *Service) CreateGateway(ctx context.Context, targetURI string, port string) (*Gateway, error) {
-	clusterUri := uri.Cluster(uri.Parse(targetURI).Cluster())
-	cluster, err := s.GetCluster(clusterUri.String())
+	clusterUri := uri.Cluster(uri.Parse(targetURI).Cluster()).String()
+	cluster, err := s.GetCluster(clusterUri)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -114,129 +143,54 @@ func (s *Service) CreateGateway(ctx context.Context, targetURI string, port stri
 	return gateway, nil
 }
 
+// ListServers returns cluster servers
+func (s *Service) ListServers(ctx context.Context, clusterURI string) ([]Server, error) {
+	cluster, err := s.GetCluster(clusterURI)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	servers, err := cluster.GetServers(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return servers, nil
+}
+
 // RemoveGateway removes cluster gateway
 func (s *Service) RemoveGateway(ctx context.Context, gatewayURI string) error {
 	clusterID := uri.Parse(gatewayURI).Cluster()
-	clusters := s.GetClusters()
-	for _, cluster := range clusters {
-		if cluster.status.Name == clusterID {
-			if err := cluster.RemoveGateway(ctx, gatewayURI); err != nil {
-				return trace.Wrap(err)
-			}
-
-			return nil
-		}
+	cluster, err := s.GetCluster(uri.Cluster(clusterID).String())
+	if err != nil {
+		return trace.Wrap(err)
 	}
 
-	return trace.NotFound("cluster is not found: %v", clusterID)
+	if err := cluster.RemoveGateway(ctx, gatewayURI); err != nil {
+		return trace.Wrap(err)
+	}
+
+	return nil
 }
 
-// CloseConnections terminates all cluster open connections
-func (s *Service) CloseConnections() {
+func (s *Service) ListGateways(ctx context.Context) ([]*Gateway, error) {
+	gws := []*Gateway{}
+	for _, cluster := range s.clusters {
+		gws = append(gws, cluster.GetGateways()...)
+	}
+
+	return gws, nil
+}
+
+// Stop terminates all cluster open connections
+func (s *Service) Stop() {
 	for _, cluster := range s.clusters {
 		cluster.CloseConnections()
 	}
 }
 
-// newClusterFromProfile creates new cluster from its profile
-func (s *Service) newClusterFromProfile(name string) (*Cluster, error) {
-	if name == "" {
-		return nil, trace.BadParameter("name is missing")
-	}
-
-	cfg := client.MakeDefaultConfig()
-	if err := cfg.LoadProfile(s.Dir, name); err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	cfg.KeysDir = s.Dir
-	cfg.HomePath = s.Dir
-	cfg.InsecureSkipVerify = s.InsecureSkipVerify
-
-	clt, err := client.NewClient(cfg)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	status := &client.ProfileStatus{}
-
-	// load profile status if key exists
-	_, err = clt.LocalAgent().GetKey(name)
-	if err != nil {
-		s.Log.WithError(err).Infof("Unable to load the keys for cluster %v.", name)
-	}
-
-	if err == nil && cfg.Username != "" {
-		status, err = client.StatusFromFile(s.Dir, name)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-
-		if err := clt.LoadKeyForCluster(status.Cluster); err != nil {
-			return nil, trace.Wrap(err)
-		}
-	}
-	if err != nil && !trace.IsNotFound(err) {
-		return nil, trace.Wrap(err)
-	}
-
-	return &Cluster{
-		URI:           uri.Cluster(name).String(),
-		Name:          name,
-		clusterClient: clt,
-		dir:           s.Dir,
-		clock:         s.Clock,
-		status:        *status,
-	}, nil
-}
-
-// addCluster adds a new cluster
-func (s *Service) addCluster(ctx context.Context, dir, webProxyAddress string) (*Cluster, error) {
-	if webProxyAddress == "" {
-		return nil, trace.BadParameter("cluster address is missing")
-	}
-
-	if dir == "" {
-		return nil, trace.BadParameter("cluster directory is missing")
-	}
-
-	cfg := client.MakeDefaultConfig()
-	cfg.WebProxyAddr = webProxyAddress
-	cfg.HomePath = s.Dir
-	cfg.KeysDir = s.Dir
-	cfg.InsecureSkipVerify = s.InsecureSkipVerify
-
-	clusterClient, err := client.NewClient(cfg)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	// verify that cluster is reachable before storing it
-	_, err = clusterClient.Ping(ctx)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	if err := cfg.SaveProfile(s.Dir, false); err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	clusterName := parseClusterName(webProxyAddress)
-	return &Cluster{
-		URI:           uri.Cluster(clusterName).String(),
-		Name:          clusterName,
-		dir:           s.Dir,
-		clusterClient: clusterClient,
-		clock:         s.Clock,
-	}, nil
-}
-
-// parseClusterName gets cluster name from cluster web proxy address
-func parseClusterName(webProxyAddress string) string {
-	clusterName, _, err := net.SplitHostPort(webProxyAddress)
-	if err != nil {
-		clusterName = webProxyAddress
-	}
-
-	return clusterName
+// Service is the cluster service
+type Service struct {
+	Config
+	clusters map[string]*Cluster
 }

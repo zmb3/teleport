@@ -16,9 +16,14 @@ package handler
 
 import (
 	"github.com/gravitational/teleport/lib/teleterm/daemon"
+	"github.com/gravitational/trace"
 )
 
 func New(cfg Config) (*Handler, error) {
+	if err := cfg.CheckAndSetDefaults(); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
 	return &Handler{
 		cfg,
 	}, nil
@@ -28,6 +33,14 @@ func New(cfg Config) (*Handler, error) {
 type Config struct {
 	// DaemonService is the instance of daemon service
 	DaemonService *daemon.Service
+}
+
+func (c *Config) CheckAndSetDefaults() error {
+	if c.DaemonService == nil {
+		return trace.BadParameter("missing Daemon Service")
+	}
+
+	return nil
 }
 
 // Handler implements teleterm api service

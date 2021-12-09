@@ -14,17 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package daemon
+package clusters
 
 import (
 	"context"
 
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/client"
+	"github.com/gravitational/teleport/lib/teleterm/gateway"
 
 	"github.com/gravitational/trace"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/sirupsen/logrus"
 )
 
 // Cluster describes user settings and access to various resources.
@@ -33,6 +35,8 @@ type Cluster struct {
 	URI string
 	// Name is the cluster name
 	Name string
+	// Log is a component logger
+	Log logrus.FieldLogger
 	// dir is the directory where cluster certificates are stored
 	dir string
 	// Status is the cluster status
@@ -42,7 +46,7 @@ type Cluster struct {
 	// clock is a clock for time-related operations
 	clock clockwork.Clock
 	// gateways is the cluster gateways
-	gateways []*Gateway
+	gateways []*gateway.Gateway
 }
 
 // Connected indicates if connection to the cluster can be established

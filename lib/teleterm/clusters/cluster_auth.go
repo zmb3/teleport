@@ -14,14 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package daemon
+package clusters
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/client"
+	dbprofile "github.com/gravitational/teleport/lib/client/db"
+	"github.com/gravitational/teleport/lib/kube/kubeconfig"
+
 	web "github.com/gravitational/teleport/lib/web/ui"
 
 	"github.com/gravitational/trace"
@@ -44,6 +48,41 @@ func (c *Cluster) SyncAuthPreference(ctx context.Context) (*web.WebConfigAuthSet
 	}
 
 	return &cfg.Auth, nil
+}
+
+// Logout deletes all cluster certificates
+func (c *Cluster) Logout(ctx context.Context) error {
+	// Close open gateways
+	for _, gw := range c.gateways {
+		gw.Close()
+	}
+
+	// Delete db certs
+	for _, db := range c.status.Databases {
+		err := dbprofile.Delete(c.clusterClient, db)
+		if err != nil {
+			return trace.Wrap(err)
+		}
+	}
+
+	// Get the address of the active Kubernetes proxy to find AuthInfos,
+	// Clusters, and Contexts in kubeconfig.
+	clusterName, _ := c.clusterClient.KubeProxyHostPort()
+	if c.clusterClient.SiteName != "" {
+		clusterName = fmt.Sprintf("%v.%v", c.clusterClient.SiteName, clusterName)
+	}
+
+	// Remove cluster entries from kubeconfig
+	if err := kubeconfig.Remove("", clusterName); err != nil {
+		return trace.Wrap(err)
+	}
+
+	// Remove keys for this user from disk and running agent.
+	if err := c.clusterClient.Logout(); !trace.IsNotFound(err) {
+		return trace.Wrap(err)
+	}
+
+	return nil
 }
 
 // LocalLogin processes local logins for this cluster
@@ -107,7 +146,6 @@ func (c *Cluster) SSOLogin(ctx context.Context, providerType, providerName strin
 	return nil
 }
 
-// localMFALogin processes local logins for this cluster
 func (c *Cluster) localMFALogin(ctx context.Context, user, password string) error {
 	key, err := client.NewKey()
 	if err != nil {

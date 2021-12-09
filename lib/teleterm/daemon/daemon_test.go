@@ -106,7 +106,7 @@ func FTestS(t *testing.T) {
 	//cluster, err := d.GetCluster("/clusters/localhost")
 	//require.NoError(t, err)
 
-	cluster, err := d.CreateCluster(context.TODO(), "localhost:4080")
+	cluster, err := d.AddCluster(context.TODO(), "localhost:4080")
 	require.NoError(t, err)
 
 	err = cluster.LocalLogin(context.TODO(), "papa", "123123", "")
@@ -123,7 +123,7 @@ func TestS(t *testing.T) {
 	err = d.Init()
 	require.NoError(t, err)
 
-	cluster, err := d.CreateCluster(context.TODO(), "localhost:4080")
+	cluster, err := d.AddCluster(context.TODO(), "localhost:4080")
 	require.NoError(t, err)
 
 	cluster, err = d.GetCluster("/clusters/localhost")

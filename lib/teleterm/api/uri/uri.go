@@ -90,32 +90,32 @@ type ResourceURI struct {
 	Path string
 }
 
-func Cluster(name string) *ResourceURI {
-	return &ResourceURI{
+func Cluster(name string) ResourceURI {
+	return ResourceURI{
 		Path: fmt.Sprintf("/clusters/%v", name),
 	}
 }
 
-func (r *ResourceURI) Server(id string) *ResourceURI {
+func (r ResourceURI) Server(id string) ResourceURI {
 	r.Path = fmt.Sprintf("%v/servers/%v", r.Path, id)
 	return r
 }
 
-func (r *ResourceURI) DB(id string) *ResourceURI {
+func (r ResourceURI) DB(id string) ResourceURI {
 	r.Path = fmt.Sprintf("%v/dbs/%v", r.Path, id)
 	return r
 }
 
-func (r *ResourceURI) Gateway(id string) *ResourceURI {
+func (r ResourceURI) Gateway(id string) ResourceURI {
 	r.Path = fmt.Sprintf("%v/gateways/%v", r.Path, id)
 	return r
 }
 
-func (r *ResourceURI) App(id string) *ResourceURI {
+func (r ResourceURI) App(id string) ResourceURI {
 	r.Path = fmt.Sprintf("%v/apps/%v", r.Path, id)
 	return r
 }
 
-func (r *ResourceURI) String() string {
+func (r ResourceURI) String() string {
 	return r.Path
 }

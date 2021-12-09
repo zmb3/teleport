@@ -33,23 +33,24 @@ func (s *Handler) CreateGateway(ctx context.Context, req *api.CreateGatewayReque
 }
 
 // ListGateways lists all gateways
-func (s *Handler) ListGateways(context.Context, *api.ListGatewaysRequest) (*api.ListGatewaysResponse, error) {
-	clusters := s.DaemonService.GetClusters()
-	apiGateways := []*api.Gateway{}
-	for _, cluster := range clusters {
-		gateways := cluster.GetGateways()
-		for _, gateway := range gateways {
-			apiGateways = append(apiGateways, newAPIGateway(gateway))
-		}
+func (s *Handler) ListGateways(ctx context.Context, req *api.ListGatewaysRequest) (*api.ListGatewaysResponse, error) {
+	gws, err := s.DaemonService.ListGateways(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	apiGws := []*api.Gateway{}
+	for _, gw := range gws {
+		apiGws = append(apiGws, newAPIGateway(gw))
 	}
 
 	return &api.ListGatewaysResponse{
-		Gateways: apiGateways,
+		Gateways: apiGws,
 	}, nil
 }
 
-// DeleteGateway removes cluster gateway
-func (s *Handler) DeleteGateway(ctx context.Context, req *api.DeleteGatewayRequest) (*api.EmptyResponse, error) {
+// RemoveGateway removes cluster gateway
+func (s *Handler) RemoveGateway(ctx context.Context, req *api.RemoveGatewayRequest) (*api.EmptyResponse, error) {
 	if err := s.DaemonService.RemoveGateway(ctx, req.GatewayUri); err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -59,17 +60,16 @@ func (s *Handler) DeleteGateway(ctx context.Context, req *api.DeleteGatewayReque
 
 func newAPIGateway(gateway *daemon.Gateway) *api.Gateway {
 	return &api.Gateway{
-		Uri:              gateway.URI,
+		Uri:              gateway.URI.String(),
 		ResourceName:     gateway.ResourceName,
 		Protocol:         gateway.Protocol,
 		HostId:           gateway.HostID,
-		ClusterId:        gateway.ClusterID,
 		LocalAddress:     gateway.LocalAddress,
 		LocalPort:        gateway.LocalPort,
 		CaCertPath:       gateway.CACertPath,
 		DbCertPath:       gateway.DBCertPath,
 		KeyPath:          gateway.KeyPath,
-		NativeClientPath: gateway.NativeClientPath,
-		NativeClientArgs: gateway.NativeClientArgs,
+		NativeClientPath: gateway.NativeClientCommand.Path,
+		NativeClientArgs: gateway.NativeClientCommand.Args,
 	}
 }
