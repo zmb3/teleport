@@ -101,6 +101,11 @@ func (r ResourceURI) Server(id string) ResourceURI {
 	return r
 }
 
+func (r ResourceURI) Kube(id string) ResourceURI {
+	r.Path = fmt.Sprintf("%v/kubes/%v", r.Path, id)
+	return r
+}
+
 func (r ResourceURI) DB(id string) ResourceURI {
 	r.Path = fmt.Sprintf("%v/dbs/%v", r.Path, id)
 	return r

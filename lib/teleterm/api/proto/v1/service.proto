@@ -8,28 +8,34 @@ import "google/protobuf/empty.proto";
 import "v1/cluster.proto";
 import "v1/database.proto";
 import "v1/gateway.proto";
+import "v1/kube.proto";
+import "v1/app.proto";
 import "v1/server.proto";
 import "v1/auth_settings.proto";
 
 service TerminalService {
+    // ListClusters
+    rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
+    // ListDatabases
+    rpc ListDatabases(ListDatabasesRequest) returns (ListDatabasesResponse);
+    // ListGateways
+    rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse);
+    // ListServers
+    rpc ListServers(ListServersRequest) returns (ListServersResponse);
+    // ListKubes
+    rpc ListKubes(ListKubesRequest) returns (ListKubesResponse);
+    // ListApps
+    rpc ListApps(ListAppsRequest) returns (ListAppsResponse);
+    // CreateGateway
+    rpc CreateGateway(CreateGatewayRequest) returns (Gateway);
     // AddCluster
     rpc AddCluster(AddClusterRequest) returns (Cluster);
     // RemoveCluster
     rpc RemoveCluster(RemoveClusterRequest) returns (EmptyResponse);
-    // ListClusters
-    rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
-    // GetAuthSettings
-    rpc GetAuthSettings(GetAuthSettingsRequest) returns (AuthSettings);
-    // ListDatabases
-    rpc ListDatabases(ListDatabasesRequest) returns (ListDatabasesResponse);
-    // CreateGateway
-    rpc CreateGateway(CreateGatewayRequest) returns (Gateway);
-    // ListGateways
-    rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse);
     // RemoveGateway
     rpc RemoveGateway(RemoveGatewayRequest) returns (EmptyResponse);
-    // ListServers
-    rpc ListServers(ListServersRequest) returns (ListServersResponse);
+    // GetAuthSettings
+    rpc GetAuthSettings(GetAuthSettingsRequest) returns (AuthSettings);
     // GetCluster
     rpc GetCluster(GetClusterRequest) returns (Cluster);
     // Login
@@ -64,6 +70,10 @@ message LoginRequest {
 
 message AddClusterRequest { string name = 1; }
 
+message ListKubesRequest { string cluster_uri = 3; }
+
+message ListAppsRequest { string cluster_uri = 3; }
+
 message ListClustersRequest {}
 
 message ListClustersResponse { repeated Cluster clusters = 1; }
@@ -86,6 +96,10 @@ message RemoveGatewayRequest { string gateway_uri = 1; }
 message ListServersRequest { string cluster_uri = 1; }
 
 message ListServersResponse { repeated Server servers = 1; }
+
+message ListKubesResponse { repeated Kube kubes = 1; }
+
+message ListAppsResponse { repeated App apps = 1; }
 
 message GetAuthSettingsRequest { string cluster_uri = 1; }
 

@@ -41,14 +41,15 @@ func (c *Cluster) CreateGateway(ctx context.Context, dbURI, port, user string) (
 
 	gwURI := uri.Cluster(uri.Parse(dbURI).Cluster()).Gateway(uuid.NewString())
 	gw, err := gateway.New(gateway.Config{
-		URI:                gwURI,
-		HostID:             uri.Parse(dbURI).DB(),
-		LocalPort:          port,
-		ResourceName:       db.GetName(),
-		Protocol:           db.GetProtocol(),
-		KeyPath:            c.status.KeyPath(),
-		CACertPath:         c.status.CACertPath(),
-		DBCertPath:         c.status.DatabaseCertPath(db.GetName()),
+		URI:          gwURI,
+		HostID:       uri.Parse(dbURI).DB(),
+		LocalPort:    port,
+		ResourceName: db.GetName(),
+		Protocol:     db.GetProtocol(),
+		KeyPath:      c.status.KeyPath(),
+		CACertPath:   c.status.CACertPath(),
+		DBCertPath:   c.status.DatabaseCertPathForCluster("", db.GetName()),
+
 		InsecureSkipVerify: c.clusterClient.InsecureSkipVerify,
 		WebProxyAddr:       c.clusterClient.WebProxyAddr,
 		Log:                c.Log.WithField("gateway", gwURI),

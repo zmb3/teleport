@@ -19,48 +19,43 @@ import (
 	"sort"
 
 	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
-
 	"github.com/gravitational/teleport/lib/teleterm/daemon"
+
 	"github.com/gravitational/trace"
 )
 
-// ListDatabases lists databases of the specific cluster
-func (s *Handler) ListDatabases(ctx context.Context, req *api.ListDatabasesRequest) (*api.ListDatabasesResponse, error) {
-	cluster, err := s.DaemonService.GetCluster(req.ClusterUri)
+// ListApps lists cluster applications
+func (s *Handler) ListApps(ctx context.Context, req *api.ListAppsRequest) (*api.ListAppsResponse, error) {
+	apps, err := s.DaemonService.ListApps(ctx, req.ClusterUri)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	dbs, err := cluster.GetDatabases(ctx)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	response := &api.ListDatabasesResponse{}
-	for _, db := range dbs {
-		response.Databases = append(response.Databases, newAPIDatabase(db))
+	response := &api.ListAppsResponse{}
+	for _, app := range apps {
+		response.Apps = append(response.Apps, newAPIApp(app))
 	}
 
 	return response, nil
 }
 
-func newAPIDatabase(db daemon.Database) *api.Database {
+func newAPIApp(app daemon.App) *api.App {
 	apiLabels := APILabels{}
-	for name, value := range db.GetAllLabels() {
+	for name, value := range app.GetAllLabels() {
 		apiLabels = append(apiLabels, &api.Label{
 			Name:  name,
 			Value: value,
 		})
 	}
-
 	sort.Sort(apiLabels)
 
-	return &api.Database{
-		Uri:      db.URI,
-		Name:     db.GetName(),
-		Desc:     db.GetDescription(),
-		Protocol: db.GetProtocol(),
-		Type:     db.GetType(),
-		Labels:   apiLabels,
+	return &api.App{
+		Uri:         app.URI,
+		Name:        app.GetName(),
+		Labels:      apiLabels,
+		Description: app.GetDescription(),
+		AppUri:      app.GetURI(),
+		PublicAddr:  app.GetPublicAddr(),
+		AwsConsole:  app.IsAWSConsole(),
 	}
 }

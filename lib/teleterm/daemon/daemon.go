@@ -28,6 +28,8 @@ type Cluster = clusters.Cluster
 type Gateway = gateway.Gateway
 type Database = clusters.Database
 type Server = clusters.Server
+type Kube = clusters.Kube
+type App = clusters.App
 
 // Start creates and starts a Teleport Terminal service.
 func New(cfg Config) (*Service, error) {
@@ -158,6 +160,21 @@ func (s *Service) ListServers(ctx context.Context, clusterURI string) ([]Server,
 	return servers, nil
 }
 
+// ListServers returns cluster servers
+func (s *Service) ListApps(ctx context.Context, clusterURI string) ([]App, error) {
+	cluster, err := s.GetCluster(clusterURI)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	apps, err := cluster.GetApps(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return apps, nil
+}
+
 // RemoveGateway removes cluster gateway
 func (s *Service) RemoveGateway(ctx context.Context, gatewayURI string) error {
 	clusterID := uri.Parse(gatewayURI).Cluster()
@@ -173,6 +190,22 @@ func (s *Service) RemoveGateway(ctx context.Context, gatewayURI string) error {
 	return nil
 }
 
+// ListKubes lists k8s clusters
+func (s *Service) ListKubes(ctx context.Context, clusterURI string) ([]Kube, error) {
+	cluster, err := s.GetCluster(clusterURI)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	kubes, err := cluster.GetKubes(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return kubes, nil
+}
+
+// ListGateways lists gateways
 func (s *Service) ListGateways(ctx context.Context) ([]*Gateway, error) {
 	gws := []*Gateway{}
 	for _, cluster := range s.clusters {

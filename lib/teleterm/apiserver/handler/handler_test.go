@@ -63,6 +63,119 @@ func TestHandler(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	require.False(t, cluster1.Connected)
+
+	response, err := h.ListClusters(context.TODO(), &api.ListClustersRequest{})
+	require.NoError(t, err)
+	require.Len(t, response.Clusters, 1)
+
+	_, err = h.Login(context.TODO(), &api.LoginRequest{
+		ClusterUri: "/clusters/localhost",
+		Sso: &api.LoginRequest_SsoParams{
+			ProviderType: "oidc",
+			ProviderName: "google",
+		},
+	})
+	require.NoError(t, err)
+
+	//kubes, err := h.DaemonService.ListKubes(context.TODO(), "/clusters/asteroid-moon.teleport.sh")
+	//fmt.Print("KUBES: ", kubes)
+
+	apps, err := h.DaemonService.ListKubes(context.TODO(), "/clusters/localhost")
+	fmt.Print("KUBES: ", apps)
+
+	require.Error(t, err)
+}
+
+func FTestHandler(t *testing.T) {
+	storage, err := clusters.New(clusters.Config{
+		Dir:                t.TempDir(),
+		InsecureSkipVerify: true,
+	})
+	require.NoError(t, err)
+
+	d, err := daemon.New(daemon.Config{
+		Storage:            storage,
+		InsecureSkipVerify: true,
+	})
+	require.NoError(t, err)
+
+	h, err := handler.New(handler.Config{
+		DaemonService: d,
+	})
+	require.NoError(t, err)
+
+	cluster1, err := h.AddCluster(context.TODO(), &api.AddClusterRequest{
+		Name: "asteroid-moon.teleport.sh",
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, cluster1.Name, "asteroid-moon.teleport.sh")
+	require.False(t, cluster1.Connected)
+
+	response, err := h.ListClusters(context.TODO(), &api.ListClustersRequest{})
+	require.NoError(t, err)
+	require.Len(t, response.Clusters, 1)
+
+	_, err = h.Login(context.TODO(), &api.LoginRequest{
+		ClusterUri: "/clusters/asteroid-moon.teleport.sh",
+		Sso: &api.LoginRequest_SsoParams{
+			ProviderType: "github",
+			ProviderName: "github",
+		},
+	})
+	require.NoError(t, err)
+
+	//kubes, err := h.DaemonService.ListKubes(context.TODO(), "/clusters/asteroid-moon.teleport.sh")
+	//fmt.Print("KUBES: ", kubes)
+
+	apps, err := h.DaemonService.ListApps(context.TODO(), "/clusters/asteroid-moon.teleport.sh")
+	fmt.Print("KUBES: ", apps)
+
+	require.NoError(t, err)
+
+	//_, err = h.Logout(context.TODO(), &api.LogoutRequest{
+	//	ClusterUri: "/clusters/localhost",
+	//})
+	//require.NoError(t, err)
+
+	_, err = h.RemoveCluster(context.TODO(), &api.RemoveClusterRequest{
+		ClusterUri: "/clusters/asteroid-moon.teleport.sh",
+	})
+
+	fmt.Print(trace.DebugReport(err))
+
+	require.Error(t, err)
+
+	//_, err = h.ListServers(context.TODO(), &api.ListServersRequest{
+	//	ClusterUri: "/clusters/localhost",
+	//})
+
+}
+
+func LocalTestHandler(t *testing.T) {
+	storage, err := clusters.New(clusters.Config{
+		Dir:                t.TempDir(),
+		InsecureSkipVerify: true,
+	})
+	require.NoError(t, err)
+
+	d, err := daemon.New(daemon.Config{
+		Storage:            storage,
+		InsecureSkipVerify: true,
+	})
+	require.NoError(t, err)
+
+	h, err := handler.New(handler.Config{
+		DaemonService: d,
+	})
+	require.NoError(t, err)
+
+	cluster1, err := h.AddCluster(context.TODO(), &api.AddClusterRequest{
+		Name: "localhost:4080",
+	})
+	require.NoError(t, err)
+
 	require.Equal(t, cluster1.Name, "localhost")
 	require.False(t, cluster1.Connected)
 
