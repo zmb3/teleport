@@ -72,6 +72,7 @@ func (s *Handler) GetCluster(ctx context.Context, req *api.GetClusterRequest) (*
 func newAPICluster(cluster *daemon.Cluster) *api.Cluster {
 	loggedInUser := cluster.GetLoggedInUser()
 	return &api.Cluster{
+		UriKind:   string(cluster.URIKind),
 		Uri:       cluster.URI,
 		Name:      cluster.Name,
 		Connected: cluster.Connected(),

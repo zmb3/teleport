@@ -11,6 +11,9 @@ export class App extends jspb.Message {
     getUri(): string;
     setUri(value: string): App;
 
+    getUriKind(): string;
+    setUriKind(value: string): App;
+
     getName(): string;
     setName(value: string): App;
 
@@ -56,6 +59,7 @@ export class App extends jspb.Message {
 export namespace App {
     export type AsObject = {
         uri: string,
+        uriKind: string,
         name: string,
         description: string,
         appUri: string,

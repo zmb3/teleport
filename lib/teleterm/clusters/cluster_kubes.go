@@ -28,7 +28,10 @@ import (
 // Kube describes kubernetes service
 type Kube struct {
 	// URI is the database URI
-	URI string `json:"uri"`
+	URI string
+	// URIKind is the kube URI kind
+	URIKind uri.Kind
+
 	types.KubernetesCluster
 }
 
@@ -56,6 +59,7 @@ func (c *Cluster) GetKubes(ctx context.Context) ([]Kube, error) {
 		for _, kube := range service.GetKubernetesClusters() {
 			kubeMap[kube.Name] = Kube{
 				URI:               uri.Cluster(c.status.Name).Kube(kube.Name).String(),
+				URIKind:           uri.KindKube,
 				KubernetesCluster: *kube,
 			}
 		}

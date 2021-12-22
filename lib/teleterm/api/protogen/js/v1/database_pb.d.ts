@@ -11,6 +11,9 @@ export class Database extends jspb.Message {
     getUri(): string;
     setUri(value: string): Database;
 
+    getUriKind(): string;
+    setUriKind(value: string): Database;
+
     getName(): string;
     setName(value: string): Database;
 
@@ -51,6 +54,7 @@ export class Database extends jspb.Message {
 export namespace Database {
     export type AsObject = {
         uri: string,
+        uriKind: string,
         name: string,
         desc: string,
         protocol: string,

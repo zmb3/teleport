@@ -60,6 +60,7 @@ func (s *Handler) RemoveGateway(ctx context.Context, req *api.RemoveGatewayReque
 
 func newAPIGateway(gateway *daemon.Gateway) *api.Gateway {
 	return &api.Gateway{
+		UriKind:          string(gateway.URIKind),
 		Uri:              gateway.URI.String(),
 		ResourceName:     gateway.ResourceName,
 		Protocol:         gateway.Protocol,

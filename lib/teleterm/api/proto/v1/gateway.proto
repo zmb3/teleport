@@ -7,31 +7,33 @@ option go_package = "github.com/gravitational/teleport/lib/teleterm/v1";
 message Gateway {
     // uri is the gateway uri
     string uri = 1;
+    // uri_kind is the resource URI kind
+    string uri_kind = 2;
     // resourcename is the name of the Teleport resource
-    string resource_name = 2;
+    string resource_name = 3;
     // localaddress is the gateway address on localhost
-    string local_address = 3;
+    string local_address = 4;
     // localport is the gateway address on localhost
-    string local_port = 4;
+    string local_port = 5;
     // protocol is the gateway protocol
-    string protocol = 5;
+    string protocol = 6;
     // hostid is th4e cluster name
-    string host_id = 6;
+    string host_id = 7;
     // clusterid is the resource name (db)
-    string cluster_id = 7;
+    string cluster_id = 8;
     // ca_cert_path
-    string ca_cert_path = 8;
+    string ca_cert_path = 9;
     // db_cert_path
-    string db_cert_path = 9;
+    string db_cert_path = 10;
     // key_path
-    string key_path = 10;
+    string key_path = 11;
     // native_client_path is the path to native client program for quick access
-    string native_client_path = 11;
+    string native_client_path = 12;
     // NativeClientArgs is the arguments of the native client for quick access
-    string native_client_args = 12;
+    string native_client_args = 13;
 
     // status is the gateway status
-    GatewayStatus status = 13;
+    GatewayStatus status = 14;
     // Status identifies gateway connection status
     enum GatewayStatus {
         // CONNECTED means that the gateway connection is open

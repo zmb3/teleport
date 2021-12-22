@@ -11,6 +11,9 @@ export class Kube extends jspb.Message {
     getUri(): string;
     setUri(value: string): Kube;
 
+    getUriKind(): string;
+    setUriKind(value: string): Kube;
+
     getName(): string;
     setName(value: string): Kube;
 
@@ -33,6 +36,7 @@ export class Kube extends jspb.Message {
 export namespace Kube {
     export type AsObject = {
         uri: string,
+        uriKind: string,
         name: string,
         labelsList: Array<v1_label_pb.Label.AsObject>,
     }

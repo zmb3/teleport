@@ -11,6 +11,9 @@ export class Server extends jspb.Message {
     getUri(): string;
     setUri(value: string): Server;
 
+    getUriKind(): string;
+    setUriKind(value: string): Server;
+
     getTunnel(): boolean;
     setTunnel(value: boolean): Server;
 
@@ -45,6 +48,7 @@ export class Server extends jspb.Message {
 export namespace Server {
     export type AsObject = {
         uri: string,
+        uriKind: string,
         tunnel: boolean,
         name: string,
         clusterId: string,

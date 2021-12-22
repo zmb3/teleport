@@ -21,6 +21,7 @@ import (
 
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/client"
+	"github.com/gravitational/teleport/lib/teleterm/api/uri"
 	"github.com/gravitational/teleport/lib/teleterm/gateway"
 
 	"github.com/gravitational/trace"
@@ -33,6 +34,8 @@ import (
 type Cluster struct {
 	// URI is the cluster URI
 	URI string
+	// URIKind is the cluster URI kind
+	URIKind uri.Kind
 	// Name is the cluster name
 	Name string
 	// Log is a component logger

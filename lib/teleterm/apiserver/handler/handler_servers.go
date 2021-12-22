@@ -60,6 +60,7 @@ func newAPIServer(server daemon.Server) *api.Server {
 
 	return &api.Server{
 		Uri:      server.URI,
+		UriKind:  string(server.URIKind),
 		Tunnel:   server.GetUseTunnel(),
 		Name:     server.GetName(),
 		Hostname: server.GetHostname(),

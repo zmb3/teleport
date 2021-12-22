@@ -10,24 +10,26 @@ import "v1/label.proto";
 message App {
     // uri is the kube resource URI
     string uri = 1;
+    // uri_kind is the resource URI kind
+    string uri_kind = 2;
     // name is the kube name
-    string name = 2;
+    string name = 3;
     // description is the app description.
-    string description = 3;
+    string description = 4;
     // uri is the internal address the application is available at.
-    string app_uri = 4;
+    string app_uri = 5;
     // publicaddr is the public address the application is accessible at.
-    string public_addr = 5;
+    string public_addr = 6;
     // fqdn is a fully qualified domain name of the application (app.example.com)
-    string fqdn = 6;
+    string fqdn = 7;
     // cluster_id is this app cluster ID
-    string cluster_id = 7;
+    string cluster_id = 8;
     // labels is a map of static labels associated with an application.
-    repeated Label labels = 8;
+    repeated Label labels = 9;
     // aws_console if true, indicates that the app represents AWS management console.
-    bool aws_console = 9;
+    bool aws_console = 10;
     // aws_roles is a list of AWS IAM roles for the application representing AWS console.
-    repeated AWSRole aws_roles = 10;
+    repeated AWSRole aws_roles = 11;
 
     message AWSRole {
         // display is the role display name.

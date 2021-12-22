@@ -10,6 +10,9 @@ export class Gateway extends jspb.Message {
     getUri(): string;
     setUri(value: string): Gateway;
 
+    getUriKind(): string;
+    setUriKind(value: string): Gateway;
+
     getResourceName(): string;
     setResourceName(value: string): Gateway;
 
@@ -60,6 +63,7 @@ export class Gateway extends jspb.Message {
 export namespace Gateway {
     export type AsObject = {
         uri: string,
+        uriKind: string,
         resourceName: string,
         localAddress: string,
         localPort: string,

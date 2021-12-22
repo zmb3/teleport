@@ -57,8 +57,9 @@ func newAPIKube(kube daemon.Kube) *api.Kube {
 	sort.Sort(apiLabels)
 
 	return &api.Kube{
-		Name:   kube.Name,
-		Uri:    kube.URI,
-		Labels: apiLabels,
+		UriKind: string(kube.URIKind),
+		Uri:     kube.URI,
+		Name:    kube.Name,
+		Labels:  apiLabels,
 	}
 }

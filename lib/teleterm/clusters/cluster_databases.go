@@ -34,7 +34,10 @@ import (
 // Database describes database
 type Database struct {
 	// URI is the database URI
-	URI string `json:"uri"`
+	URI string
+	// URIKind is the resource kind
+	URIKind uri.Kind
+
 	types.Database
 }
 
@@ -71,6 +74,7 @@ func (c *Cluster) GetDatabases(ctx context.Context) ([]Database, error) {
 	for _, srv := range dbservers {
 		dbs = append(dbs, Database{
 			URI:      uri.Cluster(c.status.Name).DB(srv.GetHostID()).String(),
+			URIKind:  uri.KindDatabase,
 			Database: srv.GetDatabase(),
 		})
 	}

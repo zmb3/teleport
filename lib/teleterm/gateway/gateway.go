@@ -26,6 +26,7 @@ import (
 	dbprofile "github.com/gravitational/teleport/lib/client/db/profile"
 	alpn "github.com/gravitational/teleport/lib/srv/alpnproxy"
 	alpncommon "github.com/gravitational/teleport/lib/srv/alpnproxy/common"
+	"github.com/gravitational/teleport/lib/teleterm/api/uri"
 	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
@@ -87,6 +88,7 @@ func New(cfg Config) (*Gateway, error) {
 
 	gateway := &Gateway{
 		Config:       cfg,
+		Kind:         uri.KindGateway,
 		closeContext: closeContext,
 		closeCancel:  closeCancel,
 		localProxy:   localProxy,
@@ -140,6 +142,8 @@ func setNativeCommand(g *Gateway) error {
 
 // Gateway describes local proxy that creates a gateway to the remote Teleport resource.
 type Gateway struct {
+	// URIKind is the resource kind
+	URIKind uri.Kind
 	// GatewayParams is the gateway parameters
 	Config
 	// NativeClientCommand is the native client commands

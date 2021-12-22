@@ -8,12 +8,14 @@ option go_package = "github.com/gravitational/teleport/lib/teleterm/v1";
 message Cluster {
     // uri is the cluster resource URI
     string uri = 1;
+    // uri_kind is the resource URI kind
+    string uri_kind = 2;
     // name is the cluster name
-    string name = 2;
+    string name = 3;
     // connected indicates if connection to the cluster has been established
-    bool connected = 3;
+    bool connected = 4;
     // User is the cluster access control list of the logged-in user
-    LoggedInUser logged_in_user = 4;
+    LoggedInUser logged_in_user = 5;
 }
 
 // LoggedInUser describes a logged-in user

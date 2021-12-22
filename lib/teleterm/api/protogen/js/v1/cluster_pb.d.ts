@@ -10,6 +10,9 @@ export class Cluster extends jspb.Message {
     getUri(): string;
     setUri(value: string): Cluster;
 
+    getUriKind(): string;
+    setUriKind(value: string): Cluster;
+
     getName(): string;
     setName(value: string): Cluster;
 
@@ -36,6 +39,7 @@ export class Cluster extends jspb.Message {
 export namespace Cluster {
     export type AsObject = {
         uri: string,
+        uriKind: string,
         name: string,
         connected: boolean,
         loggedInUser?: LoggedInUser.AsObject,

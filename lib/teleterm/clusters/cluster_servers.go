@@ -29,7 +29,10 @@ import (
 // Database describes database
 type Server struct {
 	// URI is the database URI
-	URI string `json:"uri"`
+	URI string
+	// URIKind is the server URI kind
+	URIKind uri.Kind
+
 	types.Server
 }
 
@@ -49,8 +52,9 @@ func (c *Cluster) GetServers(ctx context.Context) ([]Server, error) {
 	results := []Server{}
 	for _, server := range clusterServers {
 		results = append(results, Server{
-			URI:    uri.Cluster(c.status.Name).Server(server.GetName()).String(),
-			Server: server,
+			URI:     uri.Cluster(c.status.Name).Server(server.GetName()).String(),
+			URIKind: uri.KindServer,
+			Server:  server,
 		})
 	}
 

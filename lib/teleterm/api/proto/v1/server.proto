@@ -10,16 +10,18 @@ import "v1/label.proto";
 message Server {
     // uri is the cluster resource URI
     string uri = 1;
+    // uri_kind is the resource URI kind
+    string uri_kind = 2;
     // tunnel indicates of this server is connected over a reverse tunnel.
-    bool tunnel = 2;
+    bool tunnel = 3;
     // name is this server name
-    string name = 3;
+    string name = 4;
     // cluster_id is this server cluster name
-    string cluster_id = 4;
+    string cluster_id = 5;
     // hostname is this server hostname
-    string hostname = 5;
+    string hostname = 6;
     // addr is this server ip address
-    string addr = 6;
+    string addr = 7;
     // labels is this server list of labels
-    repeated Label labels = 7;
+    repeated Label labels = 8;
 }

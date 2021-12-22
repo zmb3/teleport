@@ -124,3 +124,14 @@ func (r ResourceURI) App(id string) ResourceURI {
 func (r ResourceURI) String() string {
 	return r.Path
 }
+
+type Kind string
+
+const (
+	KindServer   Kind = "server"
+	KindDatabase Kind = "database"
+	KindGateway  Kind = "gateway"
+	KindKube     Kind = "kube"
+	KindApp      Kind = "app"
+	KindCluster  Kind = "cluster"
+)

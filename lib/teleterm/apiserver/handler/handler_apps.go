@@ -51,11 +51,12 @@ func newAPIApp(app daemon.App) *api.App {
 
 	return &api.App{
 		Uri:         app.URI,
+		UriKind:     string(app.URIKind),
 		Name:        app.GetName(),
-		Labels:      apiLabels,
 		Description: app.GetDescription(),
 		AppUri:      app.GetURI(),
 		PublicAddr:  app.GetPublicAddr(),
 		AwsConsole:  app.IsAWSConsole(),
+		Labels:      apiLabels,
 	}
 }

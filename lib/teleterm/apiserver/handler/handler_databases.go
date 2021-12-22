@@ -57,6 +57,7 @@ func newAPIDatabase(db daemon.Database) *api.Database {
 
 	return &api.Database{
 		Uri:      db.URI,
+		UriKind:  string(db.URIKind),
 		Name:     db.GetName(),
 		Desc:     db.GetDescription(),
 		Protocol: db.GetProtocol(),

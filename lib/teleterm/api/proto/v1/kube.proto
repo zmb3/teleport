@@ -10,8 +10,10 @@ import "v1/label.proto";
 message Kube {
     // uri is the kube resource URI
     string uri = 1;
+    // uri_kind is the resource URI kind
+    string uri_kind = 2;
     // name is the kube name
-    string name = 2;
+    string name = 3;
     // labels is the kube labels
-    repeated Label labels = 3;
+    repeated Label labels = 4;
 }

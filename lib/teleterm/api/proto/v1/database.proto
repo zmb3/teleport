@@ -9,20 +9,22 @@ import "v1/label.proto";
 message Database {
     // uri is the cluster resource URI
     string uri = 1;
+    // uri_kind is the resource URI kind
+    string uri_kind = 2;
     // name is this server name
-    string name = 2;
+    string name = 3;
     // desc is this server cluster name
-    string desc = 3;
+    string desc = 4;
     // protocol is the database description.
-    string protocol = 4;
+    string protocol = 5;
     // type is the database type, self-hosted or cloud-hosted.
-    string type = 5;
+    string type = 6;
     // hostname is this server hostname
-    string hostname = 6;
+    string hostname = 7;
     // cluster_id is the db cluster id
-    string cluster_id = 7;
+    string cluster_id = 8;
     // addr is this server ip address
-    string addr = 8;
+    string addr = 9;
     // labels is this server list of labels
-    repeated Label labels = 9;
+    repeated Label labels = 10;
 }
