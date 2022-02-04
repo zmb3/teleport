@@ -116,7 +116,8 @@ func runUnitTests(workspace string) error {
 	cmd := exec.Command("make", "test")
 	cmd.Dir = workspace
 	cmd.Env = append(os.Environ(), "TELEPORT_ETCD_TEST=yes")
-	cmd.Env = append(os.Environ(), "TELEPORT_XAUTH_TEST=yes")
+	// TODO(Joerger): enabled xauth tests once the updated buildbox is in GCB
+	// cmd.Env = append(os.Environ(), "TELEPORT_XAUTH_TEST=yes")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

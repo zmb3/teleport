@@ -16,13 +16,79 @@ package x11
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/hex"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 )
+
+func TestXAuthCommands(t *testing.T) {
+	if os.Getenv("TELEPORT_XAUTH_TEST") == "" {
+		t.Skip("Skipping test as xauth is not enabled")
+	}
+
+	ctx := context.Background()
+
+	tmpDir := t.TempDir()
+	xauthFile := filepath.Join(tmpDir, ".Xauthority")
+
+	l, display, err := OpenNewXServerListener(DefaultDisplayOffset, DefaultMaxDisplay, 0)
+	require.NoError(t, err)
+	t.Cleanup(func() { l.Close() })
+
+	// Wait for connection from generate request
+	go func() {
+		conn, err := l.Accept()
+		require.NoError(t, err)
+		defer conn.Close()
+	}()
+
+	// New xauth file should have no entries
+	xauth := NewXAuthCommand(ctx, xauthFile)
+	xauthEntry, err := xauth.ReadEntry(display)
+	require.Error(t, err)
+	require.True(t, trace.IsNotFound(err))
+	require.Nil(t, xauthEntry)
+
+	// Add trusted xauth entry
+	trustedXauthEntry, err := NewFakeXAuthEntry(display)
+	require.NoError(t, err)
+	xauth = NewXAuthCommand(ctx, xauthFile)
+	err = xauth.AddEntry(*trustedXauthEntry)
+	require.NoError(t, err)
+
+	// Read back the xauth entry
+	xauth = NewXAuthCommand(ctx, xauthFile)
+	xauthEntry, err = xauth.ReadEntry(display)
+	require.NoError(t, err)
+	require.Equal(t, trustedXauthEntry, xauthEntry)
+
+	// Remove xauth entries
+	xauth = NewXAuthCommand(ctx, xauthFile)
+	err = xauth.RemoveEntries(xauthEntry.Display)
+	require.NoError(t, err)
+
+	xauth = NewXAuthCommand(ctx, xauthFile)
+	xauthEntry, err = xauth.ReadEntry(display)
+	require.Error(t, err)
+	require.True(t, trace.IsNotFound(err))
+	require.Nil(t, xauthEntry)
+
+	// Generate untrusted xauth entry
+	xauth = NewXAuthCommand(ctx, xauthFile)
+	err = xauth.GenerateUntrustedCookie(display, 0)
+	require.Error(t, err)
+	// TODO(Joerger): xauth generate requires an actual XServer listener
+	// to be opened, but above we only open a proxy XServer listener.
+	// This leads to an error, but ideally we'd give the proper response
+	// to the generate request and this would succeed in creating the entry.
+	require.Contains(t, err.Error(), "unable to open display")
+}
 
 func TestReadAndRewriteXAuthPacket(t *testing.T) {
 	t.Parallel()

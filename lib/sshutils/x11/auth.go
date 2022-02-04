@@ -145,7 +145,11 @@ func (x *XAuthCommand) AddEntry(entry XAuthEntry) error {
 func (x *XAuthCommand) GenerateUntrustedCookie(display Display, timeout time.Duration) error {
 	x.Cmd.Args = append(x.Cmd.Args, "generate", display.String(), mitMagicCookieProto, "untrusted")
 	x.Cmd.Args = append(x.Cmd.Args, "timeout", fmt.Sprint(timeout/time.Second))
-	return trace.Wrap(x.run())
+	out, err := x.output()
+	if err != nil {
+		return trace.Wrap(err, out)
+	}
+	return nil
 }
 
 // run Run and wrap error with stderr.
