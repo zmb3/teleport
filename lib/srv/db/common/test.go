@@ -60,7 +60,7 @@ func MakeTestServerTLSConfig(config TestServerConfig) (*tls.Config, error) {
 	if cn == "" {
 		cn = "localhost"
 	}
-	privateKey, _, err := testauthority.New().GenerateKeyPair("")
+	privateKey, _, err := testauthority.New().GenerateKeyPair(context.Background(), "")
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -119,7 +119,7 @@ func MakeTestClientTLSConfig(config TestClientConfig) (*tls.Config, error) {
 		return nil, trace.Wrap(err)
 	}
 	// Generate client certificate for the Teleport user.
-	cert, err := config.AuthServer.GenerateDatabaseTestCert(auth.DatabaseTestCertRequest{
+	cert, err := config.AuthServer.GenerateDatabaseTestCert(context.Background(), auth.DatabaseTestCertRequest{
 		PublicKey:       key.Pub,
 		Cluster:         config.Cluster,
 		Username:        config.Username,

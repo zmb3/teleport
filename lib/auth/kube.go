@@ -62,8 +62,7 @@ type KubeCSRResponse struct {
 
 // ProcessKubeCSR processes CSR request against Kubernetes CA, returns
 // signed certificate if successful.
-func (s *Server) ProcessKubeCSR(req KubeCSR) (*KubeCSRResponse, error) {
-	ctx := context.TODO()
+func (s *Server) ProcessKubeCSR(ctx context.Context, req KubeCSR) (*KubeCSRResponse, error) {
 	if !modules.GetModules().Features().Kubernetes {
 		return nil, trace.AccessDenied(
 			"this Teleport cluster is not licensed for Kubernetes, please contact the cluster administrator")
@@ -72,7 +71,7 @@ func (s *Server) ProcessKubeCSR(req KubeCSR) (*KubeCSRResponse, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	clusterName, err := s.GetClusterName()
+	clusterName, err := s.GetClusterName(ctx)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

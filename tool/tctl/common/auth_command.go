@@ -121,6 +121,7 @@ func (a *AuthCommand) Initialize(app *kingpin.Application, config *service.Confi
 // or returns match=false if 'cmd' does not belong to it
 func (a *AuthCommand) TryRun(cmd string, client auth.ClientI) (match bool, err error) {
 	ctx := context.Background()
+
 	switch cmd {
 	case a.authGenerate.FullCommand():
 		err = a.GenerateKeys(ctx)
@@ -144,7 +145,7 @@ func (a *AuthCommand) ExportAuthorities(ctx context.Context, client auth.ClientI
 
 	// this means to export TLS authority
 	if a.authType == "tls" {
-		clusterName, err := client.GetDomainName()
+		clusterName, err := client.GetDomainName(ctx)
 		if err != nil {
 			return trace.Wrap(err)
 		}
@@ -176,7 +177,7 @@ func (a *AuthCommand) ExportAuthorities(ctx context.Context, client auth.ClientI
 		}
 		typesToExport = []types.CertAuthType{authType}
 	}
-	localAuthName, err := client.GetDomainName()
+	localAuthName, err := client.GetDomainName(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -258,7 +259,7 @@ func (a *AuthCommand) ExportAuthorities(ctx context.Context, client auth.ClientI
 func (a *AuthCommand) GenerateKeys(ctx context.Context) error {
 	keygen := native.New(ctx, native.PrecomputeKeys(0))
 	defer keygen.Close()
-	privBytes, pubBytes, err := keygen.GenerateKeyPair("")
+	privBytes, pubBytes, err := keygen.GenerateKeyPair(ctx, "")
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -329,13 +330,13 @@ func (a *AuthCommand) generateHostKeys(ctx context.Context, clusterAPI auth.Clie
 		return trace.Wrap(err)
 	}
 
-	cn, err := clusterAPI.GetClusterName()
+	cn, err := clusterAPI.GetClusterName(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 	clusterName := cn.GetClusterName()
 
-	key.Cert, err = clusterAPI.GenerateHostCert(key.Pub,
+	key.Cert, err = clusterAPI.GenerateHostCert(ctx, key.Pub,
 		"", "", principals,
 		clusterName, types.SystemRoles{types.RoleNode}, 0)
 	if err != nil {
@@ -391,7 +392,7 @@ func (a *AuthCommand) generateDatabaseKeysForKey(ctx context.Context, clusterAPI
 		// The actual O value doesn't matter as long as it matches on all
 		// MongoDB cluster members so set it to the Teleport cluster name
 		// to avoid hardcoding anything.
-		clusterName, err := clusterAPI.GetClusterName()
+		clusterName, err := clusterAPI.GetClusterName(ctx)
 		if err != nil {
 			return trace.Wrap(err)
 		}
@@ -478,7 +479,7 @@ net:
 
 func (a *AuthCommand) generateUserKeys(ctx context.Context, clusterAPI auth.ClientI) error {
 	// Validate --proxy flag.
-	if err := a.checkProxyAddr(clusterAPI); err != nil {
+	if err := a.checkProxyAddr(ctx, clusterAPI); err != nil {
 		return trace.Wrap(err)
 	}
 	// parse compatibility parameter
@@ -494,11 +495,11 @@ func (a *AuthCommand) generateUserKeys(ctx context.Context, clusterAPI auth.Clie
 	}
 
 	if a.leafCluster != "" {
-		if err := a.checkLeafCluster(clusterAPI); err != nil {
+		if err := a.checkLeafCluster(ctx, clusterAPI); err != nil {
 			return trace.Wrap(err)
 		}
 	} else {
-		cn, err := clusterAPI.GetClusterName()
+		cn, err := clusterAPI.GetClusterName(ctx)
 		if err != nil {
 			return trace.Wrap(err)
 		}
@@ -546,7 +547,7 @@ func (a *AuthCommand) generateUserKeys(ctx context.Context, clusterAPI auth.Clie
 	return nil
 }
 
-func (a *AuthCommand) checkLeafCluster(clusterAPI auth.ClientI) error {
+func (a *AuthCommand) checkLeafCluster(ctx context.Context, clusterAPI auth.ClientI) error {
 	if a.outputFormat != identityfile.FormatKubernetes && a.leafCluster != "" {
 		// User set --cluster but it's not actually used for the chosen --format.
 		// Print a warning but continue.
@@ -557,7 +558,7 @@ func (a *AuthCommand) checkLeafCluster(clusterAPI auth.ClientI) error {
 		return nil
 	}
 
-	clusters, err := clusterAPI.GetRemoteClusters()
+	clusters, err := clusterAPI.GetRemoteClusters(ctx)
 	if err != nil {
 		return trace.WrapWithMessage(err, "couldn't load leaf clusters")
 	}
@@ -582,7 +583,7 @@ func (a *AuthCommand) checkKubeCluster(ctx context.Context, clusterAPI auth.Clie
 		return nil
 	}
 
-	localCluster, err := clusterAPI.GetClusterName()
+	localCluster, err := clusterAPI.GetClusterName(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -599,7 +600,7 @@ func (a *AuthCommand) checkKubeCluster(ctx context.Context, clusterAPI auth.Clie
 	return nil
 }
 
-func (a *AuthCommand) checkProxyAddr(clusterAPI auth.ClientI) error {
+func (a *AuthCommand) checkProxyAddr(ctx context.Context, clusterAPI auth.ClientI) error {
 	if a.outputFormat != identityfile.FormatKubernetes && a.proxyAddr != "" {
 		// User set --proxy but it's not actually used for the chosen --format.
 		// Print a warning but continue.
@@ -622,7 +623,7 @@ func (a *AuthCommand) checkProxyAddr(clusterAPI auth.ClientI) error {
 		return trace.Wrap(err)
 	}
 	// Fetch proxies known to auth server and try to find a public address.
-	proxies, err := clusterAPI.GetProxies()
+	proxies, err := clusterAPI.GetProxies(ctx)
 	if err != nil {
 		return trace.WrapWithMessage(err, "couldn't load registered proxies, try setting --proxy manually")
 	}

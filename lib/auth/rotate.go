@@ -206,7 +206,7 @@ func (a *Server) RotateCertAuthority(ctx context.Context, req RotateRequest) err
 	if err := req.CheckAndSetDefaults(a.clock); err != nil {
 		return trace.Wrap(err)
 	}
-	clusterName, err := a.GetClusterName()
+	clusterName, err := a.GetClusterName(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -234,7 +234,7 @@ func (a *Server) RotateCertAuthority(ctx context.Context, req RotateRequest) err
 		if err != nil {
 			return trace.Wrap(err)
 		}
-		if err := a.CompareAndSwapCertAuthority(rotated, existing); err != nil {
+		if err := a.CompareAndSwapCertAuthority(ctx, rotated, existing); err != nil {
 			return trace.Wrap(err)
 		}
 		rotation := rotated.GetRotation()
@@ -255,7 +255,7 @@ func (a *Server) RotateExternalCertAuthority(ctx context.Context, ca types.CertA
 	if ca == nil {
 		return trace.BadParameter("missing certificate authority")
 	}
-	clusterName, err := a.GetClusterName()
+	clusterName, err := a.GetClusterName(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -300,7 +300,7 @@ func (a *Server) RotateExternalCertAuthority(ctx context.Context, ca types.CertA
 
 	// use compare and swap to protect from concurrent updates
 	// by trusted cluster API
-	if err := a.CompareAndSwapCertAuthority(updated, existing); err != nil {
+	if err := a.CompareAndSwapCertAuthority(ctx, updated, existing); err != nil {
 		return trace.Wrap(err)
 	}
 
@@ -323,7 +323,7 @@ func (a *Server) autoRotateCertAuthorities(ctx context.Context) error {
 		if err != nil {
 			return trace.Wrap(err)
 		}
-		if err := a.autoRotate(ca); err != nil {
+		if err := a.autoRotate(ctx, ca); err != nil {
 			return trace.Wrap(err)
 		}
 		// make sure there are local AdditionalKeys during init phase of rotation
@@ -336,7 +336,7 @@ func (a *Server) autoRotateCertAuthorities(ctx context.Context) error {
 	return nil
 }
 
-func (a *Server) autoRotate(ca types.CertAuthority) error {
+func (a *Server) autoRotate(ctx context.Context, ca types.CertAuthority) error {
 	rotation := ca.GetRotation()
 	// rotation mode is not automatic, nothing to do
 	if rotation.Mode != types.RotationModeAuto {
@@ -393,7 +393,7 @@ func (a *Server) autoRotate(ca types.CertAuthority) error {
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	if err := a.CompareAndSwapCertAuthority(rotated, ca); err != nil {
+	if err := a.CompareAndSwapCertAuthority(ctx, rotated, ca); err != nil {
 		return trace.Wrap(err)
 	}
 	logger.Infof("Cert authority rotation request is completed")

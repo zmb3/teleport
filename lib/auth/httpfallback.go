@@ -691,7 +691,7 @@ func (c *Client) GetAuthPreference(ctx context.Context) (types.AuthPreference, e
 		if !trace.IsBadParameter(err) {
 			return nil, trace.Wrap(err)
 		}
-		legacyConfig, err := c.GetClusterConfig()
+		legacyConfig, err := c.GetClusterConfig(ctx)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
@@ -736,7 +736,7 @@ func (c *Client) GetClusterAuditConfig(ctx context.Context, opts ...services.Mar
 		return auditConfig, nil
 	}
 
-	cfg, err := c.GetClusterConfig(opts...)
+	cfg, err := c.GetClusterConfig(ctx, opts...)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -755,7 +755,7 @@ func (c *Client) GetClusterNetworkingConfig(ctx context.Context, opts ...service
 		return netConfig, nil
 	}
 
-	cfg, err := c.GetClusterConfig(opts...)
+	cfg, err := c.GetClusterConfig(ctx, opts...)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -774,7 +774,7 @@ func (c *Client) GetSessionRecordingConfig(ctx context.Context, opts ...services
 		return recConfig, nil
 	}
 
-	cfg, err := c.GetClusterConfig(opts...)
+	cfg, err := c.GetClusterConfig(ctx, opts...)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

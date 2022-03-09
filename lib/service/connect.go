@@ -277,7 +277,7 @@ func (process *TeleportProcess) generateKeyPair(role types.SystemRole, reason st
 		return &keyPair, nil
 	}
 	process.log.Debugf("Generating new key pair for %v %v.", role, reason)
-	privPEM, pubSSH, err := process.Config.Keygen.GenerateKeyPair("")
+	privPEM, pubSSH, err := process.Config.Keygen.GenerateKeyPair(process.ExitContext(), "")
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -320,7 +320,7 @@ func (process *TeleportProcess) getCertAuthority(conn *Connector, id types.CertA
 // TLS client this method uses the local auth server.
 func (process *TeleportProcess) reRegister(conn *Connector, additionalPrincipals []string, dnsNames []string, rotation types.Rotation) (*auth.Identity, error) {
 	if conn.ClientIdentity.ID.Role == types.RoleAdmin || conn.ClientIdentity.ID.Role == types.RoleAuth {
-		return auth.GenerateIdentity(process.localAuth, conn.ClientIdentity.ID, additionalPrincipals, dnsNames)
+		return auth.GenerateIdentity(process.ExitContext(), process.localAuth, conn.ClientIdentity.ID, additionalPrincipals, dnsNames)
 	}
 	const reason = "re-register"
 	keyPair, err := process.generateKeyPair(conn.ClientIdentity.ID.Role, reason)
@@ -897,7 +897,7 @@ func (process *TeleportProcess) newClientThroughTunnel(authServers []utils.NetAd
 
 	// Check connectivity to cluster. If the request fails, unwrap the error to
 	// get the underlying error.
-	_, err = clt.GetLocalClusterName()
+	_, err = clt.GetLocalClusterName(process.ExitContext())
 	if err != nil {
 		if err2 := clt.Close(); err != nil {
 			process.log.WithError(err2).Warn("Failed to close Auth Server tunnel client.")
@@ -924,7 +924,7 @@ func (process *TeleportProcess) newClientDirect(authServers []utils.NetAddr, tls
 		return nil, trace.Wrap(err)
 	}
 
-	if _, err := clt.GetLocalClusterName(); err != nil {
+	if _, err := clt.GetLocalClusterName(process.ExitContext()); err != nil {
 		if err2 := clt.Close(); err2 != nil {
 			process.log.WithError(err2).Warn("Failed to close direct Auth Server client.")
 		}

@@ -363,7 +363,7 @@ func (p *proxyCollector) resourceKind() string {
 // getResourcesAndUpdateCurrent is called when the resources should be
 // (re-)fetched directly.
 func (p *proxyCollector) getResourcesAndUpdateCurrent(ctx context.Context) error {
-	proxies, err := p.ProxyGetter.GetProxies()
+	proxies, err := p.ProxyGetter.GetProxies(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}

@@ -179,7 +179,7 @@ func websocketsDialer(tr *http.Transport) forward.Dialer {
 // service over the reverse tunnel subsystem.
 func dialFunc(c *transportConfig) func(ctx context.Context, network string, addr string) (net.Conn, error) {
 	return func(ctx context.Context, network string, addr string) (net.Conn, error) {
-		clusterClient, err := c.proxyClient.GetSite(c.identity.RouteToApp.ClusterName)
+		clusterClient, err := c.proxyClient.GetSite(ctx, c.identity.RouteToApp.ClusterName)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}

@@ -143,7 +143,7 @@ func (a *authorizer) Authorize(ctx context.Context) (*Context, error) {
 func (a *authorizer) fromUser(ctx context.Context, userI interface{}) (*Context, error) {
 	switch user := userI.(type) {
 	case LocalUser:
-		return a.authorizeLocalUser(user)
+		return a.authorizeLocalUser(ctx, user)
 	case RemoteUser:
 		return a.authorizeRemoteUser(ctx, user)
 	case BuiltinRole:
@@ -156,8 +156,8 @@ func (a *authorizer) fromUser(ctx context.Context, userI interface{}) (*Context,
 }
 
 // authorizeLocalUser returns authz context based on the username
-func (a *authorizer) authorizeLocalUser(u LocalUser) (*Context, error) {
-	return contextForLocalUser(u, a.accessPoint)
+func (a *authorizer) authorizeLocalUser(ctx context.Context, u LocalUser) (*Context, error) {
+	return contextForLocalUser(ctx, u, a.accessPoint)
 }
 
 // authorizeRemoteUser returns checker based on cert authority roles
@@ -643,9 +643,9 @@ func contextForBuiltinRole(r BuiltinRole, recConfig types.SessionRecordingConfig
 	}, nil
 }
 
-func contextForLocalUser(u LocalUser, accessPoint ReadAccessPoint) (*Context, error) {
+func contextForLocalUser(ctx context.Context, u LocalUser, accessPoint ReadAccessPoint) (*Context, error) {
 	// User has to be fetched to check if it's a blocked username
-	user, err := accessPoint.GetUser(u.Username, false)
+	user, err := accessPoint.GetUser(ctx, u.Username, false)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

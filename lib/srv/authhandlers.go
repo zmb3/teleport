@@ -108,13 +108,13 @@ func NewAuthHandlers(config *AuthHandlerConfig) (*AuthHandlers, error) {
 
 // CreateIdentityContext returns an IdentityContext populated with information
 // about the logged in user on the connection.
-func (h *AuthHandlers) CreateIdentityContext(sconn *ssh.ServerConn) (IdentityContext, error) {
+func (h *AuthHandlers) CreateIdentityContext(ctx context.Context, sconn *ssh.ServerConn) (IdentityContext, error) {
 	identity := IdentityContext{
 		TeleportUser: sconn.Permissions.Extensions[utils.CertTeleportUser],
 		Login:        sconn.User(),
 	}
 
-	clusterName, err := h.c.AccessPoint.GetClusterName()
+	clusterName, err := h.c.AccessPoint.GetClusterName(ctx)
 	if err != nil {
 		return IdentityContext{}, trace.Wrap(err)
 	}
@@ -271,7 +271,7 @@ func (h *AuthHandlers) UserKeyAuth(conn ssh.ConnMetadata, key ssh.PublicKey) (*s
 	}
 	log.Debugf("Successfully authenticated")
 
-	clusterName, err := h.c.AccessPoint.GetClusterName()
+	clusterName, err := h.c.AccessPoint.GetClusterName(context.TODO())
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

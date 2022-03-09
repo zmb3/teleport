@@ -47,9 +47,11 @@ func (c *StatusCommand) Initialize(app *kingpin.Application, config *service.Con
 
 // TryRun takes the CLI command as an argument (like "nodes ls") and executes it.
 func (c *StatusCommand) TryRun(cmd string, client auth.ClientI) (match bool, err error) {
+	ctx := context.Background()
+
 	switch cmd {
 	case c.status.FullCommand():
-		err = c.Status(context.Background(), client)
+		err = c.Status(ctx, client)
 	default:
 		return false, nil
 	}
@@ -87,7 +89,7 @@ func (c *StatusCommand) Status(ctx context.Context, client auth.ClientI) error {
 
 	// Calculate the CA pins for this cluster. The CA pins are used by the
 	// client to verify the identity of the Auth Server.
-	localCAResponse, err := client.GetClusterCACert()
+	localCAResponse, err := client.GetClusterCACert(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
