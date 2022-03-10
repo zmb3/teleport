@@ -1119,7 +1119,7 @@ var _ map[getCertAuthorityCacheKey]struct{} // compile-time hashability check
 func (c *Cache) GetCertAuthority(ctx context.Context, id types.CertAuthID, loadSigningKeys bool, opts ...services.MarshalOption) (types.CertAuthority, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetCertAuthority",
+		"Cache/GetCertAuthority",
 		oteltrace.WithAttributes(
 			attribute.String("type", string(id.Type)),
 			attribute.String("domain", id.DomainName),
@@ -1174,7 +1174,7 @@ var _ map[getCertAuthoritiesCacheKey]struct{} // compile-time hashability check
 func (c *Cache) GetCertAuthorities(ctx context.Context, caType types.CertAuthType, loadSigningKeys bool, opts ...services.MarshalOption) ([]types.CertAuthority, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetCertAuthorities",
+		"Cache/GetCertAuthorities",
 		oteltrace.WithAttributes(
 			attribute.String("type", string(caType)),
 		),
@@ -1211,7 +1211,7 @@ func (c *Cache) GetCertAuthorities(ctx context.Context, caType types.CertAuthTyp
 
 // GetStaticTokens gets the list of static tokens used to provision nodes.
 func (c *Cache) GetStaticTokens(ctx context.Context) (types.StaticTokens, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetStaticTokens")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetStaticTokens")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1224,7 +1224,7 @@ func (c *Cache) GetStaticTokens(ctx context.Context) (types.StaticTokens, error)
 
 // GetTokens returns all active (non-expired) provisioning tokens
 func (c *Cache) GetTokens(ctx context.Context, opts ...services.MarshalOption) ([]types.ProvisionToken, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetTokens")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetTokens")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1239,9 +1239,9 @@ func (c *Cache) GetTokens(ctx context.Context, opts ...services.MarshalOption) (
 func (c *Cache) GetToken(ctx context.Context, name string) (types.ProvisionToken, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetToken",
+		"Cache/GetToken",
 		oteltrace.WithAttributes(
-			attribute.String("name", string(name)),
+			attribute.String("name", name),
 		),
 	)
 	defer span.End()
@@ -1273,7 +1273,7 @@ var _ map[clusterConfigCacheKey]struct{} // compile-time hashability check
 
 // GetClusterConfig gets services.ClusterConfig from the backend.
 func (c *Cache) GetClusterConfig(ctx context.Context, opts ...services.MarshalOption) (types.ClusterConfig, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetClusterConfig")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetClusterConfig")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1300,7 +1300,7 @@ func (c *Cache) GetClusterConfig(ctx context.Context, opts ...services.MarshalOp
 
 // GetClusterAuditConfig gets ClusterAuditConfig from the backend.
 func (c *Cache) GetClusterAuditConfig(ctx context.Context, opts ...services.MarshalOption) (types.ClusterAuditConfig, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetClusterAuditConfig")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetClusterAuditConfig")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1329,7 +1329,7 @@ func (c *Cache) GetClusterAuditConfig(ctx context.Context, opts ...services.Mars
 
 // GetClusterNetworkingConfig gets ClusterNetworkingConfig from the backend.
 func (c *Cache) GetClusterNetworkingConfig(ctx context.Context, opts ...services.MarshalOption) (types.ClusterNetworkingConfig, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetClusterNetworkingConfig")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetClusterNetworkingConfig")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1358,7 +1358,7 @@ func (c *Cache) GetClusterNetworkingConfig(ctx context.Context, opts ...services
 
 // GetClusterName gets the name of the cluster from the backend.
 func (c *Cache) GetClusterName(ctx context.Context, opts ...services.MarshalOption) (types.ClusterName, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetClusterName")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetClusterName")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1385,7 +1385,7 @@ func (c *Cache) GetClusterName(ctx context.Context, opts ...services.MarshalOpti
 
 // GetRoles is a part of auth.AccessPoint implementation
 func (c *Cache) GetRoles(ctx context.Context) ([]types.Role, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetRoles")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetRoles")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1400,7 +1400,7 @@ func (c *Cache) GetRoles(ctx context.Context) ([]types.Role, error) {
 func (c *Cache) GetRole(ctx context.Context, name string) (types.Role, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetRole",
+		"Cache/GetRole",
 		oteltrace.WithAttributes(
 			attribute.String("name", name)),
 	)
@@ -1428,7 +1428,7 @@ func (c *Cache) GetRole(ctx context.Context, name string) (types.Role, error) {
 func (c *Cache) GetNamespace(ctx context.Context, name string) (*types.Namespace, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetNamespace",
+		"Cache/GetNamespace",
 		oteltrace.WithAttributes(
 			attribute.String("name", name)),
 	)
@@ -1444,7 +1444,7 @@ func (c *Cache) GetNamespace(ctx context.Context, name string) (*types.Namespace
 
 // GetNamespaces is a part of auth.AccessPoint implementation
 func (c *Cache) GetNamespaces(ctx context.Context) ([]types.Namespace, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetNamespaces")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetNamespaces")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1459,7 +1459,7 @@ func (c *Cache) GetNamespaces(ctx context.Context) ([]types.Namespace, error) {
 func (c *Cache) GetNode(ctx context.Context, namespace, name string) (types.Server, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetNode",
+		"Cache/GetNode",
 		oteltrace.WithAttributes(
 			attribute.String("name", name),
 			attribute.String("namespace", namespace),
@@ -1485,7 +1485,7 @@ var _ map[getNodesCacheKey]struct{} // compile-time hashability check
 func (c *Cache) GetNodes(ctx context.Context, namespace string, opts ...services.MarshalOption) ([]types.Server, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetNodes",
+		"Cache/GetNodes",
 		oteltrace.WithAttributes(
 			attribute.String("namespace", namespace),
 		),
@@ -1518,7 +1518,7 @@ func (c *Cache) GetNodes(ctx context.Context, namespace string, opts ...services
 func (c *Cache) getNodesWithTTLCache(ctx context.Context, rg readGuard, namespace string, opts ...services.MarshalOption) ([]types.Server, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"getNodesWithTTLCache",
+		"Cache/getNodesWithTTLCache",
 		oteltrace.WithAttributes(
 			attribute.String("namespace", namespace),
 		),
@@ -1548,7 +1548,7 @@ func (c *Cache) getNodesWithTTLCache(ctx context.Context, rg readGuard, namespac
 func (c *Cache) ListNodes(ctx context.Context, req proto.ListNodesRequest) ([]types.Server, string, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"ListNodes",
+		"Cache/ListNodes",
 		oteltrace.WithAttributes(
 			attribute.String("namespace", req.Namespace),
 			attribute.String("startKey", req.StartKey),
@@ -1616,7 +1616,7 @@ func (c *Cache) ListNodes(ctx context.Context, req proto.ListNodesRequest) ([]ty
 
 // GetAuthServers returns a list of registered servers
 func (c *Cache) GetAuthServers(ctx context.Context) ([]types.Server, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetAuthServers")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetAuthServers")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1629,7 +1629,7 @@ func (c *Cache) GetAuthServers(ctx context.Context) ([]types.Server, error) {
 
 // GetReverseTunnels is a part of auth.AccessPoint implementation
 func (c *Cache) GetReverseTunnels(ctx context.Context, opts ...services.MarshalOption) ([]types.ReverseTunnel, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetReverseTunnels")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetReverseTunnels")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1642,7 +1642,7 @@ func (c *Cache) GetReverseTunnels(ctx context.Context, opts ...services.MarshalO
 
 // GetProxies is a part of auth.AccessPoint implementation
 func (c *Cache) GetProxies(ctx context.Context) ([]types.Server, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetProxies")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetProxies")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1661,7 +1661,7 @@ var _ map[remoteClustersCacheKey]struct{} // compile-time hashability check
 
 // GetRemoteClusters returns a list of remote clusters
 func (c *Cache) GetRemoteClusters(ctx context.Context, opts ...services.MarshalOption) ([]types.RemoteCluster, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetRemoteClusters")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetRemoteClusters")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1694,7 +1694,7 @@ func (c *Cache) GetRemoteClusters(ctx context.Context, opts ...services.MarshalO
 func (c *Cache) GetRemoteCluster(ctx context.Context, clusterName string) (types.RemoteCluster, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetRemoteCluster",
+		"Cache/GetRemoteCluster",
 		oteltrace.WithAttributes(attribute.String("cluster", clusterName)),
 	)
 	defer span.End()
@@ -1725,7 +1725,7 @@ func (c *Cache) GetRemoteCluster(ctx context.Context, clusterName string) (types
 func (c *Cache) GetUser(ctx context.Context, name string, withSecrets bool) (user types.User, err error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetUser",
+		"Cache/GetUser",
 		oteltrace.WithAttributes(attribute.String("name", name)),
 	)
 	defer span.End()
@@ -1754,7 +1754,7 @@ func (c *Cache) GetUser(ctx context.Context, name string, withSecrets bool) (use
 
 // GetUsers is a part of auth.AccessPoint implementation
 func (c *Cache) GetUsers(ctx context.Context, withSecrets bool) (users []types.User, err error) {
-	ctx, span := c.Tracer.Start(ctx, "GetUsers")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetUsers")
 	defer span.End()
 
 	if withSecrets { // cache never tracks user secrets
@@ -1774,7 +1774,7 @@ func (c *Cache) GetUsers(ctx context.Context, withSecrets bool) (users []types.U
 func (c *Cache) GetTunnelConnections(ctx context.Context, clusterName string, opts ...services.MarshalOption) ([]types.TunnelConnection, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetTunnelConnections",
+		"Cache/GetTunnelConnections",
 		oteltrace.WithAttributes(attribute.String("cluster", clusterName)),
 	)
 	defer span.End()
@@ -1791,7 +1791,7 @@ func (c *Cache) GetTunnelConnections(ctx context.Context, clusterName string, op
 // GetAllTunnelConnections are not using recent cache, as they are designed
 // to be called periodically and always return fresh data
 func (c *Cache) GetAllTunnelConnections(ctx context.Context, opts ...services.MarshalOption) (conns []types.TunnelConnection, err error) {
-	ctx, span := c.Tracer.Start(ctx, "GetAllTunnelConnections")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetAllTunnelConnections")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1804,7 +1804,7 @@ func (c *Cache) GetAllTunnelConnections(ctx context.Context, opts ...services.Ma
 
 // GetKubeServices is a part of auth.AccessPoint implementation
 func (c *Cache) GetKubeServices(ctx context.Context) ([]types.Server, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetKubeServices")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetKubeServices")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1819,7 +1819,7 @@ func (c *Cache) GetKubeServices(ctx context.Context) ([]types.Server, error) {
 func (c *Cache) GetAppServers(ctx context.Context, namespace string, opts ...services.MarshalOption) ([]types.Server, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetAppServers",
+		"Cache/GetAppServers",
 		oteltrace.WithAttributes(attribute.String("namespace", namespace)),
 	)
 	defer span.End()
@@ -1834,7 +1834,7 @@ func (c *Cache) GetAppServers(ctx context.Context, namespace string, opts ...ser
 
 // GetAppSession gets an application web session.
 func (c *Cache) GetAppSession(ctx context.Context, req types.GetAppSessionRequest) (types.WebSession, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetAppSession", oteltrace.WithAttributes(attribute.String("session", req.SessionID)))
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetAppSession", oteltrace.WithAttributes(attribute.String("session", req.SessionID)))
 	defer span.End()
 
 	rg, err := c.read()
@@ -1847,7 +1847,7 @@ func (c *Cache) GetAppSession(ctx context.Context, req types.GetAppSessionReques
 
 // GetDatabaseServers returns all registered database proxy servers.
 func (c *Cache) GetDatabaseServers(ctx context.Context, namespace string, opts ...services.MarshalOption) ([]types.DatabaseServer, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetDatabaseServers", oteltrace.WithAttributes(attribute.String("namespace", namespace)))
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetDatabaseServers", oteltrace.WithAttributes(attribute.String("namespace", namespace)))
 	defer span.End()
 
 	rg, err := c.read()
@@ -1862,7 +1862,7 @@ func (c *Cache) GetDatabaseServers(ctx context.Context, namespace string, opts .
 func (c *Cache) GetWebSession(ctx context.Context, req types.GetWebSessionRequest) (types.WebSession, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetWebSession",
+		"Cache/GetWebSession",
 		oteltrace.WithAttributes(
 			attribute.String("user", req.User),
 			attribute.String("session", req.SessionID),
@@ -1882,7 +1882,7 @@ func (c *Cache) GetWebSession(ctx context.Context, req types.GetWebSessionReques
 func (c *Cache) GetWebToken(ctx context.Context, req types.GetWebTokenRequest) (types.WebToken, error) {
 	ctx, span := c.Tracer.Start(
 		ctx,
-		"GetWebToken",
+		"Cache/GetWebToken",
 		oteltrace.WithAttributes(
 			attribute.String("user", req.User),
 			attribute.String("token", req.Token),
@@ -1900,7 +1900,7 @@ func (c *Cache) GetWebToken(ctx context.Context, req types.GetWebTokenRequest) (
 
 // GetAuthPreference gets the cluster authentication config.
 func (c *Cache) GetAuthPreference(ctx context.Context) (types.AuthPreference, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetAuthPreference")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetAuthPreference")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1913,7 +1913,7 @@ func (c *Cache) GetAuthPreference(ctx context.Context) (types.AuthPreference, er
 
 // GetSessionRecordingConfig gets session recording configuration.
 func (c *Cache) GetSessionRecordingConfig(ctx context.Context, opts ...services.MarshalOption) (types.SessionRecordingConfig, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetSessionRecordingConfig")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetSessionRecordingConfig")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1926,7 +1926,7 @@ func (c *Cache) GetSessionRecordingConfig(ctx context.Context, opts ...services.
 
 // GetNetworkRestrictions gets the network restrictions.
 func (c *Cache) GetNetworkRestrictions(ctx context.Context) (types.NetworkRestrictions, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetNetworkRestrictions")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetNetworkRestrictions")
 	defer span.End()
 
 	rg, err := c.read()
@@ -1940,7 +1940,7 @@ func (c *Cache) GetNetworkRestrictions(ctx context.Context) (types.NetworkRestri
 
 // GetLock gets a lock by name.
 func (c *Cache) GetLock(ctx context.Context, name string) (types.Lock, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetLock", oteltrace.WithAttributes(attribute.String("name", name)))
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetLock", oteltrace.WithAttributes(attribute.String("name", name)))
 	defer span.End()
 
 	rg, err := c.read()
@@ -1965,7 +1965,7 @@ func (c *Cache) GetLock(ctx context.Context, name string) (types.Lock, error) {
 // GetLocks gets all/in-force locks that match at least one of the targets
 // when specified.
 func (c *Cache) GetLocks(ctx context.Context, inForceOnly bool, targets ...types.LockTarget) ([]types.Lock, error) {
-	ctx, span := c.Tracer.Start(ctx, "GetLocks")
+	ctx, span := c.Tracer.Start(ctx, "Cache/GetLocks")
 	defer span.End()
 
 	rg, err := c.read()

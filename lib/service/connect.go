@@ -885,7 +885,7 @@ func (process *TeleportProcess) newClientThroughTunnel(authServers []utils.NetAd
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	clt, err := auth.NewClient(apiclient.Config{
+	clt, err := auth.NewClient(process.ExitContext(), apiclient.Config{
 		Dialer: dialer,
 		Credentials: []apiclient.Credentials{
 			apiclient.LoadTLS(tlsConfig),
@@ -914,7 +914,7 @@ func (process *TeleportProcess) newClientDirect(authServers []utils.NetAddr, tls
 		cltParams = []roundtrip.ClientParam{auth.ClientTimeout(process.Config.ClientTimeout)}
 	}
 
-	clt, err := auth.NewClient(apiclient.Config{
+	clt, err := auth.NewClient(process.ExitContext(), apiclient.Config{
 		Addrs: utils.NetAddrsToStrings(authServers),
 		Credentials: []apiclient.Credentials{
 			apiclient.LoadTLS(tlsConfig),

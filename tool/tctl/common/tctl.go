@@ -192,7 +192,7 @@ func connectToAuthService(ctx context.Context, cfg *service.Config, clientConfig
 	log.Debugf("Connecting to auth servers: %v.", cfg.AuthServers)
 
 	// Try connecting to the auth server directly over TLS.
-	client, err := auth.NewClient(apiclient.Config{
+	client, err := auth.NewClient(ctx, apiclient.Config{
 		Addrs: utils.NetAddrsToStrings(cfg.AuthServers),
 		Credentials: []apiclient.Credentials{
 			apiclient.LoadTLS(clientConfig.TLS),
@@ -231,7 +231,7 @@ func connectToAuthService(ctx context.Context, cfg *service.Config, clientConfig
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
-		client, err = auth.NewClient(apiclient.Config{
+		client, err = auth.NewClient(ctx, apiclient.Config{
 			Dialer: dialer,
 			Credentials: []apiclient.Credentials{
 				apiclient.LoadTLS(clientConfig.TLS),
