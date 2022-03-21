@@ -20,6 +20,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net"
 	"strings"
 	"sync"
@@ -954,9 +955,46 @@ func (s *server) GetSite(name string) (RemoteSite, error) {
 	return nil, trace.NotFound("cluster %q is not found", name)
 }
 
+type SiteCloser interface {
+	HasValidConnections() bool
+	io.Closer
+}
+
+type alwaysClose struct {
+	io.Closer
+}
+
+func (a *alwaysClose) HasValidConnections() bool {
+	return false
+}
+
+func (s *server) onSiteTunnelClose(siteName string, closer SiteCloser) error {
+	s.Lock()
+	defer s.Unlock()
+
+	if closer.HasValidConnections() {
+		return nil
+	}
+
+	var errs []error
+	if err := s.removeSiteUnderLock(siteName); err != nil {
+		errs = append(errs, err)
+	}
+
+	if err := closer.Close(); err != nil {
+		errs = append(errs, err)
+	}
+
+	return trace.NewAggregate(errs...)
+}
+
 func (s *server) removeSite(domainName string) error {
 	s.Lock()
 	defer s.Unlock()
+	return s.removeSiteUnderLock(domainName)
+}
+
+func (s *server) removeSiteUnderLock(domainName string) error {
 	for i := range s.remoteSites {
 		if s.remoteSites[i].domainName == domainName {
 			s.remoteSites = append(s.remoteSites[:i], s.remoteSites[i+1:]...)
