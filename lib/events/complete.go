@@ -26,6 +26,7 @@ import (
 	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/utils"
+	"github.com/gravitational/teleport/lib/utils/interval"
 
 	"github.com/gravitational/trace"
 
@@ -104,11 +105,16 @@ type UploadCompleter struct {
 }
 
 func (u *UploadCompleter) run() {
-	ticker := u.cfg.Clock.NewTicker(u.cfg.CheckPeriod)
-	defer ticker.Stop()
+	periodic := interval.New(interval.Config{
+		Duration:      u.cfg.CheckPeriod,
+		FirstDuration: utils.HalfJitter(u.cfg.CheckPeriod),
+		Jitter:        utils.NewSeventhJitter(),
+	})
+	defer periodic.Stop()
+
 	for {
 		select {
-		case <-ticker.Chan():
+		case <-periodic.Next():
 			if err := u.CheckUploads(u.closeCtx); err != nil {
 				u.log.WithError(err).Warningf("Failed to check uploads.")
 			}
@@ -133,6 +139,10 @@ func (u *UploadCompleter) CheckUploads(ctx context.Context) error {
 		}
 		parts, err := u.cfg.Uploader.ListParts(ctx, upload)
 		if err != nil {
+			if trace.IsNotFound(err) {
+				continue
+			}
+
 			return trace.Wrap(err)
 		}
 
