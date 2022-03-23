@@ -302,7 +302,7 @@ func (s *ProxyServer) Connect(ctx context.Context, user, database string) (net.C
 		if err != nil {
 			return nil, nil, trace.Wrap(err)
 		}
-		serviceConn, err := proxyContext.cluster.Dial(reversetunnel.DialParams{
+		serviceConn, err := proxyContext.cluster.Dial(ctx, reversetunnel.DialParams{
 			From:     &utils.NetAddr{AddrNetwork: "tcp", Addr: "@db-proxy"},
 			To:       &utils.NetAddr{AddrNetwork: "tcp", Addr: reversetunnel.LocalNode},
 			ServerID: fmt.Sprintf("%v.%v", server.GetHostID(), proxyContext.cluster.GetName()),
@@ -567,7 +567,7 @@ func getConfigForClient(conf *tls.Config, ap auth.AccessPoint, log logrus.FieldL
 				log.Debugf("Ignoring unsupported cluster name %q.", info.ServerName)
 			}
 		}
-		pool, err := auth.ClientCertPool(ap, clusterName)
+		pool, err := auth.ClientCertPool(info.Context(), ap, clusterName)
 		if err != nil {
 			log.WithError(err).Error("Failed to retrieve client CA pool.")
 			return nil, nil // Fall back to the default config.

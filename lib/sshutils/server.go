@@ -28,6 +28,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
@@ -101,6 +103,11 @@ const (
 	// right after the initial SSH "handshake/version" message if it detects
 	// talking to a Teleport server.
 	ProxyHelloSignature = "Teleport-Proxy"
+
+	// TracingSignature is a string which Teleport proxy will send
+	// right after the initial SSH "handshake/version" message if it detects
+	// talking to a Teleport server.
+	TracingSignature = "Teleport-Tracing"
 
 	// MaxVersionStringBytes is the maximum number of bytes allowed for a
 	// SSH version string
@@ -441,10 +448,16 @@ func (s *Server) HandleConnection(conn net.Conn) {
 	// create a new SSH server which handles the handshake (and pass the custom
 	// payload structure which will be populated only when/if this connection
 	// comes from another Teleport proxy):
-	sconn, chans, reqs, err := ssh.NewServerConn(wrapConnection(wconn), &s.cfg)
+	wrappedConn := wrapConnection(wconn)
+	sconn, chans, reqs, err := ssh.NewServerConn(wrappedConn, &s.cfg)
 	if err != nil {
 		conn.SetDeadline(time.Time{})
 		return
+	}
+
+	ctx := context.Background()
+	if wrappedConn.ctx != nil {
+		ctx = wrappedConn.ctx
 	}
 
 	certType := "unknown"
@@ -483,7 +496,7 @@ func (s *Server) HandleConnection(conn net.Conn) {
 	// closeContext field is used to trigger starvation on cancellation by halting
 	// the acceptance of new connections; it is not intended to halt in-progress
 	// connection handling, and is therefore orthogonal to the role of ConnectionContext.
-	ctx, ccx := NewConnectionContext(context.Background(), wconn, sconn)
+	ctx, ccx := NewConnectionContext(ctx, wconn, sconn)
 	defer ccx.Close()
 
 	if s.newConnHandler != nil {
@@ -522,7 +535,7 @@ func (s *Server) HandleConnection(conn net.Conn) {
 			}
 			s.log.Debugf("Received out-of-band request: %+v.", req)
 			if s.reqHandler != nil {
-				go s.reqHandler.HandleRequest(req)
+				go s.reqHandler.HandleRequest(context.Background(), req)
 			}
 			// handle channels:
 		case nch := <-chans:
@@ -546,7 +559,7 @@ func (s *Server) HandleConnection(conn net.Conn) {
 }
 
 type RequestHandler interface {
-	HandleRequest(r *ssh.Request)
+	HandleRequest(ctx context.Context, r *ssh.Request)
 }
 
 type NewChanHandler interface {
@@ -636,6 +649,8 @@ type (
 type HandshakePayload struct {
 	// ClientAddr is the IP address of the remote client
 	ClientAddr string `json:"clientAddr,omitempty"`
+
+	Carrier propagation.MapCarrier `json:"carrier,omitempty"`
 }
 
 // connectionWrapper allows the SSH server to perform custom handshake which
@@ -654,6 +669,8 @@ type connectionWrapper struct {
 	// a proxy). Keeping this address is the entire point of the
 	// connection wrapper.
 	clientAddr net.Addr
+
+	ctx context.Context
 }
 
 // RemoteAddr returns the behind-the-proxy client address
@@ -683,9 +700,10 @@ func (c *connectionWrapper) Read(b []byte) (int, error) {
 	buff = buff[:n]
 	skip := 0
 
+	switch {
 	// are we reading from a Teleport proxy?
-	if bytes.HasPrefix(buff, []byte(ProxyHelloSignature)) {
-		// the JSON paylaod ends with a binary zero:
+	case bytes.HasPrefix(buff, []byte(ProxyHelloSignature)):
+		// the JSON payload ends with a binary zero:
 		payloadBoundary := bytes.IndexByte(buff, 0x00)
 		if payloadBoundary > 0 {
 			var hp HandshakePayload
@@ -693,6 +711,7 @@ func (c *connectionWrapper) Read(b []byte) (int, error) {
 			if err = json.Unmarshal(payload, &hp); err != nil {
 				log.Error(err)
 			} else {
+				c.ctx = otel.GetTextMapPropagator().Extract(context.Background(), hp.Carrier)
 				ca, err := utils.ParseAddr(hp.ClientAddr)
 				if err != nil {
 					log.Error(err)
@@ -704,14 +723,29 @@ func (c *connectionWrapper) Read(b []byte) (int, error) {
 			}
 			skip = payloadBoundary + 1
 		}
+	// are we getting tracing data?
+	case bytes.HasPrefix(buff, []byte(TracingSignature)):
+		// the JSON payload ends with a binary zero:
+		payloadBoundary := bytes.IndexByte(buff, 0x00)
+		if payloadBoundary > 0 {
+			var carrier propagation.MapCarrier
+			payload := buff[len(TracingSignature):payloadBoundary]
+			if err = json.Unmarshal(payload, &carrier); err != nil {
+				log.Error(err)
+			} else {
+				c.ctx = otel.GetTextMapPropagator().Extract(context.Background(), carrier)
+			}
+			skip = payloadBoundary + 1
+		}
 	}
+
 	c.upstreamReader = io.MultiReader(bytes.NewBuffer(buff[skip:]), c.Conn)
 	return c.upstreamReader.Read(b)
 }
 
 // wrapConnection takes a network connection, wraps it into connectionWrapper
 // object (which overrides Read method) and returns the wrapper.
-func wrapConnection(conn net.Conn) net.Conn {
+func wrapConnection(conn net.Conn) *connectionWrapper {
 	return &connectionWrapper{
 		Conn:       conn,
 		clientAddr: conn.RemoteAddr(),

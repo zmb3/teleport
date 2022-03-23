@@ -154,7 +154,7 @@ type TerminalHandler struct {
 	hostUUID string
 
 	// sshSession holds the "shell" SSH channel to the node.
-	sshSession *ssh.Session
+	sshSession *sshutils.Session
 
 	// terminalContext is used to signal when the terminal sesson is closing.
 	terminalContext context.Context
@@ -286,7 +286,7 @@ func (t *TerminalHandler) makeClient(ws *websocket.Conn) (*client.TeleportClient
 	// Save the *ssh.Session after the shell has been created. The session is
 	// used to update all other parties window size to that of the web client and
 	// to allow future window changes.
-	tc.OnShellCreated = func(s *ssh.Session, c *ssh.Client, _ io.ReadWriteCloser) (bool, error) {
+	tc.OnShellCreated = func(s *sshutils.Session, c *ssh.Client, _ io.ReadWriteCloser) (bool, error) {
 		t.sshSession = s
 		t.windowChange(&t.params.Term)
 

@@ -546,7 +546,7 @@ func (f *Forwarder) setupContext(ctx auth.Context, req *http.Request, isRemoteUs
 		}
 
 		dialFn = func(ctx context.Context, network, addr, serverID string) (net.Conn, error) {
-			return targetCluster.DialTCP(reversetunnel.DialParams{
+			return targetCluster.DialTCP(ctx, reversetunnel.DialParams{
 				From:     &utils.NetAddr{AddrNetwork: "tcp", Addr: req.RemoteAddr},
 				To:       &utils.NetAddr{AddrNetwork: "tcp", Addr: addr},
 				ConnType: types.KubeTunnel,
@@ -565,7 +565,7 @@ func (f *Forwarder) setupContext(ctx auth.Context, req *http.Request, isRemoteUs
 		}
 
 		dialFn = func(ctx context.Context, network, addr, serverID string) (net.Conn, error) {
-			return localCluster.DialTCP(reversetunnel.DialParams{
+			return localCluster.DialTCP(ctx, reversetunnel.DialParams{
 				From:     &utils.NetAddr{AddrNetwork: "tcp", Addr: req.RemoteAddr},
 				To:       &utils.NetAddr{AddrNetwork: "tcp", Addr: addr},
 				ConnType: types.KubeTunnel,

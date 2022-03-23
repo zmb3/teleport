@@ -12,9 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package otel // import "go.opentelemetry.io/otel"
+package otelhttptrace
 
-// Version is the current release version of OpenTelemetry in use.
-func Version() string {
-	return "1.5.0"
+import (
+	"context"
+	"net/http"
+	"net/http/httptrace"
+)
+
+// W3C client.
+func W3C(ctx context.Context, req *http.Request) (context.Context, *http.Request) {
+	ctx = httptrace.WithClientTrace(ctx, NewClientTrace(ctx))
+	req = req.WithContext(ctx)
+	return ctx, req
 }

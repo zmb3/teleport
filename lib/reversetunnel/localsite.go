@@ -23,6 +23,7 @@ import (
 	"sync"
 	"time"
 
+	"go.opentelemetry.io/otel"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
@@ -157,6 +158,9 @@ func (s *localSite) GetLastConnected() time.Time {
 }
 
 func (s *localSite) DialAuthServer(ctx context.Context) (conn net.Conn, err error) {
+	ctx, span := otel.Tracer("LocalSite").Start(ctx, "DialAuthServer")
+	defer span.End()
+
 	// get list of local auth servers
 	authServers, err := s.client.GetAuthServers(ctx)
 	if err != nil {
@@ -179,8 +183,8 @@ func (s *localSite) DialAuthServer(ctx context.Context) (conn net.Conn, err erro
 	return nil, trace.ConnectionProblem(err, "unable to connect to auth server")
 }
 
-func (s *localSite) Dial(params DialParams) (net.Conn, error) {
-	recConfig, err := s.accessPoint.GetSessionRecordingConfig(s.srv.Context)
+func (s *localSite) Dial(ctx context.Context, params DialParams) (net.Conn, error) {
+	recConfig, err := s.accessPoint.GetSessionRecordingConfig(ctx)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -192,14 +196,14 @@ func (s *localSite) Dial(params DialParams) (net.Conn, error) {
 	}
 
 	// Attempt to perform a direct TCP dial.
-	return s.DialTCP(params)
+	return s.DialTCP(ctx, params)
 }
 
 // TODO(awly): unit test this
-func (s *localSite) DialTCP(params DialParams) (net.Conn, error) {
+func (s *localSite) DialTCP(ctx context.Context, params DialParams) (net.Conn, error) {
 	s.log.Debugf("Dialing %v.", params)
 
-	conn, _, err := s.getConn(params)
+	conn, _, err := s.getConn(ctx, params)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -225,7 +229,7 @@ func (s *localSite) dialWithAgent(ctx context.Context, params DialParams) (net.C
 
 	// If server ID matches a node that has self registered itself over the tunnel,
 	// return a connection to that node. Otherwise net.Dial to the target host.
-	targetConn, useTunnel, err := s.getConn(params)
+	targetConn, useTunnel, err := s.getConn(ctx, params)
 	if err != nil {
 		userAgent.Close()
 		return nil, trace.Wrap(err)
@@ -291,7 +295,7 @@ func (s *localSite) dialTunnel(dreq *sshutils.DialReq) (net.Conn, error) {
 	return conn, nil
 }
 
-func (s *localSite) getConn(params DialParams) (conn net.Conn, useTunnel bool, err error) {
+func (s *localSite) getConn(ctx context.Context, params DialParams) (conn net.Conn, useTunnel bool, err error) {
 	dreq := &sshutils.DialReq{
 		ServerID: params.ServerID,
 		ConnType: params.ConnType,
@@ -336,7 +340,7 @@ with the cluster.`, params.ConnType, dreq.Address, tunnelErr)
 
 	// If no tunnel connection was found, dial to the target host.
 	dialer := proxy.DialerFromEnvironment(params.To.String())
-	conn, directErr := dialer.DialTimeout(params.To.Network(), params.To.String(), apidefaults.DefaultDialTimeout)
+	conn, directErr := dialer.DialTimeout(ctx, params.To.Network(), params.To.String(), apidefaults.DefaultDialTimeout)
 	if directErr != nil {
 		s.log.WithError(directErr).WithField("address", params.To.String()).Debug("Error occurred while dialing directly.")
 		aggregateErr := trace.NewAggregate(tunnelErr, directErr)
@@ -384,7 +388,7 @@ func (s *localSite) fanOutProxies(proxies []types.Server) {
 	}
 }
 
-// handleHearbeat receives heartbeat messages from the connected agent
+// handleHeartbeat receives heartbeat messages from the connected agent
 // if the agent has missed several heartbeats in a row, Proxy marks
 // the connection as invalid.
 func (s *localSite) handleHeartbeat(rconn *remoteConn, ch ssh.Channel, reqC <-chan *ssh.Request) {

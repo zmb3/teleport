@@ -35,6 +35,7 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -589,6 +590,9 @@ func (s *remoteSite) watchLocks() error {
 }
 
 func (s *remoteSite) DialAuthServer(ctx context.Context) (net.Conn, error) {
+	ctx, span := otel.Tracer("RemoteSite").Start(ctx, "DialAuthServer")
+	defer span.End()
+
 	return s.connThroughTunnel(&sshutils.DialReq{
 		Address: constants.RemoteAuthServer,
 	})
@@ -597,8 +601,8 @@ func (s *remoteSite) DialAuthServer(ctx context.Context) (net.Conn, error) {
 // Dial is used to connect a requesting client (say, tsh) to an SSH server
 // located in a remote connected site, the connection goes through the
 // reverse proxy tunnel.
-func (s *remoteSite) Dial(params DialParams) (net.Conn, error) {
-	recConfig, err := s.localAccessPoint.GetSessionRecordingConfig(s.ctx)
+func (s *remoteSite) Dial(ctx context.Context, params DialParams) (net.Conn, error) {
+	recConfig, err := s.localAccessPoint.GetSessionRecordingConfig(ctx)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -610,10 +614,10 @@ func (s *remoteSite) Dial(params DialParams) (net.Conn, error) {
 	}
 
 	// Attempt to perform a direct TCP dial.
-	return s.DialTCP(params)
+	return s.DialTCP(ctx, params)
 }
 
-func (s *remoteSite) DialTCP(params DialParams) (net.Conn, error) {
+func (s *remoteSite) DialTCP(ctx context.Context, params DialParams) (net.Conn, error) {
 	s.Debugf("Dialing from %v to %v.", params.From, params.To)
 
 	conn, err := s.connThroughTunnel(&sshutils.DialReq{

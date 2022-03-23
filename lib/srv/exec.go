@@ -18,6 +18,7 @@ package srv
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -28,6 +29,9 @@ import (
 	"syscall"
 	"time"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
@@ -68,10 +72,10 @@ type Exec interface {
 	SetCommand(string)
 
 	// Start will start the execution of the command.
-	Start(channel ssh.Channel) (*ExecResult, error)
+	Start(ctx context.Context, channel ssh.Channel) (*ExecResult, error)
 
 	// Wait will block while the command executes.
-	Wait() *ExecResult
+	Wait(ctx context.Context) *ExecResult
 
 	// Continue will resume execution of the process after it completes its
 	// pre-processing routine (placed in a cgroup).
@@ -135,7 +139,14 @@ func (e *localExec) SetCommand(command string) {
 
 // Start launches the given command returns (nil, nil) if successful.
 // ExecResult is only used to communicate an error while launching.
-func (e *localExec) Start(channel ssh.Channel) (*ExecResult, error) {
+func (e *localExec) Start(ctx context.Context, channel ssh.Channel) (*ExecResult, error) {
+	ctx, span := otel.GetTracerProvider().Tracer("localExec").Start(
+		ctx,
+		"localExec/Start",
+		oteltrace.WithAttributes(attribute.String("command", e.GetCommand())),
+	)
+	defer span.End()
+
 	// Parse the command to see if it is scp.
 	err := e.transformSecureCopy()
 	if err != nil {
@@ -185,7 +196,14 @@ func (e *localExec) Start(channel ssh.Channel) (*ExecResult, error) {
 }
 
 // Wait will block while the command executes.
-func (e *localExec) Wait() *ExecResult {
+func (e *localExec) Wait(ctx context.Context) *ExecResult {
+	ctx, span := otel.GetTracerProvider().Tracer("localExec").Start(
+		ctx,
+		"localExec/Wait",
+		oteltrace.WithAttributes(attribute.String("command", e.GetCommand())),
+	)
+	defer span.End()
+
 	if e.Cmd.Process == nil {
 		e.Ctx.Error("No process.")
 	}
@@ -307,7 +325,14 @@ func (e *remoteExec) SetCommand(command string) {
 
 // Start launches the given command returns (nil, nil) if successful.
 // ExecResult is only used to communicate an error while launching.
-func (e *remoteExec) Start(ch ssh.Channel) (*ExecResult, error) {
+func (e *remoteExec) Start(ctx context.Context, ch ssh.Channel) (*ExecResult, error) {
+	ctx, span := otel.GetTracerProvider().Tracer("remoteExec").Start(
+		ctx,
+		"remoteExec/Start",
+		oteltrace.WithAttributes(attribute.String("command", e.GetCommand())),
+	)
+	defer span.End()
+
 	// hook up stdout/err the channel so the user can interact with the command
 	e.session.Stdout = ch
 	e.session.Stderr = ch.Stderr()
@@ -333,7 +358,14 @@ func (e *remoteExec) Start(ch ssh.Channel) (*ExecResult, error) {
 }
 
 // Wait will block while the command executes.
-func (e *remoteExec) Wait() *ExecResult {
+func (e *remoteExec) Wait(ctx context.Context) *ExecResult {
+	ctx, span := otel.GetTracerProvider().Tracer("remoteExec").Start(
+		ctx,
+		"remoteExec/Wait",
+		oteltrace.WithAttributes(attribute.String("command", e.GetCommand())),
+	)
+	defer span.End()
+
 	// Block until the command is finished executing.
 	err := e.session.Wait()
 	if err != nil {

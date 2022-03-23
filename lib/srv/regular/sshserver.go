@@ -35,6 +35,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
@@ -187,6 +188,8 @@ type Server struct {
 
 	// lockWatcher is the server's lock watcher.
 	lockWatcher *services.LockWatcher
+
+	tr oteltrace.Tracer
 }
 
 // GetClock returns server clock implementation
@@ -574,7 +577,7 @@ func New(addr utils.NetAddr,
 		return nil, trace.Wrap(err)
 	}
 
-	ctx, cancel := context.WithCancel(context.TODO())
+	ctx, cancel := context.WithCancel(context.Background())
 	s := &Server{
 		addr:               addr,
 		authService:        authService,
@@ -586,6 +589,7 @@ func New(addr utils.NetAddr,
 		clock:              clockwork.NewRealClock(),
 		dataDir:            dataDir,
 		allowTCPForwarding: true,
+		tr:                 otel.GetTracerProvider().Tracer("SSHServer"),
 	}
 	s.limiter, err = limiter.NewLimiter(limiter.Config{})
 	if err != nil {
@@ -897,7 +901,10 @@ func (s *Server) serveAgent(ctx *srv.ServerContext) error {
 // req.Reply(false, nil).
 //
 // For more details: https://tools.ietf.org/html/rfc4254.html#page-4
-func (s *Server) HandleRequest(r *ssh.Request) {
+func (s *Server) HandleRequest(ctx context.Context, r *ssh.Request) {
+	ctx, span := s.tr.Start(ctx, "SSH/Server/HandleRequest", oteltrace.WithSpanKind(oteltrace.SpanKindServer))
+	defer span.End()
+
 	switch r.Type {
 	case teleport.KeepAliveReqType:
 		s.handleKeepAlive(r)
@@ -1017,6 +1024,13 @@ func (s *Server) HandleNewConn(ctx context.Context, ccx *sshutils.ConnectionCont
 
 // HandleNewChan is called when new channel is opened
 func (s *Server) HandleNewChan(ctx context.Context, ccx *sshutils.ConnectionContext, nch ssh.NewChannel) {
+	if nch.ExtraData() != nil {
+		var carrier propagation.MapCarrier
+		if err := json.Unmarshal(nch.ExtraData(), &carrier); err == nil {
+			ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
+		}
+	}
+
 	identityContext, err := s.authHandlers.CreateIdentityContext(ctx, ccx.ServerConn)
 	if err != nil {
 		rejectChannel(nch, ssh.Prohibited, fmt.Sprintf("Unable to create identity from connection: %v", err))
@@ -1359,7 +1373,7 @@ func (s *Server) handleSessionRequests(ctx context.Context, ccx *sshutils.Connec
 				scx.Debugf("Client %v disconnected.", scx.ServerConn.RemoteAddr())
 				return
 			}
-			if err := s.dispatch(ch, req, scx); err != nil {
+			if err := s.dispatch(ctx, ch, req, scx); err != nil {
 				s.replyError(ch, req, err)
 				return
 			}
@@ -1386,24 +1400,24 @@ func (s *Server) handleSessionRequests(ctx context.Context, ccx *sshutils.Connec
 	}
 }
 
-// dispatch receives an SSH request for a subsystem and disptaches the request to the
+// dispatch receives an SSH request for a subsystem and dispatches the request to the
 // appropriate subsystem implementation
-func (s *Server) dispatch(ch ssh.Channel, req *ssh.Request, ctx *srv.ServerContext) error {
-	ctx.Debugf("Handling request %v, want reply %v.", req.Type, req.WantReply)
+func (s *Server) dispatch(ctx context.Context, ch ssh.Channel, req *ssh.Request, sctx *srv.ServerContext) error {
+	sctx.Debugf("Handling request %v, want reply %v.", req.Type, req.WantReply)
 
 	// If this SSH server is configured to only proxy, we do not support anything
 	// other than our own custom "subsystems" and environment manipulation.
 	if s.proxyMode {
 		switch req.Type {
 		case sshutils.SubsystemRequest:
-			return s.handleSubsystem(ch, req, ctx)
+			return s.handleSubsystem(ch, req, sctx)
 		case sshutils.EnvRequest:
 			// we currently ignore setting any environment variables via SSH for security purposes
-			return s.handleEnv(ch, req, ctx)
+			return s.handleEnv(ch, req, sctx)
 		case sshutils.AgentForwardRequest:
 			// process agent forwarding, but we will only forward agent to proxy in
 			// recording proxy mode.
-			err := s.handleAgentForwardProxy(req, ctx)
+			err := s.handleAgentForwardProxy(req, sctx)
 			if err != nil {
 				log.Warn(err)
 			}
@@ -1416,19 +1430,19 @@ func (s *Server) dispatch(ch ssh.Channel, req *ssh.Request, ctx *srv.ServerConte
 
 	switch req.Type {
 	case sshutils.ExecRequest:
-		return s.termHandlers.HandleExec(ch, req, ctx)
+		return s.termHandlers.HandleExec(ctx, ch, req, sctx)
 	case sshutils.PTYRequest:
-		return s.termHandlers.HandlePTYReq(ch, req, ctx)
+		return s.termHandlers.HandlePTYReq(ch, req, sctx)
 	case sshutils.ShellRequest:
-		return s.termHandlers.HandleShell(ch, req, ctx)
+		return s.termHandlers.HandleShell(ctx, ch, req, sctx)
 	case sshutils.WindowChangeRequest:
-		return s.termHandlers.HandleWinChange(ch, req, ctx)
+		return s.termHandlers.HandleWinChange(ch, req, sctx)
 	case sshutils.EnvRequest:
-		return s.handleEnv(ch, req, ctx)
+		return s.handleEnv(ch, req, sctx)
 	case sshutils.SubsystemRequest:
 		// subsystems are SSH subsystems defined in http://tools.ietf.org/html/rfc4254 6.6
 		// they are in essence SSH session extensions, allowing to implement new SSH commands
-		return s.handleSubsystem(ch, req, ctx)
+		return s.handleSubsystem(ch, req, sctx)
 	case sshutils.AgentForwardRequest:
 		// This happens when SSH client has agent forwarding enabled, in this case
 		// client sends a special request, in return SSH server opens new channel
@@ -1440,7 +1454,7 @@ func (s *Server) dispatch(ch ssh.Channel, req *ssh.Request, ctx *srv.ServerConte
 		// to maintain interoperability with OpenSSH, agent forwarding requests
 		// should never fail, all errors should be logged and we should continue
 		// processing requests.
-		err := s.handleAgentForwardNode(req, ctx)
+		err := s.handleAgentForwardNode(req, sctx)
 		if err != nil {
 			log.Warn(err)
 		}

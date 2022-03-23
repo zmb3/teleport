@@ -36,6 +36,7 @@ import (
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/session"
 	"github.com/gravitational/teleport/lib/utils"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/coreos/go-semver/semver"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -83,6 +84,7 @@ type GRPCServer struct {
 	*logrus.Entry
 	APIConfig
 	server *grpc.Server
+	tracer oteltrace.Tracer
 }
 
 func (g *GRPCServer) serverContext() context.Context {
@@ -2555,6 +2557,9 @@ func (g *GRPCServer) GetNodes(ctx context.Context, req *types.ResourcesInNamespa
 
 // ListNodes retrieves a paginated list of nodes in the given namespace.
 func (g *GRPCServer) ListNodes(ctx context.Context, req *proto.ListNodesRequest) (*proto.ListNodesResponse, error) {
+	ctx, span := g.tracer.Start(ctx, "GRPCServer/ListNodes")
+	defer span.End()
+
 	auth, err := g.authenticate(ctx)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -2997,6 +3002,8 @@ type GRPCServerConfig struct {
 	// UnaryInterceptor intercepts GRPC streams
 	// for authentication and rate limiting
 	StreamInterceptor grpc.StreamServerInterceptor
+
+	Tracer oteltrace.Tracer
 }
 
 // CheckAndSetDefaults checks and sets default values
@@ -3054,6 +3061,7 @@ func NewGRPCServer(cfg GRPCServerConfig) (*GRPCServer, error) {
 			trace.Component: teleport.Component(teleport.ComponentAuth, teleport.ComponentGRPC),
 		}),
 		server: server,
+		tracer: cfg.Tracer,
 	}
 	proto.RegisterAuthServiceServer(authServer.server, authServer)
 	return authServer, nil
@@ -3080,6 +3088,9 @@ type grpcContext struct {
 
 // authenticate extracts authentication context and returns initialized auth server
 func (g *GRPCServer) authenticate(ctx context.Context) (*grpcContext, error) {
+	ctx, span := g.tracer.Start(ctx, "GRPCServer/authenticate")
+	defer span.End()
+
 	// HTTPS server expects auth context to be set by the auth middleware
 	authContext, err := g.Authorizer.Authorize(ctx)
 	if err != nil {
@@ -3105,6 +3116,7 @@ func (g *GRPCServer) authenticate(ctx context.Context) (*grpcContext, error) {
 			context:    *authContext,
 			sessions:   g.SessionService,
 			alog:       g.AuthServer.IAuditLog,
+			tracer:     g.tracer,
 		},
 	}, nil
 }

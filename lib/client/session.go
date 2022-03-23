@@ -164,7 +164,7 @@ func (ns *NodeSession) NodeClient() *NodeClient {
 	return ns.nodeClient
 }
 
-func (ns *NodeSession) regularSession(ctx context.Context, callback func(s *ssh.Session) error) error {
+func (ns *NodeSession) regularSession(ctx context.Context, callback func(s *sshutils.Session) error) error {
 	session, err := ns.createServerSession(ctx)
 	if err != nil {
 		return trace.Wrap(err)
@@ -175,13 +175,14 @@ func (ns *NodeSession) regularSession(ctx context.Context, callback func(s *ssh.
 	return trace.Wrap(callback(session))
 }
 
-type interactiveCallback func(serverSession *ssh.Session, shell io.ReadWriteCloser) error
+type interactiveCallback func(serverSession *sshutils.Session, shell io.ReadWriteCloser) error
 
-func (ns *NodeSession) createServerSession(ctx context.Context) (*ssh.Session, error) {
+func (ns *NodeSession) createServerSession(ctx context.Context) (*sshutils.Session, error) {
 	sess, err := ns.nodeClient.NewSession(ctx)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
+
 	// pass language info into the remote session.
 	evarsToPass := []string{"LANG", "LANGUAGE"}
 	for _, evar := range evarsToPass {
@@ -211,7 +212,7 @@ func (ns *NodeSession) createServerSession(ctx context.Context) (*ssh.Session, e
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
-		err = agent.RequestAgentForwarding(sess)
+		err = sshutils.RequestAgentForwarding(sess)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
@@ -284,7 +285,7 @@ func (ns *NodeSession) interactiveSession(ctx context.Context, callback interact
 }
 
 // allocateTerminal creates (allocates) a server-side terminal for this session.
-func (ns *NodeSession) allocateTerminal(termType string, s *ssh.Session) (io.ReadWriteCloser, error) {
+func (ns *NodeSession) allocateTerminal(termType string, s *sshutils.Session) (io.ReadWriteCloser, error) {
 	var err error
 
 	// read the size of the terminal window:
@@ -304,7 +305,7 @@ func (ns *NodeSession) allocateTerminal(termType string, s *ssh.Session) (io.Rea
 	err = s.RequestPty(termType,
 		height,
 		width,
-		ssh.TerminalModes{})
+		sshutils.TerminalModes{})
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -337,7 +338,7 @@ func (ns *NodeSession) allocateTerminal(termType string, s *ssh.Session) (io.Rea
 	), nil
 }
 
-func (ns *NodeSession) updateTerminalSize(s *ssh.Session) {
+func (ns *NodeSession) updateTerminalSize(s *sshutils.Session) {
 	terminalEvents := ns.terminal.Subscribe()
 
 	lastWidth, lastHeight, err := ns.terminal.Size()
@@ -443,7 +444,7 @@ func (ns *NodeSession) updateTerminalSize(s *ssh.Session) {
 
 // runShell executes user's shell on the remote node under an interactive session
 func (ns *NodeSession) runShell(ctx context.Context, callback ShellCreatedCallback) error {
-	return ns.interactiveSession(ctx, func(s *ssh.Session, shell io.ReadWriteCloser) error {
+	return ns.interactiveSession(ctx, func(s *sshutils.Session, shell io.ReadWriteCloser) error {
 		// start the shell on the server:
 		if err := s.Shell(); err != nil {
 			return trace.Wrap(err)
@@ -475,7 +476,7 @@ func (ns *NodeSession) runCommand(ctx context.Context, cmd []string, callback Sh
 	// keyboard based signals will be propogated to the TTY on the server which is
 	// where all signal handling will occur.
 	if interactive {
-		return ns.interactiveSession(ctx, func(s *ssh.Session, term io.ReadWriteCloser) error {
+		return ns.interactiveSession(ctx, func(s *sshutils.Session, term io.ReadWriteCloser) error {
 			err := s.Start(strings.Join(cmd, " "))
 			if err != nil {
 				return trace.Wrap(err)
@@ -502,7 +503,7 @@ func (ns *NodeSession) runCommand(ctx context.Context, cmd []string, callback Sh
 	// Unfortunately at the moment the Go SSH library Teleport uses does not
 	// support sending SSH_MSG_DISCONNECT. Instead we close the SSH channel and
 	// SSH client, and try and exit as gracefully as possible.
-	return ns.regularSession(ctx, func(s *ssh.Session) error {
+	return ns.regularSession(ctx, func(s *sshutils.Session) error {
 		var err error
 
 		runContext, cancel := context.WithCancel(ctx)

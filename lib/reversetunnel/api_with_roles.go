@@ -22,6 +22,9 @@ import (
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
@@ -48,6 +51,9 @@ type TunnelWithRoles struct {
 
 // GetSites returns a list of connected remote sites
 func (t *TunnelWithRoles) GetSites(ctx context.Context) ([]RemoteSite, error) {
+	ctx, span := otel.Tracer("TunnelWithRoles").Start(ctx, "GetSites")
+	defer span.End()
+
 	clusters, err := t.tunnel.GetSites(ctx)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -79,6 +85,9 @@ func (t *TunnelWithRoles) GetSites(ctx context.Context) ([]RemoteSite, error) {
 
 // GetSite returns remote site this node belongs to
 func (t *TunnelWithRoles) GetSite(ctx context.Context, clusterName string) (RemoteSite, error) {
+	ctx, span := otel.Tracer("TunnelWithRoles").Start(ctx, "GetSite", oteltrace.WithAttributes(attribute.String("cluster", clusterName)))
+	defer span.End()
+
 	cluster, err := t.tunnel.GetSite(ctx, clusterName)
 	if err != nil {
 		return nil, trace.Wrap(err)

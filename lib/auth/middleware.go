@@ -32,9 +32,10 @@ import (
 	"github.com/gravitational/teleport/lib/limiter"
 	"github.com/gravitational/teleport/lib/multiplexer"
 	"github.com/gravitational/teleport/lib/tlsca"
-
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -59,7 +60,8 @@ type TLSServerConfig struct {
 	// to a subset of certificates based on the metadata
 	AcceptedUsage []string
 	// ID is an optional debugging ID
-	ID string
+	ID     string
+	Tracer oteltrace.Tracer
 }
 
 // CheckAndSetDefaults checks and sets default values
@@ -88,6 +90,9 @@ func (c *TLSServerConfig) CheckAndSetDefaults() error {
 	}
 	if c.Component == "" {
 		c.Component = teleport.ComponentAuth
+	}
+	if c.Tracer == nil {
+		c.Tracer = otel.GetTracerProvider().Tracer("TLSServer")
 	}
 	return nil
 }
@@ -156,6 +161,7 @@ func NewTLSServer(cfg TLSServerConfig) (*TLSServer, error) {
 		APIConfig:         cfg.APIConfig,
 		UnaryInterceptor:  authMiddleware.UnaryInterceptor,
 		StreamInterceptor: authMiddleware.StreamInterceptor,
+		Tracer:            otel.GetTracerProvider().Tracer("GRPCServer"),
 	})
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -236,6 +242,9 @@ func (t *TLSServer) Serve() error {
 // and server's GetConfigForClient reloads the list of trusted
 // local and remote certificate authorities
 func (t *TLSServer) GetConfigForClient(info *tls.ClientHelloInfo) (*tls.Config, error) {
+	ctx, span := t.cfg.Tracer.Start(info.Context(), "TLSServer/GetConfigForClient")
+	defer span.End()
+
 	var clusterName string
 	var err error
 	switch info.ServerName {
@@ -261,10 +270,10 @@ func (t *TLSServer) GetConfigForClient(info *tls.ClientHelloInfo) (*tls.Config, 
 	// certificate authorities.
 	// TODO(klizhentas) drop connections of the TLS cert authorities
 	// that are not trusted
-	pool, err := ClientCertPool(t.cfg.AccessPoint, clusterName)
+	pool, err := ClientCertPool(ctx, t.cfg.AccessPoint, clusterName)
 	if err != nil {
 		var ourClusterName string
-		if clusterName, err := t.cfg.AccessPoint.GetClusterName(info.Context()); err == nil {
+		if clusterName, err := t.cfg.AccessPoint.GetClusterName(ctx); err == nil {
 			ourClusterName = clusterName.GetClusterName()
 		}
 		t.log.Errorf("Failed to retrieve client pool. Client cluster %v, target cluster %v, error:  %v.", clusterName, ourClusterName, trace.DebugReport(err))
@@ -547,8 +556,7 @@ func (a *Middleware) WrapContextWithUser(ctx context.Context, conn *tls.Conn) (c
 }
 
 // ClientCertPool returns trusted x509 cerificate authority pool
-func ClientCertPool(client AccessCache, clusterName string) (*x509.CertPool, error) {
-	ctx := context.TODO()
+func ClientCertPool(ctx context.Context, client AccessCache, clusterName string) (*x509.CertPool, error) {
 	pool := x509.NewCertPool()
 	var authorities []types.CertAuthority
 	if clusterName == "" {

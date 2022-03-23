@@ -17,6 +17,8 @@ limitations under the License.
 package srv
 
 import (
+	"context"
+
 	"golang.org/x/crypto/ssh"
 
 	rsession "github.com/gravitational/teleport/lib/session"
@@ -33,22 +35,22 @@ type TermHandlers struct {
 // HandleExec handles requests of type "exec" which can execute with or
 // without a TTY. Result of execution is propagated back on the ExecResult
 // channel of the context.
-func (t *TermHandlers) HandleExec(ch ssh.Channel, req *ssh.Request, ctx *ServerContext) error {
+func (t *TermHandlers) HandleExec(ctx context.Context, ch ssh.Channel, req *ssh.Request, sctx *ServerContext) error {
 	// Save the request within the context.
-	ctx.request = req
+	sctx.request = req
 
 	// Parse the exec request and store it in the context.
-	_, err := parseExecRequest(req, ctx)
+	_, err := parseExecRequest(req, sctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
 	// If a terminal was previously allocated for this command, run command in
 	// an interactive session. Otherwise run it in an exec session.
-	if ctx.GetTerm() != nil {
-		return t.SessionRegistry.OpenSession(ch, req, ctx)
+	if sctx.GetTerm() != nil {
+		return t.SessionRegistry.OpenSession(ctx, ch, req, sctx)
 	}
-	return t.SessionRegistry.OpenExecSession(ch, req, ctx)
+	return t.SessionRegistry.OpenExecSession(ctx, ch, req, sctx)
 }
 
 // HandlePTYReq handles requests of type "pty-req" which allocate a TTY for
@@ -99,18 +101,18 @@ func (t *TermHandlers) HandlePTYReq(ch ssh.Channel, req *ssh.Request, ctx *Serve
 
 // HandleShell handles requests of type "shell" which request a interactive
 // shell be created within a TTY.
-func (t *TermHandlers) HandleShell(ch ssh.Channel, req *ssh.Request, ctx *ServerContext) error {
+func (t *TermHandlers) HandleShell(ctx context.Context, ch ssh.Channel, req *ssh.Request, sctx *ServerContext) error {
 	var err error
 
 	// Save the request within the context.
-	ctx.request = req
+	sctx.request = req
 
 	// Creating an empty exec request implies a interactive shell was requested.
-	ctx.ExecRequest, err = NewExecRequest(ctx, "")
+	sctx.ExecRequest, err = NewExecRequest(sctx, "")
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	if err := t.SessionRegistry.OpenSession(ch, req, ctx); err != nil {
+	if err := t.SessionRegistry.OpenSession(ctx, ch, req, sctx); err != nil {
 		return trace.Wrap(err)
 	}
 

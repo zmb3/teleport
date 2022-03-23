@@ -37,6 +37,7 @@ import (
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/session"
 	"github.com/gravitational/teleport/lib/utils"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/gravitational/trace"
 
@@ -51,6 +52,7 @@ type ServerWithRoles struct {
 	alog       events.IAuditLog
 	// context holds authorization context
 	context Context
+	tracer  oteltrace.Tracer
 }
 
 // CloseContext is closed when the auth server shuts down
@@ -673,6 +675,9 @@ func (a *ServerWithRoles) ListNodes(ctx context.Context, req proto.ListNodesRequ
 }
 
 func (a *ServerWithRoles) filterAndListNodes(ctx context.Context, req proto.ListNodesRequest) (page []types.Server, nextKey string, err error) {
+	ctx, span := a.tracer.Start(ctx, "ServerWithRoles/filterAndListNodes")
+	defer span.End()
+
 	limit := int(req.Limit)
 	if limit <= 0 {
 		return nil, "", trace.BadParameter("nonpositive parameter limit")

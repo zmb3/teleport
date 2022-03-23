@@ -18,6 +18,7 @@ package regular
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,6 +27,9 @@ import (
 	"strings"
 	"sync"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
@@ -72,6 +76,7 @@ type proxySubsys struct {
 	closeC    chan struct{}
 	error     error
 	closeOnce sync.Once
+	tracer    oteltrace.Tracer
 }
 
 // parseProxySubsys looks at the requested subsystem name and returns a fully configured
@@ -205,6 +210,7 @@ func newProxySubsys(ctx *srv.ServerContext, srv *Server, req proxySubsysRequest)
 			trace.ComponentFields: map[string]string{},
 		}),
 		closeC: make(chan struct{}),
+		tracer: otel.GetTracerProvider().Tracer("ProxySubsystem"),
 	}, nil
 }
 
@@ -213,9 +219,12 @@ func (t *proxySubsys) String() string {
 		t.namespace, t.clusterName, t.host, t.port)
 }
 
-// Start is called by Golang's ssh when it needs to engage this sybsystem (typically to establish
+// Start is called by Golang's ssh when it needs to engage this subsystem (typically to establish
 // a mapping connection between a client & remote node we're proxying to)
-func (t *proxySubsys) Start(sconn *ssh.ServerConn, ch ssh.Channel, req *ssh.Request, ctx *srv.ServerContext) error {
+func (t *proxySubsys) Start(sconn *ssh.ServerConn, ch ssh.Channel, req *ssh.Request, sctx *srv.ServerContext) error {
+	ctx, span := t.tracer.Start(sctx.CancelContext(), "ProxySubsystem/Start", oteltrace.WithSpanKind(oteltrace.SpanKindServer))
+	defer span.End()
+
 	// once we start the connection, update logger to include component fields
 	t.log = logrus.WithFields(logrus.Fields{
 		trace.Component: teleport.ComponentSubsystemProxy,
@@ -229,12 +238,12 @@ func (t *proxySubsys) Start(sconn *ssh.ServerConn, ch ssh.Channel, req *ssh.Requ
 	var (
 		site       reversetunnel.RemoteSite
 		err        error
-		tunnel     = t.srv.tunnelWithRoles(ctx)
+		tunnel     = t.srv.tunnelWithRoles(sctx)
 		clientAddr = sconn.RemoteAddr()
 	)
 	// did the client pass us a true client IP ahead of time via an environment variable?
 	// (usually the web client would do that)
-	trueClientIP, ok := ctx.GetEnv(sshutils.TrueClientAddrVar)
+	trueClientIP, ok := sctx.GetEnv(sshutils.TrueClientAddrVar)
 	if ok {
 		a, err := utils.ParseAddr(trueClientIP)
 		if err == nil {
@@ -243,7 +252,7 @@ func (t *proxySubsys) Start(sconn *ssh.ServerConn, ch ssh.Channel, req *ssh.Requ
 	}
 	// get the cluster by name:
 	if t.clusterName != "" {
-		site, err = tunnel.GetSite(ctx.CancelContext(), t.clusterName)
+		site, err = tunnel.GetSite(ctx, t.clusterName)
 		if err != nil {
 			t.log.Warn(err)
 			return trace.Wrap(err)
@@ -253,7 +262,7 @@ func (t *proxySubsys) Start(sconn *ssh.ServerConn, ch ssh.Channel, req *ssh.Requ
 	if t.host != "" {
 		// no site given? use the 1st one:
 		if site == nil {
-			sites, err := tunnel.GetSites(ctx.CancelContext())
+			sites, err := tunnel.GetSites(ctx)
 			if err != nil {
 				return trace.Wrap(err)
 			}
@@ -274,8 +283,11 @@ func (t *proxySubsys) Start(sconn *ssh.ServerConn, ch ssh.Channel, req *ssh.Requ
 // proxyToSite establishes a proxy connection from the connected SSH client to the
 // auth server of the requested remote site
 func (t *proxySubsys) proxyToSite(
-	ctx *srv.ServerContext, site reversetunnel.RemoteSite, remoteAddr net.Addr, ch ssh.Channel) error {
-	conn, err := site.DialAuthServer(ctx.CancelContext())
+	ctx context.Context, site reversetunnel.RemoteSite, remoteAddr net.Addr, ch ssh.Channel) error {
+	ctx, span := t.tracer.Start(ctx, "ProxySubsystem/proxyToSite", oteltrace.WithSpanKind(oteltrace.SpanKindServer))
+	defer span.End()
+
+	conn, err := site.DialAuthServer(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -305,7 +317,10 @@ func (t *proxySubsys) proxyToSite(
 // proxyToHost establishes a proxy connection from the connected SSH client to the
 // requested remote node (t.host:t.port) via the given site
 func (t *proxySubsys) proxyToHost(
-	ctx *srv.ServerContext, site reversetunnel.RemoteSite, remoteAddr net.Addr, ch ssh.Channel) error {
+	ctx context.Context, site reversetunnel.RemoteSite, remoteAddr net.Addr, ch ssh.Channel) error {
+	ctx, span := t.tracer.Start(ctx, "ProxySubsystem/proxyToHost", oteltrace.WithSpanKind(oteltrace.SpanKindServer))
+	defer span.End()
+
 	//
 	// first, lets fetch a list of servers at the given site. this allows us to
 	// match the given "host name" against node configuration (their 'nodename' setting)
@@ -318,16 +333,16 @@ func (t *proxySubsys) proxyToHost(
 		servers  []types.Server
 		err      error
 	)
-	localCluster, _ := t.srv.authService.GetClusterName(ctx.CancelContext())
+	localCluster, _ := t.srv.authService.GetClusterName(ctx)
 	// going to "local" CA? let's use the caching 'auth service' directly and avoid
 	// hitting the reverse tunnel link (it can be offline if the CA is down)
 	if site.GetName() == localCluster.GetName() {
-		servers, err = t.srv.authService.GetNodes(ctx.CancelContext(), t.namespace)
+		servers, err = t.srv.authService.GetNodes(ctx, t.namespace)
 		if err != nil {
 			t.log.Warn(err)
 		}
 
-		cfg, err := t.srv.authService.GetClusterNetworkingConfig(ctx.CancelContext())
+		cfg, err := t.srv.authService.GetClusterNetworkingConfig(ctx)
 		if err != nil {
 			t.log.Warn(err)
 		} else {
@@ -339,12 +354,12 @@ func (t *proxySubsys) proxyToHost(
 		if err != nil {
 			t.log.Warn(err)
 		} else {
-			servers, err = siteClient.GetNodes(ctx.CancelContext(), t.namespace)
+			servers, err = siteClient.GetNodes(ctx, t.namespace)
 			if err != nil {
 				t.log.Warn(err)
 			}
 
-			cfg, err := siteClient.GetClusterNetworkingConfig(ctx.CancelContext())
+			cfg, err := siteClient.GetClusterNetworkingConfig(ctx)
 			if err != nil {
 				t.log.Warn(err)
 			} else {
@@ -405,7 +420,7 @@ func (t *proxySubsys) proxyToHost(
 		AddrNetwork: "tcp",
 		Addr:        serverAddr,
 	}
-	conn, err := site.Dial(reversetunnel.DialParams{
+	conn, err := site.Dial(ctx, reversetunnel.DialParams{
 		From:         remoteAddr,
 		To:           toAddr,
 		GetUserAgent: t.ctx.StartAgentChannel,
@@ -421,7 +436,7 @@ func (t *proxySubsys) proxyToHost(
 
 	// this custom SSH handshake allows SSH proxy to relay the client's IP
 	// address to the SSH server
-	t.doHandshake(remoteAddr, ch, conn)
+	t.doHandshake(ctx, remoteAddr, ch, conn)
 
 	proxiedSessions.Inc()
 	go func() {
@@ -532,7 +547,7 @@ func (t *proxySubsys) Wait() error {
 
 // doHandshake allows a proxy server to send additional information (client IP)
 // to an SSH server before establishing a bridge
-func (t *proxySubsys) doHandshake(clientAddr net.Addr, clientConn io.ReadWriter, serverConn io.ReadWriter) {
+func (t *proxySubsys) doHandshake(ctx context.Context, clientAddr net.Addr, clientConn io.ReadWriter, serverConn io.ReadWriter) {
 	// on behalf of a client ask the server for it's version:
 	buff := make([]byte, sshutils.MaxVersionStringBytes)
 	n, err := serverConn.Read(buff)
@@ -545,16 +560,20 @@ func (t *proxySubsys) doHandshake(clientAddr net.Addr, clientConn io.ReadWriter,
 
 	// is that a Teleport server?
 	if bytes.HasPrefix(buff, []byte(sshutils.SSHVersionPrefix)) {
+		carrier := propagation.MapCarrier{}
+		otel.GetTextMapPropagator().Inject(ctx, &carrier)
+
 		// if we're connecting to a Teleport SSH server, send our own "handshake payload"
 		// message, along with a client's IP:
 		hp := &sshutils.HandshakePayload{
 			ClientAddr: clientAddr.String(),
+			Carrier:    carrier,
 		}
 		payloadJSON, err := json.Marshal(hp)
 		if err != nil {
 			t.log.Error(err)
 		} else {
-			// send a JSON payload sandwitched between 'teleport proxy signature' and 0x00:
+			// send a JSON payload sandwiched between 'teleport proxy signature' and 0x00:
 			payload := fmt.Sprintf("%s%s\x00", sshutils.ProxyHelloSignature, payloadJSON)
 			_, err = serverConn.Write([]byte(payload))
 			if err != nil {

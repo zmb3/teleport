@@ -77,11 +77,11 @@ type RemoteSite interface {
 	// Dial dials any address within the site network, in terminating
 	// mode it uses local instance of forwarding server to terminate
 	// and record the connection
-	Dial(DialParams) (net.Conn, error)
+	Dial(context.Context, DialParams) (net.Conn, error)
 	// DialTCP dials any address within the site network,
 	// ignores recording mode and always uses TCP dial, used
 	// in components that need direct dialer.
-	DialTCP(DialParams) (net.Conn, error)
+	DialTCP(context.Context, DialParams) (net.Conn, error)
 	// GetLastConnected returns last time the remote site was seen connected
 	GetLastConnected() time.Time
 	// GetName returns site name (identified by authority domain's name)

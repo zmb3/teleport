@@ -25,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	"go.opentelemetry.io/otel"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
@@ -175,66 +176,66 @@ func (s *SessionRegistry) emitSessionJoinEvent(ctx *ServerContext) {
 }
 
 // OpenSession either joins an existing session or starts a new session.
-func (s *SessionRegistry) OpenSession(ch ssh.Channel, req *ssh.Request, ctx *ServerContext) error {
-	session := ctx.getSession()
+func (s *SessionRegistry) OpenSession(ctx context.Context, ch ssh.Channel, req *ssh.Request, sctx *ServerContext) error {
+	session := sctx.getSession()
 	if session != nil {
-		ctx.Infof("Joining existing session %v.", session.id)
+		sctx.Infof("Joining existing session %v.", session.id)
 
 		// Update the in-memory data structure that a party member has joined.
-		_, err := session.join(ch, req, ctx)
+		_, err := session.join(ch, req, sctx)
 		if err != nil {
 			return trace.Wrap(err)
 		}
 
 		// Emit session join event to both the Audit Log as well as over the
 		// "x-teleport-event" channel in the SSH connection.
-		s.emitSessionJoinEvent(ctx)
+		s.emitSessionJoinEvent(sctx)
 
 		return nil
 	}
 	// session not found? need to create one. start by getting/generating an ID for it
-	sid, found := ctx.GetEnv(sshutils.SessionEnvVar)
+	sid, found := sctx.GetEnv(sshutils.SessionEnvVar)
 	if !found {
 		sid = string(rsession.NewID())
-		ctx.SetEnv(sshutils.SessionEnvVar, sid)
+		sctx.SetEnv(sshutils.SessionEnvVar, sid)
 	}
 	// This logic allows concurrent request to create a new session
 	// to fail, what is ok because we should never have this condition
-	sess, err := newSession(rsession.ID(sid), s, ctx)
+	sess, err := newSession(ctx, rsession.ID(sid), s, sctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	ctx.setSession(sess)
+	sctx.setSession(sess)
 	s.addSession(sess)
-	ctx.Infof("Creating (interactive) session %v.", sid)
+	sctx.Infof("Creating (interactive) session %v.", sid)
 
 	// Start an interactive session (TTY attached). Close the session if an error
 	// occurs, otherwise it will be closed by the callee.
-	if err := sess.startInteractive(ch, ctx); err != nil {
+	if err := sess.startInteractive(ctx, ch, sctx); err != nil {
 		sess.Close()
 		return trace.Wrap(err)
 	}
 	return nil
 }
 
-// OpenExecSession opens an non-interactive exec session.
-func (s *SessionRegistry) OpenExecSession(channel ssh.Channel, req *ssh.Request, ctx *ServerContext) error {
+// OpenExecSession opens a non-interactive exec session.
+func (s *SessionRegistry) OpenExecSession(ctx context.Context, channel ssh.Channel, req *ssh.Request, sctx *ServerContext) error {
 	// Create a new session ID. These sessions can not be joined so no point in
-	// looking for an exisiting one.
+	// looking for an existing one.
 	sessionID := rsession.NewID()
 
 	// This logic allows concurrent request to create a new session
 	// to fail, what is ok because we should never have this condition.
-	sess, err := newSession(sessionID, s, ctx)
+	sess, err := newSession(ctx, sessionID, s, sctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	ctx.Infof("Creating (exec) session %v.", sessionID)
+	sctx.Infof("Creating (exec) session %v.", sessionID)
 
 	// Start a non-interactive session (TTY attached). Close the session if an error
 	// occurs, otherwise it will be closed by the callee.
-	ctx.setSession(sess)
-	err = sess.startExec(channel, ctx)
+	sctx.setSession(sess)
+	err = sess.startExec(ctx, channel, sctx)
 	defer sess.Close()
 	if err != nil {
 		return trace.Wrap(err)
@@ -526,7 +527,7 @@ type session struct {
 }
 
 // newSession creates a new session with a given ID within a given context.
-func newSession(id rsession.ID, r *SessionRegistry, ctx *ServerContext) (*session, error) {
+func newSession(ctx context.Context, id rsession.ID, r *SessionRegistry, sctx *ServerContext) (*session, error) {
 	serverSessions.Inc()
 	startTime := time.Now().UTC()
 	rsess := rsession.Session{
@@ -535,17 +536,17 @@ func newSession(id rsession.ID, r *SessionRegistry, ctx *ServerContext) (*sessio
 			W: teleport.DefaultTerminalWidth,
 			H: teleport.DefaultTerminalHeight,
 		},
-		Login:          ctx.Identity.Login,
+		Login:          sctx.Identity.Login,
 		Created:        startTime,
 		LastActive:     startTime,
-		ServerID:       ctx.srv.ID(),
+		ServerID:       sctx.srv.ID(),
 		Namespace:      r.srv.GetNamespace(),
-		ServerHostname: ctx.srv.GetInfo().GetHostname(),
-		ServerAddr:     ctx.ServerConn.LocalAddr().String(),
-		ClusterName:    ctx.ClusterName,
+		ServerHostname: sctx.srv.GetInfo().GetHostname(),
+		ServerAddr:     sctx.ServerConn.LocalAddr().String(),
+		ClusterName:    sctx.ClusterName,
 	}
 
-	term := ctx.GetTerm()
+	term := sctx.GetTerm()
 	if term != nil {
 		winsize, err := term.GetWinSize()
 		if err != nil {
@@ -560,12 +561,12 @@ func newSession(id rsession.ID, r *SessionRegistry, ctx *ServerContext) (*sessio
 	// be returned here.
 	sessionServer := r.srv.GetSessionServer()
 
-	err := sessionServer.CreateSession(context.TODO(), rsess)
+	err := sessionServer.CreateSession(ctx, rsess)
 	if err != nil {
 		if trace.IsAlreadyExists(err) {
 			// if session already exists, make sure they are compatible
 			// Login matches existing login
-			existing, err := sessionServer.GetSession(context.TODO(), r.srv.GetNamespace(), id)
+			existing, err := sessionServer.GetSession(ctx, r.srv.GetNamespace(), id)
 			if err != nil {
 				return nil, trace.Wrap(err)
 			}
@@ -590,11 +591,11 @@ func newSession(id rsession.ID, r *SessionRegistry, ctx *ServerContext) (*sessio
 		parties:      make(map[rsession.ID]*party),
 		participants: make(map[rsession.ID]*party),
 		writer:       newMultiWriter(),
-		login:        ctx.Identity.Login,
+		login:        sctx.Identity.Login,
 		closeC:       make(chan bool),
 		lingerTTL:    defaults.SessionIdlePeriod,
 		startTime:    startTime,
-		serverCtx:    ctx.srv.Context(),
+		serverCtx:    sctx.srv.Context(),
 	}
 	return sess, nil
 }
@@ -653,11 +654,14 @@ func (s *session) isLingering() bool {
 
 // startInteractive starts a new interactive process (or a shell) in the
 // current session.
-func (s *session) startInteractive(ch ssh.Channel, ctx *ServerContext) error {
+func (s *session) startInteractive(ctx context.Context, ch ssh.Channel, sctx *ServerContext) error {
+	ctx, span := otel.GetTracerProvider().Tracer("session").Start(ctx, "session/current session.")
+	defer span.End()
+
 	var err error
 
 	// create a new "party" (connected client)
-	p := newParty(s, ch, ctx)
+	p := newParty(s, ch, sctx)
 
 	rec, err := newRecorder(s, ctx)
 	if err != nil {
@@ -668,18 +672,18 @@ func (s *session) startInteractive(ch ssh.Channel, ctx *ServerContext) error {
 
 	// allocate a terminal or take the one previously allocated via a
 	// seaprate "allocate TTY" SSH request
-	if ctx.GetTerm() != nil {
-		s.term = ctx.GetTerm()
-		ctx.SetTerm(nil)
+	if sctx.GetTerm() != nil {
+		s.term = sctx.GetTerm()
+		sctx.SetTerm(nil)
 	} else {
-		if s.term, err = NewTerminal(ctx); err != nil {
-			ctx.Infof("Unable to allocate new terminal: %v", err)
+		if s.term, err = NewTerminal(sctx); err != nil {
+			sctx.Infof("Unable to allocate new terminal: %v", err)
 			return trace.Wrap(err)
 		}
 	}
 
 	if err := s.term.Run(); err != nil {
-		ctx.Errorf("Unable to run shell command: %v.", err)
+		sctx.Errorf("Unable to run shell command: %v.", err)
 		return trace.ConvertSystemError(err)
 	}
 	if err := s.addParty(p); err != nil {
@@ -689,26 +693,26 @@ func (s *session) startInteractive(ch ssh.Channel, ctx *ServerContext) error {
 	// Open a BPF recording session. If BPF was not configured, not available,
 	// or running in a recording proxy, OpenSession is a NOP.
 	sessionContext := &bpf.SessionContext{
-		Context:   ctx.srv.Context(),
+		Context:   sctx.srv.Context(),
 		PID:       s.term.PID(),
 		Emitter:   s.recorder,
-		Namespace: ctx.srv.GetNamespace(),
+		Namespace: sctx.srv.GetNamespace(),
 		SessionID: s.id.String(),
-		ServerID:  ctx.srv.HostUUID(),
-		Login:     ctx.Identity.Login,
-		User:      ctx.Identity.TeleportUser,
-		Events:    ctx.Identity.RoleSet.EnhancedRecordingSet(),
+		ServerID:  sctx.srv.HostUUID(),
+		Login:     sctx.Identity.Login,
+		User:      sctx.Identity.TeleportUser,
+		Events:    sctx.Identity.RoleSet.EnhancedRecordingSet(),
 	}
-	cgroupID, err := ctx.srv.GetBPF().OpenSession(sessionContext)
+	cgroupID, err := sctx.srv.GetBPF().OpenSession(sessionContext)
 	if err != nil {
-		ctx.Errorf("Failed to open enhanced recording (interactive) session: %v: %v.", s.id, err)
+		sctx.Errorf("Failed to open enhanced recording (interactive) session: %v: %v.", s.id, err)
 		return trace.Wrap(err)
 	}
 
 	// If a cgroup ID was assigned then enhanced session recording was enabled.
 	if cgroupID > 0 {
 		s.hasEnhancedRecording = true
-		ctx.srv.GetRestrictedSessionManager().OpenSession(sessionContext, cgroupID)
+		sctx.srv.GetRestrictedSessionManager().OpenSession(sessionContext, cgroupID)
 	}
 
 	// Process has been placed in a cgroup, continue execution.
@@ -720,37 +724,37 @@ func (s *session) startInteractive(ch ssh.Channel, ctx *ServerContext) error {
 		Metadata: apievents.Metadata{
 			Type:        events.SessionStartEvent,
 			Code:        events.SessionStartCode,
-			ClusterName: ctx.ClusterName,
+			ClusterName: sctx.ClusterName,
 		},
 		ServerMetadata: apievents.ServerMetadata{
-			ServerID:        ctx.srv.HostUUID(),
-			ServerLabels:    ctx.srv.GetInfo().GetAllLabels(),
-			ServerHostname:  ctx.srv.GetInfo().GetHostname(),
-			ServerAddr:      ctx.ServerConn.LocalAddr().String(),
-			ServerNamespace: ctx.srv.GetNamespace(),
+			ServerID:        sctx.srv.HostUUID(),
+			ServerLabels:    sctx.srv.GetInfo().GetAllLabels(),
+			ServerHostname:  sctx.srv.GetInfo().GetHostname(),
+			ServerAddr:      sctx.ServerConn.LocalAddr().String(),
+			ServerNamespace: sctx.srv.GetNamespace(),
 		},
 		SessionMetadata: apievents.SessionMetadata{
 			SessionID: string(s.id),
 		},
-		UserMetadata: ctx.Identity.GetUserMetadata(),
+		UserMetadata: sctx.Identity.GetUserMetadata(),
 		ConnectionMetadata: apievents.ConnectionMetadata{
-			RemoteAddr: ctx.ServerConn.RemoteAddr().String(),
+			RemoteAddr: sctx.ServerConn.RemoteAddr().String(),
 		},
 		TerminalSize:     params.Serialize(),
-		SessionRecording: ctx.SessionRecordingConfig.GetMode(),
+		SessionRecording: sctx.SessionRecordingConfig.GetMode(),
 	}
 
 	// Local address only makes sense for non-tunnel nodes.
-	if !ctx.srv.UseTunnel() {
-		sessionStartEvent.ConnectionMetadata.LocalAddr = ctx.ServerConn.LocalAddr().String()
+	if !sctx.srv.UseTunnel() {
+		sessionStartEvent.ConnectionMetadata.LocalAddr = sctx.ServerConn.LocalAddr().String()
 	}
-	if err := s.recorder.EmitAuditEvent(ctx.srv.Context(), sessionStartEvent); err != nil {
+	if err := s.recorder.EmitAuditEvent(sctx.srv.Context(), sessionStartEvent); err != nil {
 		s.log.WithError(err).Warn("Failed to emit session start event.")
 	}
 
 	// Start a heartbeat that marks this session as active with current members
 	// of party in the backend.
-	go s.heartbeat(ctx)
+	go s.heartbeat(sctx)
 
 	doneCh := make(chan bool, 1)
 
@@ -779,7 +783,7 @@ func (s *session) startInteractive(ch ssh.Channel, ctx *ServerContext) error {
 	go func() {
 		result, err := s.term.Wait()
 		if err != nil {
-			ctx.Errorf("Received error waiting for the interactive session %v to finish: %v.", s.id, err)
+			sctx.Errorf("Received error waiting for the interactive session %v to finish: %v.", s.id, err)
 		}
 
 		// wait for copying from the pty to be complete or a timeout before
@@ -791,17 +795,17 @@ func (s *session) startInteractive(ch ssh.Channel, ctx *ServerContext) error {
 		case <-doneCh:
 		}
 
-		ctx.srv.GetRestrictedSessionManager().CloseSession(sessionContext, cgroupID)
+		sctx.srv.GetRestrictedSessionManager().CloseSession(sessionContext, cgroupID)
 
 		// Close the BPF recording session. If BPF was not configured, not available,
 		// or running in a recording proxy, this is simply a NOP.
-		err = ctx.srv.GetBPF().CloseSession(sessionContext)
+		err = sctx.srv.GetBPF().CloseSession(sessionContext)
 		if err != nil {
-			ctx.Errorf("Failed to close enhanced recording (interactive) session: %v: %v.", s.id, err)
+			sctx.Errorf("Failed to close enhanced recording (interactive) session: %v: %v.", s.id, err)
 		}
 
-		if ctx.ExecRequest.GetCommand() != "" {
-			emitExecAuditEvent(ctx, ctx.ExecRequest.GetCommand(), err)
+		if sctx.ExecRequest.GetCommand() != "" {
+			emitExecAuditEvent(sctx, sctx.ExecRequest.GetCommand(), err)
 		}
 
 		if result != nil {
@@ -861,8 +865,11 @@ func newRecorder(s *session, ctx *ServerContext) (events.StreamWriter, error) {
 	return rec, nil
 }
 
-func (s *session) startExec(channel ssh.Channel, ctx *ServerContext) error {
-	rec, err := newRecorder(s, ctx)
+func (s *session) startExec(ctx context.Context, channel ssh.Channel, sctx *ServerContext) error {
+	ctx, span := otel.GetTracerProvider().Tracer("session").Start(ctx, "session/startExec")
+	defer span.End()
+
+	rec, err := newRecorder(s, sctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -873,90 +880,90 @@ func (s *session) startExec(channel ssh.Channel, ctx *ServerContext) error {
 		Metadata: apievents.Metadata{
 			Type:        events.SessionStartEvent,
 			Code:        events.SessionStartCode,
-			ClusterName: ctx.ClusterName,
+			ClusterName: sctx.ClusterName,
 		},
 		ServerMetadata: apievents.ServerMetadata{
-			ServerID:        ctx.srv.HostUUID(),
-			ServerLabels:    ctx.srv.GetInfo().GetAllLabels(),
-			ServerHostname:  ctx.srv.GetInfo().GetHostname(),
-			ServerAddr:      ctx.ServerConn.LocalAddr().String(),
-			ServerNamespace: ctx.srv.GetNamespace(),
+			ServerID:        sctx.srv.HostUUID(),
+			ServerLabels:    sctx.srv.GetInfo().GetAllLabels(),
+			ServerHostname:  sctx.srv.GetInfo().GetHostname(),
+			ServerAddr:      sctx.ServerConn.LocalAddr().String(),
+			ServerNamespace: sctx.srv.GetNamespace(),
 		},
 		SessionMetadata: apievents.SessionMetadata{
 			SessionID: string(s.id),
 		},
-		UserMetadata: ctx.Identity.GetUserMetadata(),
+		UserMetadata: sctx.Identity.GetUserMetadata(),
 		ConnectionMetadata: apievents.ConnectionMetadata{
-			RemoteAddr: ctx.ServerConn.RemoteAddr().String(),
+			RemoteAddr: sctx.ServerConn.RemoteAddr().String(),
 		},
-		SessionRecording: ctx.SessionRecordingConfig.GetMode(),
+		SessionRecording: sctx.SessionRecordingConfig.GetMode(),
 	}
 	// Local address only makes sense for non-tunnel nodes.
-	if !ctx.srv.UseTunnel() {
-		sessionStartEvent.ConnectionMetadata.LocalAddr = ctx.ServerConn.LocalAddr().String()
+	if !sctx.srv.UseTunnel() {
+		sessionStartEvent.ConnectionMetadata.LocalAddr = sctx.ServerConn.LocalAddr().String()
 	}
-	if err := s.recorder.EmitAuditEvent(ctx.srv.Context(), sessionStartEvent); err != nil {
-		ctx.WithError(err).Warn("Failed to emit session start event.")
+	if err := s.recorder.EmitAuditEvent(sctx.srv.Context(), sessionStartEvent); err != nil {
+		sctx.WithError(err).Warn("Failed to emit session start event.")
 	}
 
 	// Start execution. If the program failed to start, send that result back.
 	// Note this is a partial start. Teleport will have re-exec'ed itself and
 	// wait until it's been placed in a cgroup and told to continue.
-	result, err := ctx.ExecRequest.Start(channel)
+	result, err := sctx.ExecRequest.Start(ctx, channel)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 	if result != nil {
-		ctx.Debugf("Exec request (%v) result: %v.", ctx.ExecRequest, result)
-		ctx.SendExecResult(*result)
+		sctx.Debugf("Exec request (%v) result: %v.", sctx.ExecRequest, result)
+		sctx.SendExecResult(*result)
 	}
 
 	// Open a BPF recording session. If BPF was not configured, not available,
 	// or running in a recording proxy, OpenSession is a NOP.
 	sessionContext := &bpf.SessionContext{
-		Context:   ctx.srv.Context(),
-		PID:       ctx.ExecRequest.PID(),
+		Context:   sctx.srv.Context(),
+		PID:       sctx.ExecRequest.PID(),
 		Emitter:   s.recorder,
-		Namespace: ctx.srv.GetNamespace(),
+		Namespace: sctx.srv.GetNamespace(),
 		SessionID: string(s.id),
-		ServerID:  ctx.srv.HostUUID(),
-		Login:     ctx.Identity.Login,
-		User:      ctx.Identity.TeleportUser,
-		Events:    ctx.Identity.RoleSet.EnhancedRecordingSet(),
+		ServerID:  sctx.srv.HostUUID(),
+		Login:     sctx.Identity.Login,
+		User:      sctx.Identity.TeleportUser,
+		Events:    sctx.Identity.RoleSet.EnhancedRecordingSet(),
 	}
-	cgroupID, err := ctx.srv.GetBPF().OpenSession(sessionContext)
+	cgroupID, err := sctx.srv.GetBPF().OpenSession(sessionContext)
 	if err != nil {
-		ctx.Errorf("Failed to open enhanced recording (exec) session: %v: %v.", ctx.ExecRequest.GetCommand(), err)
+		sctx.Errorf("Failed to open enhanced recording (exec) session: %v: %v.", sctx.ExecRequest.GetCommand(), err)
 		return trace.Wrap(err)
 	}
 
 	// If a cgroup ID was assigned then enhanced session recording was enabled.
 	if cgroupID > 0 {
 		s.hasEnhancedRecording = true
-		ctx.srv.GetRestrictedSessionManager().OpenSession(sessionContext, cgroupID)
+		sctx.srv.GetRestrictedSessionManager().OpenSession(sessionContext, cgroupID)
 	}
 
 	// Process has been placed in a cgroup, continue execution.
-	ctx.ExecRequest.Continue()
+	sctx.ExecRequest.Continue()
 
 	// Process is running, wait for it to stop.
 	go func() {
-		result = ctx.ExecRequest.Wait()
+		result = sctx.ExecRequest.Wait(ctx)
 		if result != nil {
-			ctx.SendExecResult(*result)
+			sctx.SendExecResult(*result)
 		}
 
 		// Wait a little bit to let all events filter through before closing the
 		// BPF session so everything can be recorded.
 		time.Sleep(2 * time.Second)
 
-		ctx.srv.GetRestrictedSessionManager().CloseSession(sessionContext, cgroupID)
+		sctx.srv.GetRestrictedSessionManager().CloseSession(sessionContext, cgroupID)
 
 		// Close the BPF recording session. If BPF was not configured, not available,
 		// or running in a recording proxy, this is simply a NOP.
-		err = ctx.srv.GetBPF().CloseSession(sessionContext)
+		err = sctx.srv.GetBPF().CloseSession(sessionContext)
 		if err != nil {
-			ctx.Errorf("Failed to close enhanced recording (exec) session: %v: %v.", s.id, err)
+			sctx.Errorf("Failed to close enhanced recording (exec) session: %v: %v.", s.id, err)
 		}
 
 		// Remove the session from the in-memory map.
@@ -969,48 +976,48 @@ func (s *session) startExec(channel ssh.Channel, ctx *ServerContext) error {
 			Metadata: apievents.Metadata{
 				Type:        events.SessionEndEvent,
 				Code:        events.SessionEndCode,
-				ClusterName: ctx.ClusterName,
+				ClusterName: sctx.ClusterName,
 			},
 			ServerMetadata: apievents.ServerMetadata{
-				ServerID:        ctx.srv.HostUUID(),
-				ServerLabels:    ctx.srv.GetInfo().GetAllLabels(),
-				ServerNamespace: ctx.srv.GetNamespace(),
-				ServerHostname:  ctx.srv.GetInfo().GetHostname(),
-				ServerAddr:      ctx.ServerConn.LocalAddr().String(),
+				ServerID:        sctx.srv.HostUUID(),
+				ServerLabels:    sctx.srv.GetInfo().GetAllLabels(),
+				ServerNamespace: sctx.srv.GetNamespace(),
+				ServerHostname:  sctx.srv.GetInfo().GetHostname(),
+				ServerAddr:      sctx.ServerConn.LocalAddr().String(),
 			},
 			SessionMetadata: apievents.SessionMetadata{
 				SessionID: string(s.id),
 			},
-			UserMetadata:      ctx.Identity.GetUserMetadata(),
+			UserMetadata:      sctx.Identity.GetUserMetadata(),
 			EnhancedRecording: s.hasEnhancedRecording,
 			Interactive:       false,
 			Participants: []string{
-				ctx.Identity.TeleportUser,
+				sctx.Identity.TeleportUser,
 			},
 			StartTime:        start,
 			EndTime:          end,
-			SessionRecording: ctx.SessionRecordingConfig.GetMode(),
+			SessionRecording: sctx.SessionRecordingConfig.GetMode(),
 		}
-		if err := s.recorder.EmitAuditEvent(ctx.srv.Context(), sessionEndEvent); err != nil {
-			ctx.WithError(err).Warn("Failed to emit session end event.")
+		if err := s.recorder.EmitAuditEvent(sctx.srv.Context(), sessionEndEvent); err != nil {
+			sctx.WithError(err).Warn("Failed to emit session end event.")
 		}
 
 		// Close recorder to free up associated resources and flush data.
-		if err := s.recorder.Close(ctx.srv.Context()); err != nil {
-			ctx.WithError(err).Warn("Failed to close recorder.")
+		if err := s.recorder.Close(sctx.srv.Context()); err != nil {
+			sctx.WithError(err).Warn("Failed to close recorder.")
 		}
 
 		// Close the session.
 		err = s.Close()
 		if err != nil {
-			ctx.Errorf("Failed to close session %v: %v.", s.id, err)
+			sctx.Errorf("Failed to close session %v: %v.", s.id, err)
 		}
 
 		// Remove the session from the backend.
-		if ctx.srv.GetSessionServer() != nil {
-			err := ctx.srv.GetSessionServer().DeleteSession(context.TODO(), ctx.srv.GetNamespace(), s.id)
+		if sctx.srv.GetSessionServer() != nil {
+			err := sctx.srv.GetSessionServer().DeleteSession(sctx.srv.Context(), sctx.srv.GetNamespace(), s.id)
 			if err != nil {
-				ctx.Errorf("Failed to remove active session: %v: %v. "+
+				sctx.Errorf("Failed to remove active session: %v: %v. "+
 					"Access to backend may be degraded, check connectivity to backend.",
 					s.id, err)
 			}

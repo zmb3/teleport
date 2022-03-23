@@ -184,7 +184,7 @@ func dialFunc(c *transportConfig) func(ctx context.Context, network string, addr
 			return nil, trace.Wrap(err)
 		}
 
-		conn, err := clusterClient.Dial(reversetunnel.DialParams{
+		conn, err := clusterClient.Dial(ctx, reversetunnel.DialParams{
 			From:     &utils.NetAddr{AddrNetwork: "tcp", Addr: "@web-proxy"},
 			To:       &utils.NetAddr{AddrNetwork: "tcp", Addr: reversetunnel.LocalNode},
 			ServerID: fmt.Sprintf("%v.%v", c.server.GetName(), c.identity.RouteToApp.ClusterName),

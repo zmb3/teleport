@@ -29,6 +29,8 @@ import (
 	"github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/tlsca"
+	"go.opentelemetry.io/otel"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/gravitational/trace"
 	"github.com/vulcand/predicate/builder"
@@ -60,6 +62,7 @@ func NewAuthorizer(clusterName string, accessPoint ReadAccessPoint, lockWatcher 
 		clusterName: clusterName,
 		accessPoint: accessPoint,
 		lockWatcher: lockWatcher,
+		tracer:      otel.GetTracerProvider().Tracer("Authorizer"),
 	}, nil
 }
 
@@ -74,6 +77,7 @@ type authorizer struct {
 	clusterName string
 	accessPoint ReadAccessPoint
 	lockWatcher *services.LockWatcher
+	tracer      oteltrace.Tracer
 }
 
 // AuthContext is authorization context
@@ -121,6 +125,9 @@ Loop:
 
 // Authorize authorizes user based on identity supplied via context
 func (a *authorizer) Authorize(ctx context.Context) (*Context, error) {
+	ctx, span := a.tracer.Start(ctx, "Authorizer/Authorize")
+	defer span.End()
+
 	if ctx == nil {
 		return nil, trace.AccessDenied("missing authentication context")
 	}

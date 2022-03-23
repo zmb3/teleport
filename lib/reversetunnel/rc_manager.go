@@ -28,6 +28,7 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -165,6 +166,9 @@ func (w *RemoteClusterTunnelManager) Run(ctx context.Context) {
 // Sync does a one-time sync of trusted clusters with running agent pools.
 // Non-test code should use Run() instead.
 func (w *RemoteClusterTunnelManager) Sync(ctx context.Context) error {
+	ctx, span := otel.GetTracerProvider().Tracer("RemoteClusterManager").Start(ctx, "RemoteClusterManager/Sync")
+	defer span.End()
+
 	// Fetch desired reverse tunnels and convert them to a set of
 	// remoteClusterKeys.
 	wantTunnels, err := w.cfg.AuthClient.GetReverseTunnels(ctx)

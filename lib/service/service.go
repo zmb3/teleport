@@ -2742,7 +2742,7 @@ func (process *TeleportProcess) initProxyEndpoint(conn *Connector) error {
 				tlsConfig.Certificates = append(tlsConfig.Certificates, certificate)
 			}
 
-			tlsConfig.GetConfigForClient = func(*tls.ClientHelloInfo) (*tls.Config, error) {
+			tlsConfig.GetConfigForClient = func(info *tls.ClientHelloInfo) (*tls.Config, error) {
 				var err error
 
 				tlsClone := tlsConfig.Clone()
@@ -2761,7 +2761,7 @@ func (process *TeleportProcess) initProxyEndpoint(conn *Connector) error {
 				// Build the client CA pool containing the cluster's user CA in
 				// order to be able to validate certificates provided by app
 				// access CLI clients.
-				tlsClone.ClientCAs, err = auth.ClientCertPool(accessPoint, clusterName)
+				tlsClone.ClientCAs, err = auth.ClientCertPool(info.Context(), accessPoint, clusterName)
 				if err != nil {
 					return nil, trace.Wrap(err)
 				}

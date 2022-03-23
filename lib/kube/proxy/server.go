@@ -208,7 +208,7 @@ func (t *TLSServer) GetConfigForClient(info *tls.ClientHelloInfo) (*tls.Config, 
 			}
 		}
 	}
-	pool, err := auth.ClientCertPool(t.AccessPoint, clusterName)
+	pool, err := auth.ClientCertPool(info.Context(), t.AccessPoint, clusterName)
 	if err != nil {
 		log.Errorf("failed to retrieve client pool: %v", trace.DebugReport(err))
 		// this falls back to the default config
@@ -236,7 +236,7 @@ func (t *TLSServer) GetConfigForClient(info *tls.ClientHelloInfo) (*tls.Config, 
 	if totalSubjectsLen >= int64(math.MaxUint16) {
 		log.Debugf("number of CAs in client cert pool is too large (%d) and cannot be encoded in a TLS handshake; this is due to a large number of trusted clusters; will use only the CA of the current cluster to validate", len(pool.Subjects()))
 
-		pool, err = auth.ClientCertPool(t.AccessPoint, t.ClusterName)
+		pool, err = auth.ClientCertPool(info.Context(), t.AccessPoint, t.ClusterName)
 		if err != nil {
 			log.Errorf("failed to retrieve client pool: %v", trace.DebugReport(err))
 			// this falls back to the default config

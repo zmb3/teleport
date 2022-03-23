@@ -19,6 +19,8 @@ package regular
 import (
 	"encoding/json"
 
+	"go.opentelemetry.io/otel"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport/api/types"
@@ -31,12 +33,14 @@ import (
 // This subsystem creates a new TCP connection and connects ssh channel
 // with this connection
 type proxySitesSubsys struct {
-	srv *Server
+	srv    *Server
+	tracer oteltrace.Tracer
 }
 
 func parseProxySitesSubsys(name string, srv *Server) (*proxySitesSubsys, error) {
 	return &proxySitesSubsys{
-		srv: srv,
+		srv:    srv,
+		tracer: otel.GetTracerProvider().Tracer("ProxySitesSubsystem"),
 	}, nil
 }
 
@@ -50,9 +54,12 @@ func (t *proxySitesSubsys) Wait() error {
 
 // Start serves a request for "proxysites" custom SSH subsystem. It builds an array of
 // service.Site structures, and writes it serialized as JSON back to the SSH client
-func (t *proxySitesSubsys) Start(sconn *ssh.ServerConn, ch ssh.Channel, req *ssh.Request, ctx *srv.ServerContext) error {
-	log.Debugf("proxysites.start(%v)", ctx)
-	remoteSites, err := t.srv.tunnelWithRoles(ctx).GetSites(ctx.CancelContext())
+func (t *proxySitesSubsys) Start(sconn *ssh.ServerConn, ch ssh.Channel, req *ssh.Request, sctx *srv.ServerContext) error {
+	ctx, span := t.tracer.Start(sctx.CancelContext(), "ProxySitesSubsystem/Start", oteltrace.WithSpanKind(oteltrace.SpanKindServer))
+	defer span.End()
+
+	log.Debugf("proxysites.start(%v)", sctx)
+	remoteSites, err := t.srv.tunnelWithRoles(sctx).GetSites(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
