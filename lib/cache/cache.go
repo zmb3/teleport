@@ -1138,7 +1138,8 @@ func (c *Cache) GetCertAuthority(ctx context.Context, id types.CertAuthID, loadS
 		ci, err := c.fnCache.Get(ctx, getCertAuthorityCacheKey{id}, func() (interface{}, error) {
 			// use cache's close context instead of request context in order to ensure
 			// that we don't cache a context cancellation error.
-			ca, err := rg.trust.GetCertAuthority(c.ctx, id, loadSigningKeys, opts...)
+			ctx := oteltrace.ContextWithSpanContext(c.ctx, span.SpanContext())
+			ca, err := rg.trust.GetCertAuthority(ctx, id, loadSigningKeys, opts...)
 			ta(ca)
 			return ca, err
 		})
@@ -1191,7 +1192,8 @@ func (c *Cache) GetCertAuthorities(ctx context.Context, caType types.CertAuthTyp
 		ci, err := c.fnCache.Get(ctx, getCertAuthoritiesCacheKey{caType}, func() (interface{}, error) {
 			// use cache's close context instead of request context in order to ensure
 			// that we don't cache a context cancellation error.
-			cas, err := rg.trust.GetCertAuthorities(c.ctx, caType, loadSigningKeys, opts...)
+			ctx := oteltrace.ContextWithSpanContext(c.ctx, span.SpanContext())
+			cas, err := rg.trust.GetCertAuthorities(ctx, caType, loadSigningKeys, opts...)
 			ta(cas)
 			return cas, trace.Wrap(err)
 		})
@@ -1284,7 +1286,8 @@ func (c *Cache) GetClusterConfig(ctx context.Context, opts ...services.MarshalOp
 	if !rg.IsCacheRead() {
 		ta := func(_ types.ClusterConfig) {} // compile-time type assertion
 		ci, err := c.fnCache.Get(ctx, clusterConfigCacheKey{"main"}, func() (interface{}, error) {
-			cfg, err := rg.clusterConfig.GetClusterConfig(c.ctx, opts...)
+			ctx := oteltrace.ContextWithSpanContext(c.ctx, span.SpanContext())
+			cfg, err := rg.clusterConfig.GetClusterConfig(ctx, opts...)
 			ta(cfg)
 			return cfg, err
 		})
@@ -1313,7 +1316,8 @@ func (c *Cache) GetClusterAuditConfig(ctx context.Context, opts ...services.Mars
 		ci, err := c.fnCache.Get(ctx, clusterConfigCacheKey{"audit"}, func() (interface{}, error) {
 			// use cache's close context instead of request context in order to ensure
 			// that we don't cache a context cancellation error.
-			cfg, err := rg.clusterConfig.GetClusterAuditConfig(c.ctx, opts...)
+			ctx := oteltrace.ContextWithSpanContext(c.ctx, span.SpanContext())
+			cfg, err := rg.clusterConfig.GetClusterAuditConfig(ctx, opts...)
 			ta(cfg)
 			return cfg, err
 		})
@@ -1342,7 +1346,8 @@ func (c *Cache) GetClusterNetworkingConfig(ctx context.Context, opts ...services
 		ci, err := c.fnCache.Get(ctx, clusterConfigCacheKey{"networking"}, func() (interface{}, error) {
 			// use cache's close context instead of request context in order to ensure
 			// that we don't cache a context cancellation error.
-			cfg, err := rg.clusterConfig.GetClusterNetworkingConfig(c.ctx, opts...)
+			ctx := oteltrace.ContextWithSpanContext(c.ctx, span.SpanContext())
+			cfg, err := rg.clusterConfig.GetClusterNetworkingConfig(ctx, opts...)
 			ta(cfg)
 			return cfg, err
 		})
@@ -1369,7 +1374,8 @@ func (c *Cache) GetClusterName(ctx context.Context, opts ...services.MarshalOpti
 	if !rg.IsCacheRead() {
 		ta := func(_ types.ClusterName) {} // compile-time type assertion
 		ci, err := c.fnCache.Get(ctx, clusterConfigCacheKey{"name"}, func() (interface{}, error) {
-			cfg, err := rg.clusterConfig.GetClusterName(c.ctx, opts...)
+			ctx := oteltrace.ContextWithSpanContext(c.ctx, span.SpanContext())
+			cfg, err := rg.clusterConfig.GetClusterName(ctx, opts...)
 			ta(cfg)
 			return cfg, err
 		})
@@ -1503,10 +1509,13 @@ func (c *Cache) GetNodes(ctx context.Context, namespace string, opts ...services
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
+
+		span.AddEvent("copying nodes", oteltrace.WithAttributes(attribute.Int("count", len(cachedNodes))))
 		nodes := make([]types.Server, 0, len(cachedNodes))
 		for _, node := range cachedNodes {
 			nodes = append(nodes, node.DeepCopy())
 		}
+		span.AddEvent("completed copying nodes", oteltrace.WithAttributes(attribute.Int("count", len(cachedNodes))))
 		return nodes, nil
 	}
 
@@ -1529,7 +1538,8 @@ func (c *Cache) getNodesWithTTLCache(ctx context.Context, rg readGuard, namespac
 	ni, err := c.fnCache.Get(ctx, getNodesCacheKey{namespace}, func() (interface{}, error) {
 		// use cache's close context instead of request context in order to ensure
 		// that we don't cache a context cancellation error.
-		nodes, err := rg.presence.GetNodes(c.ctx, namespace, opts...)
+		ctx := oteltrace.ContextWithSpanContext(c.ctx, span.SpanContext())
+		nodes, err := rg.presence.GetNodes(ctx, namespace, opts...)
 		ta(nodes)
 		return nodes, err
 	})
@@ -1672,7 +1682,8 @@ func (c *Cache) GetRemoteClusters(ctx context.Context, opts ...services.MarshalO
 	if !rg.IsCacheRead() {
 		ta := func(_ []types.RemoteCluster) {} // compile-time type assertion
 		ri, err := c.fnCache.Get(ctx, remoteClustersCacheKey{}, func() (interface{}, error) {
-			remotes, err := rg.presence.GetRemoteClusters(c.ctx, opts...)
+			ctx := oteltrace.ContextWithSpanContext(c.ctx, span.SpanContext())
+			remotes, err := rg.presence.GetRemoteClusters(ctx, opts...)
 			ta(remotes)
 			return remotes, err
 		})
@@ -1707,7 +1718,8 @@ func (c *Cache) GetRemoteCluster(ctx context.Context, clusterName string) (types
 	if !rg.IsCacheRead() {
 		ta := func(_ types.RemoteCluster) {} // compile-time type assertion
 		ri, err := c.fnCache.Get(ctx, remoteClustersCacheKey{clusterName}, func() (interface{}, error) {
-			remote, err := rg.presence.GetRemoteCluster(c.ctx, clusterName)
+			ctx := oteltrace.ContextWithSpanContext(c.ctx, span.SpanContext())
+			remote, err := rg.presence.GetRemoteCluster(ctx, clusterName)
 			ta(remote)
 			return remote, err
 		})

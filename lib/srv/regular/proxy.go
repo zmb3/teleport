@@ -28,6 +28,7 @@ import (
 	"sync"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/ssh"
@@ -373,7 +374,7 @@ func (t *proxySubsys) proxyToHost(
 	t.log.Debugf("proxy connecting to host=%v port=%v, exact port=%v, strategy=%s", t.host, t.port, t.SpecifiedPort(), strategy)
 
 	// determine which server to connect to
-	server, err := t.getMatchingServer(servers, strategy)
+	server, err := t.getMatchingServer(ctx, servers, strategy)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -420,6 +421,12 @@ func (t *proxySubsys) proxyToHost(
 		AddrNetwork: "tcp",
 		Addr:        serverAddr,
 	}
+	span.AddEvent("dialing site", oteltrace.WithAttributes(
+		attribute.String("from", remoteAddr.String()),
+		attribute.String("to", toAddr.String()),
+		attribute.String("address", t.host),
+		attribute.String("server_id", serverID),
+	))
 	conn, err := site.Dial(ctx, reversetunnel.DialParams{
 		From:         remoteAddr,
 		To:           toAddr,
@@ -429,6 +436,12 @@ func (t *proxySubsys) proxyToHost(
 		Principals:   principals,
 		ConnType:     types.NodeTunnel,
 	})
+	span.AddEvent("completed dialing site", oteltrace.WithAttributes(
+		attribute.String("from", remoteAddr.String()),
+		attribute.String("to", toAddr.String()),
+		attribute.String("address", t.host),
+		attribute.String("server_id", serverID),
+	))
 	if err != nil {
 		failedConnectingToNode.Inc()
 		return trace.Wrap(err)
@@ -464,7 +477,9 @@ func (t *proxySubsys) proxyToHost(
 // is types.RoutingStrategy_UNAMBIGUOUS_MATCH. When the strategy is types.RoutingStrategy_MOST_RECENT then
 // the server that has heartbeated most recently will be returned instead of an error. If no matches are found then
 // both the types.Server and error returned will be nil.
-func (t *proxySubsys) getMatchingServer(servers []types.Server, strategy types.RoutingStrategy) (types.Server, error) {
+func (t *proxySubsys) getMatchingServer(ctx context.Context, servers []types.Server, strategy types.RoutingStrategy) (types.Server, error) {
+	ctx, span := t.tracer.Start(ctx, "ProxySubsystem/getMatchingServer", oteltrace.WithSpanKind(oteltrace.SpanKindServer))
+	defer span.End()
 	// check if hostname is a valid uuid.  If it is, we will preferentially match
 	// by node ID over node hostname.
 	hostIsUUID := uuid.Parse(t.host) != nil

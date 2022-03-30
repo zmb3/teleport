@@ -535,7 +535,7 @@ func (s *Server) HandleConnection(conn net.Conn) {
 			}
 			s.log.Debugf("Received out-of-band request: %+v.", req)
 			if s.reqHandler != nil {
-				go s.reqHandler.HandleRequest(context.Background(), req)
+				go s.reqHandler.HandleRequest(ctx, req)
 			}
 			// handle channels:
 		case nch := <-chans:

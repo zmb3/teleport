@@ -29,6 +29,8 @@ import (
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
+	"go.opentelemetry.io/otel/attribute"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/gravitational/trace"
 	"github.com/pborman/uuid"
@@ -234,6 +236,10 @@ func (s *PresenceService) GetNodes(ctx context.Context, namespace string, opts .
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
+
+	span := oteltrace.SpanFromContext(ctx)
+
+	span.AddEvent("unmarshalling nodes", oteltrace.WithAttributes(attribute.Int("count", len(result.Items))))
 	// Marshal values into a []services.Server slice.
 	servers := make([]types.Server, len(result.Items))
 	for i, item := range result.Items {
@@ -248,6 +254,7 @@ func (s *PresenceService) GetNodes(ctx context.Context, namespace string, opts .
 		}
 		servers[i] = server
 	}
+	span.AddEvent("completed unmarshalling nodes", oteltrace.WithAttributes(attribute.Int("count", len(result.Items))))
 
 	return servers, nil
 }
