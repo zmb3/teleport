@@ -311,7 +311,7 @@ func (a *Server) RotateExternalCertAuthority(ctx context.Context, ca types.CertA
 // does nothing if no rotation parameters were set up
 // or it is too early to rotate per schedule
 func (a *Server) autoRotateCertAuthorities(ctx context.Context) error {
-	clusterName, err := a.GetClusterName()
+	clusterName, err := a.GetClusterName(ctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}

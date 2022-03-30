@@ -663,12 +663,12 @@ func (s *session) startInteractive(ctx context.Context, ch ssh.Channel, sctx *Se
 	// create a new "party" (connected client)
 	p := newParty(s, ch, sctx)
 
-	rec, err := newRecorder(s, ctx)
+	rec, err := newRecorder(s, sctx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 	s.recorder = rec
-	s.writer.addWriter("session-recorder", utils.WriteCloserWithContext(ctx.srv.Context(), s.recorder), true)
+	s.writer.addWriter("session-recorder", utils.WriteCloserWithContext(sctx.srv.Context(), s.recorder), true)
 
 	// allocate a terminal or take the one previously allocated via a
 	// seaprate "allocate TTY" SSH request
