@@ -92,7 +92,7 @@ require (
 	github.com/siddontang/go-mysql v1.1.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	github.com/tstranex/u2f v0.0.0-20160508205855-eb799ce68da4
 	github.com/vulcand/predicate v1.1.0
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
@@ -100,6 +100,7 @@ require (
 	go.etcd.io/etcd/client/v3 v3.5.2
 	go.mongodb.org/mongo-driver v1.5.3
 	go.mozilla.org/pkcs7 v0.0.0-20210826202110-33d05740a352
+	go.opentelemetry.io/collector/model v0.48.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.29.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.29.0
 	go.opentelemetry.io/otel v1.5.0
@@ -117,8 +118,8 @@ require (
 	golang.org/x/text v0.3.7
 	google.golang.org/api v0.43.0
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c
-	google.golang.org/grpc v1.44.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/grpc v1.45.0
+	google.golang.org/protobuf v1.28.0
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
 	gopkg.in/ini.v1 v1.62.0
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect

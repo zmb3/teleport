@@ -582,7 +582,7 @@ github.com/sirupsen/logrus/hooks/syslog
 ## explicit
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
-# github.com/stretchr/testify v1.7.0
+# github.com/stretchr/testify v1.7.1
 ## explicit
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
@@ -683,6 +683,20 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
+# go.opentelemetry.io/collector/model v0.48.0
+## explicit
+go.opentelemetry.io/collector/model/internal/data
+go.opentelemetry.io/collector/model/internal/data/protogen/collector/logs/v1
+go.opentelemetry.io/collector/model/internal/data/protogen/collector/metrics/v1
+go.opentelemetry.io/collector/model/internal/data/protogen/collector/trace/v1
+go.opentelemetry.io/collector/model/internal/data/protogen/common/v1
+go.opentelemetry.io/collector/model/internal/data/protogen/logs/v1
+go.opentelemetry.io/collector/model/internal/data/protogen/metrics/v1
+go.opentelemetry.io/collector/model/internal/data/protogen/resource/v1
+go.opentelemetry.io/collector/model/internal/data/protogen/trace/v1
+go.opentelemetry.io/collector/model/internal/pdata
+go.opentelemetry.io/collector/model/otlpgrpc
+go.opentelemetry.io/collector/model/pdata
 # go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.29.0
 ## explicit
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc
@@ -908,7 +922,7 @@ google.golang.org/genproto/googleapis/rpc/status
 google.golang.org/genproto/googleapis/type/expr
 google.golang.org/genproto/googleapis/type/latlng
 google.golang.org/genproto/protobuf/field_mask
-# google.golang.org/grpc v1.44.0
+# google.golang.org/grpc v1.45.0
 ## explicit
 google.golang.org/grpc
 google.golang.org/grpc/attributes
@@ -969,7 +983,7 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.27.1
+# google.golang.org/protobuf v1.28.0
 ## explicit
 google.golang.org/protobuf/cmd/protoc-gen-go/internal_gengo
 google.golang.org/protobuf/compiler/protogen

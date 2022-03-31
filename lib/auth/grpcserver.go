@@ -24,6 +24,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/coreos/go-semver/semver"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client/proto"
 	"github.com/gravitational/teleport/api/constants"
@@ -36,15 +38,13 @@ import (
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/session"
 	"github.com/gravitational/teleport/lib/utils"
-	oteltrace "go.opentelemetry.io/otel/trace"
-
-	"github.com/coreos/go-semver/semver"
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/gravitational/trace"
 	"github.com/gravitational/trace/trail"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/collector/model/otlpgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/keepalive"
@@ -85,6 +85,11 @@ type GRPCServer struct {
 	APIConfig
 	server *grpc.Server
 	tracer oteltrace.Tracer
+}
+
+func (g *GRPCServer) Export(ctx context.Context, request otlpgrpc.TracesRequest) (otlpgrpc.TracesResponse, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (g *GRPCServer) serverContext() context.Context {
@@ -3064,6 +3069,7 @@ func NewGRPCServer(cfg GRPCServerConfig) (*GRPCServer, error) {
 		tracer: cfg.Tracer,
 	}
 	proto.RegisterAuthServiceServer(authServer.server, authServer)
+	otlpgrpc.RegisterTracesServer(authServer.server, authServer)
 	return authServer, nil
 }
 
