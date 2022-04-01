@@ -34,6 +34,7 @@ import (
 	"github.com/gravitational/teleport/lib/tlsca"
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/collector/model/otlpgrpc"
 	"go.opentelemetry.io/otel"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/net/http2"
@@ -60,8 +61,9 @@ type TLSServerConfig struct {
 	// to a subset of certificates based on the metadata
 	AcceptedUsage []string
 	// ID is an optional debugging ID
-	ID     string
-	Tracer oteltrace.Tracer
+	ID       string
+	Tracer   oteltrace.Tracer
+	Exporter otlpgrpc.TracesClient
 }
 
 // CheckAndSetDefaults checks and sets default values
@@ -161,7 +163,8 @@ func NewTLSServer(cfg TLSServerConfig) (*TLSServer, error) {
 		APIConfig:         cfg.APIConfig,
 		UnaryInterceptor:  authMiddleware.UnaryInterceptor,
 		StreamInterceptor: authMiddleware.StreamInterceptor,
-		Tracer:            otel.GetTracerProvider().Tracer("GRPCServer"),
+		Tracer:            cfg.Tracer,
+		Exporter:          cfg.Exporter,
 	})
 	if err != nil {
 		return nil, trace.Wrap(err)

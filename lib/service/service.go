@@ -1300,6 +1300,14 @@ func (process *TeleportProcess) initAuthService() error {
 		listener.Close()
 		return trace.Wrap(err)
 	}
+
+	ctx, cancel := context.WithTimeout(process.ExitContext(), 10*time.Second)
+	defer cancel()
+	exporter, err := tracing.TracesClient(ctx)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
 	go mux.Serve()
 	tlsServer, err := auth.NewTLSServer(auth.TLSServerConfig{
 		TLS:           tlsConfig,
@@ -1309,6 +1317,7 @@ func (process *TeleportProcess) initAuthService() error {
 		Component:     teleport.Component(teleport.ComponentAuth, process.id),
 		ID:            process.id,
 		Listener:      mux.TLS(),
+		Exporter:      exporter,
 	})
 	if err != nil {
 		return trace.Wrap(err)

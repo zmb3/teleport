@@ -83,13 +83,17 @@ var (
 type GRPCServer struct {
 	*logrus.Entry
 	APIConfig
-	server *grpc.Server
-	tracer oteltrace.Tracer
+	server   *grpc.Server
+	tracer   oteltrace.Tracer
+	exporter otlpgrpc.TracesClient
 }
 
-func (g *GRPCServer) Export(ctx context.Context, request otlpgrpc.TracesRequest) (otlpgrpc.TracesResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (g *GRPCServer) Export(ctx context.Context, req otlpgrpc.TracesRequest) (otlpgrpc.TracesResponse, error) {
+	if req.Traces().SpanCount() <= 0 {
+		return otlpgrpc.NewTracesResponse(), nil
+	}
+
+	return g.exporter.Export(ctx, req)
 }
 
 func (g *GRPCServer) serverContext() context.Context {
@@ -3008,7 +3012,8 @@ type GRPCServerConfig struct {
 	// for authentication and rate limiting
 	StreamInterceptor grpc.StreamServerInterceptor
 
-	Tracer oteltrace.Tracer
+	Tracer   oteltrace.Tracer
+	Exporter otlpgrpc.TracesClient
 }
 
 // CheckAndSetDefaults checks and sets default values
@@ -3065,8 +3070,9 @@ func NewGRPCServer(cfg GRPCServerConfig) (*GRPCServer, error) {
 		Entry: logrus.WithFields(logrus.Fields{
 			trace.Component: teleport.Component(teleport.ComponentAuth, teleport.ComponentGRPC),
 		}),
-		server: server,
-		tracer: cfg.Tracer,
+		server:   server,
+		tracer:   cfg.Tracer,
+		exporter: cfg.Exporter,
 	}
 	proto.RegisterAuthServiceServer(authServer.server, authServer)
 	otlpgrpc.RegisterTracesServer(authServer.server, authServer)

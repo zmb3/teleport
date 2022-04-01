@@ -602,23 +602,27 @@ func Run(args []string, opts ...cliOption) error {
 
 	setEnvFlags(&cf, os.Getenv)
 
-	if addr := os.Getenv("TELEPORT_TRACING_ADDR"); addr != "" {
-		shutdown, err := tracing.InitializeTraceProvider(cf.Context,
-			tracing.Config{
-				Service:     "tsh",
-				AgentAddr:   addr,
-				SampleRatio: 1.0,
-			})
-		if err != nil {
-			return trace.Wrap(err)
-		}
-		defer shutdown(cf.Context)
-		cf.Tracer = otel.GetTracerProvider().Tracer("tsh", oteltrace.WithInstrumentationVersion(teleport.Version))
-
-		ctx, span := cf.Tracer.Start(cf.Context, command)
-		defer span.End()
-		cf.Context = ctx
+	tc, err := makeClient(&cf, true)
+	proxyClient, err := tc.ConnectToProxy(ctx)
+	if err != nil {
+		return trace.Wrap(err)
 	}
+
+	shutdown, err := tracing.InitializeTraceProvider(cf.Context,
+		tracing.Config{
+			Service:     "tsh",
+			ProxyClient: proxyClient,
+			SampleRatio: 1.0,
+		})
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	defer shutdown(cf.Context)
+	cf.Tracer = otel.GetTracerProvider().Tracer("tsh", oteltrace.WithInstrumentationVersion(teleport.Version))
+
+	ctx, span := cf.Tracer.Start(cf.Context, command)
+	defer span.End()
+	cf.Context = ctx
 
 	switch command {
 	case ver.FullCommand():

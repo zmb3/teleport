@@ -6,7 +6,9 @@ import (
 	"path"
 
 	"github.com/gravitational/teleport"
+	client2 "github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/trace"
+	"go.opentelemetry.io/collector/model/otlpgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -17,6 +19,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Config struct {
@@ -25,14 +28,42 @@ type Config struct {
 	Directory   string
 	Attributes  []attribute.KeyValue
 	SampleRatio float64
+	ProxyClient *client2.ProxyClient
+}
+
+func TracesClient(ctx context.Context) (otlpgrpc.TracesClient, error) {
+	addr := os.Getenv("TELEPORT_TRACING_ADDR")
+
+	conn, err := grpc.DialContext(
+		ctx,
+		addr,
+		grpc.WithBlock(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return otlpgrpc.NewTracesClient(conn), nil
 }
 
 // InitializeTraceProvider creates and configures the corresponding trace provider.
 func InitializeTraceProvider(ctx context.Context, cfg Config) (func(ctx context.Context), error) {
-	var traceExp sdktrace.SpanExporter
+	var spanExporter sdktrace.SpanExporter
 	clean := func() error { return nil }
 
 	switch {
+	case cfg.ProxyClient != nil:
+		conn, err := cfg.ProxyClient.AuthConn(ctx)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		traceClient := otlptracegrpc.NewClient(otlptracegrpc.WithGRPCConn(conn))
+		exporter, err := otlptrace.New(ctx, traceClient)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		spanExporter = exporter
 	case cfg.AgentAddr != "":
 		traceClient := otlptracegrpc.NewClient(
 			otlptracegrpc.WithInsecure(),
@@ -43,7 +74,7 @@ func InitializeTraceProvider(ctx context.Context, cfg Config) (func(ctx context.
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
-		traceExp = exporter
+		spanExporter = exporter
 	case cfg.Directory != "":
 		f, err := os.OpenFile(path.Join(cfg.Directory, "tracing"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
@@ -57,7 +88,7 @@ func InitializeTraceProvider(ctx context.Context, cfg Config) (func(ctx context.
 
 		clean = f.Close
 
-		traceExp = exporter
+		spanExporter = exporter
 	default:
 		return nil, trace.BadParameter("invalid tracing configuration")
 	}
@@ -80,7 +111,7 @@ func InitializeTraceProvider(ctx context.Context, cfg Config) (func(ctx context.
 		return nil, trace.Wrap(err)
 	}
 
-	bsp := sdktrace.NewBatchSpanProcessor(traceExp)
+	bsp := sdktrace.NewBatchSpanProcessor(spanExporter)
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.TraceIDRatioBased(cfg.SampleRatio)),
 		sdktrace.WithResource(res),
@@ -95,7 +126,7 @@ func InitializeTraceProvider(ctx context.Context, cfg Config) (func(ctx context.
 		if err := bsp.ForceFlush(ctx); err != nil {
 			otel.Handle(err)
 		}
-		if err := traceExp.Shutdown(ctx); err != nil {
+		if err := spanExporter.Shutdown(ctx); err != nil {
 			otel.Handle(err)
 		}
 

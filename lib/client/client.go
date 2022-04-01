@@ -19,6 +19,7 @@ package client
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"io"
@@ -29,12 +30,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gravitational/teleport/api/constants"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client"
@@ -74,6 +78,41 @@ type NodeClient struct {
 	Client    *ssh.Client
 	Proxy     *ProxyClient
 	TC        *TeleportClient
+}
+
+func (proxy *ProxyClient) AuthConn(ctx context.Context) (*grpc.ClientConn, error) {
+	var tlsConfig *tls.Config
+	if proxy.teleportClient.SkipLocalAuth {
+		tlsConfig = proxy.teleportClient.TLS
+	} else {
+		tlsKey, err := proxy.localAgent().GetCoreKey()
+		if err != nil {
+			return nil, trace.Wrap(err, "failed to fetch TLS key for %v", proxy.teleportClient.Username)
+		}
+		tlsConfig, err := tlsKey.TeleportClientTLSConfig(nil)
+		if err != nil {
+			return nil, trace.Wrap(err, "failed to generate client TLS config")
+		}
+		tlsConfig.InsecureSkipVerify = proxy.teleportClient.InsecureSkipVerify
+	}
+
+	site, err := proxy.currentCluster(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	conn, err := grpc.DialContext(
+		ctx,
+		constants.APIDomain,
+		grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) {
+			return proxy.dialAuthServer(ctx, site.Name)
+		}),
+		grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)),
+	)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	return conn, nil
 }
 
 func (proxy *ProxyClient) NewSession(ctx context.Context) (*sshutils.Session, error) {
