@@ -42,9 +42,9 @@ import (
 	"github.com/gravitational/trace/trail"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
-	"go.opentelemetry.io/collector/model/otlpgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	oteltrace "go.opentelemetry.io/otel/trace"
+	coltracepb "go.opentelemetry.io/proto/otlp/collector/trace/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/keepalive"
@@ -83,17 +83,20 @@ var (
 type GRPCServer struct {
 	*logrus.Entry
 	APIConfig
-	server   *grpc.Server
-	tracer   oteltrace.Tracer
-	exporter otlpgrpc.TracesClient
+	server *grpc.Server
+	tracer oteltrace.Tracer
+	client coltracepb.TraceServiceClient
+
+	coltracepb.TraceServiceServer
 }
 
-func (g *GRPCServer) Export(ctx context.Context, req otlpgrpc.TracesRequest) (otlpgrpc.TracesResponse, error) {
-	if req.Traces().SpanCount() <= 0 {
-		return otlpgrpc.NewTracesResponse(), nil
+func (g *GRPCServer) Export(ctx context.Context, req *coltracepb.ExportTraceServiceRequest) (*coltracepb.ExportTraceServiceResponse, error) {
+	if len(req.ResourceSpans) <= 0 {
+		return nil, nil
 	}
 
-	return g.exporter.Export(ctx, req)
+	_, err := g.client.Export(ctx, req)
+	return nil, trace.Wrap(err)
 }
 
 func (g *GRPCServer) serverContext() context.Context {
@@ -3013,7 +3016,7 @@ type GRPCServerConfig struct {
 	StreamInterceptor grpc.StreamServerInterceptor
 
 	Tracer   oteltrace.Tracer
-	Exporter otlpgrpc.TracesClient
+	Exporter coltracepb.TraceServiceClient
 }
 
 // CheckAndSetDefaults checks and sets default values
@@ -3070,12 +3073,12 @@ func NewGRPCServer(cfg GRPCServerConfig) (*GRPCServer, error) {
 		Entry: logrus.WithFields(logrus.Fields{
 			trace.Component: teleport.Component(teleport.ComponentAuth, teleport.ComponentGRPC),
 		}),
-		server:   server,
-		tracer:   cfg.Tracer,
-		exporter: cfg.Exporter,
+		server: server,
+		tracer: cfg.Tracer,
+		client: cfg.Exporter,
 	}
 	proto.RegisterAuthServiceServer(authServer.server, authServer)
-	otlpgrpc.RegisterTracesServer(authServer.server, authServer)
+	coltracepb.RegisterTraceServiceServer(authServer.server, authServer)
 	return authServer, nil
 }
 

@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/api/metadata"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
@@ -83,17 +84,23 @@ type NodeClient struct {
 func (proxy *ProxyClient) AuthConn(ctx context.Context) (*grpc.ClientConn, error) {
 	var tlsConfig *tls.Config
 	if proxy.teleportClient.SkipLocalAuth {
-		tlsConfig = proxy.teleportClient.TLS
+		tlsConfig = proxy.teleportClient.TLS.Clone()
 	} else {
 		tlsKey, err := proxy.localAgent().GetCoreKey()
 		if err != nil {
 			return nil, trace.Wrap(err, "failed to fetch TLS key for %v", proxy.teleportClient.Username)
 		}
-		tlsConfig, err := tlsKey.TeleportClientTLSConfig(nil)
+		cfg, err := tlsKey.TeleportClientTLSConfig(nil)
 		if err != nil {
 			return nil, trace.Wrap(err, "failed to generate client TLS config")
 		}
-		tlsConfig.InsecureSkipVerify = proxy.teleportClient.InsecureSkipVerify
+		cfg.InsecureSkipVerify = proxy.teleportClient.InsecureSkipVerify
+		tlsConfig = cfg
+	}
+
+	cfg, err := client.LoadTLS(tlsConfig).TLSConfig()
+	if err != nil {
+		return nil, trace.Wrap(err)
 	}
 
 	site, err := proxy.currentCluster(ctx)
@@ -107,7 +114,8 @@ func (proxy *ProxyClient) AuthConn(ctx context.Context) (*grpc.ClientConn, error
 		grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) {
 			return proxy.dialAuthServer(ctx, site.Name)
 		}),
-		grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)),
+		grpc.WithChainUnaryInterceptor(metadata.UnaryClientInterceptor),
+		grpc.WithTransportCredentials(credentials.NewTLS(cfg)),
 	)
 	if err != nil {
 		return nil, trace.Wrap(err)

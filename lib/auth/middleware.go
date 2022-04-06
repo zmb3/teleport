@@ -34,9 +34,9 @@ import (
 	"github.com/gravitational/teleport/lib/tlsca"
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
-	"go.opentelemetry.io/collector/model/otlpgrpc"
 	"go.opentelemetry.io/otel"
 	oteltrace "go.opentelemetry.io/otel/trace"
+	coltracepb "go.opentelemetry.io/proto/otlp/collector/trace/v1"
 	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -63,7 +63,7 @@ type TLSServerConfig struct {
 	// ID is an optional debugging ID
 	ID       string
 	Tracer   oteltrace.Tracer
-	Exporter otlpgrpc.TracesClient
+	Exporter coltracepb.TraceServiceClient
 }
 
 // CheckAndSetDefaults checks and sets default values
@@ -95,6 +95,9 @@ func (c *TLSServerConfig) CheckAndSetDefaults() error {
 	}
 	if c.Tracer == nil {
 		c.Tracer = otel.GetTracerProvider().Tracer("TLSServer")
+	}
+	if c.Exporter == nil {
+		c.Exporter = coltracepb.NewTraceServiceClient()
 	}
 	return nil
 }

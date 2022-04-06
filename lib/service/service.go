@@ -2048,7 +2048,7 @@ func (process *TeleportProcess) initTracing(addr string) error {
 	ctx, cancel := context.WithTimeout(process.ExitContext(), 10*time.Second)
 	defer cancel()
 
-	closeTracing, err := tracing.InitializeTraceProvider(ctx, tracing.Config{
+	provider, err := tracing.NewTraceProvider(ctx, tracing.Config{
 		Service:     "teleport",
 		AgentAddr:   addr,
 		Attributes:  attrs,
@@ -2065,11 +2065,11 @@ func (process *TeleportProcess) initTracing(addr string) error {
 	process.OnExit("tracing.shutdown", func(payload interface{}) {
 		if payload == nil {
 			log.Info("Shutting down immediately.")
-			closeTracing(context.Background())
+			warnOnErr(provider.Shutdown(context.Background()), log)
 		} else {
 			log.Infof("Shutting down gracefully.")
 			ctx := payloadContext(payload, log)
-			closeTracing(ctx)
+			warnOnErr(provider.Shutdown(ctx), log)
 		}
 		process.log.Info("Exited.")
 	})

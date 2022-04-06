@@ -2,13 +2,14 @@ package tracing
 
 import (
 	"context"
+	"io"
+	"net/url"
 	"os"
 	"path"
 
 	"github.com/gravitational/teleport"
 	client2 "github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/trace"
-	"go.opentelemetry.io/collector/model/otlpgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -18,6 +19,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	oteltrace "go.opentelemetry.io/otel/trace"
+	coltracepb "go.opentelemetry.io/proto/otlp/collector/trace/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -31,50 +34,114 @@ type Config struct {
 	ProxyClient *client2.ProxyClient
 }
 
-func TracesClient(ctx context.Context) (otlpgrpc.TracesClient, error) {
-	addr := os.Getenv("TELEPORT_TRACING_ADDR")
-
-	conn, err := grpc.DialContext(
-		ctx,
-		addr,
-		grpc.WithBlock(),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+func TracesClient(ctx context.Context) (coltracepb.TraceServiceClient, error) {
+	agentAddr := os.Getenv("TELEPORT_TRACING_ADDR")
+	addr, err := url.Parse(agentAddr)
 	if err != nil {
-		return nil, err
+		return nil, trace.Wrap(err)
 	}
 
-	return otlpgrpc.NewTracesClient(conn), nil
+	switch addr.Scheme {
+	case "http":
+		return nil, trace.NotImplemented("http tracing is not supported yet")
+	case "https":
+		return nil, trace.NotImplemented("https tracing is not supported yet")
+	case "grpc":
+		conn, err := grpc.DialContext(
+			ctx,
+			agentAddr[len("grpc://"):],
+			grpc.WithBlock(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		return coltracepb.NewTraceServiceClient(conn), nil
+	case "":
+		conn, err := grpc.DialContext(
+			ctx,
+			agentAddr,
+			grpc.WithBlock(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		return coltracepb.NewTraceServiceClient(conn), nil
+	default:
+		return nil, trace.BadParameter("unsupported exporter scheme: %q", addr.Scheme)
+	}
 }
 
-// InitializeTraceProvider creates and configures the corresponding trace provider.
-func InitializeTraceProvider(ctx context.Context, cfg Config) (func(ctx context.Context), error) {
-	var spanExporter sdktrace.SpanExporter
-	clean := func() error { return nil }
+var _ sdktrace.SpanExporter = (*SpanExporter)(nil)
 
+type SpanExporter struct {
+	exporter sdktrace.SpanExporter
+	closer   io.Closer
+}
+
+func (e SpanExporter) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
+	return trace.Wrap(e.exporter.ExportSpans(ctx, spans))
+}
+
+func (e SpanExporter) Shutdown(ctx context.Context) error {
+	return trace.NewAggregate(e.exporter.Shutdown(ctx), e.closer.Close())
+}
+
+func NewExporter(ctx context.Context, cfg Config) (*SpanExporter, error) {
 	switch {
 	case cfg.ProxyClient != nil:
 		conn, err := cfg.ProxyClient.AuthConn(ctx)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
-		traceClient := otlptracegrpc.NewClient(otlptracegrpc.WithGRPCConn(conn))
-		exporter, err := otlptrace.New(ctx, traceClient)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		spanExporter = exporter
-	case cfg.AgentAddr != "":
+
 		traceClient := otlptracegrpc.NewClient(
-			otlptracegrpc.WithInsecure(),
-			otlptracegrpc.WithEndpoint(cfg.AgentAddr),
+			otlptracegrpc.WithGRPCConn(conn),
 			otlptracegrpc.WithDialOption(grpc.WithBlock()),
 		)
 		exporter, err := otlptrace.New(ctx, traceClient)
 		if err != nil {
+			return nil, trace.NewAggregate(err, conn.Close())
+		}
+
+		return &SpanExporter{
+			exporter: exporter,
+			closer:   conn,
+		}, nil
+
+	case cfg.AgentAddr != "":
+		addr, err := url.Parse(cfg.AgentAddr)
+		if err != nil {
 			return nil, trace.Wrap(err)
 		}
-		spanExporter = exporter
+
+		var traceClient otlptrace.Client
+		switch addr.Scheme {
+		case "http":
+		case "https":
+		case "grpc", "":
+			addr := cfg.AgentAddr[len("grpc://"):]
+			traceClient = otlptracegrpc.NewClient(
+				otlptracegrpc.WithInsecure(),
+				otlptracegrpc.WithEndpoint(addr),
+				otlptracegrpc.WithDialOption(grpc.WithBlock()),
+			)
+		default:
+			return nil, trace.BadParameter("unsupported exporter scheme: %q", addr.Scheme)
+		}
+
+		exporter, err := otlptrace.New(ctx, traceClient)
+		if err != nil {
+			return nil, trace.NewAggregate(err, traceClient.Stop(context.Background()))
+		}
+
+		return &SpanExporter{
+			exporter: exporter,
+			closer:   io.NopCloser(nil),
+		}, nil
 	case cfg.Directory != "":
 		f, err := os.OpenFile(path.Join(cfg.Directory, "tracing"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
@@ -83,14 +150,39 @@ func InitializeTraceProvider(ctx context.Context, cfg Config) (func(ctx context.
 
 		exporter, err := stdouttrace.New(stdouttrace.WithWriter(f))
 		if err != nil {
-			return nil, trace.Wrap(err)
+			return nil, trace.Wrap(err, f.Close())
 		}
 
-		clean = f.Close
-
-		spanExporter = exporter
+		return &SpanExporter{
+			exporter: exporter,
+			closer:   f,
+		}, nil
 	default:
 		return nil, trace.BadParameter("invalid tracing configuration")
+	}
+}
+
+var _ oteltrace.TracerProvider = (*Provider)(nil)
+
+type Provider struct {
+	provider *sdktrace.TracerProvider
+}
+
+func (p *Provider) Tracer(instrumentationName string, opts ...oteltrace.TracerOption) oteltrace.Tracer {
+	opts = append(opts, oteltrace.WithInstrumentationVersion(teleport.Version))
+
+	return p.provider.Tracer(instrumentationName, opts...)
+}
+
+func (p *Provider) Shutdown(ctx context.Context) error {
+	return trace.Wrap(p.provider.ForceFlush(ctx), p.provider.Shutdown(ctx))
+}
+
+// NewTraceProvider creates and configures the corresponding trace provider.
+func NewTraceProvider(ctx context.Context, cfg Config) (*Provider, error) {
+	exporter, err := NewExporter(ctx, cfg)
+	if err != nil {
+		return nil, trace.Wrap(err)
 	}
 
 	attrs := []attribute.KeyValue{
@@ -111,27 +203,19 @@ func InitializeTraceProvider(ctx context.Context, cfg Config) (func(ctx context.
 		return nil, trace.Wrap(err)
 	}
 
-	bsp := sdktrace.NewBatchSpanProcessor(spanExporter)
-	tracerProvider := sdktrace.NewTracerProvider(
+	processor := sdktrace.NewBatchSpanProcessor(exporter)
+	otelProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.TraceIDRatioBased(cfg.SampleRatio)),
 		sdktrace.WithResource(res),
-		sdktrace.WithSpanProcessor(bsp),
+		sdktrace.WithSpanProcessor(processor),
 	)
 
 	// set global propagator the default is no-op.
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-	otel.SetTracerProvider(tracerProvider)
 
-	return func(ctx context.Context) {
-		if err := bsp.ForceFlush(ctx); err != nil {
-			otel.Handle(err)
-		}
-		if err := spanExporter.Shutdown(ctx); err != nil {
-			otel.Handle(err)
-		}
+	// set global provider to our provider to have all tracers use the common TracerOptions
+	provider := &Provider{provider: otelProvider}
+	otel.SetTracerProvider(provider)
 
-		if err := clean(); err != nil {
-			otel.Handle(err)
-		}
-	}, nil
+	return provider, nil
 }

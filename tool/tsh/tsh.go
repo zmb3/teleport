@@ -337,7 +337,7 @@ func Run(args []string, opts ...cliOption) error {
 	moduleCfg := modules.GetModules()
 
 	// configure CLI argument parser:
-	app := utils.InitCLIParser("tsh", "TSH: Teleport Authentication Gateway Client").Interspersed(false)
+	app := utils.InitCLIParser(teleport.ComponentTSH, "TSH: Teleport Authentication Gateway Client").Interspersed(false)
 	app.Flag("login", "Remote host login").Short('l').Envar(loginEnvVar).StringVar(&cf.NodeLogin)
 	localUser, _ := client.Username()
 	app.Flag("proxy", "SSH proxy address").Envar(proxyEnvVar).StringVar(&cf.Proxy)
@@ -602,28 +602,17 @@ func Run(args []string, opts ...cliOption) error {
 
 	setEnvFlags(&cf, os.Getenv)
 
-	tc, err := makeClient(&cf, true)
-	proxyClient, err := tc.ConnectToProxy(ctx)
+	clean, err := setupTracing(&cf, command, []string{login.FullCommand()})
 	if err != nil {
-		return trace.Wrap(err)
+		log.WithError(err).Debug("failed to set up tracing")
 	}
-
-	shutdown, err := tracing.InitializeTraceProvider(cf.Context,
-		tracing.Config{
-			Service:     "tsh",
-			ProxyClient: proxyClient,
-			SampleRatio: 1.0,
-		})
-	if err != nil {
-		return trace.Wrap(err)
-	}
-	defer shutdown(cf.Context)
-	cf.Tracer = otel.GetTracerProvider().Tracer("tsh", oteltrace.WithInstrumentationVersion(teleport.Version))
 
 	ctx, span := cf.Tracer.Start(cf.Context, command)
-	defer span.End()
+	defer func() {
+		span.End()
+		clean()
+	}()
 	cf.Context = ctx
-
 	switch command {
 	case ver.FullCommand():
 		utils.PrintVersion()
@@ -708,6 +697,56 @@ func Run(args []string, opts ...cliOption) error {
 	}
 
 	return trace.Wrap(err)
+}
+
+func setupTracing(cf *CLIConf, command string, whitelist []string) (func(), error) {
+	// initialize the tracer to one from the no-op provider first - that way
+	// if things go wrong here, everything else that uses the tracer will
+	// still work but just create noop spans.
+	cf.Tracer = otel.GetTracerProvider().Tracer(teleport.ComponentTSH)
+
+	// ignore any commands that have been whitelisted
+	for _, c := range whitelist {
+		if strings.EqualFold(command, c) {
+			return func() {}, nil
+		}
+	}
+
+	tc, err := makeClient(cf, true)
+	if err != nil {
+		return func() {}, trace.Wrap(err)
+	}
+
+	var proxyClient *client.ProxyClient
+	err = client.RetryWithRelogin(cf.Context, tc, func() error {
+		proxyClient, err = tc.ConnectToProxy(cf.Context)
+		return err
+	})
+	if err != nil {
+		return func() {}, trace.Wrap(err)
+	}
+
+	provider, err := tracing.NewTraceProvider(cf.Context,
+		tracing.Config{
+			Service:     teleport.ComponentTSH,
+			ProxyClient: proxyClient,
+			SampleRatio: 1.0,
+		})
+	if err != nil {
+		return func() {}, trace.Wrap(err)
+	}
+
+	// update our tracer now that we have successfully initialized the provider
+	cf.Tracer = provider.Tracer(teleport.ComponentTSH)
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	return func() {
+		if err := provider.Shutdown(shutdownCtx); err != nil && !errors.Is(err, context.DeadlineExceeded) {
+			log.WithError(err).Debugf("failed to shutdown trace provider")
+		}
+		cancel()
+	}, nil
+
 }
 
 // onPlay replays a session with a given ID
