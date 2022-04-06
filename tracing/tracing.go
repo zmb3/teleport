@@ -34,8 +34,23 @@ type Config struct {
 	ProxyClient *client2.ProxyClient
 }
 
+type noopClient struct{}
+
+func (n noopClient) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
+	return nil
+}
+
+func (n noopClient) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+	return nil, nil
+}
+
 func TracesClient(ctx context.Context) (coltracepb.TraceServiceClient, error) {
 	agentAddr := os.Getenv("TELEPORT_TRACING_ADDR")
+
+	if agentAddr == "" {
+		return coltracepb.NewTraceServiceClient(noopClient{}), nil
+	}
+
 	addr, err := url.Parse(agentAddr)
 	if err != nil {
 		return nil, trace.Wrap(err)

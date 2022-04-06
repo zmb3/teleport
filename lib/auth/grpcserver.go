@@ -91,7 +91,7 @@ type GRPCServer struct {
 }
 
 func (g *GRPCServer) Export(ctx context.Context, req *coltracepb.ExportTraceServiceRequest) (*coltracepb.ExportTraceServiceResponse, error) {
-	if len(req.ResourceSpans) <= 0 {
+	if g.client == nil || len(req.ResourceSpans) == 0 {
 		return nil, nil
 	}
 

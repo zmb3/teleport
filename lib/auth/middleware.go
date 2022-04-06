@@ -96,9 +96,6 @@ func (c *TLSServerConfig) CheckAndSetDefaults() error {
 	if c.Tracer == nil {
 		c.Tracer = otel.GetTracerProvider().Tracer("TLSServer")
 	}
-	if c.Exporter == nil {
-		c.Exporter = coltracepb.NewTraceServiceClient()
-	}
 	return nil
 }
 
