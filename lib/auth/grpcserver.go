@@ -92,11 +92,11 @@ type GRPCServer struct {
 
 func (g *GRPCServer) Export(ctx context.Context, req *coltracepb.ExportTraceServiceRequest) (*coltracepb.ExportTraceServiceResponse, error) {
 	if g.client == nil || len(req.ResourceSpans) == 0 {
-		return nil, nil
+		return &coltracepb.ExportTraceServiceResponse{}, nil
 	}
 
-	_, err := g.client.Export(ctx, req)
-	return nil, trace.Wrap(err)
+	res, err := g.client.Export(ctx, req)
+	return res, trace.Wrap(err)
 }
 
 func (g *GRPCServer) serverContext() context.Context {
