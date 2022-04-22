@@ -37,9 +37,9 @@ import (
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/session"
 	"github.com/gravitational/teleport/lib/utils"
-	oteltrace "go.opentelemetry.io/otel/trace"
-
 	"github.com/gravitational/trace"
+	"go.opentelemetry.io/otel/attribute"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/sirupsen/logrus"
 )
@@ -2703,14 +2703,25 @@ func (a *ServerWithRoles) GetDatabaseServers(ctx context.Context, namespace stri
 	// MFA is not required to list the databases, but will be required to
 	// connect to them.
 	mfaParams := services.AccessMFAParams{Verified: true}
+
+	span := oteltrace.SpanFromContext(ctx)
+
+	span.AddEvent("filtering databases")
 	for _, server := range servers {
+		span.AddEvent("checking access to database", oteltrace.WithAttributes(attribute.String("server", server.GetName())))
 		err := a.context.Checker.CheckAccessToDatabase(server, mfaParams, &services.DatabaseLabelsMatcher{Labels: server.GetAllLabels()})
+
 		if err != nil && !trace.IsAccessDenied(err) {
+			span.AddEvent("completed checking access to database", oteltrace.WithAttributes(attribute.String("server", server.GetName())))
 			return nil, trace.Wrap(err)
 		} else if err == nil {
+			span.AddEvent("access to database granted", oteltrace.WithAttributes(attribute.String("server", server.GetName())))
 			filtered = append(filtered, server)
+		} else {
+			span.AddEvent("access to database denied", oteltrace.WithAttributes(attribute.String("server", server.GetName())))
 		}
 	}
+	span.AddEvent("completed filtering databases")
 	return filtered, nil
 }
 
