@@ -24,7 +24,6 @@ import (
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/types/events"
 	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/utils/interval"
@@ -65,7 +64,8 @@ func (cfg *UploadCompleterConfig) CheckAndSetDefaults() error {
 		cfg.Component = teleport.ComponentAuth
 	}
 	if cfg.CheckPeriod == 0 {
-		cfg.CheckPeriod = defaults.AbandonedUploadPollingRate
+		// cfg.CheckPeriod = defaults.AbandonedUploadPollingRate
+		cfg.CheckPeriod = time.Second * 5
 	}
 	if cfg.Clock == nil {
 		cfg.Clock = clockwork.NewRealClock()
