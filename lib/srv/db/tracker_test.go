@@ -110,7 +110,7 @@ func TestSessionTracker(t *testing.T) {
 				}
 				return false
 			}
-			require.Eventually(t, trackerCreated, time.Second*15, time.Second)
+			require.Eventually(t, trackerCreated, time.Second*10, time.Second)
 			require.Equal(t, types.SessionState_SessionStateRunning, tracker.GetState())
 
 			// The session tracker expiration should be extended while the session is active
@@ -120,7 +120,7 @@ func TestSessionTracker(t *testing.T) {
 				require.NoError(t, err)
 				return updatedTracker.Expiry().Equal(tracker.Expiry().Add(defaults.SessionTrackerExpirationUpdateInterval))
 			}
-			require.Eventually(t, trackerUpdated, time.Second*15, time.Second)
+			require.Eventually(t, trackerUpdated, time.Second*10, time.Second)
 
 			// Closing connection should trigger session tracker state to be terminated.
 			closeFunc(t)
@@ -130,7 +130,7 @@ func TestSessionTracker(t *testing.T) {
 				require.NoError(t, err)
 				return tracker.GetState() == types.SessionState_SessionStateTerminated
 			}
-			require.Eventually(t, trackerTerminated, time.Second*15, time.Second)
+			require.Eventually(t, trackerTerminated, time.Second*10, time.Second)
 		})
 	}
 }
