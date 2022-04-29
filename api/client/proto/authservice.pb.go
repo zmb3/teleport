@@ -9560,6 +9560,7 @@ func (m *ListResourcesResponse) GetTotalCount() int32 {
 // CreateSessionTrackerRequest is a request to create a new session.
 //
 // This is not specific to any session type. Relevant fields should be set for a given session type.
+// DELETE IN 11.0.0 - Deprecated in favor or UpsertSessionTracker
 type CreateSessionTrackerRequest struct {
 	// Namespace is a session namespace, separating sessions from each other.
 	Namespace string `protobuf:"bytes,1,opt,name=Namespace,proto3" json:"namespace,omitempty"`
@@ -11068,6 +11069,7 @@ type AuthServiceClient interface {
 	// UpsertSessionTracker upserts a new session tracker resource.
 	UpsertSessionTracker(ctx context.Context, in *types.SessionTrackerV1, opts ...grpc.CallOption) (*empty.Empty, error)
 	// CreateSessionTracker creates a new session tracker resource.
+	// DELETE IN 11.0.0 - Deprecated in favor or UpsertSessionTracker
 	CreateSessionTracker(ctx context.Context, in *CreateSessionTrackerRequest, opts ...grpc.CallOption) (*types.SessionTrackerV1, error)
 	// GetSessionTracker fetches a session tracker resource.
 	GetSessionTracker(ctx context.Context, in *GetSessionTrackerRequest, opts ...grpc.CallOption) (*types.SessionTrackerV1, error)
@@ -13266,6 +13268,7 @@ type AuthServiceServer interface {
 	// UpsertSessionTracker upserts a new session tracker resource.
 	UpsertSessionTracker(context.Context, *types.SessionTrackerV1) (*empty.Empty, error)
 	// CreateSessionTracker creates a new session tracker resource.
+	// DELETE IN 11.0.0 - Deprecated in favor or UpsertSessionTracker
 	CreateSessionTracker(context.Context, *CreateSessionTrackerRequest) (*types.SessionTrackerV1, error)
 	// GetSessionTracker fetches a session tracker resource.
 	GetSessionTracker(context.Context, *GetSessionTrackerRequest) (*types.SessionTrackerV1, error)
