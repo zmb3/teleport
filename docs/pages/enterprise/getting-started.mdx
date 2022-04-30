@@ -1,6 +1,6 @@
 ---
 title: Teleport Enterprise Quick Start
-description: How to set up and configure Teleport Enterprise for SSH
+description: How to set up and configure Teleport Enterprise for SSH and Kubernetes access
 h1: Teleport Enterprise Quick Start
 ---
 
@@ -78,7 +78,7 @@ and save it as `/var/lib/teleport/license.pem` on the auth server.
 
 ### Systemd Unit File
 
-Next, download the systemd service unit file from [examples directory](https://github.com/gravitational/teleport/tree/master/examples/systemd)
+Next, download the systemd service unit file from [examples directory](https://github.com/gravitational/teleport/tree/(=teleport.version=)/examples/systemd)
 on Github and save it as `/etc/systemd/system/teleport.service` on both servers.
 
 ```bsh
@@ -303,7 +303,7 @@ in Teleport always must to go through an SSH proxy, sometimes called an "SSH bas
 
   Never use `--insecure` in production unless you terminate SSL at a load balancer. This will
   apply to most cloud providers (AWS, GCP and Azure). You must configure a HTTP/TLS certificate for the Proxy.
-  This process has been made easier with Let's Encrypt. [We've instructions here](https://goteleport.com/blog/letsencrypt-teleport-ssh/).
+  This process has been made easier with Let's Encrypt. [We've instructions here](https://gravitational.com/blog/letsencrypt-teleport-ssh/).
 </Admonition>
 
 If successful, `tsh login` command will receive Joe's user certificate and will
@@ -312,10 +312,10 @@ store it in `~/.tsh/keys/<proxy>` directory.
 With a certificate in place, Joe can now interact with the Teleport cluster:
 
 ```bsh
-# SSH into any host behind the proxy (Unix user 'joe' should already exist on the node):
+# SSH into any host behind the proxy:
 $ tsh ssh joe@node.example.com
 
-# See what hosts are available behind the proxy:
+# See what hosts are available behind the proxy (Unix user 'joe' should already exist on the node):
 $ tsh ls
 
 # Log out (this will remove the user certificate from ~/.tsh)
@@ -366,11 +366,11 @@ We currently only offer Docker images for `x86_64` architectures.
   You will need a recent version of [`docker-compose`](https://docs.docker.com/compose/install/) installed to follow this section of the quick start guide.
 </Admonition>
 
-The easiest way to start Teleport Enterprise quickly is to use `docker-compose` with our [`teleport-ent-quickstart.yml`](https://github.com/gravitational/teleport/blob/master/docker/teleport-ent-quickstart.yml) file:
+The easiest way to start Teleport Enterprise quickly is to use `docker-compose` with our [`teleport-ent-quickstart.yml`](https://github.com/gravitational/teleport/blob/(=teleport.version=)/docker/teleport-ent-quickstart.yml) file:
 
 ```code
 # download the quickstart file from our Github repo
-$ curl -Lso teleport-ent-quickstart.yml https://raw.githubusercontent.com/gravitational/teleport/master/docker/teleport-ent-quickstart.yml
+$ curl -Lso teleport-ent-quickstart.yml https://raw.githubusercontent.com/gravitational/teleport/(=teleport.version=)/docker/teleport-ent-quickstart.yml
 
 # start teleport quickstart using docker-compose
 $ docker-compose -f teleport-ent-quickstart.yml up

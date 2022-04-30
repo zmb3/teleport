@@ -1,13 +1,13 @@
 ---
 title: teleport-kube-agent Chart Reference
-description: Values that can be set using the teleport-cluster Helm chart
+description: Values that can be set using the teleport-kube-agent Helm chart
 ---
 
 The `teleport-kube-agent` Helm chart is used to configure a Teleport agent that
 runs in a remote Kubernetes cluster and joins back to a Teleport cluster to
 provide access to services running there.
 
-You can [browse the source on GitHub](https://github.com/gravitational/teleport/tree/master/examples/chart/teleport-kube-agent).
+You can [browse the source on GitHub](https://github.com/gravitational/teleport/tree/(=teleport.version=)/examples/chart/teleport-kube-agent).
 
 The `teleport-kube-agent` chart can run any or all of three Teleport services:
 
@@ -417,7 +417,7 @@ When `existingDataVolume` is set to the name of an existing volume, the `/var/li
 | - | - |
 | `bool` | `true` |
 
-By default, Teleport charts also install a [`podSecurityPolicy`](https://github.com/gravitational/teleport/blob/master/examples/chart/teleport-kube-agent/templates/psp.yaml).
+By default, Teleport charts also install a [`podSecurityPolicy`](https://github.com/gravitational/teleport/blob/(=teleport.version=)/examples/chart/teleport-kube-agent/templates/psp.yaml).
 
 To disable this, you can set `enabled` to `false`.
 

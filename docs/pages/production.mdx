@@ -1,6 +1,6 @@
 ---
 title: Teleport Production Guide
-description: How to configure secure access with SSO on AWS, GCE, and your own infrastructure.
+description: How to configure SSH and Kubernetes access with SSO on AWS, GCE, and your own infrastructure.
 h1: Production Guide
 ---
 
@@ -44,7 +44,7 @@ Teleport services listen on several ports. This table shows the default port num
 | `3026` | Kubernetes | Port used for `kubectl` to access Teleport | {/* TODO */} | {/* TODO */} |
 
 {
-  /* TODO: Add several diagrams of firewall config examples. TODO Update for single port */
+  /* TODO: Add several diagrams of firewall config examples */
 }
 
 ## Installation
@@ -74,7 +74,7 @@ of them is configurable.
 
 ### Systemd unit file
 
-In production, we recommend starting teleport daemon via an init system like `systemd`. If `systemd` and unit files are new to you, check out [this helpful guide](https://www.digitalocean.com/community/tutorials/understanding-systemd-units-and-unit-files). Here's an example systemd unit file for the Teleport [Proxy, Node, and Auth Service](https://github.com/gravitational/teleport/tree/master/examples/systemd/production).
+In production, we recommend starting teleport daemon via an init system like `systemd`. If `systemd` and unit files are new to you, check out [this helpful guide](https://www.digitalocean.com/community/tutorials/understanding-systemd-units-and-unit-files). Here's an example systemd unit file for the Teleport [Proxy, Node, and Auth Service](https://github.com/gravitational/teleport/tree/(=teleport.version=)/examples/systemd/production).
 
 There are a couple of important things to notice about this file:
 
