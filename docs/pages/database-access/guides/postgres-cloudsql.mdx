@@ -168,10 +168,14 @@ Overview page:
 
 - Cloud SQL instance endpoint.
 
-You will use the instance's public IP address to connect to it. It can be viewed
-on the "Connect to this instance" panel on the Overview page:
+You will use the instance's private or public IP address to connect to it. The Teleport Database service has to
+connect to that address and port that may require additional networking settings if run on a separate network.
+IP Addresses can be viewed on the "Connect to this instance" panel on the Overview page:
+
+![Instance Public IP](../../../img/database-access/guides/cloudsql/instance-private-ip@2x.png)
 
 ![Instance Public IP](../../../img/database-access/guides/cloudsql/instance-public-ip@2x.png)
+
 
 - Cloud SQL instance root certificate.
 
@@ -225,7 +229,7 @@ db_service:
     description: "GCP Cloud SQL PostgreSQL"
     # Database protocol.
     protocol: "postgres"
-    # Database endpoint. For Cloud SQL use instance's public IP address.
+    # Database endpoint. For Cloud SQL use instance's private or public IP address.
     uri: "35.1.2.3:5432"
     # Path to Cloud SQL instance root certificate you downloaded above.
     ca_cert_file: /path/to/cloudsql/instance/root.pem
@@ -267,7 +271,7 @@ db_service:
     description: "GCP Cloud SQL PostgreSQL"
     # Database protocol.
     protocol: "postgres"
-    # Database endpoint. For Cloud SQL use instance's public IP address.
+    # Database endpoint. For Cloud SQL use instance's private or public IP address.
     uri: "35.1.2.3:5432"
     # Path to Cloud SQL instance root certificate you downloaded above.
     ca_cert_file: /path/to/cloudsql/instance/root.pem
