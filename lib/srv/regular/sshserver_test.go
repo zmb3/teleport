@@ -1856,7 +1856,6 @@ func TestIgnorePuTTYSimpleChannel(t *testing.T) {
 	logger := logrus.WithField("test", "TestIgnorePuTTYSimpleChannel")
 	proxyClient, _ := newProxyClient(t, f.testSrv)
 	lockWatcher := newLockWatcher(ctx, t, proxyClient)
-	nodeWatcher := newNodeWatcher(ctx, t, proxyClient)
 
 	reverseTunnelServer, err := reversetunnel.NewServer(reversetunnel.Config{
 		ClientTLS:                     proxyClient.TLSConfig(),
@@ -1873,7 +1872,6 @@ func TestIgnorePuTTYSimpleChannel(t *testing.T) {
 		Emitter:                       proxyClient,
 		Log:                           logger,
 		LockWatcher:                   lockWatcher,
-		NodeWatcher:                   nodeWatcher,
 	})
 	require.NoError(t, err)
 
@@ -1900,7 +1898,6 @@ func TestIgnorePuTTYSimpleChannel(t *testing.T) {
 		SetRestrictedSessionManager(&restricted.NOP{}),
 		SetClock(f.clock),
 		SetLockWatcher(lockWatcher),
-		SetNodeWatcher(nodeWatcher),
 	)
 	require.NoError(t, err)
 	require.NoError(t, proxy.Start())
