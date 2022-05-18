@@ -24,7 +24,7 @@ use crate::vchan;
 use crate::{
     FileSystemObject, FileType, Payload, SharedDirectoryAcknowledge, SharedDirectoryCreateRequest,
     SharedDirectoryCreateResponse, SharedDirectoryDeleteRequest, SharedDirectoryDeleteResponse,
-    SharedDirectoryInfoRequest, SharedDirectoryInfoResponse, TdpErrCode,
+    SharedDirectoryInfoRequest, SharedDirectoryInfoResponse, SharedDirectoryReadRequest, TdpErrCode,
 };
 
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
@@ -64,6 +64,7 @@ pub struct Client {
     tdp_sd_info_request: SharedDirectoryInfoRequestSender,
     tdp_sd_create_request: SharedDirectoryCreateRequestSender,
     tdp_sd_delete_request: SharedDirectoryDeleteRequestSender,
+    tdp_sd_read_request: SharedDirectoryReadRequestSender,
 
     // CompletionId-indexed maps of handlers for tdp messages coming from the browser client.
     pending_sd_info_resp_handlers: HashMap<u32, SharedDirectoryInfoResponseHandler>,
@@ -81,12 +82,13 @@ pub struct Config {
     pub tdp_sd_info_request: SharedDirectoryInfoRequestSender,
     pub tdp_sd_create_request: SharedDirectoryCreateRequestSender,
     pub tdp_sd_delete_request: SharedDirectoryDeleteRequestSender,
+    pub tdp_sd_read_request: SharedDirectoryReadRequestSender,
 }
 
 impl Client {
     pub fn new(cfg: Config) -> Self {
         if cfg.allow_directory_sharing {
-            debug!("creating rdpdr client with directory sharing enabled")
+           debug!("creating rdpdr client with directory sharing enabled")
         } else {
             debug!("creating rdpdr client with directory sharing disabled")
         }
@@ -103,6 +105,7 @@ impl Client {
             tdp_sd_info_request: cfg.tdp_sd_info_request,
             tdp_sd_create_request: cfg.tdp_sd_create_request,
             tdp_sd_delete_request: cfg.tdp_sd_delete_request,
+            tdp_sd_read_request: cfg.tdp_sd_read_request,
 
             pending_sd_info_resp_handlers: HashMap::new(),
             pending_sd_create_resp_handlers: HashMap::new(),
@@ -265,6 +268,25 @@ impl Client {
                 self.process_irp_query_information(device_io_request, payload)
             }
             MajorFunction::IRP_MJ_CLOSE => self.process_irp_close(device_io_request),
+            MajorFunction::IRP_MJ_READ => {
+                // if let Some(file) = self.get_file_by_id(file_id) {};
+                let rdp_req = DeviceReadRequest::decode(device_io_request, payload)?;
+                debug!("got {:?}", rdp_req);
+
+
+                let length: u32 = 0;
+
+                if let Some(file) = self.get_file_by_id(rdp_req.device_io_request.file_id) {
+
+                } else {
+
+                }
+
+                // (self.tdp_sd_info_request)(SharedDirectoryInfoRequest::from(rdp_req.clone()))?;
+                // (self.tdp_sd_info_request)(SharedDirectoryReadRequest::from(rdp_req.clone()))?;
+
+                Ok(vec![])
+            },
             _ => Err(invalid_data_error(&format!(
                 // TODO(isaiah): send back a not implemented response(?)
                 "got unsupported major_function in DeviceIoRequest: {:?}",
@@ -2162,6 +2184,8 @@ type SharedDirectoryCreateRequestSender =
     Box<dyn Fn(SharedDirectoryCreateRequest) -> RdpResult<()>>;
 type SharedDirectoryDeleteRequestSender =
     Box<dyn Fn(SharedDirectoryDeleteRequest) -> RdpResult<()>>;
+type SharedDirectoryReadRequestSender = 
+    Box<dyn Fn(SharedDirectoryReadRequest) -> RdpResult<()>>;
 
 type SharedDirectoryInfoResponseHandler =
     Box<dyn FnOnce(&mut Client, SharedDirectoryInfoResponse) -> RdpResult<Vec<Vec<u8>>>>;

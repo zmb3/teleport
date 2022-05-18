@@ -63,6 +63,7 @@ const (
 	TypeSharedDirectoryCreateResponse = MessageType(16)
 	TypeSharedDirectoryDeleteRequest  = MessageType(17)
 	TypeSharedDirectoryDeleteResponse = MessageType(18)
+	TypeSharedDirectoryReadRequest    = MessageType(19)
 )
 
 // Message is a Go representation of a desktop protocol message.
@@ -131,6 +132,8 @@ func decode(in peekReader) (Message, error) {
 		return decodeSharedDirectoryDeleteRequest(in)
 	case TypeSharedDirectoryDeleteResponse:
 		return decodeSharedDirectoryDeleteResponse(in)
+	case TypeSharedDirectoryReadRequest:
+		return decodeSharedDirectoryReadRequest(in)
 	default:
 		return nil, trace.BadParameter("unsupported desktop protocol message type %d", t)
 	}
@@ -985,6 +988,82 @@ func decodeSharedDirectoryDeleteResponse(in peekReader) (SharedDirectoryDeleteRe
 	var res SharedDirectoryDeleteResponse
 	err = binary.Read(in, binary.BigEndian, &res)
 	return res, err
+}
+
+type SharedDirectoryReadRequest struct {
+	CompletionID uint32
+	DirectoryID  uint32
+	Path         string
+	PathLength   uint32
+	Offset       uint32
+	Length       uint32
+}
+
+func (s SharedDirectoryReadRequest) Encode() ([]byte, error) {
+	buf := new(bytes.Buffer)
+
+	buf.WriteByte(byte(TypeSharedDirectoryReadRequest))
+	binary.Write(buf, binary.BigEndian, s.CompletionID)
+	binary.Write(buf, binary.BigEndian, s.DirectoryID)
+	if err := encodeString(buf, s.Path); err != nil {
+		return nil, trace.Wrap(err)
+	}
+	binary.Write(buf, binary.BigEndian, s.PathLength)
+	binary.Write(buf, binary.BigEndian, s.Offset)
+	binary.Write(buf, binary.BigEndian, s.Length)
+
+	return buf.Bytes(), nil
+}
+
+func decodeSharedDirectoryReadRequest(in peekReader) (SharedDirectoryReadRequest, error) {
+	t, err := in.ReadByte()
+	if err != nil {
+		return SharedDirectoryReadRequest{}, trace.Wrap(err)
+	}
+	if t != byte(TypeSharedDirectoryReadRequest) {
+		return SharedDirectoryReadRequest{}, trace.BadParameter("got message type %v, expected TypeSharedDirectoryReadRequest(%v)", t, TypeSharedDirectoryReadRequest)
+	}
+
+	var completionId, directoryId, pathLength, offset, length uint32
+
+	err = binary.Read(in, binary.BigEndian, &completionId)
+	if err != nil {
+		return SharedDirectoryReadRequest{}, trace.Wrap(err)
+	}
+
+	err = binary.Read(in, binary.BigEndian, &directoryId)
+	if err != nil {
+		return SharedDirectoryReadRequest{}, trace.Wrap(err)
+	}
+
+	path, err := decodeString(in, tdpMaxPathLength)
+	if err != nil {
+		return SharedDirectoryReadRequest{}, trace.Wrap(err)
+	}
+
+	err = binary.Read(in, binary.BigEndian, &pathLength)
+	if err != nil {
+		return SharedDirectoryReadRequest{}, trace.Wrap(err)
+	}
+
+	err = binary.Read(in, binary.BigEndian, &offset)
+	if err != nil {
+		return SharedDirectoryReadRequest{}, trace.Wrap(err)
+	}
+
+	err = binary.Read(in, binary.BigEndian, &length)
+	if err != nil {
+		return SharedDirectoryReadRequest{}, trace.Wrap(err)
+	}
+
+	return SharedDirectoryReadRequest{
+		CompletionID: completionId,
+		DirectoryID:  directoryId,
+		Path:         path,
+		PathLength:   pathLength,
+		Offset:       offset,
+		Length:       length,
+	}, nil
 }
 
 // encodeString encodes strings for TDP. Strings are encoded as UTF-8 with

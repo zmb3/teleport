@@ -361,6 +361,73 @@ fn connect_rdp_inner(
                 }
             }
         });
+    
+    let tdp_sd_read_request = Box::new(
+        move |req: SharedDirectoryReadRequest| -> RdpResult<()> {
+            debug!("sending: {:?}", req);
+            match CString::new(req.path.clone()) {
+                Ok(c_string) => {
+                    unsafe {
+                        let err = tdp_sd_read_request(
+                            go_ref,
+                            &mut CGOSharedDirectoryReadRequest {
+                                completion_id: req.completion_id,
+                                directory_id: req.directory_id,
+                                path: c_string.as_ptr(),
+                                path_length: req.path_length,
+                                offset: req.offset,
+                                length: req.length,
+                        });
+
+                        if err != CGOErrCode::ErrCodeSuccess {
+                            return Err(RdpError::TryError(String::from(
+                                "call to tdp_sd_read_request failed",
+                            )));
+                        }
+                    }
+                    return Ok(());
+                },
+                Err(_) => {
+                    return Err(RdpError::TryError(String::from(format!(
+                        "path contained characters that couldn't be converted to a C string: {}",
+                        req.path
+                    ))));
+                }
+            }
+        }
+    );
+    // let tdp_sd_read_request = Box::new(
+    //     move |req: SharedDirectoryReadRequest| -> RdpResult<()> {
+    //         match CString::new(req.path.clone()) {
+    //             Ok(c_string) => {
+    //                 unsafe {
+    //                     let err = tdp_sd_read_request(
+    //                         go_ref,
+    //                         &mut CGOSharedDirectoryReadRequest {
+    //                             completion_id: req.completion_id,
+    //                             directory_id: req.directory_id,
+    //                             path: c_string.as_ptr(),
+    //                             path_length: req.path_length,
+    //                             offset: req.offset,
+    //                             length: req.length,
+    //                     });
+
+    //                     if err != CGOErrCode::ErrCodeSuccess {
+    //                         return Err(RdpError::TryError(String::from(
+    //                             "call to tdp_sd_read_request failed",
+    //                         )));
+    //                     }
+    //                 }
+    //                 return Ok(());
+    //             },
+    //             Err(_) => {
+    //                 return Err(RdpError::TryError(String::from(format!(
+    //                     "path contained characters that couldn't be converted to a C string: {}",
+    //                     req.path
+    //                 ))));
+    //             }
+    //         }
+    // });
 
     // Client for the "rdpdr" channel - smartcard emulation and drive redirection.
     let rdpdr = rdpdr::Client::new(rdpdr::Config {
@@ -372,6 +439,7 @@ fn connect_rdp_inner(
         tdp_sd_info_request,
         tdp_sd_create_request,
         tdp_sd_delete_request,
+        tdp_sd_read_request,
     });
 
     // Client for the "cliprdr" channel - clipboard sharing.
@@ -1081,6 +1149,26 @@ pub enum TdpErrCode {
 }
 
 #[derive(Debug)]
+pub struct SharedDirectoryReadRequest {
+    completion_id: u32,
+    directory_id: u32,
+    path: String,
+    path_length: u32,
+    offset: u32,
+    length: u32,
+}
+
+#[repr(C)]
+pub struct CGOSharedDirectoryReadRequest {
+    pub completion_id: u32,
+    pub directory_id: u32,
+    pub path: *const c_char,
+    pub path_length: u32,
+    pub offset: u32,
+    pub length: u32,
+}
+
+#[derive(Debug)]
 pub struct SharedDirectoryCreateRequest {
     completion_id: u32,
     directory_id: u32,
@@ -1141,6 +1229,10 @@ extern "C" {
     fn tdp_sd_delete_request(
         client_ref: usize,
         req: *mut CGOSharedDirectoryDeleteRequest,
+    ) -> CGOErrCode;
+    fn tdp_sd_read_request(
+        client_ref: usize,
+        req: *mut CGOSharedDirectoryReadRequest,
     ) -> CGOErrCode;
 }
 

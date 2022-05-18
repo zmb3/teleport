@@ -186,6 +186,15 @@ typedef struct CGOSharedDirectoryDeleteRequest {
   const char *path;
 } CGOSharedDirectoryDeleteRequest;
 
+typedef struct CGOSharedDirectoryReadRequest {
+  uint32_t completion_id;
+  uint32_t directory_id;
+  const char *path;
+  uint32_t path_length;
+  uint32_t offset;
+  uint32_t length;
+} CGOSharedDirectoryReadRequest;
+
 void init(void);
 
 /**
@@ -319,3 +328,6 @@ extern enum CGOErrCode tdp_sd_create_request(uintptr_t client_ref,
 
 extern enum CGOErrCode tdp_sd_delete_request(uintptr_t client_ref,
                                              struct CGOSharedDirectoryDeleteRequest *req);
+
+extern enum CGOErrCode tdp_sd_read_request(uintptr_t client_ref,
+                                           struct CGOSharedDirectoryReadRequest *req);
