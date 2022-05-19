@@ -423,6 +423,18 @@ func (c *Client) start() {
 						return
 					}
 				}
+			case tdp.SharedDirectoryReadResponse:
+				if c.cfg.AllowDirectorySharing {
+					if errCode := C.handle_tdp_sd_read_response(c.rustClient, C.CGOSharedDirectoryReadResponse{
+						completion_id:    C.uint32_t(m.CompletionID),
+						err_code:         m.ErrCode,
+						read_data_length: C.uint32_t(m.ReadDataLength),
+						read_data:        (*C.uint8_t)(unsafe.Pointer(&m.ReadData[0])),
+					}); errCode != C.ErrCodeSuccess {
+						c.cfg.Log.Errorf("SharedDirectoryReadResponse failed: %v", errCode)
+						return
+					}
+				}
 			default:
 				c.cfg.Log.Warningf("Skipping unimplemented TDP message type %T", msg)
 			}
@@ -571,7 +583,7 @@ func tdp_sd_read_request(handle C.uintptr_t, req *C.CGOSharedDirectoryReadReques
 		DirectoryID:  uint32(req.directory_id),
 		Path:         C.GoString(req.path),
 		PathLength:   uint32(req.path_length),
-		Offset:       uint32(req.offset),
+		Offset:       uint64(req.offset),
 		Length:       uint32(req.length),
 	})
 }

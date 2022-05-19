@@ -26,6 +26,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"image"
 	"image/png"
 	"io"
@@ -64,6 +65,7 @@ const (
 	TypeSharedDirectoryDeleteRequest  = MessageType(17)
 	TypeSharedDirectoryDeleteResponse = MessageType(18)
 	TypeSharedDirectoryReadRequest    = MessageType(19)
+	TypeSharedDirectoryReadResponse   = MessageType(20)
 )
 
 // Message is a Go representation of a desktop protocol message.
@@ -134,6 +136,8 @@ func decode(in peekReader) (Message, error) {
 		return decodeSharedDirectoryDeleteResponse(in)
 	case TypeSharedDirectoryReadRequest:
 		return decodeSharedDirectoryReadRequest(in)
+	case TypeSharedDirectoryReadResponse:
+		return decodeSharedDirectoryReadResponse(in)
 	default:
 		return nil, trace.BadParameter("unsupported desktop protocol message type %d", t)
 	}
@@ -995,7 +999,7 @@ type SharedDirectoryReadRequest struct {
 	DirectoryID  uint32
 	Path         string
 	PathLength   uint32
-	Offset       uint32
+	Offset       uint64
 	Length       uint32
 }
 
@@ -1024,7 +1028,8 @@ func decodeSharedDirectoryReadRequest(in peekReader) (SharedDirectoryReadRequest
 		return SharedDirectoryReadRequest{}, trace.BadParameter("got message type %v, expected TypeSharedDirectoryReadRequest(%v)", t, TypeSharedDirectoryReadRequest)
 	}
 
-	var completionId, directoryId, pathLength, offset, length uint32
+	var completionId, directoryId, pathLength, length uint32
+	var offset uint64
 
 	err = binary.Read(in, binary.BigEndian, &completionId)
 	if err != nil {
@@ -1063,6 +1068,60 @@ func decodeSharedDirectoryReadRequest(in peekReader) (SharedDirectoryReadRequest
 		PathLength:   pathLength,
 		Offset:       offset,
 		Length:       length,
+	}, nil
+}
+
+type SharedDirectoryReadResponse struct {
+	CompletionID   uint32
+	ErrCode        uint32
+	ReadDataLength uint32
+	ReadData       []byte
+}
+
+func (s SharedDirectoryReadResponse) Encode() ([]byte, error) {
+	fmt.Println("SharedDirectoryReadResponse: Encode")
+	buf := new(bytes.Buffer)
+	buf.WriteByte(byte(TypeSharedDirectoryReadResponse))
+	binary.Write(buf, binary.BigEndian, s)
+	return buf.Bytes(), nil
+}
+
+func decodeSharedDirectoryReadResponse(in peekReader) (SharedDirectoryReadResponse, error) {
+	t, err := in.ReadByte()
+	if err != nil {
+		return SharedDirectoryReadResponse{}, trace.Wrap(err)
+	}
+	if t != byte(TypeSharedDirectoryReadResponse) {
+		return SharedDirectoryReadResponse{}, trace.BadParameter("got message type %v, expected TypeSharedDirectoryReadResponse(%v)", t, TypeSharedDirectoryReadResponse)
+	}
+
+	var completionId, errorCode, readDataLength uint32
+
+	err = binary.Read(in, binary.BigEndian, &completionId)
+	if err != nil {
+		return SharedDirectoryReadResponse{}, trace.Wrap(err)
+	}
+
+	err = binary.Read(in, binary.BigEndian, &errorCode)
+	if err != nil {
+		return SharedDirectoryReadResponse{}, trace.Wrap(err)
+	}
+
+	err = binary.Read(in, binary.BigEndian, &readDataLength)
+	if err != nil {
+		return SharedDirectoryReadResponse{}, trace.Wrap(err)
+	}
+
+	readData := make([]byte, int(readDataLength))
+	if _, err := io.ReadFull(in, readData); err != nil {
+		return SharedDirectoryReadResponse{}, trace.Wrap(err)
+	}
+
+	return SharedDirectoryReadResponse{
+		CompletionID:   completionId,
+		ErrCode:        errorCode,
+		ReadDataLength: readDataLength,
+		ReadData:       readData,
 	}, nil
 }
 
