@@ -22,6 +22,7 @@ import (
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/teleterm/api/uri"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 
@@ -101,4 +102,22 @@ type LoggedInUser struct {
 	SSHLogins []string
 	// Roles is the user roles
 	Roles []string
+}
+
+func (c *Cluster) RetryWithRelogin(ctx context.Context, fn func() error) error {
+	err := fn()
+	if err == nil {
+		return nil
+	}
+
+	if !utils.IsHandshakeFailedError(err) && !utils.IsCertExpiredError(err) && !trace.IsBadParameter(err) && !trace.IsTrustError(err) {
+		return trace.Wrap(err)
+	}
+
+	c.Log.Debugf("Activating relogin on %v.", err)
+
+	// TODO: Notify Connect over stream about expired cert.
+	// TODO: Wait for certs to get refreshed.
+
+	return fn()
 }
