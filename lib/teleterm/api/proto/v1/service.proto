@@ -61,6 +61,8 @@ service TerminalService {
     rpc Login(LoginRequest) returns (EmptyResponse);
     // ClusterLogin logs out a user from cluster
     rpc Logout(LogoutRequest) returns (EmptyResponse);
+
+    rpc ClusterEvents(stream ClusterClientEvent) returns (stream ClusterServerEvent);
 }
 
 // RemoveClusterRequest describes RemoveClusterRequest
@@ -147,3 +149,17 @@ message ListAppsResponse { repeated App apps = 1; }
 message GetAuthSettingsRequest { string cluster_uri = 1; }
 
 message EmptyResponse {}
+
+message ClusterClientEvent {
+    string cluster_uri = 1;
+    oneof event { LoginSuccess login_success = 2; }
+}
+
+message ClusterServerEvent {
+    string cluster_uri = 1;
+    oneof event { CertExpired cert_expired = 2; }
+}
+
+message LoginSuccess {}
+
+message CertExpired {}
