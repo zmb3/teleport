@@ -15,8 +15,6 @@
 package handler
 
 import (
-	// "context"
-	"fmt"
 	"io"
 
 	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
@@ -37,7 +35,29 @@ import (
 // https://dev.to/techschoolguru/implement-bidirectional-streaming-grpc-go-4kgn
 func (s *Handler) ClusterEvents(stream api.TerminalService_ClusterEventsServer) error {
 	ctx := stream.Context()
-	count := 0
+	log := s.DaemonService.Log.WithField(trace.Component, "conn:cevents")
+
+	// TODO: Add logs around closing.
+	log.Infoln("Opened stream")
+
+	// TODO: Close the stream after IncomingClusterEventsC gets closed.
+
+	// goroutine for handling outgoing events
+	go func() {
+		select {
+		case <-ctx.Done():
+			return
+		case <-s.DaemonService.OutgoingClusterEventsC:
+			log.Debugln("Sending a message")
+
+			if err := stream.Send(&api.ClusterServerEvent{
+				ClusterUri: "/clusters/teleport-local",
+				Event:      &api.ClusterServerEvent_CertExpired{},
+			}); err != nil {
+				log.Errorln("Failed to send a message: %s", err)
+			}
+		}
+	}()
 
 	for {
 		select {
@@ -45,8 +65,10 @@ func (s *Handler) ClusterEvents(stream api.TerminalService_ClusterEventsServer) 
 			return ctx.Err()
 		default:
 		}
-
+		// TODO: ctx.Done will never read becase this will always block. Create a separate goroutine
+		// that receives from stream, puts the messages in a channel and then read the channel here.
 		req, err := stream.Recv()
+
 		if err == io.EOF {
 			return nil
 		}
@@ -54,12 +76,6 @@ func (s *Handler) ClusterEvents(stream api.TerminalService_ClusterEventsServer) 
 			return trace.Wrap(err)
 		}
 
-		count += 1
-		fmt.Printf("handler_cluster_events: %+v\n", req)
-
-		stream.Send(&api.ClusterServerEvent{
-			ClusterUri: "/clusters/teleport-local",
-			Event:      &api.ClusterServerEvent_CertExpired{},
-		})
+		log.Debugf("Received a message: %+v\n", req)
 	}
 }

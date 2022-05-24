@@ -81,7 +81,7 @@ func (s *Handler) GetCluster(ctx context.Context, req *api.GetClusterRequest) (*
 		return nil, trace.Wrap(err)
 	}
 
-	return newAPIRootCluster(cluster), nil
+	return newAPIRootCluster(cluster.Cluster), nil
 }
 
 func newAPIRootCluster(cluster *clusters.Cluster) *api.Cluster {

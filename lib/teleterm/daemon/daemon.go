@@ -32,7 +32,9 @@ func New(cfg Config) (*Service, error) {
 	}
 
 	return &Service{
-		Config: cfg,
+		Config:                 cfg,
+		IncomingClusterEventsC: make(chan struct{}),
+		OutgoingClusterEventsC: make(chan struct{}),
 	}, nil
 }
 
@@ -96,8 +98,9 @@ func (s *Service) RemoveCluster(ctx context.Context, uri string) error {
 	return nil
 }
 
-// ResolveCluster resolves a cluster by URI
-func (s *Service) ResolveCluster(uri string) (*clusters.Cluster, error) {
+// ResolveCluster resolves a cluster by URI. Each RPC that works on an individual cluster uses this
+// method to obtain a Cluster struct.
+func (s *Service) ResolveCluster(uri string) (*clusters.ClusterWithChannel, error) {
 	clusterURI, err := apiuri.ParseClusterURI(uri)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -108,7 +111,9 @@ func (s *Service) ResolveCluster(uri string) (*clusters.Cluster, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	return cluster, nil
+	clusterWithChannel := cluster.AttachChannel(s.OutgoingClusterEventsC)
+
+	return &clusterWithChannel, nil
 }
 
 // ClusterLogout logs a user out from the cluster
@@ -135,7 +140,12 @@ func (s *Service) CreateGateway(ctx context.Context, params clusters.CreateGatew
 		return nil, trace.Wrap(err)
 	}
 
-	gateway, err := cluster.CreateGateway(ctx, params)
+	var gateway *gateway.Gateway
+
+	err = cluster.RetryWithRelogin(ctx, func() error {
+		gateway, err = cluster.CreateGateway(ctx, params)
+		return trace.Wrap(err)
+	})
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -241,6 +251,9 @@ func (s *Service) ListGateways(ctx context.Context) ([]*gateway.Gateway, error) 
 
 // Stop terminates all cluster open connections
 func (s *Service) Stop() {
+	close(s.OutgoingClusterEventsC)
+	close(s.IncomingClusterEventsC)
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -256,4 +269,7 @@ type Service struct {
 	mu sync.RWMutex
 	// gateways is the cluster gateways
 	gateways []*gateway.Gateway
+
+	IncomingClusterEventsC chan struct{}
+	OutgoingClusterEventsC chan struct{}
 }

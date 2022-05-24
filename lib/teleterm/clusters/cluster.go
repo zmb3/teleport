@@ -22,7 +22,7 @@ import (
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/teleterm/api/uri"
-	"github.com/gravitational/teleport/lib/utils"
+	// "github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 
@@ -47,6 +47,20 @@ type Cluster struct {
 	clusterClient *client.TeleportClient
 	// clock is a clock for time-related operations
 	clock clockwork.Clock
+}
+
+// TODO: Move this to a separate file.
+type ClusterWithChannel struct {
+	*Cluster
+
+	outgoingClusterEventsC chan<- struct{}
+}
+
+func (c *Cluster) AttachChannel(outgoingClusterEventsC chan<- struct{}) ClusterWithChannel {
+	return ClusterWithChannel{
+		Cluster:                c,
+		outgoingClusterEventsC: outgoingClusterEventsC,
+	}
 }
 
 // Connected indicates if connection to the cluster can be established
@@ -104,20 +118,44 @@ type LoggedInUser struct {
 	Roles []string
 }
 
-func (c *Cluster) RetryWithRelogin(ctx context.Context, fn func() error) error {
-	err := fn()
-	if err == nil {
-		return nil
-	}
+func (c *ClusterWithChannel) RetryWithRelogin(ctx context.Context, fn func() error) error {
+	// err := fn()
+	// if err == nil {
+	// 	return nil
+	// }
 
-	if !utils.IsHandshakeFailedError(err) && !utils.IsCertExpiredError(err) && !trace.IsBadParameter(err) && !trace.IsTrustError(err) {
-		return trace.Wrap(err)
-	}
+	// if !utils.IsHandshakeFailedError(err) && !utils.IsCertExpiredError(err) && !trace.IsBadParameter(err) && !trace.IsTrustError(err) {
+	// 	return trace.Wrap(err)
+	// }
 
-	c.Log.Debugf("Activating relogin on %v.", err)
+	// c.Log.Debugf("Activating relogin on %v.", err)
+	c.Log.Debugf("Activating relogin")
 
 	// TODO: Notify Connect over stream about expired cert.
+	c.outgoingClusterEventsC <- struct{}{}
 	// TODO: Wait for certs to get refreshed.
+	//       When a signal arrives that certs are refreshed, we should re-check if certs are indeed
+	//       fresh. ~If not, then we should perhaps write to the stream and hang again. This way we can
+	//       handle concurrent requests for different clusters.~ This will not work because we don't
+	//       know which cluster was that canceled login attempt related to.
+	//
+	// TODO: Handle cancellation.
+	//       Wait for certs to get refreshed or for the login attempt to be aborted.
+	// TODO: For now, try a select solution that either waits for ctx.Done() or checks every 500ms if
+	// the certs are okay.
+	//
+	// Do we need to unblock everything at once? If we do so, then all of those goroutines will
+	// connect to the proxy at the same time. OTOH there shouldn't be that many of them.
+	// https://github.com/golang/go/issues/21165#issuecomment-1063820049
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+	}
 
 	return fn()
 }
