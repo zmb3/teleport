@@ -164,6 +164,8 @@ func (s *Storage) fromProfile(profileName, leafClusterName string) (*Cluster, er
 	cfg.KeysDir = s.Dir
 	cfg.HomePath = s.Dir
 	cfg.InsecureSkipVerify = s.InsecureSkipVerify
+	// pass along mock sso login if provided (only used in tests)
+	cfg.MockSSOLogin = s.MockSSOLogin
 
 	if leafClusterName != "" {
 		clusterNameForKey = leafClusterName
@@ -224,4 +226,6 @@ func parseName(webProxyAddress string) string {
 // Storage is the cluster storage
 type Storage struct {
 	Config
+	// mockSSOLogin is used in tests to override sso login handler in Teleport client.
+	MockSSOLogin client.SSOLoginFunc
 }

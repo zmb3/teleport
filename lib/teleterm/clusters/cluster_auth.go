@@ -131,12 +131,28 @@ func (c *Cluster) LocalLogin(ctx context.Context, user, password, otpToken strin
 
 // SSOLogin logs in a user to the Teleport cluster using supported SSO provider
 func (c *Cluster) SSOLogin(ctx context.Context, providerType, providerName string) error {
-	if _, err := c.clusterClient.Ping(ctx); err != nil {
+	key, err := client.NewKey()
+	if err != nil {
 		return trace.Wrap(err)
 	}
 
-	key, err := client.NewKey()
-	if err != nil {
+	var response *auth.SSHLoginResponse
+
+	if c.clusterClient.MockSSOLogin != nil {
+		// sso login response is being mocked for testing purposes
+		response, err = c.clusterClient.MockSSOLogin(ctx, providerName, key.Pub, providerType)
+		if err != nil {
+			return trace.Wrap(err)
+		}
+
+		if err = c.processAuthResponse(ctx, key, response); err != nil {
+			return trace.Wrap(err)
+		}
+
+		return nil
+	}
+
+	if _, err := c.clusterClient.Ping(ctx); err != nil {
 		return trace.Wrap(err)
 	}
 
@@ -144,7 +160,7 @@ func (c *Cluster) SSOLogin(ctx context.Context, providerType, providerName strin
 	// existing profile for the first time (investigate why)
 	c.clusterClient.SiteName = ""
 
-	response, err := client.SSHAgentSSOLogin(ctx, client.SSHLoginSSO{
+	response, err = client.SSHAgentSSOLogin(ctx, client.SSHLoginSSO{
 		SSHLogin: client.SSHLogin{
 			ProxyAddr:         c.clusterClient.WebProxyAddr,
 			PubKey:            key.Pub,
