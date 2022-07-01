@@ -25,6 +25,8 @@ import (
 
 // TestEnvironment makes sure the environment is correctly parsed.
 func TestEnvironment(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		desc         string
 		path         string
@@ -81,6 +83,8 @@ func TestEnvironment(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			err := os.Setenv(githubRepository, "foo/bar")
 			require.NoError(t, err)
 			err = os.Setenv(githubEventPath, test.path)

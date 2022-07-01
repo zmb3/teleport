@@ -78,7 +78,11 @@ func TestDatabaseStatus(t *testing.T) {
 }
 
 func TestDatabaseElastiCacheEndpoint(t *testing.T) {
+	t.Parallel()
+
 	t.Run("valid URI", func(t *testing.T) {
+		t.Parallel()
+
 		database, err := NewDatabaseV3(Metadata{
 			Name: "elasticache",
 		}, DatabaseSpecV3{
@@ -101,6 +105,8 @@ func TestDatabaseElastiCacheEndpoint(t *testing.T) {
 	})
 
 	t.Run("invalid URI", func(t *testing.T) {
+		t.Parallel()
+
 		database, err := NewDatabaseV3(Metadata{
 			Name: "elasticache",
 		}, DatabaseSpecV3{
@@ -127,7 +133,11 @@ func TestDatabaseElastiCacheEndpoint(t *testing.T) {
 }
 
 func TestDatabaseMemoryDBEndpoint(t *testing.T) {
+	t.Parallel()
+
 	t.Run("valid URI", func(t *testing.T) {
+		t.Parallel()
+
 		database, err := NewDatabaseV3(Metadata{
 			Name: "memorydb",
 		}, DatabaseSpecV3{
@@ -179,6 +189,8 @@ func TestMySQLVersionValidation(t *testing.T) {
 	t.Parallel()
 
 	t.Run("correct config", func(t *testing.T) {
+		t.Parallel()
+
 		database, err := NewDatabaseV3(Metadata{
 			Name: "test",
 		}, DatabaseSpecV3{
@@ -193,6 +205,8 @@ func TestMySQLVersionValidation(t *testing.T) {
 	})
 
 	t.Run("incorrect config - wrong protocol", func(t *testing.T) {
+		t.Parallel()
+
 		_, err := NewDatabaseV3(Metadata{
 			Name: "test",
 		}, DatabaseSpecV3{

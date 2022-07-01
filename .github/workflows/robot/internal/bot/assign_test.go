@@ -29,6 +29,8 @@ import (
 
 // TestBackportReviewers checks if backport reviewers are correctly assigned.
 func TestBackportReviewers(t *testing.T) {
+	t.Parallel()
+
 	r, err := review.New(&review.Config{
 		CodeReviewers:     map[string]review.Reviewer{},
 		CodeReviewersOmit: map[string]bool{},
@@ -129,6 +131,8 @@ func TestBackportReviewers(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			b := &Bot{
 				c: &Config{
 					Environment: &env.Environment{

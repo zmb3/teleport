@@ -25,6 +25,8 @@ import (
 )
 
 func TestCheckPrerelease(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		desc    string
 		tag     string
@@ -53,6 +55,8 @@ func TestCheckPrerelease(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			test.wantErr(t, checkPrerelease(test.tag))
 		})
 	}
@@ -60,6 +64,8 @@ func TestCheckPrerelease(t *testing.T) {
 }
 
 func TestCheckLatest(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		desc     string
 		tag      string
@@ -117,6 +123,8 @@ func TestCheckLatest(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			gh := &fakeGitHub{releases: test.releases}
 			test.wantErr(t, checkLatest(context.Background(), test.tag, gh))
 		})

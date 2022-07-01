@@ -58,6 +58,8 @@ import (
 // TestDatabaseAccessPostgresRootCluster tests a scenario where a user connects
 // to a Postgres database running in a root cluster.
 func TestDatabaseAccessPostgresRootCluster(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t)
 
 	// Connect to the database service in root cluster.
@@ -91,6 +93,8 @@ func TestDatabaseAccessPostgresRootCluster(t *testing.T) {
 // TestDatabaseAccessPostgresLeafCluster tests a scenario where a user connects
 // to a Postgres database running in a leaf cluster via a root cluster.
 func TestDatabaseAccessPostgresLeafCluster(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t)
 	pack.waitForLeaf(t)
 
@@ -123,6 +127,8 @@ func TestDatabaseAccessPostgresLeafCluster(t *testing.T) {
 }
 
 func TestDatabaseRotateTrustedCluster(t *testing.T) {
+	t.Parallel()
+
 	// TODO(jakule): Fix flaky test
 	t.Skip("flaky test, skip for now")
 
@@ -318,6 +324,8 @@ func (p *phaseWatcher) waitForPhase(phase string, fn func() error) error {
 // TestDatabaseAccessMySQLRootCluster tests a scenario where a user connects
 // to a MySQL database running in a root cluster.
 func TestDatabaseAccessMySQLRootCluster(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t)
 
 	// Connect to the database service in root cluster.
@@ -351,6 +359,8 @@ func TestDatabaseAccessMySQLRootCluster(t *testing.T) {
 // TestDatabaseAccessMySQLLeafCluster tests a scenario where a user connects
 // to a MySQL database running in a leaf cluster via a root cluster.
 func TestDatabaseAccessMySQLLeafCluster(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t)
 	pack.waitForLeaf(t)
 
@@ -385,6 +395,8 @@ func TestDatabaseAccessMySQLLeafCluster(t *testing.T) {
 // TestDatabaseAccessMongoRootCluster tests a scenario where a user connects
 // to a Mongo database running in a root cluster.
 func TestDatabaseAccessMongoRootCluster(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t)
 
 	// Connect to the database service in root cluster.
@@ -414,6 +426,8 @@ func TestDatabaseAccessMongoRootCluster(t *testing.T) {
 // TestDatabaseAccessMongoConnectionCount tests if mongo service releases
 // resource after a mongo client disconnect.
 func TestDatabaseAccessMongoConnectionCount(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t)
 
 	connectMongoClient := func(t *testing.T) (serverConnectionCount int32) {
@@ -469,6 +483,8 @@ func TestDatabaseAccessMongoConnectionCount(t *testing.T) {
 // TestDatabaseAccessMongoLeafCluster tests a scenario where a user connects
 // to a Mongo database running in a leaf cluster.
 func TestDatabaseAccessMongoLeafCluster(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t)
 	pack.waitForLeaf(t)
 
@@ -499,6 +515,8 @@ func TestDatabaseAccessMongoLeafCluster(t *testing.T) {
 // TestRootLeafIdleTimeout tests idle client connection termination by proxy and DB services in
 // trusted cluster setup.
 func TestDatabaseRootLeafIdleTimeout(t *testing.T) {
+	t.Parallel()
+
 	clock := clockwork.NewFakeClockAt(time.Now())
 	pack := setupDatabaseTest(t, withClock(clock))
 	pack.waitForLeaf(t)
@@ -531,6 +549,8 @@ func TestDatabaseRootLeafIdleTimeout(t *testing.T) {
 	}
 
 	t.Run("root role without idle timeout", func(t *testing.T) {
+		t.Parallel()
+
 		client := mkMySQLLeafDBClient(t)
 		_, err := client.Execute("select 1")
 		require.NoError(t, err)
@@ -543,6 +563,8 @@ func TestDatabaseRootLeafIdleTimeout(t *testing.T) {
 	})
 
 	t.Run("root role with idle timeout", func(t *testing.T) {
+		t.Parallel()
+
 		setRoleIdleTimeout(t, rootAuthServer, rootRole, idleTimeout)
 		client := mkMySQLLeafDBClient(t)
 		_, err := client.Execute("select 1")
@@ -558,6 +580,8 @@ func TestDatabaseRootLeafIdleTimeout(t *testing.T) {
 	})
 
 	t.Run("leaf role with idle timeout", func(t *testing.T) {
+		t.Parallel()
+
 		setRoleIdleTimeout(t, leafAuthServer, leafRole, idleTimeout)
 		client := mkMySQLLeafDBClient(t)
 		_, err := client.Execute("select 1")
@@ -577,6 +601,8 @@ func TestDatabaseRootLeafIdleTimeout(t *testing.T) {
 // unspecified thus is not present in the valid principal list. The DB agent should replace unspecified address (0.0.0.0)
 // with localhost and successfully establish reverse tunnel connection.
 func TestDatabaseAccessUnspecifiedHostname(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t,
 		withNodeName("0.0.0.0"),
 	)
@@ -611,6 +637,8 @@ func TestDatabaseAccessUnspecifiedHostname(t *testing.T) {
 
 // TestDatabaseAccessPostgresSeparateListener tests postgres proxy listener running on separate port.
 func TestDatabaseAccessPostgresSeparateListener(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t,
 		withPortSetupDatabaseTest(helpers.SeparatePostgresPortSetup),
 	)
@@ -653,6 +681,8 @@ func init() {
 // database agent when multiple agents are serving the same database and one
 // of them is down in a root cluster.
 func TestDatabaseAccessHARootCluster(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t)
 
 	// Insert a database server entry not backed by an actual running agent
@@ -707,6 +737,8 @@ func TestDatabaseAccessHARootCluster(t *testing.T) {
 // database agent when multiple agents are serving the same database and one
 // of them is down in a leaf cluster.
 func TestDatabaseAccessHALeafCluster(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t)
 	pack.waitForLeaf(t)
 
@@ -760,6 +792,8 @@ func TestDatabaseAccessHALeafCluster(t *testing.T) {
 
 // TestDatabaseAccessMongoSeparateListener tests mongo proxy listener running on separate port.
 func TestDatabaseAccessMongoSeparateListener(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t,
 		withPortSetupDatabaseTest(helpers.SeparateMongoPortSetup),
 	)
@@ -789,6 +823,8 @@ func TestDatabaseAccessMongoSeparateListener(t *testing.T) {
 }
 
 func TestDatabaseAgentState(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		agentParams databaseAgentStartParams
 	}{
@@ -811,6 +847,8 @@ func TestDatabaseAgentState(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			pack := setupDatabaseTest(t)
 
 			// Start also ensures that the database agent has the “ready” state.
@@ -1307,6 +1345,8 @@ func containsDB(servers []types.DatabaseServer, name string) bool {
 // TestDatabaseAccessLargeQuery tests a scenario where a user connects
 // to a MySQL database running in a root cluster.
 func TestDatabaseAccessLargeQuery(t *testing.T) {
+	t.Parallel()
+
 	pack := setupDatabaseTest(t)
 
 	// Connect to the database service in root cluster.

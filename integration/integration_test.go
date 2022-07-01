@@ -88,6 +88,8 @@ type integrationTest func(t *testing.T, suite *integrationTestSuite)
 
 func (s *integrationTestSuite) bind(test integrationTest) func(t *testing.T) {
 	return func(t *testing.T) {
+		t.Parallel()
+
 		// Attempt to set a logger for the test. Be warned that parts of the
 		// Teleport codebase do not honour the logger passed in via config and
 		// will create their own. Do not expect to catch _all_ output with this.
@@ -101,6 +103,8 @@ func (s *integrationTestSuite) bind(test integrationTest) func(t *testing.T) {
 // TestIntegrations acts as the master test suite for all integration tests
 // requiring standardised setup and teardown.
 func TestIntegrations(t *testing.T) {
+	t.Parallel()
+
 	suite := newSuite(t)
 
 	t.Run("AuditOff", suite.bind(testAuditOff))
@@ -244,6 +248,8 @@ func testAuditOn(t *testing.T, suite *integrationTestSuite) {
 
 	for _, tt := range tests {
 		t.Run(tt.comment, func(t *testing.T) {
+			t.Parallel()
+
 			makeConfig := func() (*testing.T, []string, []*helpers.InstanceSecrets, *service.Config) {
 				auditConfig, err := types.NewClusterAuditConfig(types.ClusterAuditConfigSpecV2{
 					AuditSessionsURI: tt.auditSessionsURI,
@@ -570,6 +576,8 @@ func testInteroperability(t *testing.T, suite *integrationTestSuite) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("Test %d: %s", i, strings.Fields(tt.inCommand)[0]), func(t *testing.T) {
+			t.Parallel()
+
 			// create new teleport client
 			cl, err := teleport.NewClient(helpers.ClientConfig{
 				Login:   suite.Me.Username,
@@ -927,6 +935,8 @@ func testSessionRecordingModes(t *testing.T, suite *integrationTestSuite) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			// Setup user and session recording mode.
 			username := suite.Me.Username
 			role, err := types.NewRoleV3("devs", types.RoleSpecV5{
@@ -943,6 +953,8 @@ func testSessionRecordingModes(t *testing.T, suite *integrationTestSuite) {
 			require.NoError(t, helpers.SetupUser(teleport.Process, username, []types.Role{role}))
 
 			t.Run("BeforeStartFailure", func(t *testing.T) {
+				t.Parallel()
+
 				// Enable disk failure.
 				enableDiskFailure()
 				defer disableDiskFailure()
@@ -970,6 +982,8 @@ func testSessionRecordingModes(t *testing.T, suite *integrationTestSuite) {
 			})
 
 			t.Run("MidSessionFailure", func(t *testing.T) {
+				t.Parallel()
+
 				// Start session.
 				term, errCh := startSession(username)
 
@@ -1363,6 +1377,8 @@ func testDisconnectScenarios(t *testing.T, suite *integrationTestSuite) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("Test %d", i), func(t *testing.T) {
+			t.Parallel()
+
 			runDisconnectTest(t, suite, tc)
 		})
 	}
@@ -1611,6 +1627,8 @@ func testTwoClustersTunnel(t *testing.T, suite *integrationTestSuite) {
 
 	for _, tt := range tests {
 		t.Run(tt.inRecordLocation, func(t *testing.T) {
+			t.Parallel()
+
 			twoClustersTunnel(t, suite, now, tt.inRecordLocation, tt.outExecCountSiteA, tt.outExecCountSiteB)
 		})
 	}
@@ -2100,6 +2118,8 @@ func testMapRoles(t *testing.T, suite *integrationTestSuite) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			cid := types.CertAuthID{Type: types.UserCA, DomainName: tt.mainClusterName}
 			mainUserCAs, err := tt.inCluster.Process.GetAuthServer().GetCertAuthority(ctx, cid, true)
 			tt.outChkMainUserCA(t, err)
@@ -3333,6 +3353,8 @@ func testExternalClient(t *testing.T, suite *integrationTestSuite) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			// Create a Teleport instance with auth, proxy, and node.
 			makeConfig := func() (*testing.T, []string, []*helpers.InstanceSecrets, *service.Config) {
 				recConfig, err := types.NewSessionRecordingConfigFromConfigFile(types.SessionRecordingConfigSpecV2{
@@ -3522,6 +3544,8 @@ func testProxyHostKeyCheck(t *testing.T, suite *integrationTestSuite) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			hostSigner, err := ssh.ParsePrivateKey(suite.Priv)
 			require.NoError(t, err)
 
@@ -3765,6 +3789,8 @@ func testPAM(t *testing.T, suite *integrationTestSuite) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			// Create a teleport instance with auth, proxy, and node.
 			makeConfig := func() (*testing.T, []string, []*helpers.InstanceSecrets, *service.Config) {
 				tconf := suite.defaultServiceConfig()
@@ -4686,6 +4712,8 @@ func testList(t *testing.T, suite *integrationTestSuite) {
 
 	for _, tt := range tests {
 		t.Run(tt.inRoleName, func(t *testing.T) {
+			t.Parallel()
+
 			// Create role with logins and labels for this test.
 			role, err := types.NewRoleV3(tt.inRoleName, types.RoleSpecV5{
 				Allow: types.RoleConditions{
@@ -4804,6 +4832,8 @@ func testCmdLabels(t *testing.T, suite *integrationTestSuite) {
 
 	for _, tt := range tts {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			cfg := helpers.ClientConfig{
 				Login:   suite.Me.Username,
 				Cluster: helpers.Site,
@@ -4901,6 +4931,8 @@ func testBPFInteractive(t *testing.T, suite *integrationTestSuite) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			// Create temporary directory where cgroup2 hierarchy will be mounted.
 			dir := t.TempDir()
 
@@ -5029,6 +5061,8 @@ func testBPFExec(t *testing.T, suite *integrationTestSuite) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			// Create temporary directory where cgroup2 hierarchy will be mounted.
 			dir := t.TempDir()
 
@@ -5158,6 +5192,8 @@ func testSSHExitCode(t *testing.T, suite *integrationTestSuite) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			// Create and start a Teleport cluster.
 			makeConfig := func() (*testing.T, []string, []*helpers.InstanceSecrets, *service.Config) {
 				// Create default config.
@@ -5380,6 +5416,8 @@ func testExecEvents(t *testing.T, suite *integrationTestSuite) {
 
 	for _, tt := range execTests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			// Create client for each test in grid tests
 			clientConfig := helpers.ClientConfig{
 				Login:       suite.Me.Username,
@@ -5773,6 +5811,8 @@ func dumpGoroutineProfile() {
 
 // TestWebProxyInsecure makes sure that proxy endpoint works when TLS is disabled.
 func TestWebProxyInsecure(t *testing.T) {
+	t.Parallel()
+
 	privateKey, publicKey, err := testauthority.New().GenerateKeyPair()
 	require.NoError(t, err)
 
@@ -5815,6 +5855,8 @@ func TestWebProxyInsecure(t *testing.T) {
 // TestTraitsPropagation makes sure that user traits are applied properly to
 // roles in root and leaf clusters.
 func TestTraitsPropagation(t *testing.T) {
+	t.Parallel()
+
 	log := utils.NewLoggerForTests()
 
 	privateKey, publicKey, err := testauthority.New().GenerateKeyPair()
@@ -6072,6 +6114,8 @@ func testKubeAgentFiltering(t *testing.T, suite *integrationTestSuite) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
 			teleport := suite.newTeleport(t, nil, true)
 			defer teleport.StopAll()
 
@@ -6316,6 +6360,8 @@ func testListResourcesAcrossClusters(t *testing.T, suite *integrationTestSuite) 
 
 	for _, test := range nodeTests {
 		t.Run("node - "+test.name, func(t *testing.T) {
+			t.Parallel()
+
 			if test.search != "" {
 				tc.SearchKeywords = strings.Split(test.search, " ")
 			} else {
@@ -6365,6 +6411,8 @@ func testListResourcesAcrossClusters(t *testing.T, suite *integrationTestSuite) 
 		}
 
 		t.Run("apps - "+test.name, func(t *testing.T) {
+			t.Parallel()
+
 			clusters, err := tc.ListAppsAllClusters(context.TODO(), nil)
 			require.NoError(t, err)
 			apps := make([]string, 0)
@@ -6378,6 +6426,8 @@ func testListResourcesAcrossClusters(t *testing.T, suite *integrationTestSuite) 
 		})
 
 		t.Run("databases - "+test.name, func(t *testing.T) {
+			t.Parallel()
+
 			clusters, err := tc.ListDatabasesAllClusters(context.TODO(), nil)
 			require.NoError(t, err)
 			databases := make([]string, 0)
@@ -6391,6 +6441,8 @@ func testListResourcesAcrossClusters(t *testing.T, suite *integrationTestSuite) 
 		})
 
 		t.Run("kube - "+test.name, func(t *testing.T) {
+			t.Parallel()
+
 			req := proto.ListResourcesRequest{}
 			if test.search != "" {
 				req.SearchKeywords = strings.Split(test.search, " ")

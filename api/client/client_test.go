@@ -394,6 +394,8 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			clt, err := srv.NewClient(ctx, WithConfig(tt.config))
 			tt.assertErr(t, err)
 
@@ -519,6 +521,8 @@ func TestListResources(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			resp, err := clt.ListResources(ctx, proto.ListResourcesRequest{
 				Namespace:    defaults.Namespace,
 				Limit:        10,
@@ -581,6 +585,8 @@ func TestGetResources(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			expectedResources, err := testResources(test.resourceType, defaults.Namespace)
 			require.NoError(t, err)
 

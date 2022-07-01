@@ -47,6 +47,7 @@ import (
 //  - reusing a used or non-existing token returns error
 func TestGenerateAndUpsertRecoveryCodes(t *testing.T) {
 	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 
@@ -98,6 +99,7 @@ func TestGenerateAndUpsertRecoveryCodes(t *testing.T) {
 
 func TestRecoveryCodeEventsEmitted(t *testing.T) {
 	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 	mockEmitter := &eventstest.MockEmitter{}
@@ -128,6 +130,8 @@ func TestRecoveryCodeEventsEmitted(t *testing.T) {
 }
 
 func TestStartAccountRecovery(t *testing.T) {
+	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 	fakeClock := srv.Clock().(clockwork.FakeClock)
@@ -169,6 +173,8 @@ func TestStartAccountRecovery(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			startToken, err := srv.Auth().StartAccountRecovery(ctx, &proto.StartAccountRecoveryRequest{
 				Username:     u.username,
 				RecoveryCode: []byte(c.recoveryCode),
@@ -199,6 +205,8 @@ func TestStartAccountRecovery(t *testing.T) {
 }
 
 func TestStartAccountRecovery_WithLock(t *testing.T) {
+	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 
@@ -252,6 +260,8 @@ func TestStartAccountRecovery_WithLock(t *testing.T) {
 }
 
 func TestStartAccountRecovery_UserErrors(t *testing.T) {
+	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 
@@ -303,6 +313,8 @@ func TestStartAccountRecovery_UserErrors(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.desc, func(t *testing.T) {
+			t.Parallel()
+
 			_, err = srv.Auth().StartAccountRecovery(ctx, c.req)
 			require.True(t, trace.IsAccessDenied(err))
 			require.Equal(t, c.expErrMsg, err.Error())
@@ -311,6 +323,8 @@ func TestStartAccountRecovery_UserErrors(t *testing.T) {
 }
 
 func TestVerifyAccountRecovery_WithAuthnErrors(t *testing.T) {
+	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 	fakeClock := srv.Clock().(clockwork.FakeClock)
@@ -388,6 +402,8 @@ func TestVerifyAccountRecovery_WithAuthnErrors(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			// Acquire a start token.
 			startToken, err := srv.Auth().createRecoveryToken(ctx, u.username, UserTokenTypeRecoveryStart, c.recoverType)
 			require.NoError(t, err)
@@ -445,6 +461,8 @@ func TestVerifyAccountRecovery_WithAuthnErrors(t *testing.T) {
 }
 
 func TestVerifyAccountRecovery_WithLock(t *testing.T) {
+	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 	mockEmitter := &eventstest.MockEmitter{}
@@ -514,6 +532,8 @@ func TestVerifyAccountRecovery_WithLock(t *testing.T) {
 }
 
 func TestVerifyAccountRecovery_WithErrors(t *testing.T) {
+	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 	mockEmitter := &eventstest.MockEmitter{}
@@ -600,6 +620,8 @@ func TestVerifyAccountRecovery_WithErrors(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err = srv.Auth().VerifyAccountRecovery(ctx, c.getRequest())
 			switch {
 			case c.expErrMsg != "":
@@ -613,6 +635,8 @@ func TestVerifyAccountRecovery_WithErrors(t *testing.T) {
 }
 
 func TestCompleteAccountRecovery(t *testing.T) {
+	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 	mockEmitter := &eventstest.MockEmitter{}
@@ -698,6 +722,8 @@ func TestCompleteAccountRecovery(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			req := c.getRequest()
 
 			// Change authentication.
@@ -727,6 +753,8 @@ func TestCompleteAccountRecovery(t *testing.T) {
 }
 
 func TestCompleteAccountRecovery_WithErrors(t *testing.T) {
+	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 	mockEmitter := &eventstest.MockEmitter{}
@@ -883,6 +911,8 @@ func TestCompleteAccountRecovery_WithErrors(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			err = srv.Auth().CompleteAccountRecovery(ctx, c.getRequest())
 			switch {
 			case c.isDuplicate:
@@ -901,6 +931,8 @@ func TestCompleteAccountRecovery_WithErrors(t *testing.T) {
 
 // TestAccountRecoveryFlow tests the recovery flow from start to finish.
 func TestAccountRecoveryFlow(t *testing.T) {
+	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 
@@ -1038,6 +1070,8 @@ func TestAccountRecoveryFlow(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			user, err := createUserWithSecondFactors(srv)
 			require.NoError(t, err)
 
@@ -1065,6 +1099,7 @@ func TestAccountRecoveryFlow(t *testing.T) {
 
 func TestGetAccountRecoveryToken(t *testing.T) {
 	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 
@@ -1147,6 +1182,8 @@ func TestGetAccountRecoveryToken(t *testing.T) {
 }
 
 func TestCreateAccountRecoveryCodes(t *testing.T) {
+	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 
@@ -1232,6 +1269,8 @@ func TestCreateAccountRecoveryCodes(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			req := c.getRequest()
 			res, err := srv.Auth().CreateAccountRecoveryCodes(ctx, req)
 
@@ -1258,6 +1297,8 @@ func TestCreateAccountRecoveryCodes(t *testing.T) {
 }
 
 func TestGetAccountRecoveryCodes(t *testing.T) {
+	t.Parallel()
+
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 

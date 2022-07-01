@@ -24,6 +24,8 @@ import (
 )
 
 func TestParseRDSEndpoint(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name                string
 		endpoint            string
@@ -81,6 +83,8 @@ func TestParseRDSEndpoint(t *testing.T) {
 }
 
 func TestParseRedshiftEndpoint(t *testing.T) {
+	t.Parallel()
+	
 	tests := []struct {
 		name                     string
 		endpoint                 string

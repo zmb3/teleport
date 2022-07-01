@@ -23,6 +23,8 @@ import (
 )
 
 func TestSliceContainsStr(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name         string
 		slice        []string
@@ -35,12 +37,16 @@ func TestSliceContainsStr(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			require.Equal(t, tc.wantContains, SliceContainsStr(tc.slice, tc.target))
 		})
 	}
 }
 
 func TestDeduplicate(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name         string
 		in, expected []string
@@ -51,6 +57,8 @@ func TestDeduplicate(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			require.Equal(t, tc.expected, Deduplicate(tc.in))
 		})
 	}

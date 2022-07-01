@@ -21,6 +21,8 @@ import (
 )
 
 func TestWebappsVersion(t *testing.T) {
+	t.Parallel()
+
 	for _, test := range []struct {
 		desc         string
 		droneTag     string
@@ -32,6 +34,8 @@ func TestWebappsVersion(t *testing.T) {
 		{desc: "fallback master", targetBranch: "foobar", want: "master"},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			require.Equal(t, test.want,
 				webappsVersion(test.droneTag, test.targetBranch))
 		})

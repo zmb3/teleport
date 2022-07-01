@@ -118,6 +118,8 @@ func TestIsInternal(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			expect := test.assignments.IsInternal(test.author)
 			require.Equal(t, expect, test.expect)
 		})
@@ -273,6 +275,8 @@ func TestGetCodeReviewers(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			setA, setB := test.assignments.getCodeReviewerSets(test.author)
 			require.ElementsMatch(t, setA, test.setA)
 			require.ElementsMatch(t, setB, test.setB)
@@ -353,6 +357,8 @@ func TestGetDocsReviewers(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			reviewers := test.assignments.getDocsReviewers(test.author)
 			require.ElementsMatch(t, reviewers, test.reviewers)
 		})
@@ -431,6 +437,8 @@ func TestCheckExternal(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			err := r.CheckExternal(test.author, test.reviews)
 			if test.result {
 				require.NoError(t, err)
@@ -679,6 +687,8 @@ func TestCheckInternal(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			err := r.CheckInternal(test.author, test.reviews, test.docs, test.code)
 			if test.result {
 				require.NoError(t, err)

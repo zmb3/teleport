@@ -23,6 +23,8 @@ import (
 )
 
 func TestParseBranches(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		input    string
 		expected []string
@@ -57,6 +59,8 @@ func TestParseBranches(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			expect, err := parseBranches(test.input)
 			if test.expected != nil {
 				require.ElementsMatch(t, expect, test.expected)

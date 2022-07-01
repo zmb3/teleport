@@ -27,6 +27,8 @@ import (
 
 // TestLabel checks that labels are correctly applied to a Pull Request.
 func TestLabel(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		desc   string
 		branch string
@@ -78,6 +80,8 @@ func TestLabel(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			b := &Bot{
 				c: &Config{
 					Environment: &env.Environment{

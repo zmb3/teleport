@@ -97,6 +97,8 @@ func TestMFADevice_CheckAndSetDefaults(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			err := test.dev.CheckAndSetDefaults()
 			if hasErr := err != nil; hasErr != test.wantErr {
 				t.Errorf("CheckAndSetDefaults returned err = %v, wantErr %v", err, test.wantErr)

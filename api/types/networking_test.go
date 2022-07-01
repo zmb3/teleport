@@ -26,6 +26,8 @@ import (
 )
 
 func TestProxyListenerModeMarshalYAML(t *testing.T) {
+	t.Parallel()
+
 	tt := []struct {
 		name string
 		in   ProxyListenerMode
@@ -44,6 +46,8 @@ func TestProxyListenerModeMarshalYAML(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			buff, err := yaml.Marshal(&tc.in)
 			require.NoError(t, err)
 			require.Equal(t, tc.want, strings.TrimRight(string(buff), "\n"))
@@ -52,6 +56,8 @@ func TestProxyListenerModeMarshalYAML(t *testing.T) {
 }
 
 func TestProxyListenerModeUnmarshalYAML(t *testing.T) {
+	t.Parallel()
+
 	tt := []struct {
 		name    string
 		in      string
@@ -79,6 +85,8 @@ func TestProxyListenerModeUnmarshalYAML(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			var got ProxyListenerMode
 			err := yaml.Unmarshal([]byte(tc.in), &got)
 			if tc.wantErr != nil {

@@ -25,6 +25,8 @@ import (
 )
 
 func TestTrimToMaxSize(t *testing.T) {
+	t.Parallel()
+
 	type messageSizeTrimmer interface {
 		TrimToMaxSize(int) AuditEvent
 	}
@@ -93,6 +95,8 @@ func TestTrimToMaxSize(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			sr, ok := tc.in.(messageSizeTrimmer)
 			require.True(t, ok)
 

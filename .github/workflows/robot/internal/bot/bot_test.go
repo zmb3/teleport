@@ -70,6 +70,8 @@ func TestParseChanges(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			b := &Bot{
 				c: &Config{
 					Environment: &env.Environment{

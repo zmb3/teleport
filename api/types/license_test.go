@@ -25,6 +25,8 @@ import (
 )
 
 func TestLicenseSettersAndGetters(t *testing.T) {
+	t.Parallel()
+
 	// All getters inspected in this test.
 	allFields := []func(License) Bool{
 		License.GetReportsUsage,
@@ -100,6 +102,8 @@ func TestLicenseSettersAndGetters(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			license := &LicenseV3{
 				Spec: LicenseSpecV3{
 					SupportsApplicationAccess: NewBoolP(false),

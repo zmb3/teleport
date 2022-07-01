@@ -39,6 +39,8 @@ func (r *mockResolver) LookupIPAddr(ctx context.Context, host string) ([]net.IPA
 }
 
 func TestIsLoopback(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		desc     string
 		addr     string
@@ -105,6 +107,8 @@ func TestIsLoopback(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
+
 			require.Equal(t, tc.expect, isLoopbackWithResolver(tc.addr, tc.resolver))
 		})
 	}

@@ -43,6 +43,8 @@ func newPingHandler(path string) http.Handler {
 }
 
 func TestPlainHttpFallback(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		desc            string
 		handler         http.Handler
@@ -68,7 +70,11 @@ func TestPlainHttpFallback(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.desc, func(t *testing.T) {
+			t.Parallel()
+
 			t.Run("Allowed on insecure & loopback", func(t *testing.T) {
+				t.Parallel()
+
 				httpSvr := httptest.NewServer(testCase.handler)
 				defer httpSvr.Close()
 
@@ -77,6 +83,8 @@ func TestPlainHttpFallback(t *testing.T) {
 			})
 
 			t.Run("Denied on secure", func(t *testing.T) {
+				t.Parallel()
+
 				httpSvr := httptest.NewServer(testCase.handler)
 				defer httpSvr.Close()
 
@@ -85,6 +93,8 @@ func TestPlainHttpFallback(t *testing.T) {
 			})
 
 			t.Run("Denied on non-loopback", func(t *testing.T) {
+				t.Parallel()
+
 				nonLoopbackSvr := httptest.NewUnstartedServer(testCase.handler)
 
 				// replace the test-supplied loopback listener with the first available
@@ -104,6 +114,8 @@ func TestPlainHttpFallback(t *testing.T) {
 }
 
 func TestGetTunnelAddr(t *testing.T) {
+	t.Parallel()
+
 	t.Setenv(defaults.TunnelPublicAddrEnvar, "tunnel.example.com:4024")
 	tunnelAddr, err := GetTunnelAddr(&Config{Context: context.Background(), ProxyAddr: "", Insecure: false})
 	require.NoError(t, err)
@@ -111,6 +123,8 @@ func TestGetTunnelAddr(t *testing.T) {
 }
 
 func TestTunnelAddr(t *testing.T) {
+	t.Parallel()
+
 	type testCase struct {
 		settings           ProxySettings
 		expectedTunnelAddr string
@@ -275,6 +289,8 @@ func TestParse(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.addr, func(t *testing.T) {
+			t.Parallel()
+
 			hostPort, err := parseAndJoinHostPort(tc.addr)
 			if tc.hostPort == "" {
 				require.Error(t, err)
@@ -416,6 +432,8 @@ func TestSSHProxyHostPort(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.testName, func(t *testing.T) {
+			t.Parallel()
+
 			host, port, err := test.inProxySettings.SSHProxyHostPort()
 			require.NoError(t, err)
 			require.Equal(t, test.outHost, host)

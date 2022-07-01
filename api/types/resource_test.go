@@ -324,6 +324,8 @@ func TestMatchSearch_ResourceSpecific(t *testing.T) {
 }
 
 func TestResourcesWithLabels_ToMap(t *testing.T) {
+	t.Parallel()
+
 	mkServerHost := func(name string, hostname string) ResourceWithLabels {
 		server, err := NewServerWithLabels(name, KindNode, ServerSpecV2{
 			Hostname: hostname + ".example.com",
@@ -374,6 +376,8 @@ func TestResourcesWithLabels_ToMap(t *testing.T) {
 }
 
 func TestValidLabelKey(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		label string
 		valid bool

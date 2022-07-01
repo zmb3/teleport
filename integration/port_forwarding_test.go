@@ -89,6 +89,8 @@ func testPortForwarding(t *testing.T, suite *integrationTestSuite) {
 
 	for _, tt := range testCases {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			// Given a running teleport instance with port forwarding
 			// permissions set per the test case
 

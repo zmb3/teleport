@@ -106,6 +106,8 @@ func TestCircuitBreaker_beforeRequest(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			clock := clockwork.NewFakeClock()
 
 			cb, err := New(Config{
@@ -198,6 +200,8 @@ func TestCircuitBreaker_afterExecution(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			clock := clockwork.NewFakeClock()
 			cb, err := New(Config{
 				Clock:    clock,
@@ -247,6 +251,8 @@ func TestCircuitBreaker_success(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			clock := clockwork.NewFakeClock()
 			cb, err := New(Config{
 				Clock:         clock,
@@ -489,6 +495,8 @@ func TestCircuitBreaker_Execute(t *testing.T) {
 
 	for i, tt := range cases {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			clock.Advance(tt.advance)
 			_, err := cb.Execute(tt.exec)
 			tt.errorAssertion(t, err)
@@ -612,6 +620,8 @@ func TestIsResponseSuccessful(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			tt.assertion(t, IsResponseSuccessful(tt.response, tt.err))
 		})
 	}

@@ -25,6 +25,8 @@ import (
 )
 
 func TestGetLatest(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		desc     string
 		spec     string
@@ -80,6 +82,8 @@ func TestGetLatest(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
 			gh := &fakeGitHub{
 				releases: test.releases,
 			}

@@ -23,6 +23,8 @@ import (
 )
 
 func TestShortRegionToRegion(t *testing.T) {
+	t.Parallel()
+
 	t.Run("valid regions", func(t *testing.T) {
 		t.Parallel()
 

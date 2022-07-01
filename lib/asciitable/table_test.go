@@ -82,6 +82,8 @@ func TestTruncatedTable(t *testing.T) {
 }
 
 func TestMakeTableWithTruncatedColumn(t *testing.T) {
+	t.Parallel()
+
 	// os.Stdin.Fd() fails during go test, so width is defaulted to 80
 	columns := []string{"column1", "column2", "column3"}
 	rows := [][]string{{strings.Repeat("cell1", 6), strings.Repeat("cell2", 6), strings.Repeat("cell3", 6)}}
@@ -124,6 +126,8 @@ func TestMakeTableWithTruncatedColumn(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.truncatedColumn, func(t *testing.T) {
+			t.Parallel()
+
 			table := MakeTableWithTruncatedColumn(columns, rows, testCase.truncatedColumn)
 			rows := strings.Split(table.AsBuffer().String(), "\n")
 			require.Len(t, rows, 4)

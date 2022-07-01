@@ -41,6 +41,8 @@ import (
 )
 
 func TestAccessRequest(t *testing.T) {
+	t.Parallel()
+
 	modules.SetTestModules(t, &modules.TestModules{
 		TestFeatures: modules.Features{
 			ResourceAccessRequests: true,
@@ -222,6 +224,8 @@ func TestAccessRequest(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
+
 			requester := TestUser(tc.requester)
 			requesterClient, err := server.NewClient(requester)
 			require.NoError(t, err)

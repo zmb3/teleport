@@ -50,6 +50,8 @@ func requireRoot(t *testing.T) {
 }
 
 func TestRootHostUsersBackend(t *testing.T) {
+	t.Parallel()
+
 	requireRoot(t)
 
 	backend := srv.HostUsersProvisioningBackend{}
@@ -61,6 +63,8 @@ func TestRootHostUsersBackend(t *testing.T) {
 	})
 
 	t.Run("Test CreateGroup", func(t *testing.T) {
+		t.Parallel()
+
 		err := backend.CreateGroup(testgroup)
 		require.NoError(t, err)
 		err = backend.CreateGroup(testgroup)
@@ -68,6 +72,8 @@ func TestRootHostUsersBackend(t *testing.T) {
 	})
 
 	t.Run("Test CreateUser and group", func(t *testing.T) {
+		t.Parallel()
+
 		err := backend.CreateUser(testuser, []string{testgroup})
 		require.NoError(t, err)
 
@@ -87,6 +93,8 @@ func TestRootHostUsersBackend(t *testing.T) {
 	})
 
 	t.Run("Test DeleteUser", func(t *testing.T) {
+		t.Parallel()
+
 		err := backend.DeleteUser(testuser)
 		require.NoError(t, err)
 
@@ -95,6 +103,8 @@ func TestRootHostUsersBackend(t *testing.T) {
 	})
 
 	t.Run("Test GetAllUsers", func(t *testing.T) {
+		t.Parallel()
+
 		checkUsers := []string{"teleport-usera", "teleport-userb", "teleport-userc"}
 		t.Cleanup(func() {
 			for _, u := range checkUsers {
@@ -112,6 +122,8 @@ func TestRootHostUsersBackend(t *testing.T) {
 	})
 
 	t.Run("Test sudoers", func(t *testing.T) {
+		t.Parallel()
+
 		if _, err := exec.LookPath("visudo"); err != nil {
 			t.Skip("visudo not found on path")
 		}
@@ -152,6 +164,8 @@ func cleanupUsersAndGroups(users []string, groups []string) func() {
 }
 
 func TestRootHostUsers(t *testing.T) {
+	t.Parallel()
+
 	requireRoot(t)
 	ctx := context.Background()
 	bk, err := lite.New(ctx, backend.Params{"path": t.TempDir()})
@@ -160,6 +174,8 @@ func TestRootHostUsers(t *testing.T) {
 	presence := local.NewPresenceService(bk)
 
 	t.Run("test create temporary user and close", func(t *testing.T) {
+		t.Parallel()
+
 		users := srv.NewHostUsers(context.Background(), presence, "host_uuid")
 
 		testGroups := []string{"group1", "group2"}
@@ -179,6 +195,8 @@ func TestRootHostUsers(t *testing.T) {
 	})
 
 	t.Run("test create sudoers enabled users", func(t *testing.T) {
+		t.Parallel()
+
 		if _, err := exec.LookPath("visudo"); err != nil {
 			t.Skip("Visudo not found on path")
 		}
@@ -218,6 +236,8 @@ func TestRootHostUsers(t *testing.T) {
 	})
 
 	t.Run("test delete all users in teleport service group", func(t *testing.T) {
+		t.Parallel()
+
 		users := srv.NewHostUsers(context.Background(), presence, "host_uuid")
 		users.SetHostUserDeletionGrace(0)
 

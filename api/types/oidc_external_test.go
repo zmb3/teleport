@@ -21,6 +21,8 @@ import (
 )
 
 func TestOIDCClaimsRoundTrip(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		src  OIDCClaims
@@ -43,6 +45,8 @@ func TestOIDCClaimsRoundTrip(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			buf := make([]byte, tt.src.Size())
 			count, err := tt.src.MarshalTo(buf)
 			require.NoError(t, err)

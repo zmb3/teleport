@@ -79,6 +79,8 @@ func TestAppPublicAddrValidation(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := NewAppV3(Metadata{
 				Name: "TestApp",
 			}, AppSpecV3{
@@ -141,6 +143,8 @@ func TestAppServerSorter(t *testing.T) {
 	for _, c := range cases {
 		c := c
 		t.Run(fmt.Sprintf("%s desc", c.name), func(t *testing.T) {
+			t.Parallel()
+
 			sortBy := SortBy{Field: c.fieldName, IsDesc: true}
 			servers := AppServers(makeServers(testValsUnordered, c.fieldName))
 			require.NoError(t, servers.SortByCustom(sortBy))
@@ -150,6 +154,8 @@ func TestAppServerSorter(t *testing.T) {
 		})
 
 		t.Run(fmt.Sprintf("%s asc", c.name), func(t *testing.T) {
+			t.Parallel()
+
 			sortBy := SortBy{Field: c.fieldName}
 			servers := AppServers(makeServers(testValsUnordered, c.fieldName))
 			require.NoError(t, servers.SortByCustom(sortBy))

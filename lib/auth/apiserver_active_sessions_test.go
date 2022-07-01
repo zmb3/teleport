@@ -96,6 +96,8 @@ func TestAPIServer_activeSessions_whereConditions(t *testing.T) {
 	alpacaSessionID := createSession(alpacaClient, alpaca)
 
 	t.Run("GetSessions respects role conditions", func(t *testing.T) {
+		t.Parallel()
+
 		tests := []struct {
 			name    string
 			clt     ClientI
@@ -114,6 +116,8 @@ func TestAPIServer_activeSessions_whereConditions(t *testing.T) {
 		}
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
+				t.Parallel()
+
 				sessions, err := test.clt.GetSessions(apidefaults.Namespace)
 				require.NoError(t, err)
 
@@ -158,6 +162,8 @@ func TestAPIServer_activeSessions_whereConditions(t *testing.T) {
 	}
 
 	t.Run("users can't interact with denied sessions", func(t *testing.T) {
+		t.Parallel()
+
 		clt := alpacaClient
 		sessionID := adminSessionID
 		tests := []struct {
@@ -179,6 +185,8 @@ func TestAPIServer_activeSessions_whereConditions(t *testing.T) {
 		}
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
+				t.Parallel()
+
 				err := test.fn(sessionID)
 				require.True(t, trace.IsAccessDenied(err), "unexpected err: %v (want access denied)", err)
 			})
@@ -186,6 +194,8 @@ func TestAPIServer_activeSessions_whereConditions(t *testing.T) {
 	})
 
 	t.Run("users can interact with allowed sessions", func(t *testing.T) {
+		t.Parallel()
+
 		tests := []struct {
 			name      string
 			fn        func(session.ID) error
@@ -235,6 +245,8 @@ func TestAPIServer_activeSessions_whereConditions(t *testing.T) {
 		}
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
+				t.Parallel()
+
 				require.NoError(t, test.fn(test.sessionID))
 			})
 		}

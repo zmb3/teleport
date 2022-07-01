@@ -146,6 +146,8 @@ type kubeIntegrationTest func(t *testing.T, suite *KubeSuite)
 
 func (s *KubeSuite) bind(test kubeIntegrationTest) func(t *testing.T) {
 	return func(t *testing.T) {
+		t.Parallel()
+
 		s.log = utils.NewLoggerForTests()
 		os.RemoveAll(profile.FullProfilePath(""))
 		t.Cleanup(func() { s.log = nil })
@@ -154,6 +156,8 @@ func (s *KubeSuite) bind(test kubeIntegrationTest) func(t *testing.T) {
 }
 
 func TestKube(t *testing.T) {
+	t.Parallel()
+
 	suite := newKubeSuite(t)
 	t.Run("Exec", suite.bind(testKubeExec))
 	t.Run("Deny", suite.bind(testKubeDeny))
@@ -1001,6 +1005,8 @@ func testKubeDisconnect(t *testing.T, suite *KubeSuite) {
 	for i := 0; i < utils.GetIterations(); i++ {
 		for j, tc := range testCases {
 			t.Run(fmt.Sprintf("#%02d_iter_%d", j, i), func(t *testing.T) {
+				t.Parallel()
+
 				runKubeDisconnectTest(t, suite, tc)
 			})
 		}

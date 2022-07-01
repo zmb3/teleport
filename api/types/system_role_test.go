@@ -128,6 +128,8 @@ func TestParseTeleportRoles(t *testing.T) {
 		},
 	} {
 		t.Run(test.in, func(t *testing.T) {
+			t.Parallel()
+
 			roles, err := ParseTeleportRoles(test.in)
 			if test.wantErr {
 				require.Error(t, err)

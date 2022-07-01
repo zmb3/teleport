@@ -67,6 +67,8 @@ import (
 // TestAppAccessForward tests that requests get forwarded to the target application
 // within a single cluster and trusted cluster.
 func TestAppAccessForward(t *testing.T) {
+	t.Parallel()
+
 	// Create cluster, user, sessions, and credentials package.
 	pack := setup(t)
 
@@ -97,6 +99,8 @@ func TestAppAccessForward(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			tt := tt
 			status, body, err := pack.makeRequest(tt.inCookie, http.MethodGet, "/")
 			require.NoError(t, err)
@@ -108,6 +112,8 @@ func TestAppAccessForward(t *testing.T) {
 
 // TestAppAccessWebsockets makes sure that websocket requests get forwarded.
 func TestAppAccessWebsockets(t *testing.T) {
+	t.Parallel()
+
 	// Create cluster, user, sessions, and credentials package.
 	pack := setup(t)
 
@@ -145,6 +151,8 @@ func TestAppAccessWebsockets(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			tt := tt
 			body, err := pack.makeWebsocketRequest(tt.inCookie, "/")
 			if tt.err != nil {
@@ -160,6 +168,8 @@ func TestAppAccessWebsockets(t *testing.T) {
 // TestAppAccessClientCert tests mutual TLS authentication flow with application
 // access typically used in CLI by curl and other clients.
 func TestAppAccessClientCert(t *testing.T) {
+	t.Parallel()
+
 	pack := setup(t)
 
 	tests := []struct {
@@ -188,6 +198,8 @@ func TestAppAccessClientCert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			tt := tt
 			status, body, err := pack.makeRequestWithClientCert(tt.inTLSConfig, http.MethodGet, "/")
 			require.NoError(t, err)
@@ -200,6 +212,8 @@ func TestAppAccessClientCert(t *testing.T) {
 // TestAppAccessFlush makes sure that application access periodically flushes
 // buffered data to the response.
 func TestAppAccessFlush(t *testing.T) {
+	t.Parallel()
+
 	pack := setup(t)
 
 	req, err := http.NewRequest("GET", pack.assembleRootProxyURL("/"), nil)
@@ -239,6 +253,8 @@ func TestAppAccessFlush(t *testing.T) {
 // TestAppAccessForwardModes ensures that requests are forwarded to applications
 // even when the cluster is in proxy recording mode.
 func TestAppAccessForwardModes(t *testing.T) {
+	t.Parallel()
+
 	// Create cluster, user, sessions, and credentials package.
 	ctx := context.Background()
 	pack := setup(t)
@@ -275,6 +291,8 @@ func TestAppAccessForwardModes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			tt := tt
 			status, body, err := pack.makeRequest(tt.inCookie, http.MethodGet, "/")
 			require.NoError(t, err)
@@ -286,6 +304,8 @@ func TestAppAccessForwardModes(t *testing.T) {
 
 // TestAppAccessLogout verifies the session is removed from the backend when the user logs out.
 func TestAppAccessLogout(t *testing.T) {
+	t.Parallel()
+
 	// Create cluster, user, and credentials package.
 	pack := setup(t)
 
@@ -306,6 +326,8 @@ func TestAppAccessLogout(t *testing.T) {
 // TestAppAccessJWT ensures a JWT token is attached to requests and the JWT token can
 // be validated.
 func TestAppAccessJWT(t *testing.T) {
+	t.Parallel()
+
 	// Create cluster, user, and credentials package.
 	pack := setup(t)
 
@@ -353,6 +375,8 @@ func verifyJWT(t *testing.T, pack *pack, token, appURI string) {
 // TestAppAccessNoHeaderOverrides ensures that AAP-specific headers cannot be overridden
 // by values passed in by the user.
 func TestAppAccessNoHeaderOverrides(t *testing.T) {
+	t.Parallel()
+
 	// Create cluster, user, and credentials package.
 	pack := setup(t)
 
@@ -393,6 +417,8 @@ func TestAppAccessNoHeaderOverrides(t *testing.T) {
 // TestAppAccessRewriteHeadersRoot validates that http headers from application
 // rewrite configuration are correctly passed to proxied applications in root.
 func TestAppAccessRewriteHeadersRoot(t *testing.T) {
+	t.Parallel()
+
 	// Start test server that will dump all request headers in the response.
 	dumperServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.Write(w)
@@ -499,6 +525,8 @@ func TestAppAccessRewriteHeadersRoot(t *testing.T) {
 // TestAppAccessRewriteHeadersLeaf validates that http headers from application
 // rewrite configuration are correctly passed to proxied applications in leaf.
 func TestAppAccessRewriteHeadersLeaf(t *testing.T) {
+	t.Parallel()
+
 	// Start test server that will dump all request headers in the response.
 	dumperServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.Write(w)
@@ -598,6 +626,8 @@ func TestAppAccessRewriteHeadersLeaf(t *testing.T) {
 }
 
 func TestAppAuditEvents(t *testing.T) {
+	t.Parallel()
+
 	// Create cluster, user, sessions, and credentials package.
 	pack := setup(t)
 	inCookie := pack.createAppSession(t, pack.rootAppPublicAddr, pack.rootAppClusterName)
@@ -655,6 +685,7 @@ func TestAppAuditEvents(t *testing.T) {
 }
 
 func TestAppServersHA(t *testing.T) {
+	t.Parallel()
 
 	type packInfo struct {
 		clusterName    string
@@ -768,6 +799,8 @@ func TestAppServersHA(t *testing.T) {
 }
 
 func TestAppInvalidateAppSessionsOnLogout(t *testing.T) {
+	t.Parallel()
+
 	// Create cluster, user, and credentials package.
 	pack := setup(t)
 
@@ -796,6 +829,8 @@ func TestAppInvalidateAppSessionsOnLogout(t *testing.T) {
 }
 
 func TestAppInvalidateCertificatesSessionsOnLogout(t *testing.T) {
+	t.Parallel()
+
 	// Create cluster, user, and credentials package.
 	pack := setup(t)
 

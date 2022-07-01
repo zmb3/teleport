@@ -119,6 +119,8 @@ message Example {
 func TestUpdateGoModulePath(t *testing.T) {
 	testUpdate := func(oldModPath, newModPath, newModVersion, oldModFile, expectedNewModFile string) func(t *testing.T) {
 		return func(t *testing.T) {
+			t.Parallel()
+
 			// Write mod file to disk
 			modDir := t.TempDir()
 			modFilePath := writeFile(t, modDir, "go.mod", oldModFile)
@@ -170,6 +172,8 @@ func TestUpdateGoModulePath(t *testing.T) {
 func TestGetImportPaths(t *testing.T) {
 	testGetImportPaths := func(currentModPath, newVersion, expectedNewModPath string) func(t *testing.T) {
 		return func(t *testing.T) {
+			t.Parallel()
+
 			// Write mod file to disk
 			modDir := t.TempDir()
 			writeFile(t, modDir, "go.mod", newGoModFileString(currentModPath))

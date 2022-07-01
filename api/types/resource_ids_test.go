@@ -25,6 +25,8 @@ import (
 // TestResourceIDs tests that ResourceIDs are correctly marshalled to and from
 // their string representation.
 func TestResourceIDs(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		desc             string
 		in               []ResourceID
@@ -97,6 +99,8 @@ func TestResourceIDs(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
+
 			out, err := ResourceIDsToString(tc.in)
 			require.NoError(t, err)
 			require.Equal(t, tc.expected, out)

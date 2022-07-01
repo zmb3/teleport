@@ -31,6 +31,8 @@ type testCase struct {
 
 // TestDurationUnmarshal tests unmarshaling of various duration formats.
 func TestDurationUnmarshal(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:          "simple",
@@ -51,6 +53,8 @@ func TestDurationUnmarshal(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
 			var duration Duration
 			err := duration.UnmarshalJSON([]byte(testCase.stringValue))
 			require.NoError(t, err)

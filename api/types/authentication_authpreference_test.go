@@ -538,6 +538,8 @@ func TestAuthPreferenceV2_CheckAndSetDefaults_secondFactor(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			// Sanity check setup.
 			require.NotEmpty(t, test.secondFactors, "test must provide second factor values")
 
@@ -547,6 +549,8 @@ func TestAuthPreferenceV2_CheckAndSetDefaults_secondFactor(t *testing.T) {
 
 			for _, sf := range test.secondFactors {
 				t.Run(fmt.Sprintf("sf=%v", sf), func(t *testing.T) {
+					t.Parallel()
+
 					cap.Spec.SecondFactor = sf
 
 					switch err := cap.CheckAndSetDefaults(); {

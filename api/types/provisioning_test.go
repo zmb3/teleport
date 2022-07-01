@@ -25,6 +25,8 @@ import (
 )
 
 func TestProvisionTokenV2_CheckAndSetDefaults(t *testing.T) {
+	t.Parallel()
+
 	testcases := []struct {
 		desc        string
 		token       *ProvisionTokenV2
@@ -260,6 +262,8 @@ func TestProvisionTokenV2_CheckAndSetDefaults(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
+
 			err := tc.token.CheckAndSetDefaults()
 			if tc.expectedErr != nil {
 				require.ErrorAs(t, err, &tc.expectedErr)

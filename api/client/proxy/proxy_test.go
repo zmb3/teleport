@@ -28,6 +28,8 @@ import (
 )
 
 func TestGetProxyAddress(t *testing.T) {
+	t.Parallel()
+
 	type env struct {
 		name string
 		val  string
@@ -108,6 +110,8 @@ func TestGetProxyAddress(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%v: %v", i, tt.info), func(t *testing.T) {
+			t.Parallel()
+
 			for _, env := range tt.env {
 				t.Setenv(env.name, env.val)
 			}
@@ -154,6 +158,8 @@ func TestParse(t *testing.T) {
 	}
 	for _, tc := range successTests {
 		t.Run(fmt.Sprintf("should parse: %s", tc.name), func(t *testing.T) {
+			t.Parallel()
+
 			u, err := parse(tc.addr)
 			require.NoError(t, err)
 			errMsg := fmt.Sprintf("(%v, %v, %v)", u.Scheme, u.Host, u.Path)
@@ -170,12 +176,16 @@ func TestParse(t *testing.T) {
 	}
 	for _, tc := range failTests {
 		t.Run(fmt.Sprintf("should not parse: %s", tc.name), func(t *testing.T) {
+			t.Parallel()
+
 			u, err := parse(tc.addr)
 			require.Error(t, err, u)
 		})
 	}
 
 	t.Run("empty addr", func(t *testing.T) {
+		t.Parallel()
+
 		u, err := parse("")
 		require.NoError(t, err)
 		require.Nil(t, u)

@@ -37,6 +37,8 @@ func TestParseSessionsURI(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.info, func(t *testing.T) {
+			t.Parallel()
+
 			out, err := ParseSessionsURI(testCase.in)
 			require.NoError(t, err)
 			require.Equal(t, testCase.url, out)

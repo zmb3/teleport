@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hashicorp/go-multierror"
+	"github.com/coreos/pkg/multierror"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -44,9 +44,13 @@ func touch(t *testing.T, path ...string) string {
 }
 
 func TestValidatePatterns(t *testing.T) {
+	t.Parallel()
+
 	workspace := t.TempDir()
 
 	t.Run("Patterns are expanded", func(t *testing.T) {
+		t.Parallel()
+
 		patterns := []string{"alpha", "nested/beta", "*"}
 
 		expected := []string{
@@ -62,6 +66,8 @@ func TestValidatePatterns(t *testing.T) {
 	})
 
 	t.Run("Paths are canonicalised", func(t *testing.T) {
+		t.Parallel()
+
 		patterns := []string{
 			"nested/../alpha",
 			"./beta",
@@ -79,12 +85,18 @@ func TestValidatePatterns(t *testing.T) {
 	})
 
 	t.Run("Paths outside workspace fail", func(t *testing.T) {
+		t.Parallel()
+
 		t.Run("fully-qualified path", func(t *testing.T) {
+			t.Parallel()
+
 			_, err := ValidatePatterns(workspace, []string{t.TempDir()})
 			require.Error(t, err)
 		})
 
 		t.Run("relative path", func(t *testing.T) {
+			t.Parallel()
+
 			target := "../../root/**/*"
 			_, err := ValidatePatterns(workspace, []string{target})
 			require.Error(t, err)
@@ -93,6 +105,8 @@ func TestValidatePatterns(t *testing.T) {
 }
 
 func TestFindArtifacts(t *testing.T) {
+	t.Parallel()
+
 	workspace := t.TempDir()
 
 	alpha := touch(t, workspace, "alpha.yaml")
@@ -104,6 +118,8 @@ func TestFindArtifacts(t *testing.T) {
 	eta := touch(t, workspace, "nested", "very", "deeply", "eta.yaml")
 
 	t.Run("root-dir", func(t *testing.T) {
+		t.Parallel()
+
 		patterns := []string{filepath.Join(workspace, "*")}
 		actual := find(patterns)
 		expected := []string{alpha, beta, gamma}
@@ -111,6 +127,8 @@ func TestFindArtifacts(t *testing.T) {
 	})
 
 	t.Run("prefix", func(t *testing.T) {
+		t.Parallel()
+
 		patterns := []string{
 			filepath.Join(workspace, "nested/*"),
 			filepath.Join(workspace, "nested/*/*"),
@@ -122,6 +140,8 @@ func TestFindArtifacts(t *testing.T) {
 	})
 
 	t.Run("suffix", func(t *testing.T) {
+		t.Parallel()
+
 		patterns := []string{
 			filepath.Join(workspace, "*.yaml"),
 			filepath.Join(workspace, "*/*.yaml"),
@@ -134,6 +154,8 @@ func TestFindArtifacts(t *testing.T) {
 	})
 
 	t.Run("infix", func(t *testing.T) {
+		t.Parallel()
+
 		patterns := []string{filepath.Join(workspace, "*/very/deeply/*")}
 		actual := find(patterns)
 		expected := []string{eta}
@@ -142,6 +164,8 @@ func TestFindArtifacts(t *testing.T) {
 }
 
 func TestUpload(t *testing.T) {
+	t.Parallel()
+
 	workspace := t.TempDir()
 
 	ctx := context.Background()
@@ -185,6 +209,8 @@ func TestUpload(t *testing.T) {
 }
 
 func TestFailedUpload(t *testing.T) {
+	t.Parallel()
+
 	workspace := t.TempDir()
 
 	ctx := context.Background()
