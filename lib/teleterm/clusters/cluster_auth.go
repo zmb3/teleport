@@ -229,7 +229,7 @@ func (c *Cluster) localLogin(ctx context.Context, user, password, otpToken strin
 	return nil
 }
 
-func (c *Cluster) processAuthResponse(ctx context.Context, key *client.Key, response *auth.SSHLoginResponse) error {
+func (c *Cluster) processAuthResponse(ctx context.Context, key *client.ClientKey, response *auth.SSHLoginResponse) error {
 	// Check that a host certificate for at least one cluster was returned.
 	if len(response.HostSigners) == 0 {
 		return trace.BadParameter("bad response from the server: expected at least one certificate, got 0")

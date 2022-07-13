@@ -1439,7 +1439,7 @@ func onLogin(cf *CLIConf) error {
 
 // setupNoninteractiveClient sets up existing client to use
 // non-interactive authentication methods
-func setupNoninteractiveClient(tc *client.TeleportClient, key *client.Key) error {
+func setupNoninteractiveClient(tc *client.TeleportClient, key *client.ClientKey) error {
 	certUsername, err := key.CertUsername()
 	if err != nil {
 		return trace.Wrap(err)
@@ -2740,7 +2740,7 @@ func makeClientForProxy(cf *CLIConf, proxy string, useProfileLogin bool) (*clien
 		c.UseKeyPrincipals = hostLogin == ""
 
 		var (
-			key          *client.Key
+			key          *client.ClientKey
 			identityAuth ssh.AuthMethod
 			expiryDate   time.Time
 			hostAuthFunc ssh.HostKeyCallback
@@ -3117,7 +3117,7 @@ func refuseArgs(command string, args []string) error {
 }
 
 // authFromIdentity returns a standard ssh.Authmethod for a given identity file
-func authFromIdentity(k *client.Key) (ssh.AuthMethod, error) {
+func authFromIdentity(k *client.ClientKey) (ssh.AuthMethod, error) {
 	signer, err := sshutils.NewSigner(k.Priv, k.Cert)
 	if err != nil {
 		return nil, trace.Wrap(err)

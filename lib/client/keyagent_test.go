@@ -49,7 +49,7 @@ import (
 
 type KeyAgentTestSuite struct {
 	keyDir      string
-	key         *Key
+	key         *ClientKey
 	username    string
 	hostname    string
 	clusterName string
@@ -475,7 +475,7 @@ func TestLocalKeyAgent_AddDatabaseKey(t *testing.T) {
 	})
 }
 
-func (s *KeyAgentTestSuite) makeKey(username string, allowedLogins []string, ttl time.Duration) (*Key, error) {
+func (s *KeyAgentTestSuite) makeKey(username string, allowedLogins []string, ttl time.Duration) (*ClientKey, error) {
 	keygen := testauthority.New()
 
 	privateKey, publicKey, err := keygen.GenerateKeyPair()
@@ -529,7 +529,7 @@ func (s *KeyAgentTestSuite) makeKey(username string, allowedLogins []string, ttl
 		return nil, trace.Wrap(err)
 	}
 
-	return &Key{
+	return &ClientKey{
 		Priv:    privateKey,
 		Pub:     publicKey,
 		Cert:    certificate,

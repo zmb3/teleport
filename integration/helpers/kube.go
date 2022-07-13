@@ -83,7 +83,7 @@ func GetKubeClusters(t *testing.T, as *auth.Server) []*types.KubernetesCluster {
 	return clusters
 }
 
-func genUserKey() (*client.Key, error) {
+func genUserKey() (*client.ClientKey, error) {
 	caKey, caCert, err := tlsca.GenerateSelfSignedCA(pkix.Name{
 		CommonName:   "localhost",
 		Organization: []string{"localhost"},
@@ -118,7 +118,7 @@ func genUserKey() (*client.Key, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	return &client.Key{
+	return &client.ClientKey{
 		Priv:    priv,
 		Pub:     pub,
 		TLSCert: tlsCert,

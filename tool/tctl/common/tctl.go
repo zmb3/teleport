@@ -314,7 +314,7 @@ func applyConfig(ccf *GlobalCLIFlags, cfg *service.Config) (*authclient.Config, 
 
 // sshTrustedHostKeyWrapper wraps a client Key allowing to call GetKnownHostKeys function for particular hostname.
 type sshTrustedHostKeyWrapper struct {
-	*client.Key
+	*client.ClientKey
 }
 
 // GetKnownHostKeys returns know trusted key for a particular hostname.

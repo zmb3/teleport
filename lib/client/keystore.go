@@ -64,10 +64,10 @@ const (
 // below (FSLocalKeyStore)
 type LocalKeyStore interface {
 	// AddKey adds the given key to the store.
-	AddKey(key *Key) error
+	AddKey(key *ClientKey) error
 
 	// GetKey returns the user's key including the specified certs.
-	GetKey(idx KeyIndex, opts ...CertOption) (*Key, error)
+	GetKey(idx KeyIndex, opts ...CertOption) (*ClientKey, error)
 
 	// DeleteKey deletes the user's key with all its certs.
 	DeleteKey(idx KeyIndex) error
@@ -128,7 +128,7 @@ func initKeysDir(dirPath string) (string, error) {
 }
 
 // AddKey adds the given key to the store.
-func (fs *FSLocalKeyStore) AddKey(key *Key) error {
+func (fs *FSLocalKeyStore) AddKey(key *ClientKey) error {
 	if err := key.KeyIndex.Check(); err != nil {
 		return trace.Wrap(err)
 	}
@@ -263,7 +263,7 @@ func (fs *FSLocalKeyStore) DeleteKeys() error {
 
 // GetKey returns the user's key including the specified certs.
 // If the key is not found, returns trace.NotFound error.
-func (fs *FSLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error) {
+func (fs *FSLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*ClientKey, error) {
 	if len(opts) > 0 {
 		if err := idx.Check(); err != nil {
 			return nil, trace.Wrap(err, "GetKey with CertOptions requires a fully specified KeyIndex")
@@ -296,7 +296,7 @@ func (fs *FSLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error
 		return nil, trace.ConvertSystemError(err)
 	}
 
-	key := &Key{
+	key := &ClientKey{
 		KeyIndex: idx,
 		Pub:      pub,
 		Priv:     priv,
@@ -330,7 +330,7 @@ func (fs *FSLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error
 	return key, nil
 }
 
-func (fs *FSLocalKeyStore) updateKeyWithCerts(o CertOption, key *Key) error {
+func (fs *FSLocalKeyStore) updateKeyWithCerts(o CertOption, key *ClientKey) error {
 	certPath := o.certPath(fs.KeyDir, key.KeyIndex)
 	info, err := os.Stat(certPath)
 	if err != nil {
@@ -371,11 +371,11 @@ type CertOption interface {
 	// within the given key dir. For use with FSLocalKeyStore.
 	certPath(keyDir string, idx KeyIndex) string
 	// updateKeyWithBytes adds the cert bytes to the key and performs related checks.
-	updateKeyWithBytes(key *Key, certBytes []byte) error
+	updateKeyWithBytes(key *ClientKey, certBytes []byte) error
 	// updateKeyWithMap adds the cert data map to the key and performs related checks.
-	updateKeyWithMap(key *Key, certMap map[string][]byte) error
+	updateKeyWithMap(key *ClientKey, certMap map[string][]byte) error
 	// deleteFromKey deletes the cert data from the key.
-	deleteFromKey(key *Key)
+	deleteFromKey(key *ClientKey)
 }
 
 // WithAllCerts lists all known CertOptions.
@@ -391,7 +391,7 @@ func (o WithSSHCerts) certPath(keyDir string, idx KeyIndex) string {
 	return keypaths.SSHCertPath(keyDir, idx.ProxyHost, idx.Username, idx.ClusterName)
 }
 
-func (o WithSSHCerts) updateKeyWithBytes(key *Key, certBytes []byte) error {
+func (o WithSSHCerts) updateKeyWithBytes(key *ClientKey, certBytes []byte) error {
 	key.Cert = certBytes
 
 	// Validate the SSH certificate.
@@ -403,11 +403,11 @@ func (o WithSSHCerts) updateKeyWithBytes(key *Key, certBytes []byte) error {
 	return nil
 }
 
-func (o WithSSHCerts) updateKeyWithMap(key *Key, certMap map[string][]byte) error {
+func (o WithSSHCerts) updateKeyWithMap(key *ClientKey, certMap map[string][]byte) error {
 	return trace.NotImplemented("WithSSHCerts does not implement updateKeyWithMap")
 }
 
-func (o WithSSHCerts) deleteFromKey(key *Key) {
+func (o WithSSHCerts) deleteFromKey(key *ClientKey) {
 	key.Cert = nil
 }
 
@@ -421,16 +421,16 @@ func (o WithKubeCerts) certPath(keyDir string, idx KeyIndex) string {
 	return keypaths.KubeCertDir(keyDir, idx.ProxyHost, idx.Username, idx.ClusterName)
 }
 
-func (o WithKubeCerts) updateKeyWithBytes(key *Key, certBytes []byte) error {
+func (o WithKubeCerts) updateKeyWithBytes(key *ClientKey, certBytes []byte) error {
 	return trace.NotImplemented("WithKubeCerts does not implement updateKeyWithBytes")
 }
 
-func (o WithKubeCerts) updateKeyWithMap(key *Key, certMap map[string][]byte) error {
+func (o WithKubeCerts) updateKeyWithMap(key *ClientKey, certMap map[string][]byte) error {
 	key.KubeTLSCerts = certMap
 	return nil
 }
 
-func (o WithKubeCerts) deleteFromKey(key *Key) {
+func (o WithKubeCerts) deleteFromKey(key *ClientKey) {
 	key.KubeTLSCerts = nil
 }
 
@@ -449,16 +449,16 @@ func (o WithDBCerts) certPath(keyDir string, idx KeyIndex) string {
 	return keypaths.DatabaseCertPath(keyDir, idx.ProxyHost, idx.Username, idx.ClusterName, o.dbName)
 }
 
-func (o WithDBCerts) updateKeyWithBytes(key *Key, certBytes []byte) error {
+func (o WithDBCerts) updateKeyWithBytes(key *ClientKey, certBytes []byte) error {
 	return trace.NotImplemented("WithDBCerts does not implement updateKeyWithBytes")
 }
 
-func (o WithDBCerts) updateKeyWithMap(key *Key, certMap map[string][]byte) error {
+func (o WithDBCerts) updateKeyWithMap(key *ClientKey, certMap map[string][]byte) error {
 	key.DBTLSCerts = certMap
 	return nil
 }
 
-func (o WithDBCerts) deleteFromKey(key *Key) {
+func (o WithDBCerts) deleteFromKey(key *ClientKey) {
 	key.DBTLSCerts = nil
 }
 
@@ -477,16 +477,16 @@ func (o WithAppCerts) certPath(keyDir string, idx KeyIndex) string {
 	return keypaths.AppCertPath(keyDir, idx.ProxyHost, idx.Username, idx.ClusterName, o.appName)
 }
 
-func (o WithAppCerts) updateKeyWithBytes(key *Key, certBytes []byte) error {
+func (o WithAppCerts) updateKeyWithBytes(key *ClientKey, certBytes []byte) error {
 	return trace.NotImplemented("WithAppCerts does not implement updateKeyWithBytes")
 }
 
-func (o WithAppCerts) updateKeyWithMap(key *Key, certMap map[string][]byte) error {
+func (o WithAppCerts) updateKeyWithMap(key *ClientKey, certMap map[string][]byte) error {
 	key.AppTLSCerts = certMap
 	return nil
 }
 
-func (o WithAppCerts) deleteFromKey(key *Key) {
+func (o WithAppCerts) deleteFromKey(key *ClientKey) {
 	key.AppTLSCerts = nil
 }
 
@@ -834,10 +834,10 @@ type noLocalKeyStore struct{}
 
 var errNoLocalKeyStore = trace.NotFound("there is no local keystore")
 
-func (noLocalKeyStore) AddKey(key *Key) error {
+func (noLocalKeyStore) AddKey(key *ClientKey) error {
 	return errNoLocalKeyStore
 }
-func (noLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error) {
+func (noLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*ClientKey, error) {
 	return nil, errNoLocalKeyStore
 }
 func (noLocalKeyStore) DeleteKey(idx KeyIndex) error {
@@ -867,7 +867,7 @@ type MemLocalKeyStore struct {
 }
 
 // memLocalKeyStoreMap is a three-dimensional map indexed by [proxyHost][username][clusterName]
-type memLocalKeyStoreMap = map[string]map[string]map[string]*Key
+type memLocalKeyStoreMap = map[string]map[string]map[string]*ClientKey
 
 // NewMemLocalKeyStore initializes a MemLocalKeyStore.
 // The key directory here is only used for storing CA certificates and known
@@ -887,25 +887,25 @@ func NewMemLocalKeyStore(dirPath string) (*MemLocalKeyStore, error) {
 }
 
 // AddKey writes a key to the underlying key store.
-func (s *MemLocalKeyStore) AddKey(key *Key) error {
+func (s *MemLocalKeyStore) AddKey(key *ClientKey) error {
 	if err := key.KeyIndex.Check(); err != nil {
 		return trace.Wrap(err)
 	}
 	_, ok := s.inMem[key.ProxyHost]
 	if !ok {
-		s.inMem[key.ProxyHost] = map[string]map[string]*Key{}
+		s.inMem[key.ProxyHost] = map[string]map[string]*ClientKey{}
 	}
 	_, ok = s.inMem[key.ProxyHost][key.Username]
 	if !ok {
-		s.inMem[key.ProxyHost][key.Username] = map[string]*Key{}
+		s.inMem[key.ProxyHost][key.Username] = map[string]*ClientKey{}
 	}
 	s.inMem[key.ProxyHost][key.Username][key.ClusterName] = key
 	return nil
 }
 
 // GetKey returns the user's key including the specified certs.
-func (s *MemLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error) {
-	var key *Key
+func (s *MemLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*ClientKey, error) {
+	var key *ClientKey
 	if idx.ClusterName == "" {
 		// If clusterName is not specified then the cluster-dependent fields
 		// are not considered relevant and we may simply return any key
@@ -959,15 +959,15 @@ func (s *MemLocalKeyStore) DeleteKeys() error {
 // Useful when needing to log out of a specific service, like a particular
 // database proxy.
 func (s *MemLocalKeyStore) DeleteUserCerts(idx KeyIndex, opts ...CertOption) error {
-	var keys []*Key
+	var keys []*ClientKey
 	if idx.ClusterName != "" {
 		key, ok := s.inMem[idx.ProxyHost][idx.Username][idx.ClusterName]
 		if !ok {
 			return nil
 		}
-		keys = []*Key{key}
+		keys = []*ClientKey{key}
 	} else {
-		keys = make([]*Key, 0, len(s.inMem[idx.ProxyHost][idx.Username]))
+		keys = make([]*ClientKey, 0, len(s.inMem[idx.ProxyHost][idx.Username]))
 		for _, key := range s.inMem[idx.ProxyHost][idx.Username] {
 			keys = append(keys, key)
 		}

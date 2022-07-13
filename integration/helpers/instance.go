@@ -66,10 +66,10 @@ func fatalIf(err error) {
 }
 
 type User struct {
-	Username      string       `json:"username"`
-	AllowedLogins []string     `json:"logins"`
-	Key           *client.Key  `json:"key"`
-	Roles         []types.Role `json:"-"`
+	Username      string            `json:"username"`
+	AllowedLogins []string          `json:"logins"`
+	Key           *client.ClientKey `json:"key"`
+	Roles         []types.Role      `json:"-"`
 }
 
 type InstanceSecrets struct {

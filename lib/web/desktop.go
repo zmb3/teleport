@@ -223,7 +223,7 @@ func desktopTLSConfig(ctx context.Context, ws *websocket.Conn, pc *client.ProxyC
 			Login:          username,
 		},
 		RouteToCluster: siteName,
-		ExistingCreds: &client.Key{
+		ExistingCreds: &client.ClientKey{
 			Pub:                 ssh.MarshalAuthorizedKey(priv.PublicKey()),
 			Priv:                sessCtx.session.GetPriv(),
 			Cert:                sessCtx.session.GetPub(),

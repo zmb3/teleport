@@ -58,7 +58,7 @@ func newSelfSignedCA(privateKey []byte) (*tlsca.CertAuthority, auth.TrustedCerts
 	return ca, auth.TrustedCerts{TLSCertificates: [][]byte{cert}}, nil
 }
 
-func newClientKey(t *testing.T) *client.Key {
+func newClientKey(t *testing.T) *client.ClientKey {
 	privateKey, publicKey, err := testauthority.New().GenerateKeyPair()
 	require.NoError(t, err)
 
@@ -98,7 +98,7 @@ func newClientKey(t *testing.T) *client.Key {
 	})
 	require.NoError(t, err)
 
-	return &client.Key{
+	return &client.ClientKey{
 		Priv:    privateKey,
 		Pub:     publicKey,
 		Cert:    certificate,

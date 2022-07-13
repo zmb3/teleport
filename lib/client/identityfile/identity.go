@@ -138,7 +138,7 @@ type WriteConfig struct {
 	// and use OutputPath as a prefix.
 	OutputPath string
 	// Key contains the credentials to write to the identity file.
-	Key *client.Key
+	Key *client.ClientKey
 	// Format is the output format for the identity file.
 	Format Format
 	// KubeProxyAddr is the public address of the proxy with its kubernetes

@@ -239,7 +239,7 @@ type Config struct {
 	Agent agent.Agent
 
 	// PreloadKey is a key with which to initialize a local in-memory keystore.
-	PreloadKey *Key
+	PreloadKey *ClientKey
 
 	// ForwardAgent is used by the client to request agent forwarding from the server.
 	ForwardAgent AgentForwardingMode
@@ -772,7 +772,7 @@ type ProfileOptions struct {
 }
 
 // profileFromkey returns a ProfileStatus for the given key and options.
-func profileFromKey(key *Key, opts ProfileOptions) (*ProfileStatus, error) {
+func profileFromKey(key *ClientKey, opts ProfileOptions) (*ProfileStatus, error) {
 	sshCert, err := key.SSHCert()
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -893,7 +893,7 @@ func profileFromKey(key *Key, opts ProfileOptions) (*ProfileStatus, error) {
 // allowing the various profile-using subcommands to use identity files as if
 // they were profiles. It will set the `username` and `siteName` fields of
 // the profileOptions to certificate-provided values if they are unset.
-func ReadProfileFromIdentity(key *Key, opts ProfileOptions) (*ProfileStatus, error) {
+func ReadProfileFromIdentity(key *ClientKey, opts ProfileOptions) (*ProfileStatus, error) {
 	// Note: these profile options are largely derived from tsh's makeClient()
 	if opts.Username == "" {
 		username, err := key.CertUsername()
@@ -1648,7 +1648,7 @@ func (tc *TeleportClient) ReissueUserCerts(ctx context.Context, cachePolicy Cert
 // (according to RBAC), IssueCertsWithMFA will:
 // - for SSH certs, return the existing Key from the keystore.
 // - for TLS certs, fall back to ReissueUserCerts.
-func (tc *TeleportClient) IssueUserCertsWithMFA(ctx context.Context, params ReissueParams) (*Key, error) {
+func (tc *TeleportClient) IssueUserCertsWithMFA(ctx context.Context, params ReissueParams) (*ClientKey, error) {
 	ctx, span := tc.Tracer.Start(
 		ctx,
 		"teleportClient/IssueUserCertsWithMFA",
@@ -3182,7 +3182,7 @@ func (tc *TeleportClient) GetWebConfig(ctx context.Context) (*webclient.WebConfi
 //
 // The returned Key should typically be passed to ActivateKey in order to
 // update local agent state.
-func (tc *TeleportClient) Login(ctx context.Context) (*Key, error) {
+func (tc *TeleportClient) Login(ctx context.Context) (*ClientKey, error) {
 	ctx, span := tc.Tracer.Start(
 		ctx,
 		"teleportClient/Login",
@@ -3462,7 +3462,7 @@ func (tc *TeleportClient) ssoLogin(ctx context.Context, connectorID string, pub 
 
 // ActivateKey saves the target session cert into the local
 // keystore (and into the ssh-agent) for future use.
-func (tc *TeleportClient) ActivateKey(ctx context.Context, key *Key) error {
+func (tc *TeleportClient) ActivateKey(ctx context.Context, key *ClientKey) error {
 	ctx, span := tc.Tracer.Start(
 		ctx,
 		"teleportClient/ActivateKey",
@@ -3878,7 +3878,7 @@ func (tc *TeleportClient) AddTrustedCA(ctx context.Context, ca types.CertAuthori
 }
 
 // AddKey adds a key to the client's local agent, used in tests.
-func (tc *TeleportClient) AddKey(key *Key) (*agent.AddedKey, error) {
+func (tc *TeleportClient) AddKey(key *ClientKey) (*agent.AddedKey, error) {
 	if tc.localAgent == nil {
 		return nil, trace.BadParameter("TeleportClient.AddKey called on a client without localAgent")
 	}
@@ -4287,7 +4287,7 @@ func playSession(sessionEvents []events.EventFields, stream []byte) error {
 	}
 }
 
-func findActiveDatabases(key *Key) ([]tlsca.RouteToDatabase, error) {
+func findActiveDatabases(key *ClientKey) ([]tlsca.RouteToDatabase, error) {
 	dbCerts, err := key.DBTLSCertificates()
 	if err != nil {
 		return nil, trace.Wrap(err)

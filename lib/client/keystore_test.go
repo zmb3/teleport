@@ -54,7 +54,7 @@ func TestListKeys(t *testing.T) {
 	const keyNum = 5
 
 	// add 5 keys for "bob"
-	keys := make([]Key, keyNum)
+	keys := make([]ClientKey, keyNum)
 	for i := 0; i < keyNum; i++ {
 		idx := KeyIndex{fmt.Sprintf("host-%v", i), "bob", "root"}
 		key := s.makeSignedKey(t, idx, false)
@@ -421,7 +421,7 @@ type keyStoreTest struct {
 	tlsCACert auth.TrustedCerts
 }
 
-func (s *keyStoreTest) addKey(key *Key) error {
+func (s *keyStoreTest) addKey(key *ClientKey) error {
 	if err := s.store.AddKey(key); err != nil {
 		return err
 	}
@@ -430,7 +430,7 @@ func (s *keyStoreTest) addKey(key *Key) error {
 }
 
 // makeSignedKey helper returns all 3 components of a user key (signed by CAPriv key)
-func (s *keyStoreTest) makeSignedKey(t *testing.T, idx KeyIndex, makeExpired bool) *Key {
+func (s *keyStoreTest) makeSignedKey(t *testing.T, idx KeyIndex, makeExpired bool) *ClientKey {
 	var (
 		err             error
 		priv, pub, cert []byte
@@ -472,7 +472,7 @@ func (s *keyStoreTest) makeSignedKey(t *testing.T, idx KeyIndex, makeExpired boo
 		PermitPortForwarding:  true,
 	})
 	require.NoError(t, err)
-	return &Key{
+	return &ClientKey{
 		KeyIndex:   idx,
 		Priv:       priv,
 		Pub:        pub,

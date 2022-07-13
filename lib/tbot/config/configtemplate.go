@@ -236,8 +236,8 @@ func (b *BotConfigWriter) Stat(name string) (fs.FileInfo, error) {
 }
 
 // newClientKey returns a sane client.Key for the given bot identity.
-func newClientKey(ident *identity.Identity, hostCAs []types.CertAuthority) *client.Key {
-	return &client.Key{
+func newClientKey(ident *identity.Identity, hostCAs []types.CertAuthority) *client.ClientKey {
+	return &client.ClientKey{
 		KeyIndex: client.KeyIndex{
 			ClusterName: ident.ClusterName,
 		},

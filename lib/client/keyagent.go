@@ -198,7 +198,7 @@ func (a *LocalKeyAgent) LoadKeyForCluster(clusterName string) (*agent.AddedKey, 
 
 // LoadKey adds a key into the Teleport ssh agent as well as the system ssh
 // agent.
-func (a *LocalKeyAgent) LoadKey(key Key) (*agent.AddedKey, error) {
+func (a *LocalKeyAgent) LoadKey(key ClientKey) (*agent.AddedKey, error) {
 	a.log.Infof("Loading SSH key for user %q and cluster %q.", a.username, key.ClusterName)
 
 	agents := []agent.Agent{a.Agent}
@@ -295,14 +295,14 @@ func (a *LocalKeyAgent) UnloadKeys() error {
 
 // GetKey returns the key for the given cluster of the proxy from
 // the backing keystore.
-func (a *LocalKeyAgent) GetKey(clusterName string, opts ...CertOption) (*Key, error) {
+func (a *LocalKeyAgent) GetKey(clusterName string, opts ...CertOption) (*ClientKey, error) {
 	idx := KeyIndex{a.proxyHost, a.username, clusterName}
 	return a.keyStore.GetKey(idx, opts...)
 }
 
 // GetCoreKey returns the key without any cluster-dependent certificates,
 // i.e. including only the RSA keypair and the Teleport TLS certificate.
-func (a *LocalKeyAgent) GetCoreKey() (*Key, error) {
+func (a *LocalKeyAgent) GetCoreKey() (*ClientKey, error) {
 	return a.GetKey("")
 }
 
@@ -482,7 +482,7 @@ func (a *LocalKeyAgent) defaultHostPromptFunc(host string, key ssh.PublicKey, wr
 
 // AddKey activates a new signed session key by adding it into the keystore and also
 // by loading it into the SSH agent.
-func (a *LocalKeyAgent) AddKey(key *Key) (*agent.AddedKey, error) {
+func (a *LocalKeyAgent) AddKey(key *ClientKey) (*agent.AddedKey, error) {
 	if err := a.addKey(key); err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -493,7 +493,7 @@ func (a *LocalKeyAgent) AddKey(key *Key) (*agent.AddedKey, error) {
 
 // AddDatabaseKey activates a new signed database key by adding it into the keystore.
 // key must contain at least one db cert. ssh cert is not required.
-func (a *LocalKeyAgent) AddDatabaseKey(key *Key) error {
+func (a *LocalKeyAgent) AddDatabaseKey(key *ClientKey) error {
 	if len(key.DBTLSCerts) == 0 {
 		return trace.BadParameter("key must contains at least one database access certificate")
 	}
@@ -501,7 +501,7 @@ func (a *LocalKeyAgent) AddDatabaseKey(key *Key) error {
 }
 
 // addKey activates a new signed session key by adding it into the keystore.
-func (a *LocalKeyAgent) addKey(key *Key) error {
+func (a *LocalKeyAgent) addKey(key *ClientKey) error {
 	if key == nil {
 		return trace.BadParameter("key is nil")
 	}
