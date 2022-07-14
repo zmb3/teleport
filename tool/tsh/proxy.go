@@ -504,7 +504,8 @@ func loadAppCertificate(tc *libclient.TeleportClient, appName string) (tls.Certi
 	if !ok {
 		return tls.Certificate{}, trace.NotFound("please login into the application first. 'tsh app login'")
 	}
-	cert, err := tls.X509KeyPair(cc, key.Priv)
+
+	cert, err := key.KeyPair.TLSCertificate(cc)
 	if err != nil {
 		return tls.Certificate{}, trace.Wrap(err)
 	}

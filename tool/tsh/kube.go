@@ -635,7 +635,7 @@ func (c *kubeCredentialsCommand) writeResponse(key *client.ClientKey, kubeCluste
 		Status: &clientauthentication.ExecCredentialStatus{
 			ExpirationTimestamp:   &metav1.Time{Time: expiry},
 			ClientCertificateData: string(key.KubeTLSCerts[kubeClusterName]),
-			ClientKeyData:         string(key.Priv),
+			// ClientKeyData:         string(key.Priv),
 		},
 	}
 	data, err := runtime.Encode(kubeCodecs.LegacyCodec(kubeGroupVersion), resp)

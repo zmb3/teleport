@@ -133,20 +133,20 @@ func (fs *FSLocalKeyStore) AddKey(key *ClientKey) error {
 		return trace.Wrap(err)
 	}
 	// Store core key data.
-	if err := fs.writeBytes(key.Priv, fs.UserKeyPath(key.KeyIndex)); err != nil {
+	if err := fs.writeBytes(key.KeyPair.PrivateKeyRaw(), fs.UserKeyPath(key.KeyIndex)); err != nil {
 		return trace.Wrap(err)
 	}
-	if err := fs.writeBytes(key.Pub, fs.sshCAsPath(key.KeyIndex)); err != nil {
+	if err := fs.writeBytes(key.KeyPair.PublicKeyRaw(), fs.sshCAsPath(key.KeyIndex)); err != nil {
 		return trace.Wrap(err)
 	}
 	if err := fs.writeBytes(key.TLSCert, fs.tlsCertPath(key.KeyIndex)); err != nil {
 		return trace.Wrap(err)
 	}
-	if runtime.GOOS == constants.WindowsOS {
-		if err := fs.writeBytes(key.PPK, fs.PPKFilePath(key.KeyIndex)); err != nil {
-			return trace.Wrap(err)
-		}
-	}
+	// if runtime.GOOS == constants.WindowsOS {
+	// 	if err := fs.writeBytes(key.PPK, fs.PPKFilePath(key.KeyIndex)); err != nil {
+	// 		return trace.Wrap(err)
+	// 	}
+	// }
 
 	// Store per-cluster key data.
 	if len(key.Cert) > 0 {
@@ -284,6 +284,21 @@ func (fs *FSLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*ClientKey,
 		fs.log.Error(err)
 		return nil, trace.ConvertSystemError(err)
 	}
+
+	var kp KeyPair
+	if strings.Contains(string(priv), "yubikey-card ") {
+		cardName := strings.Split(string(priv), "yubikey-card ")[1]
+		kp, err = GetYkKeyPair(cardName)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+	} else {
+		kp, err = GetPlainKeyPair(priv, pub)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+	}
+
 	tlsCertFile := fs.tlsCertPath(idx)
 	tlsCert, err := os.ReadFile(tlsCertFile)
 	if err != nil {
@@ -298,8 +313,7 @@ func (fs *FSLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*ClientKey,
 
 	key := &ClientKey{
 		KeyIndex: idx,
-		Pub:      pub,
-		Priv:     priv,
+		KeyPair:  kp,
 		TLSCert:  tlsCert,
 		TrustedCA: []auth.TrustedCerts{{
 			TLSCertificates: tlsCA,

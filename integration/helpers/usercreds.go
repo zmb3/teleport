@@ -100,7 +100,7 @@ type UserCredsRequest struct {
 
 // GenerateUserCreds generates key to be used by client
 func GenerateUserCreds(req UserCredsRequest) (*UserCreds, error) {
-	priv, pub, err := testauthority.New().GenerateKeyPair()
+	_, pub, err := testauthority.New().GenerateKeyPair()
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -124,8 +124,8 @@ func GenerateUserCreds(req UserCredsRequest) (*UserCreds, error) {
 	return &UserCreds{
 		HostCA: ca,
 		Key: client.ClientKey{
-			Priv:    priv,
-			Pub:     pub,
+			// Priv:    priv,
+			// Pub:     pub,
 			Cert:    sshCert,
 			TLSCert: x509Cert,
 		},

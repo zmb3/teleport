@@ -17,11 +17,9 @@ limitations under the License.
 package client
 
 import (
-	"crypto"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/gravitational/teleport"
@@ -29,14 +27,11 @@ import (
 	"github.com/gravitational/teleport/api/identityfile"
 	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/api/utils/sshutils"
-	"github.com/gravitational/teleport/api/utils/sshutils/ppk"
 	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/auth/native"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/tlsca"
 	"github.com/gravitational/teleport/lib/utils"
 
-	"github.com/go-piv/piv-go/piv"
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
@@ -65,100 +60,6 @@ func (idx KeyIndex) Check() error {
 		return trace.BadParameter(missingField, "ClusterName")
 	}
 	return nil
-}
-
-type KeyPair interface {
-}
-
-// PlainKeyPair is a keypair generated and held in memory
-type PlainKeyPair struct {
-	// Priv is a PEM encoded private key
-	Priv []byte `json:"Priv,omitempty"`
-	// Pub is a public key
-	Pub []byte `json:"Pub,omitempty"`
-	// PPK is a PuTTY PPK-formatted keypair
-	PPK []byte `json:"PPK,omitempty"`
-}
-
-// NewPlainKeyPair generates a new unsigned key. Such key must be signed by a
-// Teleport CA (auth server) before it becomes useful.
-func NewPlainKeyPair() (*PlainKeyPair, error) {
-	priv, pub, err := native.GenerateKeyPair()
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	ppkFile, err := ppk.ConvertToPPK(priv, pub)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	return &PlainKeyPair{
-		Priv: priv,
-		Pub:  pub,
-		PPK:  ppkFile,
-	}, nil
-}
-
-// YkKeyPair is a keypair generated and held on a yubikey
-type YkKeyPair struct {
-	Priv crypto.PrivateKey
-	// Pub is a public key
-	Pub []byte `json:"Pub,omitempty"`
-}
-
-func NewYkKeyPair() (*YkKeyPair, error) {
-	cards, err := piv.Cards()
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	var errs []error
-	for _, card := range cards {
-		if !strings.Contains(strings.ToLower(card), "yubikey") {
-			continue
-		}
-
-		yk, err := piv.Open(card)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-		defer yk.Close()
-
-		key := piv.Key{
-			Algorithm:   piv.AlgorithmEC256,
-			PINPolicy:   piv.PINPolicyAlways,
-			TouchPolicy: piv.TouchPolicyAlways,
-		}
-		pub, err := yk.GenerateKey(piv.DefaultManagementKey, piv.SlotKeyManagement, key)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-
-		sshPub, err := ssh.NewPublicKey(pub)
-		if err != nil {
-			return nil, err
-		}
-		pubBytes := ssh.MarshalAuthorizedKey(sshPub)
-
-		auth := piv.KeyAuth{PIN: piv.DefaultPIN}
-		priv, err := yk.PrivateKey(piv.SlotKeyManagement, pub, auth)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-
-		return &YkKeyPair{
-			Priv: priv,
-			Pub:  pubBytes,
-		}, nil
-	}
-
-	if len(errs) != 0 {
-		return nil, trace.NewAggregate(errs...)
-	}
-
-	return nil, trace.NotFound("no yubikey devices available")
 }
 
 // ClientKey is a signed client key with certificates.
@@ -200,9 +101,12 @@ func NewClientKey() (*ClientKey, error) {
 	clientKey.KeyPair, err = NewYkKeyPair()
 	if err == nil {
 		return clientKey, nil
-	} else if err != nil && !trace.IsNotFound(err) {
+	} else {
 		return nil, trace.Wrap(err)
 	}
+	// } else if err != nil && !trace.IsNotFound(err) {
+	// 	return nil, trace.Wrap(err)
+	// }
 
 	clientKey.KeyPair, err = NewPlainKeyPair()
 	if err != nil {
@@ -210,6 +114,71 @@ func NewClientKey() (*ClientKey, error) {
 	}
 
 	return clientKey, nil
+}
+
+// TeleportClientTLSConfig returns client TLS configuration used
+// to authenticate against API servers.
+func (k *ClientKey) TeleportClientTLSConfig(cipherSuites []uint16, clusters []string) (*tls.Config, error) {
+	return k.clientTLSConfig(cipherSuites, k.TLSCert, clusters)
+}
+
+func (k *ClientKey) clientTLSConfig(cipherSuites []uint16, tlsCertRaw []byte, clusters []string) (*tls.Config, error) {
+	tlsCert, err := k.KeyPair.TLSCertificate(tlsCertRaw)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	pool := x509.NewCertPool()
+	for _, caPEM := range k.TLSCAs() {
+		cert, err := tlsca.ParseCertificatePEM(caPEM)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		for _, k := range clusters {
+			if cert.Subject.CommonName == k {
+				if !pool.AppendCertsFromPEM(caPEM) {
+					return nil, trace.BadParameter("failed to parse TLS CA certificate")
+				}
+			}
+		}
+	}
+
+	tlsConfig := utils.TLSConfig(cipherSuites)
+	tlsConfig.RootCAs = pool
+	tlsConfig.Certificates = append(tlsConfig.Certificates, tlsCert)
+
+	// Use Issuer CN from the certificate to populate the correct SNI in
+	// requests.
+	leaf, err := x509.ParseCertificate(tlsCert.Certificate[0])
+	if err != nil {
+		return nil, trace.Wrap(err, "failed to parse TLS cert")
+	}
+	tlsConfig.ServerName = apiutils.EncodeClusterName(leaf.Issuer.CommonName)
+	return tlsConfig, nil
+}
+
+// ProxyClientSSHConfig returns an ssh.ClientConfig with SSH credentials from this
+// Key and HostKeyCallback matching SSH CAs in the Key.
+//
+// The config is set up to authenticate to proxy with the first available principal
+// and ( if keyStore != nil ) trust local SSH CAs without asking for public keys.
+//
+func (k *ClientKey) ProxyClientSSHConfig(keyStore sshKnowHostGetter, host string) (*ssh.ClientConfig, error) {
+	signer, err := k.KeyPair.SSHSigner()
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	sshConfig, err := sshutils.ProxyClientSSHConfig(k.Cert, signer, k.SSHCAs())
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	if keyStore != nil {
+		sshConfig.HostKeyCallback = NewKeyStoreCertChecker(keyStore, host)
+	}
+
+	return sshConfig, nil
 }
 
 // extractIdentityFromCert parses a tlsca.Identity from raw PEM cert bytes.
@@ -288,10 +257,11 @@ func KeyFromIdentityFile(path string) (*ClientKey, error) {
 		}
 	}
 
+	// TODO fix identity file support
 	return &ClientKey{
 		KeyPair: &PlainKeyPair{
-			Priv: ident.PrivateKey,
-			Pub:  ssh.MarshalAuthorizedKey(signer.PublicKey()),
+			privateKeyRaw: ident.PrivateKey,
+			publicKeyRaw:  ssh.MarshalAuthorizedKey(signer.PublicKey()),
 		},
 		Cert:       ident.Certs.SSH,
 		TLSCert:    ident.Certs.TLS,
@@ -379,65 +349,6 @@ func (k *ClientKey) SSHCAsForClusters(clusters []string) (result [][]byte, err e
 	return result, nil
 }
 
-// TeleportClientTLSConfig returns client TLS configuration used
-// to authenticate against API servers.
-func (k *ClientKey) TeleportClientTLSConfig(cipherSuites []uint16, clusters []string) (*tls.Config, error) {
-	return k.clientTLSConfig(cipherSuites, k.TLSCert, clusters)
-}
-
-func (k *ClientKey) clientTLSConfig(cipherSuites []uint16, tlsCertRaw []byte, clusters []string) (*tls.Config, error) {
-	tlsCert, err := tls.X509KeyPair(tlsCertRaw, k.Priv)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	pool := x509.NewCertPool()
-	for _, caPEM := range k.TLSCAs() {
-		cert, err := tlsca.ParseCertificatePEM(caPEM)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		for _, k := range clusters {
-			if cert.Subject.CommonName == k {
-				if !pool.AppendCertsFromPEM(caPEM) {
-					return nil, trace.BadParameter("failed to parse TLS CA certificate")
-				}
-			}
-		}
-	}
-
-	tlsConfig := utils.TLSConfig(cipherSuites)
-	tlsConfig.RootCAs = pool
-	tlsConfig.Certificates = append(tlsConfig.Certificates, tlsCert)
-	// Use Issuer CN from the certificate to populate the correct SNI in
-	// requests.
-	leaf, err := x509.ParseCertificate(tlsCert.Certificate[0])
-	if err != nil {
-		return nil, trace.Wrap(err, "failed to parse TLS cert")
-	}
-	tlsConfig.ServerName = apiutils.EncodeClusterName(leaf.Issuer.CommonName)
-	return tlsConfig, nil
-}
-
-// ProxyClientSSHConfig returns an ssh.ClientConfig with SSH credentials from this
-// Key and HostKeyCallback matching SSH CAs in the Key.
-//
-// The config is set up to authenticate to proxy with the first available principal
-// and ( if keyStore != nil ) trust local SSH CAs without asking for public keys.
-//
-func (k *ClientKey) ProxyClientSSHConfig(keyStore sshKnowHostGetter, host string) (*ssh.ClientConfig, error) {
-	sshConfig, err := sshutils.ProxyClientSSHConfig(k.Cert, k.Priv, k.SSHCAs())
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	if keyStore != nil {
-		sshConfig.HostKeyCallback = NewKeyStoreCertChecker(keyStore, host)
-	}
-
-	return sshConfig, nil
-}
-
 // CertUsername returns the name of the Teleport user encoded in the SSH certificate.
 func (k *ClientKey) CertUsername() (string, error) {
 	cert, err := k.SSHCert()
@@ -481,7 +392,7 @@ func (k *ClientKey) AsAgentKeys() ([]agent.AddedKey, error) {
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return sshutils.AsAgentKeys(cert, k.Priv)
+	return k.KeyPair.AsAgentKeys(cert)
 }
 
 // TeleportTLSCertificate returns the parsed x509 certificate for
@@ -546,20 +457,16 @@ func (k *ClientKey) CertValidBefore() (t time.Time, err error) {
 // used by Golang SSH library. This is how you actually use a Key to feed
 // it into the SSH lib.
 func (k *ClientKey) AsAuthMethod() (ssh.AuthMethod, error) {
-	cert, err := k.SSHCert()
+	signer, err := k.KeyPair.SSHSigner()
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return sshutils.AsAuthMethod(cert, k.Priv)
+	return ssh.PublicKeys(signer), nil
 }
 
 // AsSigner returns an ssh.Signer using the SSH certificate in this key.
 func (k *ClientKey) AsSigner() (ssh.Signer, error) {
-	cert, err := k.SSHCert()
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return sshutils.AsSigner(cert, k.Priv)
+	return k.KeyPair.SSHSigner()
 }
 
 // SSHCert returns parsed SSH certificate
@@ -595,7 +502,7 @@ func (k *ClientKey) CheckCert() error {
 
 	// Check that the certificate was for the current public key. If not, the
 	// public/private key pair may have been rotated.
-	pub, _, _, _, err := ssh.ParseAuthorizedKey(k.Pub)
+	pub, _, _, _, err := ssh.ParseAuthorizedKey(k.KeyPair.PublicKeyRaw())
 	if err != nil {
 		return trace.Wrap(err)
 	}

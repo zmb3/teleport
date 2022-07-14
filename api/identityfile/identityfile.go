@@ -87,7 +87,12 @@ func (i *IdentityFile) TLSConfig() (*tls.Config, error) {
 
 // SSHClientConfig returns the identity file's associated SSHClientConfig.
 func (i *IdentityFile) SSHClientConfig() (*ssh.ClientConfig, error) {
-	ssh, err := sshutils.ProxyClientSSHConfig(i.Certs.SSH, i.PrivateKey, i.CACerts.SSH)
+	signer, err := ssh.ParsePrivateKey(i.PrivateKey)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	ssh, err := sshutils.ProxyClientSSHConfig(i.Certs.SSH, signer, i.CACerts.SSH)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

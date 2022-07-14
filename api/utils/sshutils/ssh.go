@@ -19,6 +19,7 @@ limitations under the License.
 package sshutils
 
 import (
+	"crypto"
 	"crypto/subtle"
 	"fmt"
 	"io"
@@ -102,15 +103,10 @@ func ParseAuthorizedKeys(authorizedKeys [][]byte) ([]ssh.PublicKey, error) {
 //
 // The config is set up to authenticate to proxy with the first available principal.
 //
-func ProxyClientSSHConfig(sshCert, privKey []byte, caCerts [][]byte) (*ssh.ClientConfig, error) {
+func ProxyClientSSHConfig(sshCert []byte, signer ssh.Signer, caCerts [][]byte) (*ssh.ClientConfig, error) {
 	cert, err := ParseCertificate(sshCert)
 	if err != nil {
 		return nil, trace.Wrap(err, "failed to extract username from SSH certificate")
-	}
-
-	authMethod, err := AsAuthMethod(cert, privKey)
-	if err != nil {
-		return nil, trace.Wrap(err, "failed to convert key pair to auth method")
 	}
 
 	hostKeyCallback, err := HostKeyCallback(caCerts, false)
@@ -126,49 +122,15 @@ func ProxyClientSSHConfig(sshCert, privKey []byte, caCerts [][]byte) (*ssh.Clien
 
 	return &ssh.ClientConfig{
 		User:            user,
-		Auth:            []ssh.AuthMethod{authMethod},
+		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
 		HostKeyCallback: hostKeyCallback,
 		Timeout:         defaults.DefaultDialTimeout,
 	}, nil
 }
 
-// AsSigner returns an ssh.Signer from raw marshaled key and certificate.
-func AsSigner(sshCert *ssh.Certificate, privKey []byte) (ssh.Signer, error) {
-	keys, err := AsAgentKeys(sshCert, privKey)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	signer, err := ssh.NewSignerFromKey(keys[0].PrivateKey)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	signer, err = ssh.NewCertSigner(keys[0].Certificate, signer)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return signer, nil
-}
-
-// AsAuthMethod returns an "auth method" interface, a common abstraction
-// used by Golang SSH library. This is how you actually use a Key to feed
-// it into the SSH lib.
-func AsAuthMethod(sshCert *ssh.Certificate, privKey []byte) (ssh.AuthMethod, error) {
-	signer, err := AsSigner(sshCert, privKey)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return ssh.PublicKeys(signer), nil
-}
-
 // AsAgentKeys converts Key struct to a []*agent.AddedKey. All elements
 // of the []*agent.AddedKey slice need to be loaded into the agent!
-func AsAgentKeys(sshCert *ssh.Certificate, privKey []byte) ([]agent.AddedKey, error) {
-	// unmarshal private key bytes into a *rsa.PrivateKey
-	privateKey, err := ssh.ParseRawPrivateKey(privKey)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
+func AsAgentKeys(sshCert *ssh.Certificate, privKey crypto.PrivateKey) ([]agent.AddedKey, error) {
 	// put a teleport identifier along with the teleport user into the comment field
 	comment := fmt.Sprintf("teleport:%v", sshCert.KeyId)
 
@@ -176,7 +138,7 @@ func AsAgentKeys(sshCert *ssh.Certificate, privKey []byte) ([]agent.AddedKey, er
 	if runtime.GOOS == constants.WindowsOS {
 		return []agent.AddedKey{
 			{
-				PrivateKey:       privateKey,
+				PrivateKey:       privKey,
 				Certificate:      sshCert,
 				Comment:          comment,
 				LifetimeSecs:     0,
@@ -199,14 +161,14 @@ func AsAgentKeys(sshCert *ssh.Certificate, privKey []byte) ([]agent.AddedKey, er
 	// WARNING: callers expect the returned slice to be __exactly as it is__
 	return []agent.AddedKey{
 		{
-			PrivateKey:       privateKey,
+			PrivateKey:       privKey,
 			Certificate:      sshCert,
 			Comment:          comment,
 			LifetimeSecs:     0,
 			ConfirmBeforeUse: false,
 		},
 		{
-			PrivateKey:       privateKey,
+			PrivateKey:       privKey,
 			Certificate:      nil,
 			Comment:          comment,
 			LifetimeSecs:     0,

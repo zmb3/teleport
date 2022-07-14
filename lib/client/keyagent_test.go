@@ -214,9 +214,7 @@ func TestLoadKey(t *testing.T) {
 	require.NoError(t, err)
 
 	// parse the pem bytes for the private key, create a signer, and extract the public key
-	sshPrivateKey, err := ssh.ParseRawPrivateKey(s.key.Priv)
-	require.NoError(t, err)
-	sshSigner, err := ssh.NewSignerFromKey(sshPrivateKey)
+	sshSigner, err := s.key.AsSigner()
 	require.NoError(t, err)
 	sshPublicKey := sshSigner.PublicKey()
 
@@ -477,8 +475,7 @@ func TestLocalKeyAgent_AddDatabaseKey(t *testing.T) {
 
 func (s *KeyAgentTestSuite) makeKey(username string, allowedLogins []string, ttl time.Duration) (*ClientKey, error) {
 	keygen := testauthority.New()
-
-	privateKey, publicKey, err := keygen.GenerateKeyPair()
+	_, publicKey, err := keygen.GenerateKeyPair()
 	if err != nil {
 		return nil, err
 	}
@@ -530,8 +527,8 @@ func (s *KeyAgentTestSuite) makeKey(username string, allowedLogins []string, ttl
 	}
 
 	return &ClientKey{
-		Priv:    privateKey,
-		Pub:     publicKey,
+		// Priv:    privateKey,
+		// Pub:     publicKey,
 		Cert:    certificate,
 		TLSCert: tlsCert,
 		KeyIndex: KeyIndex{

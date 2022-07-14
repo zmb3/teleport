@@ -370,17 +370,17 @@ func (t *TerminalHandler) issueSessionMFACerts(tc *client.TeleportClient, ws *we
 	}
 	defer pc.Close()
 
-	priv, err := ssh.ParsePrivateKey(t.ctx.session.GetPriv())
-	if err != nil {
-		return trace.Wrap(err)
-	}
+	// priv, err := ssh.ParsePrivateKey(t.ctx.session.GetPriv())
+	// if err != nil {
+	// 	return trace.Wrap(err)
+	// }
 
 	key, err := pc.IssueUserCertsWithMFA(t.terminalContext, client.ReissueParams{
 		RouteToCluster: t.params.Cluster,
 		NodeName:       t.params.Server,
 		ExistingCreds: &client.ClientKey{
-			Pub:     ssh.MarshalAuthorizedKey(priv.PublicKey()),
-			Priv:    t.ctx.session.GetPriv(),
+			// Pub:     ssh.MarshalAuthorizedKey(priv.PublicKey()),
+			// Priv:    t.ctx.session.GetPriv(),
 			Cert:    t.ctx.session.GetPub(),
 			TLSCert: t.ctx.session.GetTLSCert(),
 		},

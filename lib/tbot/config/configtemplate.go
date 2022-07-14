@@ -241,8 +241,8 @@ func newClientKey(ident *identity.Identity, hostCAs []types.CertAuthority) *clie
 		KeyIndex: client.KeyIndex{
 			ClusterName: ident.ClusterName,
 		},
-		Priv:      ident.PrivateKeyBytes,
-		Pub:       ident.PublicKeyBytes,
+		// Priv:      ident.PrivateKeyBytes,
+		// Pub:       ident.PublicKeyBytes,
 		Cert:      ident.CertBytes,
 		TLSCert:   ident.TLSCertBytes,
 		TrustedCA: auth.AuthoritiesToTrustedCerts(hostCAs),

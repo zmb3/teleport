@@ -97,7 +97,7 @@ func genUserKey() (*client.ClientKey, error) {
 	}
 
 	keygen := testauthority.New()
-	priv, pub, err := keygen.GenerateKeyPair()
+	_, pub, err := keygen.GenerateKeyPair()
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -119,8 +119,8 @@ func genUserKey() (*client.ClientKey, error) {
 	}
 
 	return &client.ClientKey{
-		Priv:    priv,
-		Pub:     pub,
+		// Priv:    priv,
+		// Pub:     pub,
 		TLSCert: tlsCert,
 		TrustedCA: []auth.TrustedCerts{{
 			TLSCertificates: [][]byte{caCert},

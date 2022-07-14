@@ -194,7 +194,12 @@ func (p *Profile) SSHClientConfig() (*ssh.ClientConfig, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	ssh, err := sshutils.ProxyClientSSHConfig(cert, key, [][]byte{caCerts})
+	signer, err := ssh.ParsePrivateKey(key)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	ssh, err := sshutils.ProxyClientSSHConfig(cert, signer, [][]byte{caCerts})
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

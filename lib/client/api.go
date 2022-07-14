@@ -3199,7 +3199,7 @@ func (tc *TeleportClient) Login(ctx context.Context) (*ClientKey, error) {
 
 	// generate a new keypair. the public key will be signed via proxy if client's
 	// password+OTP are valid
-	key, err := NewKey()
+	key, err := NewClientKey()
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -3212,30 +3212,30 @@ func (tc *TeleportClient) Login(ctx context.Context) (*ClientKey, error) {
 		if !pr.Auth.AllowPasswordless {
 			return nil, trace.BadParameter("passwordless disallowed by cluster settings")
 		}
-		response, err = tc.pwdlessLogin(ctx, key.Pub)
+		response, err = tc.pwdlessLogin(ctx, key.KeyPair.PublicKeyRaw())
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		username = response.Username
 	case authType == constants.Local:
-		response, err = tc.localLogin(ctx, pr.Auth.SecondFactor, key.Pub)
+		response, err = tc.localLogin(ctx, pr.Auth.SecondFactor, key.KeyPair.PublicKeyRaw())
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 	case authType == constants.OIDC:
-		response, err = tc.ssoLogin(ctx, pr.Auth.OIDC.Name, key.Pub, constants.OIDC)
+		response, err = tc.ssoLogin(ctx, pr.Auth.OIDC.Name, key.KeyPair.PublicKeyRaw(), constants.OIDC)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		username = response.Username
 	case authType == constants.SAML:
-		response, err = tc.ssoLogin(ctx, pr.Auth.SAML.Name, key.Pub, constants.SAML)
+		response, err = tc.ssoLogin(ctx, pr.Auth.SAML.Name, key.KeyPair.PublicKeyRaw(), constants.SAML)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		username = response.Username
 	case authType == constants.Github:
-		response, err = tc.ssoLogin(ctx, pr.Auth.Github.Name, key.Pub, constants.Github)
+		response, err = tc.ssoLogin(ctx, pr.Auth.Github.Name, key.KeyPair.PublicKeyRaw(), constants.Github)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
@@ -3487,10 +3487,10 @@ func (tc *TeleportClient) ActivateKey(ctx context.Context, key *ClientKey) error
 	}
 
 	// save the cert to the local storage (~/.tsh usually):
-	_, err = tc.localAgent.AddKey(key)
-	if err != nil {
-		return trace.Wrap(err)
-	}
+	// _, err = tc.localAgent.AddKey(key)
+	// if err != nil {
+	// 	return trace.Wrap(err)
+	// }
 
 	// Connect to the Auth Server of the root cluster and fetch the known hosts.
 	rootClusterName := key.TrustedCA[0].ClusterName

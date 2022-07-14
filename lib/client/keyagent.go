@@ -18,7 +18,7 @@ package client
 
 import (
 	"context"
-	"crypto/subtle"
+	"crypto"
 	"crypto/x509"
 	"fmt"
 	"io"
@@ -521,12 +521,21 @@ func (a *LocalKeyAgent) addKey(key *ClientKey) error {
 			return trace.Wrap(err)
 		}
 	} else {
-		if subtle.ConstantTimeCompare(storedKey.Priv, key.Priv) == 0 {
+		if !storedKey.KeyPair.PrivateKey().(interface {
+			Equal(x crypto.PrivateKey) bool
+		}).Equal(key.KeyPair.PrivateKey()) {
 			a.log.Debugf("Deleting obsolete stored key with index %+v.", storedKey.KeyIndex)
 			if err := a.keyStore.DeleteKey(storedKey.KeyIndex); err != nil {
 				return trace.Wrap(err)
 			}
 		}
+
+		// if subtle.ConstantTimeCompare(storedKey.Priv, key.Priv) == 0 {
+		// 	a.log.Debugf("Deleting obsolete stored key with index %+v.", storedKey.KeyIndex)
+		// 	if err := a.keyStore.DeleteKey(storedKey.KeyIndex); err != nil {
+		// 		return trace.Wrap(err)
+		// 	}
+		// }
 	}
 
 	// Save the new key to the keystore (usually into ~/.tsh).

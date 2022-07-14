@@ -59,7 +59,6 @@ import (
 	"github.com/gravitational/teleport/lib/observability/tracing"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/session"
-	"github.com/gravitational/teleport/lib/sshutils"
 	"github.com/gravitational/teleport/lib/sshutils/scp"
 	"github.com/gravitational/teleport/lib/sshutils/x11"
 	"github.com/gravitational/teleport/lib/tlsca"
@@ -3118,41 +3117,37 @@ func refuseArgs(command string, args []string) error {
 
 // authFromIdentity returns a standard ssh.Authmethod for a given identity file
 func authFromIdentity(k *client.ClientKey) (ssh.AuthMethod, error) {
-	signer, err := sshutils.NewSigner(k.Priv, k.Cert)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return ssh.PublicKeys(signer), nil
+	return k.AsAuthMethod()
 }
 
 // onShow reads an identity file (a public SSH key or a cert) and dumps it to stdout
 func onShow(cf *CLIConf) error {
-	key, err := client.KeyFromIdentityFile(cf.IdentityFileIn)
-	if err != nil {
-		return trace.Wrap(err)
-	}
+	// key, err := client.KeyFromIdentityFile(cf.IdentityFileIn)
+	// if err != nil {
+	// 	return trace.Wrap(err)
+	// }
 
-	// unmarshal certificate bytes into a ssh.PublicKey
-	cert, _, _, _, err := ssh.ParseAuthorizedKey(key.Cert)
-	if err != nil {
-		return trace.Wrap(err)
-	}
+	// // unmarshal certificate bytes into a ssh.PublicKey
+	// cert, _, _, _, err := ssh.ParseAuthorizedKey(key.Cert)
+	// if err != nil {
+	// 	return trace.Wrap(err)
+	// }
 
-	// unmarshal private key bytes into a *rsa.PrivateKey
-	priv, err := ssh.ParseRawPrivateKey(key.Priv)
-	if err != nil {
-		return trace.Wrap(err)
-	}
+	// // unmarshal private key bytes into a *rsa.PrivateKey
+	// priv, err := ssh.ParseRawPrivateKey(key.Priv)
+	// if err != nil {
+	// 	return trace.Wrap(err)
+	// }
 
-	pub, err := ssh.ParsePublicKey(key.Pub)
-	if err != nil {
-		return trace.Wrap(err)
-	}
+	// pub, err := ssh.ParsePublicKey(key.Pub)
+	// if err != nil {
+	// 	return trace.Wrap(err)
+	// }
 
-	fmt.Printf("Cert: %#v\nPriv: %#v\nPub: %#v\n",
-		cert, priv, pub)
+	// fmt.Printf("Cert: %#v\nPriv: %#v\nPub: %#v\n",
+	// 	cert, priv, pub)
 
-	fmt.Printf("Fingerprint: %s\n", ssh.FingerprintSHA256(pub))
+	// fmt.Printf("Fingerprint: %s\n", ssh.FingerprintSHA256(pub))
 	return nil
 }
 

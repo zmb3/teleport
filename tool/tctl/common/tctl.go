@@ -319,7 +319,7 @@ type sshTrustedHostKeyWrapper struct {
 
 // GetKnownHostKeys returns know trusted key for a particular hostname.
 func (m *sshTrustedHostKeyWrapper) GetKnownHostKeys(hostname string) ([]ssh.PublicKey, error) {
-	ca, err := m.Key.SSHCAsForClusters([]string{hostname})
+	ca, err := m.ClientKey.SSHCAsForClusters([]string{hostname})
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
