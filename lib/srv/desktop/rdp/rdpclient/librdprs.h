@@ -59,9 +59,9 @@ typedef enum FileType {
 
 typedef enum TdpErrCode {
   /**
-   * nil (no error, operation succeeded)
+   * operation succeeded
    */
-  Nil = 0,
+  Success = 0,
   /**
    * operation failed
    */

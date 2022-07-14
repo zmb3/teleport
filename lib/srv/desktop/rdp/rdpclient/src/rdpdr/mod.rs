@@ -240,7 +240,7 @@ impl Client {
         if self.active_device_ids.contains(&req.device_id) {
             if req.device_id != self.get_scard_device_id()? {
                 // This was for a directory we're sharing over TDP
-                let mut err_code = TdpErrCode::Nil;
+                let mut err_code = TdpErrCode::Success;
                 if req.result_code != NTSTATUS_OK {
                     err_code = TdpErrCode::Failed;
                     debug!("ServerDeviceAnnounceResponse for smartcard redirection failed with result code NTSTATUS({})", &req.result_code);
@@ -379,7 +379,7 @@ impl Client {
                                 res.err_code,
                             )));
                         }
-                        TdpErrCode::Nil => {
+                        TdpErrCode::Success => {
                             // The file exists
                             // https://github.com/FreeRDP/FreeRDP/blob/511444a65e7aa2f537c5e531fa68157a50c1bd4d/channels/drive/client/drive_file.c#L214
                             if res.fso.file_type == FileType::Directory {
@@ -450,7 +450,7 @@ impl Client {
                     match rdp_req.create_disposition {
                         flags::CreateDisposition::FILE_SUPERSEDE => {
                             // If the file already exists, replace it with the given file. If it does not, create the given file.
-                            if res.err_code == TdpErrCode::Nil {
+                            if res.err_code == TdpErrCode::Success {
                                 return cli.tdp_sd_overwrite(rdp_req, res.fso);
                             } else if res.err_code == TdpErrCode::DoesNotExist {
                                 return cli.tdp_sd_create(rdp_req, FileType::File, res.fso);
@@ -458,7 +458,7 @@ impl Client {
                         }
                         flags::CreateDisposition::FILE_OPEN => {
                             // If the file already exists, open it instead of creating a new file. If it does not, fail the request and do not create a new file.
-                            if res.err_code == TdpErrCode::Nil {
+                            if res.err_code == TdpErrCode::Success {
                                 let file_id = cli.generate_file_id();
                                 cli.file_cache.insert(
                                     file_id,
@@ -479,7 +479,7 @@ impl Client {
                         }
                         flags::CreateDisposition::FILE_CREATE => {
                             // If the file already exists, fail the request and do not create or open the given file. If it does not, create the given file.
-                            if res.err_code == TdpErrCode::Nil {
+                            if res.err_code == TdpErrCode::Success {
                                 return cli.prep_device_create_response(
                                     &rdp_req,
                                     NTSTATUS::STATUS_OBJECT_NAME_COLLISION,
@@ -491,7 +491,7 @@ impl Client {
                         }
                         flags::CreateDisposition::FILE_OPEN_IF => {
                             // If the file already exists, open it. If it does not, create the given file.
-                            if res.err_code == TdpErrCode::Nil {
+                            if res.err_code == TdpErrCode::Success {
                                 let file_id = cli.generate_file_id();
                                 cli.file_cache.insert(
                                     file_id,
@@ -508,7 +508,7 @@ impl Client {
                         }
                         flags::CreateDisposition::FILE_OVERWRITE => {
                             // If the file already exists, open it and overwrite it. If it does not, fail the request.
-                            if res.err_code == TdpErrCode::Nil {
+                            if res.err_code == TdpErrCode::Success {
                                 return cli.tdp_sd_overwrite(rdp_req, res.fso);
                             } else if res.err_code == TdpErrCode::DoesNotExist {
                                 return cli.prep_device_create_response(
@@ -520,7 +520,7 @@ impl Client {
                         }
                         flags::CreateDisposition::FILE_OVERWRITE_IF => {
                             // If the file already exists, open it and overwrite it. If it does not, create the given file.
-                            if res.err_code == TdpErrCode::Nil {
+                            if res.err_code == TdpErrCode::Success {
                                 return cli.tdp_sd_overwrite(rdp_req, res.fso);
                             } else if res.err_code == TdpErrCode::DoesNotExist {
                                 return cli.tdp_sd_create(rdp_req, FileType::File, res.fso);
@@ -627,7 +627,7 @@ impl Client {
                                 move |cli: &mut Self,
                                       res: SharedDirectoryListResponse|
                                       -> RdpResult<Vec<Vec<u8>>> {
-                                    if res.err_code == TdpErrCode::Nil {
+                                    if res.err_code == TdpErrCode::Success {
                                         // If SharedDirectoryListRequest succeeded, move the
                                         // list of FileSystemObjects that correspond to this directory's
                                         // contents to its entry in the file cache.
@@ -1152,7 +1152,7 @@ impl Client {
                 move |cli: &mut Self,
                       res: SharedDirectoryCreateResponse|
                       -> RdpResult<Vec<Vec<u8>>> {
-                    if res.err_code == TdpErrCode::Nil {
+                    if res.err_code == TdpErrCode::Success {
                         let file_id = cli.generate_file_id();
                         cli.file_cache
                             .insert(file_id, FileCacheObject::new(rdp_req.path.clone(), fso));
@@ -1184,7 +1184,7 @@ impl Client {
             rdp_req.device_io_request.completion_id,
             Box::new(
                 |cli: &mut Self, res: SharedDirectoryDeleteResponse| -> RdpResult<Vec<Vec<u8>>> {
-                    if res.err_code == TdpErrCode::Nil {
+                    if res.err_code == TdpErrCode::Success {
                         cli.tdp_sd_create(rdp_req, FileType::File, fso)
                     } else {
                         cli.prep_device_create_response(&rdp_req, NTSTATUS::STATUS_UNSUCCESSFUL, 0)
@@ -1210,7 +1210,7 @@ impl Client {
             rdp_req.device_io_request.completion_id,
             Box::new(
                 |cli: &mut Self, res: SharedDirectoryDeleteResponse| -> RdpResult<Vec<Vec<u8>>> {
-                    let code = if res.err_code == TdpErrCode::Nil {
+                    let code = if res.err_code == TdpErrCode::Success {
                         NTSTATUS::STATUS_SUCCESS
                     } else {
                         NTSTATUS::STATUS_UNSUCCESSFUL
@@ -1240,7 +1240,7 @@ impl Client {
                           res: SharedDirectoryReadResponse|
                           -> RdpResult<Vec<Vec<u8>>> {
                         match res.err_code {
-                            TdpErrCode::Nil => cli.prep_read_response(
+                            TdpErrCode::Success => cli.prep_read_response(
                                 rdp_req,
                                 NTSTATUS::STATUS_SUCCESS,
                                 res.read_data,
@@ -1280,7 +1280,7 @@ impl Client {
                           res: SharedDirectoryWriteResponse|
                           -> RdpResult<Vec<Vec<u8>>> {
                         match res.err_code {
-                            TdpErrCode::Nil => cli.prep_write_response(
+                            TdpErrCode::Success => cli.prep_write_response(
                                 device_io_request,
                                 NTSTATUS::STATUS_SUCCESS,
                                 res.bytes_written,

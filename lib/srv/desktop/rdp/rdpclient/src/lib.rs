@@ -1423,8 +1423,8 @@ pub enum FileType {
 #[repr(C)]
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum TdpErrCode {
-    /// nil (no error, operation succeeded)
-    Nil = 0,
+    /// operation succeeded
+    Success = 0,
     /// operation failed
     Failed = 1,
     /// resource does not exist

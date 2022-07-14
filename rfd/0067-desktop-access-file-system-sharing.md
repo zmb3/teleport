@@ -471,7 +471,7 @@ by setting `path_length: 0` and `path: ""`.
 
 `err_code` is a `uint32` sized field specifying an error
 
-0. nil (no error, operation succeeded)
+0. operation succeeded
 1. operation failed
 2. resource does not exist
 3. resource already exists
