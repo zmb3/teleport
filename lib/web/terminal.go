@@ -379,10 +379,9 @@ func (t *TerminalHandler) issueSessionMFACerts(tc *client.TeleportClient, ws *we
 		RouteToCluster: t.params.Cluster,
 		NodeName:       t.params.Server,
 		ExistingCreds: &client.Key{
-			Pub:     ssh.MarshalAuthorizedKey(priv.PublicKey()),
-			Priv:    t.ctx.session.GetPriv(),
-			Cert:    t.ctx.session.GetPub(),
-			TLSCert: t.ctx.session.GetTLSCert(),
+			PrivateKey: client.ParseRSAPrivateKey(t.ctx.session.GetPriv(), ssh.MarshalAuthorizedKey(priv.PublicKey())),
+			Cert:       t.ctx.session.GetPub(),
+			TLSCert:    t.ctx.session.GetTLSCert(),
 		},
 	}, promptMFAChallenge(ws, t.wsLock, protobufMFACodec{}))
 	if err != nil {

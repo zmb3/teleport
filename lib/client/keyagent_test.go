@@ -215,9 +215,7 @@ func TestLoadKey(t *testing.T) {
 	require.NoError(t, err)
 
 	// parse the pem bytes for the private key, create a signer, and extract the public key
-	sshPrivateKey, err := ssh.ParseRawPrivateKey(s.key.Priv)
-	require.NoError(t, err)
-	sshSigner, err := ssh.NewSignerFromKey(sshPrivateKey)
+	sshSigner, err := s.key.SSHSigner()
 	require.NoError(t, err)
 	sshPublicKey := sshSigner.PublicKey()
 
@@ -531,10 +529,9 @@ func (s *KeyAgentTestSuite) makeKey(username string, allowedLogins []string, ttl
 	}
 
 	return &Key{
-		Priv:    privateKey,
-		Pub:     publicKey,
-		Cert:    certificate,
-		TLSCert: tlsCert,
+		PrivateKey: ParseRSAPrivateKey(privateKey, publicKey),
+		Cert:       certificate,
+		TLSCert:    tlsCert,
 		KeyIndex: KeyIndex{
 			ProxyHost:   s.hostname,
 			Username:    username,

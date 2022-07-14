@@ -77,7 +77,7 @@ func TestListKeys(t *testing.T) {
 	skey, err := s.store.GetKey(samIdx, WithSSHCerts{})
 	require.NoError(t, err)
 	require.Equal(t, samKey.Cert, skey.Cert)
-	require.Equal(t, samKey.Pub, skey.Pub)
+	require.Equal(t, samKey.SSHPublicKeyPEM(), skey.SSHPublicKeyPEM())
 }
 
 func TestKeyCRUD(t *testing.T) {
@@ -238,7 +238,7 @@ func TestProxySSHConfig(t *testing.T) {
 	err = s.store.AddKnownHostKeys(firsthost, idx.ProxyHost, []ssh.PublicKey{caPub})
 	require.NoError(t, err)
 
-	clientConfig, err := key.ProxyClientSSHConfig(s.store, firsthost)
+	clientConfig, err := key.SSHConfig(s.store, firsthost)
 	require.NoError(t, err)
 
 	called := atomic.NewInt32(0)
@@ -308,7 +308,7 @@ func TestProxySSHConfig(t *testing.T) {
 
 	// The ProxyClientSSHConfig should create configuration that validates server authority only based on
 	// second-host instead of all known hosts.
-	clientConfig, err = key.ProxyClientSSHConfig(s.store, "second-host")
+	clientConfig, err = key.SSHConfig(s.store, "second-host")
 	require.NoError(t, err)
 	_, err = ssh.Dial("tcp", srv.Addr(), clientConfig)
 	// ssh server cert doesn't match second-host user known host thus connection should fail.
@@ -474,8 +474,7 @@ func (s *keyStoreTest) makeSignedKey(t *testing.T, idx KeyIndex, makeExpired boo
 	require.NoError(t, err)
 	return &Key{
 		KeyIndex:   idx,
-		Priv:       priv,
-		Pub:        pub,
+		PrivateKey: ParseRSAPrivateKey(priv, pub),
 		Cert:       cert,
 		TLSCert:    tlsCert,
 		TrustedCA:  []auth.TrustedCerts{s.tlsCACert},

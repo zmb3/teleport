@@ -18,7 +18,6 @@ package client
 
 import (
 	"context"
-	"crypto/subtle"
 	"crypto/x509"
 	"fmt"
 	"io"
@@ -199,17 +198,21 @@ func (a *LocalKeyAgent) LoadKeyForCluster(clusterName string) (*agent.AddedKey, 
 // LoadKey adds a key into the Teleport ssh agent as well as the system ssh
 // agent.
 func (a *LocalKeyAgent) LoadKey(key Key) (*agent.AddedKey, error) {
-	a.log.Infof("Loading SSH key for user %q and cluster %q.", a.username, key.ClusterName)
-
-	agents := []agent.Agent{a.Agent}
-	if a.sshAgent != nil {
-		agents = append(agents, a.sshAgent)
-	}
-
 	// convert keys into a format understood by the ssh agent
 	agentKeys, err := key.AsAgentKeys()
 	if err != nil {
 		return nil, trace.Wrap(err)
+	}
+
+	if len(agentKeys) == 0 {
+		// key has no agent keys to add to agent, noop
+		return nil, nil
+	}
+
+	a.log.Infof("Loading SSH key for user %q and cluster %q.", a.username, key.ClusterName)
+	agents := []agent.Agent{a.Agent}
+	if a.sshAgent != nil {
+		agents = append(agents, a.sshAgent)
 	}
 
 	// remove any keys that the user may already have loaded
@@ -521,7 +524,7 @@ func (a *LocalKeyAgent) addKey(key *Key) error {
 			return trace.Wrap(err)
 		}
 	} else {
-		if subtle.ConstantTimeCompare(storedKey.Priv, key.Priv) == 0 {
+		if !storedKey.Equal(key) {
 			a.log.Debugf("Deleting obsolete stored key with index %+v.", storedKey.KeyIndex)
 			if err := a.keyStore.DeleteKey(storedKey.KeyIndex); err != nil {
 				return trace.Wrap(err)
@@ -589,7 +592,7 @@ func (a *LocalKeyAgent) certsForCluster(clusterName string) ([]ssh.Signer, error
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
-		signer, err := k.AsSigner()
+		signer, err := k.SSHSigner()
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}

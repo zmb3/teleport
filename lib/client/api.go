@@ -2912,7 +2912,8 @@ func (tc *TeleportClient) connectToProxy(ctx context.Context) (*ProxyClient, err
 		//
 		// Instead, load SSH certs for all clusters we have (by passing an
 		// empty string to certsForCluster).
-		signers, err := tc.localAgent.certsForCluster("")
+		// TODO: revert this change
+		signers, err := tc.localAgent.certsForCluster(tc.SiteName)
 		// errNoLocalKeyStore is returned when running in the proxy. The proxy
 		// should be passing auth methods via tc.Config.AuthMethods.
 		if err != nil && !errors.Is(err, errNoLocalKeyStore) && !trace.IsNotFound(err) {
@@ -3199,7 +3200,7 @@ func (tc *TeleportClient) Login(ctx context.Context) (*Key, error) {
 
 	// generate a new keypair. the public key will be signed via proxy if client's
 	// password+OTP are valid
-	key, err := NewKey()
+	key, err := GenerateKey()
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -3212,30 +3213,30 @@ func (tc *TeleportClient) Login(ctx context.Context) (*Key, error) {
 		if !pr.Auth.AllowPasswordless {
 			return nil, trace.BadParameter("passwordless disallowed by cluster settings")
 		}
-		response, err = tc.pwdlessLogin(ctx, key.Pub)
+		response, err = tc.pwdlessLogin(ctx, key.SSHPublicKeyPEM())
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		username = response.Username
 	case authType == constants.Local:
-		response, err = tc.localLogin(ctx, pr.Auth.SecondFactor, key.Pub)
+		response, err = tc.localLogin(ctx, pr.Auth.SecondFactor, key.SSHPublicKeyPEM())
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 	case authType == constants.OIDC:
-		response, err = tc.ssoLogin(ctx, pr.Auth.OIDC.Name, key.Pub, constants.OIDC)
+		response, err = tc.ssoLogin(ctx, pr.Auth.OIDC.Name, key.SSHPublicKeyPEM(), constants.OIDC)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		username = response.Username
 	case authType == constants.SAML:
-		response, err = tc.ssoLogin(ctx, pr.Auth.SAML.Name, key.Pub, constants.SAML)
+		response, err = tc.ssoLogin(ctx, pr.Auth.SAML.Name, key.SSHPublicKeyPEM(), constants.SAML)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		username = response.Username
 	case authType == constants.Github:
-		response, err = tc.ssoLogin(ctx, pr.Auth.Github.Name, key.Pub, constants.Github)
+		response, err = tc.ssoLogin(ctx, pr.Auth.Github.Name, key.SSHPublicKeyPEM(), constants.Github)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}

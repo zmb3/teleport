@@ -251,11 +251,10 @@ func newClientKey(ident *identity.Identity, hostCAs []types.CertAuthority) *clie
 		KeyIndex: client.KeyIndex{
 			ClusterName: ident.ClusterName,
 		},
-		Priv:      ident.PrivateKeyBytes,
-		Pub:       ident.PublicKeyBytes,
-		Cert:      ident.CertBytes,
-		TLSCert:   ident.TLSCertBytes,
-		TrustedCA: auth.AuthoritiesToTrustedCerts(hostCAs),
+		PrivateKey: client.ParseRSAPrivateKey(ident.PrivateKeyBytes, ident.PublicKeyBytes),
+		Cert:       ident.CertBytes,
+		TLSCert:    ident.TLSCertBytes,
+		TrustedCA:  auth.AuthoritiesToTrustedCerts(hostCAs),
 
 		// Note: these fields are never used or persisted with identity files,
 		// so we won't bother to set them. (They may need to be reconstituted
