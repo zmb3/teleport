@@ -22,6 +22,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gravitational/trace"
@@ -402,14 +403,54 @@ func (k *Key) CertRoles() ([]string, error) {
 	return roles, nil
 }
 
-// AsAgentKeys converts client.Key struct to a []*agent.AddedKey. All elements
-// of the []*agent.AddedKey slice need to be loaded into the agent!
+const (
+	agentKeyCommentPrefix    = "teleport"
+	agentKeyCommentSeparator = ":"
+)
+
+// teleportAgentKeyComment returns a teleport agent key comment
+// like "teleport:<proxyHost>:<userName>:<clusterName>".
+func teleportAgentKeyComment(k KeyIndex) string {
+	return strings.Join([]string{
+		agentKeyCommentPrefix,
+		k.ProxyHost,
+		k.ClusterName,
+		k.Username,
+	}, agentKeyCommentSeparator)
+}
+
+// parseTeleportAgentKeyComment parses an agent key comment into
+// its associated KeyIndex.
+func parseTeleportAgentKeyComment(comment string) (KeyIndex, bool) {
+	parts := strings.Split(comment, agentKeyCommentSeparator)
+	if len(parts) != 4 || parts[0] != agentKeyCommentPrefix {
+		return KeyIndex{}, false
+	}
+
+	return KeyIndex{
+		ProxyHost:   parts[1],
+		ClusterName: parts[2],
+		Username:    parts[3],
+	}, true
+}
+
+// AsAgentKeys converts client.Key struct to an agent.AddedKey. The
+// returned agent key may contain a non-standrad private key, such as
+// a YubiKeyPrivateKey. In this case, the agent key can be added to an
+// in-memory key rings but may fail to be added to a standard SSH Agent.
 func (k *Key) AsAgentKey() (agent.AddedKey, error) {
 	sshCert, err := k.SSHCert()
 	if err != nil {
 		return agent.AddedKey{}, trace.Wrap(err)
 	}
-	return k.PrivateKey.AsAgentKey(sshCert)
+
+	return agent.AddedKey{
+		PrivateKey:       k.Signer,
+		Certificate:      sshCert,
+		Comment:          teleportAgentKeyComment(k.KeyIndex),
+		LifetimeSecs:     0,
+		ConfirmBeforeUse: false,
+	}, nil
 }
 
 // TeleportTLSCertificate returns the parsed x509 certificate for
