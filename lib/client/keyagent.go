@@ -526,15 +526,13 @@ func (a *LocalKeyAgent) AddKey(key *Key) error {
 		return trace.Wrap(err)
 	}
 	// Load key into the teleport agent and system agent.
-	err := a.LoadKey(*key)
-	if trace.IsNotImplemented(err) {
-		// If the key is not supported as an agent key, then log the error and
-		// continue without the agent key. This will only affect Agent forwarding,
-		// so we log this as INFO and continue with a non-agent login session.
-		a.log.WithError(err).Warn("Failed to add key to agent. Some integrations related to agent forwarding will not work with this key agent.")
-		return nil
+	if err := a.LoadKey(*key); err != nil {
+		// Log any agent errors, but proceed as long as the key could be
+		// added to the key store. Some keys, like YubiKeyPrivateKeys, are
+		// only supported by the local key agent.
+		a.log.WithError(err).Warn("Failed to add key to agent(s)")
 	}
-	return trace.Wrap(err)
+	return nil
 }
 
 // AddDatabaseKey activates a new signed database key by adding it into the keystore.
