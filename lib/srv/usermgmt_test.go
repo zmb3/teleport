@@ -133,7 +133,6 @@ var _ HostUsersBackend = &testHostUserBackend{}
 
 func TestUserMgmt_CreateTemporaryUser(t *testing.T) {
 	t.Parallel()
-
 	backend := newTestUserMgmt()
 	bk, err := memory.New(memory.Config{})
 	require.NoError(t, err)
@@ -174,7 +173,6 @@ func TestUserMgmt_CreateTemporaryUser(t *testing.T) {
 
 func TestUserMgmtSudoers_CreateTemporaryUser(t *testing.T) {
 	t.Parallel()
-
 	backend := newTestUserMgmt()
 	bk, err := memory.New(memory.Config{})
 	require.NoError(t, err)
@@ -221,7 +219,6 @@ func TestUserMgmtSudoers_CreateTemporaryUser(t *testing.T) {
 
 func TestUserMgmt_DeleteAllTeleportSystemUsers(t *testing.T) {
 	t.Parallel()
-
 	type userAndGroups struct {
 		user   string
 		groups []string

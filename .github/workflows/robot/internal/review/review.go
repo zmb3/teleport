@@ -120,12 +120,9 @@ func (r *Assignments) IsInternal(author string) bool {
 	return code || docs
 }
 
-// Get will return a list of code reviewers for a given author.
+// Get will return a list of code reviewers a given author.
 func (r *Assignments) Get(author string, docs bool, code bool) []string {
 	var reviewers []string
-
-	// TODO: consider existing review assignments here
-	// https://github.com/gravitational/teleport/issues/10420
 
 	switch {
 	case docs && code:
@@ -212,19 +209,12 @@ func (r *Assignments) CheckExternal(author string, reviews []github.Review) erro
 // CheckInternal will verify if required reviewers have approved. Checks if
 // docs and if each set of code reviews have approved. Admin approvals bypass
 // all checks.
-func (r *Assignments) CheckInternal(author string, reviews []github.Review, docs bool, code bool, large bool) error {
+func (r *Assignments) CheckInternal(author string, reviews []github.Review, docs bool, code bool) error {
 	log.Printf("Check: Found internal author %v.", author)
 
 	// Skip checks if admins have approved.
 	if check(r.getAdminReviewers(author), reviews) {
 		return nil
-	}
-
-	if code && large {
-		log.Println("Check: Detected large PR, requiring admin approval")
-		if !check(r.getAdminReviewers(author), reviews) {
-			return trace.BadParameter("this PR is large and requires admin approval to merge")
-		}
 	}
 
 	switch {
@@ -333,7 +323,7 @@ func checkN(reviewers []string, reviews []github.Review) int {
 
 	var n int
 	for _, reviewer := range reviewers {
-		if state, ok := r[reviewer]; ok && state == Approved {
+		if state, ok := r[reviewer]; ok && state == approved {
 			n++
 		}
 	}
@@ -347,7 +337,7 @@ func reviewsByAuthor(reviews []github.Review) map[string]string {
 		// Always pick up the last submitted review from each reviewer.
 		if state, ok := m[review.Author]; ok {
 			// If the reviewer left comments after approval, skip this review.
-			if review.State == Commented && state == Approved {
+			if review.State == commented && state == approved {
 				continue
 			}
 		}
@@ -358,10 +348,10 @@ func reviewsByAuthor(reviews []github.Review) map[string]string {
 }
 
 const (
-	// Commented is a code review where the reviewer has left comments only.
-	Commented = "COMMENTED"
-	// Approved is a code review where the reviewer has approved changes.
-	Approved = "APPROVED"
-	// ChangesRequested is a code review where the reviewer has requested changes.
-	ChangesRequested = "CHANGES_REQUESTED"
+	// commented is a code review where the reviewer has left comments only.
+	commented = "COMMENTED"
+	// approved is a code review where the reviewer has approved changes.
+	approved = "APPROVED"
+	// changesRequested is a code review where the reviewer has requested changes.
+	changesRequested = "CHANGES_REQUESTED"
 )

@@ -20,7 +20,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io"
 	"net"
 	"os"
 	"sort"
@@ -247,23 +246,19 @@ func onDatabaseLogin(cf *CLIConf) error {
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	routeToDatabase := tlsca.RouteToDatabase{
+	err = databaseLogin(cf, tc, tlsca.RouteToDatabase{
 		ServiceName: cf.DatabaseService,
 		Protocol:    database.GetProtocol(),
 		Username:    cf.DatabaseUser,
 		Database:    cf.DatabaseName,
-	}
-
-	if err := databaseLogin(cf, tc, routeToDatabase); err != nil {
+	}, false)
+	if err != nil {
 		return trace.Wrap(err)
 	}
-
-	// Print after-connect message.
-	fmt.Println(formatDatabaseConnectMessage(cf.SiteName, routeToDatabase))
 	return nil
 }
 
-func databaseLogin(cf *CLIConf, tc *client.TeleportClient, db tlsca.RouteToDatabase) error {
+func databaseLogin(cf *CLIConf, tc *client.TeleportClient, db tlsca.RouteToDatabase, quiet bool) error {
 	log.Debugf("Fetching database access certificate for %s on cluster %v.", db, tc.SiteName)
 	// When generating certificate for MongoDB access, database username must
 	// be encoded into it. This is required to be able to tell which database
@@ -315,7 +310,15 @@ func databaseLogin(cf *CLIConf, tc *client.TeleportClient, db tlsca.RouteToDatab
 	}
 	// Update the database-specific connection profile file.
 	err = dbprofile.Add(cf.Context, tc, db, *profile)
-	return trace.Wrap(err)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	// Print after-connect message.
+	if !quiet {
+		fmt.Println(formatDatabaseConnectMessage(cf.SiteName, db))
+		return nil
+	}
+	return nil
 }
 
 // onDatabaseLogout implements "tsh db logout" command.
@@ -674,8 +677,15 @@ func onDatabaseConnect(cf *CLIConf) error {
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	if err := maybeDatabaseLogin(cf, tc, profile, routeToDatabase); err != nil {
+	// Check is cert is still valid or DB connection requires MFA. If yes trigger db login logic.
+	relogin, err := needRelogin(cf, tc, routeToDatabase, profile)
+	if err != nil {
 		return trace.Wrap(err)
+	}
+	if relogin {
+		if err := databaseLogin(cf, tc, *routeToDatabase, true); err != nil {
+			return trace.Wrap(err)
+		}
 	}
 
 	key, err := tc.LocalAgent().GetCoreKey()
@@ -698,19 +708,12 @@ func onDatabaseConnect(cf *CLIConf) error {
 		return trace.Wrap(err)
 	}
 	log.Debug(cmd.String())
-
 	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-
-	// Use io.MultiWriter to duplicate stderr to the capture writer. The
-	// captured stderr can be used for diagnosing command failures. The capture
-	// writer captures up to a fixed number to limit memory usage.
-	peakStderr := utils.NewCaptureNBytesWriter(dbcmd.PeakStderrSize)
-	cmd.Stderr = io.MultiWriter(os.Stderr, peakStderr)
-
 	err = cmd.Run()
 	if err != nil {
-		return dbcmd.ConvertCommandError(cmd, err, string(peakStderr.Bytes()))
+		return trace.Wrap(err)
 	}
 	return nil
 }
@@ -763,7 +766,7 @@ func getDatabase(cf *CLIConf, tc *client.TeleportClient, dbName string) (types.D
 	return databases[0], nil
 }
 
-func needDatabaseRelogin(cf *CLIConf, tc *client.TeleportClient, database *tlsca.RouteToDatabase, profile *client.ProfileStatus) (bool, error) {
+func needRelogin(cf *CLIConf, tc *client.TeleportClient, database *tlsca.RouteToDatabase, profile *client.ProfileStatus) (bool, error) {
 	found := false
 	activeDatabases, err := profile.DatabasesForCluster(tc.SiteName)
 	if err != nil {
@@ -796,20 +799,6 @@ func needDatabaseRelogin(cf *CLIConf, tc *client.TeleportClient, database *tlsca
 		return false, trace.Wrap(err)
 	}
 	return mfaRequired, nil
-}
-
-// maybeDatabaseLogin checks if cert is still valid or DB connection requires
-// MFA. If yes trigger db login logic.
-func maybeDatabaseLogin(cf *CLIConf, tc *client.TeleportClient, profile *client.ProfileStatus, db *tlsca.RouteToDatabase) error {
-	reloginNeeded, err := needDatabaseRelogin(cf, tc, db, profile)
-	if err != nil {
-		return trace.Wrap(err)
-	}
-
-	if reloginNeeded {
-		return trace.Wrap(databaseLogin(cf, tc, *db))
-	}
-	return nil
 }
 
 // dbInfoHasChanged checks if cliConf.DatabaseUser or cliConf.DatabaseName info has changed in the user database certificate.

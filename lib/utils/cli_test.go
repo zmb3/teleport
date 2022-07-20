@@ -30,8 +30,6 @@ import (
 )
 
 func TestUserMessageFromError(t *testing.T) {
-	t.Parallel()
-
 	t.Skip("Enable after https://drone.gravitational.io/gravitational/teleport/3517 is merged.")
 	tests := []struct {
 		comment   string
@@ -64,8 +62,6 @@ func TestUserMessageFromError(t *testing.T) {
 // Regressions test - Consolef used to panic when component name was longer
 // than 8 bytes.
 func TestConsolefLongComponent(t *testing.T) {
-	t.Parallel()
-
 	require.NotPanics(t, func() {
 		component := strings.Repeat("na ", 10) + "batman!"
 		Consolef(io.Discard, logrus.New(), component, "test message")
@@ -74,8 +70,6 @@ func TestConsolefLongComponent(t *testing.T) {
 
 // TestEscapeControl tests escape control
 func TestEscapeControl(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		in  string
 		out string
@@ -101,8 +95,6 @@ func TestEscapeControl(t *testing.T) {
 
 // TestAllowNewlines tests escape control that allows newlines
 func TestAllowNewlines(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		in  string
 		out string

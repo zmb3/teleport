@@ -278,10 +278,6 @@ const (
 	SCPActionUpload   = "upload"
 	SCPActionDownload = "download"
 
-	// SFTPEvent means a user attempted a file operation
-	SFTPEvent = "sftp"
-	SFTPPath  = "path"
-
 	// ResizeEvent means that some user resized PTY on the client
 	ResizeEvent  = "resize"
 	TerminalSize = "size" // expressed as 'W:H'
@@ -537,10 +533,6 @@ const (
 	// DesktopClipboardSendEvent is emitted when local clipboard data
 	// is sent to Teleport.
 	DesktopClipboardSendEvent = "desktop.clipboard.send"
-
-	// UpgradeWindowStartUpdateEvent is emitted when the upgrade window start time
-	// is updated. Used only for teleport cloud.
-	UpgradeWindowStartUpdateEvent = "upgradewindowstart.update"
 
 	// UnknownEvent is any event received that isn't recognized as any other event type.
 	UnknownEvent = apievents.UnknownEvent

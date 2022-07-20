@@ -395,14 +395,6 @@ func ToOneOf(in AuditEvent) (*OneOf, error) {
 		out.Event = &OneOf_RenewableCertificateGenerationMismatch{
 			RenewableCertificateGenerationMismatch: e,
 		}
-	case *SFTP:
-		out.Event = &OneOf_SFTP{
-			SFTP: e,
-		}
-	case *UpgradeWindowStartUpdate:
-		out.Event = &OneOf_UpgradeWindowStartUpdate{
-			UpgradeWindowStartUpdate: e,
-		}
 	case *Unknown:
 		out.Event = &OneOf_Unknown{
 			Unknown: e,

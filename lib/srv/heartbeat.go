@@ -293,7 +293,7 @@ func (h *Heartbeat) Run() error {
 }
 
 // Close closes all timers and goroutines,
-// note that this function is equivalent of canceling
+// note that this function is equivalent of cancelling
 // of the context passed in configuration and can be
 // used interchangeably
 func (h *Heartbeat) Close() error {

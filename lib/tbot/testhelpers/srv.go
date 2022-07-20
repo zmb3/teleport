@@ -39,7 +39,7 @@ import (
 // from lib/service/listeners.go
 // TODO(espadolini): have the constants exported
 const (
-	listenerAuth        = "auth"
+	listenerAuthSSH     = "auth"
 	listenerProxySSH    = "proxy:ssh"
 	listenerProxyWeb    = "proxy:web"
 	listenerProxyTunnel = "proxy:tunnel"
@@ -74,7 +74,7 @@ func DefaultConfig(t *testing.T) (*config.FileConfig, []service.FileDescriptor) 
 		Auth: config.Auth{
 			Service: config.Service{
 				EnabledFlag:   "true",
-				ListenAddress: newListener(t, listenerAuth, &fds),
+				ListenAddress: newListener(t, listenerAuthSSH, &fds),
 			},
 		},
 	}
@@ -245,6 +245,7 @@ func MakeMemoryBotConfig(t *testing.T, fc *config.FileConfig, botParams *proto.C
 		AuthServer: authCfg.AuthServers[0].String(),
 		Onboarding: &botconfig.OnboardingConfig{
 			JoinMethod: botParams.JoinMethod,
+			Token:      botParams.TokenID,
 		},
 		Storage: &botconfig.StorageConfig{
 			DestinationMixin: botconfig.DestinationMixin{
@@ -259,9 +260,6 @@ func MakeMemoryBotConfig(t *testing.T, fc *config.FileConfig, botParams *proto.C
 			},
 		},
 	}
-
-	cfg.Onboarding.SetToken(botParams.TokenID)
-
 	require.NoError(t, cfg.CheckAndSetDefaults())
 
 	return cfg

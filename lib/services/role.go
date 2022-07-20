@@ -165,7 +165,7 @@ func RoleForUser(u types.User) types.Role {
 
 // RoleForCertAuthority creates role using types.CertAuthority.
 func RoleForCertAuthority(ca types.CertAuthority) types.Role {
-	role, _ := types.NewRole(RoleNameForCertAuthority(ca.GetClusterName()), types.RoleSpecV5{
+	role, _ := types.NewRoleV3(RoleNameForCertAuthority(ca.GetClusterName()), types.RoleSpecV5{
 		Options: types.RoleOptions{
 			MaxSessionTTL: types.NewDuration(defaults.MaxCertDuration),
 		},
@@ -2098,8 +2098,8 @@ func (set RoleSet) DesktopClipboard() bool {
 }
 
 // DesktopDirectorySharing returns true if the role set has directory sharing
-// enabled. This setting is disabled if one or more of the roles in the set has
-// disabled it.
+// enabled. This setting is enabled if one or more of the roles in the set has
+// enabled it.
 func (set RoleSet) DesktopDirectorySharing() bool {
 	for _, role := range set {
 		if !types.BoolDefaultTrue(role.GetOptions().DesktopDirectorySharing) {

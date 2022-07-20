@@ -28,8 +28,6 @@ import (
 )
 
 func TestFnCache_New(t *testing.T) {
-	t.Parallel()
-
 	cases := []struct {
 		desc      string
 		config    FnCacheConfig
@@ -58,8 +56,6 @@ func TestFnCache_New(t *testing.T) {
 
 // TestFnCacheSanity runs basic FnCache test cases.
 func TestFnCacheSanity(t *testing.T) {
-	t.Parallel()
-
 	tts := []struct {
 		ttl   time.Duration
 		delay time.Duration
@@ -155,8 +151,6 @@ func testFnCacheSimple(t *testing.T, ttl time.Duration, delay time.Duration) {
 // in-progress loading continues, and the entry is correctly updated, even if the call to Get
 // which happened to trigger the load needs to be unblocked early.
 func TestFnCacheCancellation(t *testing.T) {
-	t.Parallel()
-
 	const timeout = time.Millisecond * 10
 
 	cache, err := NewFnCache(FnCacheConfig{TTL: time.Minute})
@@ -191,8 +185,6 @@ func TestFnCacheCancellation(t *testing.T) {
 }
 
 func TestFnCacheContext(t *testing.T) {
-	t.Parallel()
-
 	ctx, cancel := context.WithCancel(context.Background())
 	cache, err := NewFnCache(FnCacheConfig{
 		TTL:     time.Minute,

@@ -396,8 +396,8 @@ func TestCheckExternal(t *testing.T) {
 			desc:   "two-non-admin-reviews-fail",
 			author: "5",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
-				{Author: "4", State: Approved},
+				{Author: "3", State: approved},
+				{Author: "4", State: approved},
 			},
 			result: false,
 		},
@@ -405,8 +405,8 @@ func TestCheckExternal(t *testing.T) {
 			desc:   "one-admin-reviews-fail",
 			author: "5",
 			reviews: []github.Review{
-				{Author: "1", State: Approved},
-				{Author: "4", State: Approved},
+				{Author: "1", State: approved},
+				{Author: "4", State: approved},
 			},
 			result: false,
 		},
@@ -414,8 +414,8 @@ func TestCheckExternal(t *testing.T) {
 			desc:   "two-admin-reviews-one-denied-success",
 			author: "5",
 			reviews: []github.Review{
-				{Author: "1", State: ChangesRequested},
-				{Author: "2", State: Approved},
+				{Author: "1", State: changesRequested},
+				{Author: "2", State: approved},
 			},
 			result: false,
 		},
@@ -423,8 +423,8 @@ func TestCheckExternal(t *testing.T) {
 			desc:   "two-admin-reviews-success",
 			author: "5",
 			reviews: []github.Review{
-				{Author: "1", State: Approved},
-				{Author: "2", State: Approved},
+				{Author: "1", State: approved},
+				{Author: "2", State: approved},
 			},
 			result: true,
 		},
@@ -478,7 +478,6 @@ func TestCheckInternal(t *testing.T) {
 		reviews []github.Review
 		docs    bool
 		code    bool
-		large   bool
 		result  bool
 	}{
 		{
@@ -499,7 +498,7 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "docs-only-non-docs-approval-fail",
 			author: "4",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
+				{Author: "3", State: approved},
 			},
 			docs:   true,
 			code:   false,
@@ -509,7 +508,7 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "docs-only-docs-approval-success",
 			author: "4",
 			reviews: []github.Review{
-				{Author: "7", State: Approved},
+				{Author: "7", State: approved},
 			},
 			docs:   true,
 			code:   false,
@@ -527,7 +526,7 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-one-approval-fail",
 			author: "4",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
+				{Author: "3", State: approved},
 			},
 			docs:   false,
 			code:   true,
@@ -537,8 +536,8 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-two-approval-setb-fail",
 			author: "4",
 			reviews: []github.Review{
-				{Author: "5", State: Approved},
-				{Author: "6", State: Approved},
+				{Author: "5", State: approved},
+				{Author: "6", State: approved},
 			},
 			docs:   false,
 			code:   true,
@@ -548,44 +547,19 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-one-changes-fail",
 			author: "4",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
-				{Author: "4", State: ChangesRequested},
+				{Author: "3", State: approved},
+				{Author: "4", State: changesRequested},
 			},
 			docs:   false,
 			code:   true,
 			result: false,
-		},
-		{
-			desc:   "code-only-large-pr-requires-admin-fails",
-			author: "6",
-			reviews: []github.Review{
-				{Author: "3", State: Approved},
-				{Author: "4", State: Approved},
-			},
-			docs:   false,
-			code:   true,
-			large:  true,
-			result: false,
-		},
-		{
-			desc:   "code-only-large-pr-has-admin-succeeds",
-			author: "6",
-			reviews: []github.Review{
-				{Author: "1", State: Approved},
-				{Author: "3", State: Approved},
-				{Author: "4", State: Approved},
-			},
-			docs:   false,
-			code:   true,
-			large:  true,
-			result: true,
 		},
 		{
 			desc:   "code-only-two-approvals-success",
 			author: "6",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
-				{Author: "4", State: Approved},
+				{Author: "3", State: approved},
+				{Author: "4", State: approved},
 			},
 			docs:   false,
 			code:   true,
@@ -595,7 +569,7 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "docs-and-code-only-docs-approval-fail",
 			author: "6",
 			reviews: []github.Review{
-				{Author: "7", State: Approved},
+				{Author: "7", State: approved},
 			},
 			docs:   true,
 			code:   true,
@@ -605,8 +579,8 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "docs-and-code-only-code-approval-fail",
 			author: "6",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
-				{Author: "4", State: Approved},
+				{Author: "3", State: approved},
+				{Author: "4", State: approved},
 			},
 			docs:   true,
 			code:   true,
@@ -616,9 +590,9 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "docs-and-code-docs-and-code-approval-success",
 			author: "6",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
-				{Author: "4", State: Approved},
-				{Author: "7", State: Approved},
+				{Author: "3", State: approved},
+				{Author: "4", State: approved},
+				{Author: "7", State: approved},
 			},
 			docs:   true,
 			code:   true,
@@ -628,7 +602,7 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-internal-on-approval-failure",
 			author: "8",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
+				{Author: "3", State: approved},
 			},
 			docs:   false,
 			code:   true,
@@ -638,8 +612,8 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-internal-code-approval-success",
 			author: "8",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
-				{Author: "4", State: Approved},
+				{Author: "3", State: approved},
+				{Author: "4", State: approved},
 			},
 			docs:   false,
 			code:   true,
@@ -649,8 +623,8 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-internal-two-code-owner-approval-success",
 			author: "4",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
-				{Author: "9", State: Approved},
+				{Author: "3", State: approved},
+				{Author: "9", State: approved},
 			},
 			docs:   false,
 			code:   true,
@@ -660,9 +634,9 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-changes-requested-after-approval-failure",
 			author: "4",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
-				{Author: "9", State: Approved},
-				{Author: "9", State: ChangesRequested},
+				{Author: "3", State: approved},
+				{Author: "9", State: approved},
+				{Author: "9", State: changesRequested},
 			},
 			docs:   false,
 			code:   true,
@@ -672,9 +646,9 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "code-only-comment-after-approval-success",
 			author: "4",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
-				{Author: "9", State: Approved},
-				{Author: "9", State: Commented},
+				{Author: "3", State: approved},
+				{Author: "9", State: approved},
+				{Author: "9", State: commented},
 			},
 			docs:   false,
 			code:   true,
@@ -684,8 +658,8 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "cloud-with-self-approval-failure",
 			author: "10",
 			reviews: []github.Review{
-				{Author: "11", State: Approved},
-				{Author: "12", State: Approved},
+				{Author: "11", State: approved},
+				{Author: "12", State: approved},
 			},
 			docs:   false,
 			code:   true,
@@ -695,8 +669,8 @@ func TestCheckInternal(t *testing.T) {
 			desc:   "cloud-with-core-approval-success",
 			author: "10",
 			reviews: []github.Review{
-				{Author: "3", State: Approved},
-				{Author: "9", State: Approved},
+				{Author: "3", State: approved},
+				{Author: "9", State: approved},
 			},
 			docs:   false,
 			code:   true,
@@ -705,7 +679,7 @@ func TestCheckInternal(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			err := r.CheckInternal(test.author, test.reviews, test.docs, test.code, test.large)
+			err := r.CheckInternal(test.author, test.reviews, test.docs, test.code)
 			if test.result {
 				require.NoError(t, err)
 			} else {
@@ -721,11 +695,11 @@ func TestFromString(t *testing.T) {
 	require.NoError(t, err)
 
 	require.EqualValues(t, r.c.CodeReviewers, map[string]Reviewer{
-		"1": {
+		"1": Reviewer{
 			Team:  "Core",
 			Owner: true,
 		},
-		"2": {
+		"2": Reviewer{
 			Team:  "Core",
 			Owner: false,
 		},
@@ -734,11 +708,11 @@ func TestFromString(t *testing.T) {
 		"3": true,
 	})
 	require.EqualValues(t, r.c.DocsReviewers, map[string]Reviewer{
-		"4": {
+		"4": Reviewer{
 			Team:  "Core",
 			Owner: true,
 		},
-		"5": {
+		"5": Reviewer{
 			Team:  "Core",
 			Owner: false,
 		},
@@ -776,7 +750,7 @@ const reviewers = `
 			"team": "Core",
 			"owner": false
 		}
-	},
+	},	
 	"docsReviewersOmit": {
 		"6": true
     },

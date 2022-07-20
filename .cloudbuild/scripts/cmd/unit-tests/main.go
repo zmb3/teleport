@@ -1,5 +1,3 @@
-//go:build linux
-
 /*
 Copyright 2021 Gravitational, Inc.
 
@@ -25,12 +23,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/sys/unix"
 
 	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/artifacts"
 	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/changes"
@@ -40,11 +36,8 @@ import (
 	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/secrets"
 )
 
-// debugFsPath is the path where debugfs should be mounted.
-const debugFsPath = "/sys/kernel/debug"
-
 // main is just a stub that prints out an error message and sets a nonzero exit
-// code on failure. All the work happens in `innerMain()`.
+// code on failure. All of the work happens in `innerMain()`.
 func main() {
 	if err := run(); err != nil {
 		log.Fatalf("FAILED: %s", err.Error())
@@ -107,7 +100,7 @@ func parseCommandLine() (commandlineArgs, error) {
 
 		args.artifactSearchPatterns, err = artifacts.ValidatePatterns(args.workspace, args.artifactSearchPatterns)
 		if err != nil {
-			return args, trace.Wrap(err, "Bad artifact search path")
+			return args, trace.Wrap(err, "Bad artefact search path")
 		}
 	}
 
@@ -142,7 +135,7 @@ func run() error {
 		}
 	}
 
-	log.Println("Analyzing code changes")
+	log.Println("Analysing code changes")
 	ch, err := changes.Analyze(args.workspace, args.targetBranch, args.commitSHA)
 	if err != nil {
 		return trace.Wrap(err, "Failed analyzing code")
@@ -172,11 +165,6 @@ func run() error {
 		artifacts.FindAndUpload(timeoutCtx, args.bucket, prefix, args.artifactSearchPatterns)
 	}()
 
-	log.Printf("Mounting debugfs")
-	if err := mountDebugFS(); err != nil {
-		return trace.Wrap(err)
-	}
-
 	log.Printf("Running unit tests...")
 	err = runUnitTests(args.workspace)
 	if err != nil {
@@ -189,49 +177,13 @@ func run() error {
 }
 
 func runUnitTests(workspace string) error {
-	enableTests := []string{
-		"TELEPORT_ETCD_TEST=yes",
-		"TELEPORT_XAUTH_TEST=yes",
-		"TELEPORT_BPF_TEST=yes",
-	}
-
 	cmd := exec.Command("make", "test")
 	cmd.Dir = workspace
 	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, enableTests...)
+	cmd.Env = append(cmd.Env, "TELEPORT_ETCD_TEST=yes")
+	cmd.Env = append(cmd.Env, "TELEPORT_XAUTH_TEST=yes")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
-}
-
-// mountDebugFS mounts debugfs at /sys/kernel/debug, so BPF test can run in GCB.
-func mountDebugFS() error {
-	if isDebugFsMounted() {
-		return nil
-	}
-	// equivalent to: mount -t debugfs none /sys/kernel/debug/
-	if err := unix.Mount("debugfs", debugFsPath, "debugfs", 0, ""); err != nil {
-		return trace.Wrap(err, "failed to mount debugfs")
-	}
-
-	return nil
-}
-
-// isDebugFsMounted returns true if debugfs is mounted, false otherwise.
-func isDebugFsMounted() bool {
-	mounts, err := os.ReadFile("/proc/mounts")
-	if err != nil {
-		log.Warningf("Failed to read /proc/mounts: %v", err)
-		return false
-	}
-
-	for _, line := range strings.Split(string(mounts), "\n") {
-		tokens := strings.Fields(line)
-		if len(tokens) == 6 && tokens[0] == "debugfs" && tokens[1] == debugFsPath {
-			return true
-		}
-	}
-
-	return false
 }
