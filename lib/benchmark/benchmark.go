@@ -216,17 +216,28 @@ func (c *Config) Benchmark(ctx context.Context, tc *client.TeleportClient) (Resu
 }
 
 func (c *Config) Test(ctx context.Context, tc *client.TeleportClient) (Result, error) {
-	g, ctx := errgroup.WithContext(ctx)
+	defer func() {
+		logrus.Info("-----------completed running Test")
+	}()
+	g, gctx := errgroup.WithContext(ctx)
 	g.SetLimit(c.Rate)
 
 	ticker := time.NewTicker(250 * time.Millisecond)
-
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
 			for i := 0; i < 3; i++ {
 				g.Go(func() error {
+					select {
+					case <-ctx.Done():
+						return nil
+					case <-gctx.Done():
+						return nil
+					default:
+						logrus.Info("--------starting session------")
+					}
+
 					config := tc.Config
 					clt, err := client.NewClient(&config)
 					if err != nil {
@@ -242,19 +253,40 @@ func (c *Config) Test(ctx context.Context, tc *client.TeleportClient) (Result, e
 					clt.Stdout = out
 					clt.Stderr = out
 
+					ch := make(chan struct{})
 					go func() {
+						defer func() {
+							ch <- struct{}{}
+						}()
 						if err := clt.SSH(ctx, nil, false); err != nil {
 							logrus.WithError(err).Error("failed to ssh")
 						}
+						logrus.Info("-----------ssh completed---------")
 					}()
 
-					<-ctx.Done()
-
-					writer.Write([]byte("exit\r\n"))
-					return nil
+					tick := time.NewTicker(3 * time.Second)
+					defer tick.Stop()
+					for {
+						select {
+						case <-tick.C:
+							writer.Write([]byte("ls -la\r\n"))
+							continue
+						case <-ch:
+							logrus.Info("--------------session terminated exiting")
+							return nil
+						case <-ctx.Done():
+							logrus.Info("--------------context done, exiting session------")
+							writer.Write([]byte("exit\r\n"))
+							return nil
+						}
+					}
 				})
 			}
+		case <-gctx.Done():
+			logrus.Info("---------------- group context done, exiting")
+			return Result{}, gctx.Err()
 		case <-ctx.Done():
+			logrus.Info("---------------context done, returning-------")
 			return Result{}, g.Wait()
 		}
 	}
