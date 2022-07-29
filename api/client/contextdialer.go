@@ -20,11 +20,16 @@ import (
 	"context"
 	"crypto/tls"
 	"net"
+	"net/http/httptrace"
 	"time"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/gravitational/teleport/api/client/proxy"
 	"github.com/gravitational/teleport/api/client/webclient"
 	"github.com/gravitational/teleport/api/constants"
+	"github.com/gravitational/teleport/api/observability/tracing"
 	tracessh "github.com/gravitational/teleport/api/observability/tracing/ssh"
 	"github.com/gravitational/teleport/api/utils/sshutils"
 
@@ -56,8 +61,13 @@ func newDirectDialer(keepAlivePeriod, dialTimeout time.Duration) ContextDialer {
 
 // NewDialer makes a new dialer that connects to an Auth server either directly or via an HTTP proxy, depending
 // on the environment.
-func NewDialer(keepAlivePeriod, dialTimeout time.Duration) ContextDialer {
-	return ContextDialerFunc(func(ctx context.Context, network, addr string) (net.Conn, error) {
+func NewDialer(ctx context.Context, keepAlivePeriod, dialTimeout time.Duration) ContextDialer {
+	return ContextDialerFunc(func(dialCtx context.Context, network, addr string) (net.Conn, error) {
+		ctx := oteltrace.ContextWithSpanContext(dialCtx, oteltrace.SpanContextFromContext(ctx))
+		ctx, span := tracing.DefaultProvider().Tracer("dialer").Start(ctx, "client/DirectDial")
+		defer span.End()
+
+		ctx = httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx, otelhttptrace.WithoutSubSpans()))
 		dialer := newDirectDialer(keepAlivePeriod, dialTimeout)
 		if proxyURL := proxy.GetProxyURL(addr); proxyURL != nil {
 			return DialProxyWithDialer(ctx, proxyURL, addr, dialer)

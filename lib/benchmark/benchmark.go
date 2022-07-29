@@ -22,10 +22,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/gravitational/teleport/api/profile"
@@ -90,15 +88,6 @@ func Run(ctx context.Context, lg *Linear, cmd, host, login, proxy string) ([]Res
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	ctx, cancel := context.WithCancel(ctx)
-	go func() {
-		exitSignals := make(chan os.Signal, 1)
-		signal.Notify(exitSignals, syscall.SIGTERM, syscall.SIGINT)
-		defer signal.Stop(exitSignals)
-		sig := <-exitSignals
-		logrus.Debugf("signal: %v", sig)
-		cancel()
-	}()
 	var results []Result
 	sleep := false
 	for {
@@ -178,9 +167,8 @@ func (c *Config) Benchmark(ctx context.Context, tc *client.TeleportClient) (Resu
 				// ticker makes its first tick after the given duration, not immediately
 				// this sets the send measure ResponseStart time accurately
 				delay = delay + interval
-				t := start.Add(delay)
 				measure := benchMeasure{
-					ResponseStart: t,
+					ResponseStart: start.Add(delay),
 					command:       c.Command,
 					client:        tc,
 					interactive:   c.Interactive,

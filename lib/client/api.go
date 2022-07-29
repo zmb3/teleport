@@ -1851,10 +1851,7 @@ func (tc *TeleportClient) SSH(ctx context.Context, command []string, runLocally 
 		return trace.Wrap(err)
 	}
 	defer proxyClient.Close()
-	siteInfo, err := proxyClient.currentCluster(ctx)
-	if err != nil {
-		return trace.Wrap(err)
-	}
+
 	// which nodes are we executing this commands on?
 	nodeAddrs, err := tc.getTargetNodes(ctx, proxyClient)
 	if err != nil {
@@ -1866,7 +1863,11 @@ func (tc *TeleportClient) SSH(ctx context.Context, command []string, runLocally 
 
 	nodeClient, err := proxyClient.ConnectToNode(
 		ctx,
-		NodeAddr{Addr: nodeAddrs[0], Namespace: tc.Namespace, Cluster: siteInfo.Name},
+		NodeAddr{
+			Addr:      nodeAddrs[0],
+			Namespace: tc.Namespace,
+			Cluster:   proxyClient.siteName,
+		},
 		tc.Config.HostLogin,
 	)
 	if err != nil {
@@ -1907,7 +1908,7 @@ func (tc *TeleportClient) SSH(ctx context.Context, command []string, runLocally 
 	if len(command) > 0 {
 		if len(nodeAddrs) > 1 {
 			fmt.Printf("\x1b[1mWARNING\x1b[0m: Multiple nodes matched label selector, running command on all.\n")
-			return tc.runCommandOnNodes(ctx, siteInfo.Name, nodeAddrs, proxyClient, command)
+			return tc.runCommandOnNodes(ctx, proxyClient.siteName, nodeAddrs, proxyClient, command)
 		}
 		// Reuse the existing nodeClient we connected above.
 		return tc.runCommand(ctx, nodeClient, command)

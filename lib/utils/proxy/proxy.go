@@ -25,6 +25,8 @@ import (
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace"
+	"go.opentelemetry.io/otel/attribute"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/gravitational/teleport"
 	apiclient "github.com/gravitational/teleport/api/client"
@@ -50,7 +52,11 @@ func dialWithDeadline(ctx context.Context, network string, addr string, config *
 		Timeout: config.Timeout,
 	}
 
-	conn, err := dialer.DialContext(ctx, network, addr)
+	conn, err := dialer.DialContext(
+		httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx, otelhttptrace.WithoutSubSpans())),
+		network,
+		addr,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +67,14 @@ func dialWithDeadline(ctx context.Context, network string, addr string, config *
 // TLS connection where TLS ALPN protocol is set to ProtocolReverseTunnel allowing ALPN Proxy to route the
 // incoming connection to ReverseTunnel proxy service.
 func (d directDial) dialALPNWithDeadline(ctx context.Context, network string, addr string, config *ssh.ClientConfig) (*tracessh.Client, error) {
-	ctx, span := tracing.DefaultProvider().Tracer("dialer").Start(ctx, "directDial/dialALPNWithDeadline")
+	ctx, span := tracing.DefaultProvider().Tracer("dialer").Start(
+		ctx,
+		"directDial/dialALPNWithDeadline",
+		oteltrace.WithAttributes(
+			attribute.String("network", network),
+			attribute.String("address", addr),
+		),
+	)
 	defer span.End()
 
 	dialer := &net.Dialer{
@@ -81,6 +94,7 @@ func (d directDial) dialALPNWithDeadline(ctx context.Context, network string, ad
 		Config:    conf,
 	}
 
+	span.AddEvent("started dialing")
 	tlsConn, err := tlsDialer.DialContext(
 		httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx, otelhttptrace.WithoutSubSpans())),
 		network,
@@ -89,6 +103,8 @@ func (d directDial) dialALPNWithDeadline(ctx context.Context, network string, ad
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
+	span.AddEvent("dial complete")
+
 	return tracessh.NewClientConnWithDeadline(ctx, tlsConn, addr, config)
 }
 
@@ -123,8 +139,6 @@ func (d directDial) getTLSConfig(addr *utils.NetAddr) (*tls.Config, error) {
 
 // Dial calls ssh.Dial directly.
 func (d directDial) Dial(ctx context.Context, network string, addr string, config *ssh.ClientConfig) (*tracessh.Client, error) {
-	ctx = httptrace.WithClientTrace(ctx, otelhttptrace.NewClientTrace(ctx, otelhttptrace.WithoutSubSpans()))
-
 	if d.tlsRoutingEnabled {
 		client, err := d.dialALPNWithDeadline(ctx, network, addr, config)
 		if err != nil {

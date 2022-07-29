@@ -1110,11 +1110,7 @@ func (proxy *ProxyClient) ConnectToCurrentCluster(ctx context.Context) (auth.Cli
 	)
 	defer span.End()
 
-	cluster, err := proxy.currentCluster(ctx)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return proxy.ConnectToCluster(ctx, cluster.Name)
+	return proxy.ConnectToCluster(ctx, proxy.siteName)
 }
 
 // ConnectToRootCluster connects to the auth server of the root cluster
