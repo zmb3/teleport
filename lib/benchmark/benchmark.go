@@ -225,18 +225,35 @@ func (c *Config) Test(ctx context.Context, tc *client.TeleportClient) (Result, e
 	g, ctx := errgroup.WithContext(ctx)
 	g.SetLimit(c.Rate)
 
-	ticker := time.NewTicker(500 * time.Millisecond)
-	multiplier := 1
+	ticker := time.NewTicker(250 * time.Millisecond)
+
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
-			for i := 0; i < multiplier; i++ {
+			for i := 0; i < 3; i++ {
 				g.Go(func() error {
-					return tc.SSH(ctx, []string{"sleep 20; ls; sleep 20; ls; sleep 60"}, false)
+					config := tc.Config
+					clt, err := client.NewClient(&config)
+					if err != nil {
+						return trace.Wrap(err)
+					}
+					reader, writer := io.Pipe()
+					defer reader.Close()
+					defer writer.Close()
+					clt.Stdin = reader
+					out := &utils.SyncBuffer{}
+					clt.Stdout = out
+					clt.Stderr = out
+
+					if err := clt.SSH(ctx, nil, false); err != nil {
+						return trace.Wrap(err)
+					}
+
+					<-ctx.Done()
+					return nil
 				})
 			}
-			multiplier++
 		case <-ctx.Done():
 			return Result{}, g.Wait()
 		}
@@ -282,7 +299,7 @@ func (m benchMeasure) execute(ctx context.Context) error {
 	clt.Stdout = out
 	clt.Stderr = out
 
-	if err := m.client.SSH(ctx, nil, false); err != nil {
+	if err := clt.SSH(ctx, nil, false); err != nil {
 		return trace.Wrap(err)
 	}
 	writer.Write([]byte(strings.Join(m.command, " ") + "\r\nexit\r\n"))
