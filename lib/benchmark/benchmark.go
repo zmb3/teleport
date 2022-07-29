@@ -242,11 +242,15 @@ func (c *Config) Test(ctx context.Context, tc *client.TeleportClient) (Result, e
 					clt.Stdout = out
 					clt.Stderr = out
 
-					if err := clt.SSH(ctx, nil, false); err != nil {
-						return trace.Wrap(err)
-					}
+					go func() {
+						if err := clt.SSH(ctx, nil, false); err != nil {
+							logrus.WithError(err).Error("failed to ssh")
+						}
+					}()
 
 					<-ctx.Done()
+
+					writer.Write([]byte("exit\r\n"))
 					return nil
 				})
 			}
