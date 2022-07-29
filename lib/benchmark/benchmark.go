@@ -26,6 +26,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/gravitational/teleport/api/profile"
 	"github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/observability/tracing"
@@ -57,7 +59,7 @@ type Config struct {
 	Interactive bool
 	// MinimumWindow is the min duration
 	MinimumWindow time.Duration
-	// MinimumMeasurments is the min amount of requests
+	// MinimumMeasurements is the min amount of requests
 	MinimumMeasurements int
 }
 
@@ -164,8 +166,8 @@ func (c *Config) Benchmark(ctx context.Context, tc *client.TeleportClient) (Resu
 		for {
 			select {
 			case <-ticker.C:
-				// ticker makes its first tick after the given duration, not immediately
-				// this sets the send measure ResponseStart time accurately
+				// ticker makes its first tick after the given duration, not immediately,
+				// this sets ResponseStart time accurately
 				delay = delay + interval
 				measure := benchMeasure{
 					ResponseStart: start.Add(delay),
@@ -192,7 +194,10 @@ func (c *Config) Benchmark(ctx context.Context, tc *client.TeleportClient) (Resu
 		}
 		select {
 		case measure := <-resultC:
-			result.Histogram.RecordValue(int64(measure.End.Sub(measure.ResponseStart) / time.Millisecond))
+			if err := result.Histogram.RecordValue(int64(measure.End.Sub(measure.ResponseStart) / time.Millisecond)); err != nil {
+				return Result{}, trace.Wrap(err)
+			}
+
 			result.RequestsOriginated++
 			if timeElapsed && result.RequestsOriginated >= c.MinimumMeasurements {
 				cancel()
@@ -207,7 +212,34 @@ func (c *Config) Benchmark(ctx context.Context, tc *client.TeleportClient) (Resu
 		case <-statusTicker.C:
 			logrus.Infof("working... current observation count: %d", result.RequestsOriginated)
 		}
+	}
+}
 
+func (c *Config) Test(ctx context.Context, tc *client.TeleportClient) (Result, error) {
+	tc.Stdout = io.Discard
+	tc.Stderr = io.Discard
+	tc.Stdin = &bytes.Buffer{}
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(c.Rate)
+
+	ticker := time.NewTicker(500 * time.Millisecond)
+	multiplier := 1
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			for i := 0; i < multiplier; i++ {
+				g.Go(func() error {
+					return tc.SSH(ctx, []string{"sleep 20; ls; sleep 20; ls; sleep 60"}, false)
+				})
+			}
+			multiplier++
+		case <-ctx.Done():
+			return Result{}, g.Wait()
+		}
 	}
 }
 
@@ -221,7 +253,10 @@ type benchMeasure struct {
 }
 
 func work(ctx context.Context, m benchMeasure, send chan<- benchMeasure) {
-	m.Error = execute(m)
+	// do not use parent context that will cancel in flight requests
+	// because we give test some time to gracefully wrap up
+	// the in-flight connections to avoid extra errors
+	m.Error = m.execute(context.Background())
 	m.End = time.Now()
 	select {
 	case send <- m:
@@ -230,28 +265,25 @@ func work(ctx context.Context, m benchMeasure, send chan<- benchMeasure) {
 	}
 }
 
-func execute(m benchMeasure) error {
+func (m benchMeasure) execute(ctx context.Context) error {
 	if !m.interactive {
-		// do not use parent context that will cancel in flight requests
-		// because we give test some time to gracefully wrap up
-		// the in-flight connections to avoid extra errors
-		return m.client.SSH(context.TODO(), m.command, false)
+		return m.client.SSH(ctx, m.command, false)
 	}
 	config := m.client.Config
-	client, err := client.NewClient(&config)
+	clt, err := client.NewClient(&config)
 	if err != nil {
-		return err
+		return trace.Wrap(err)
 	}
 	reader, writer := io.Pipe()
 	defer reader.Close()
 	defer writer.Close()
-	client.Stdin = reader
+	clt.Stdin = reader
 	out := &utils.SyncBuffer{}
-	client.Stdout = out
-	client.Stderr = out
-	err = m.client.SSH(context.TODO(), nil, false)
-	if err != nil {
-		return err
+	clt.Stdout = out
+	clt.Stderr = out
+
+	if err := m.client.SSH(ctx, nil, false); err != nil {
+		return trace.Wrap(err)
 	}
 	writer.Write([]byte(strings.Join(m.command, " ") + "\r\nexit\r\n"))
 	return nil
