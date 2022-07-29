@@ -257,7 +257,7 @@ func (c *Cluster) processAuthResponse(ctx context.Context, key *client.Key, resp
 	}
 
 	// Update username before updating the profile
-	c.clusterClient.LocalAgent().UpdateUsername(response.Username)
+	c.clusterClient.GetLocalAgent().UpdateUsername(response.Username)
 	c.clusterClient.Username = response.Username
 
 	if err := c.clusterClient.ActivateKey(ctx, key); err != nil {

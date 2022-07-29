@@ -172,7 +172,7 @@ func setupJumpHost(cf *CLIConf, tc *libclient.TeleportClient, sp sshProxyParams)
 		}
 		// We'll be connecting directly to the leaf cluster so make sure agent
 		// loads correct host CA.
-		tc.LocalAgent().UpdateCluster(sp.clusterName)
+		tc.GetLocalAgent().UpdateCluster(sp.clusterName)
 		return nil
 	})
 }
@@ -190,7 +190,7 @@ func sshProxy(ctx context.Context, tc *libclient.TeleportClient, sp sshProxyPara
 	client, err := makeSSHClient(ctx, upstreamConn, upstreamConn.RemoteAddr().String(), &ssh.ClientConfig{
 		User: tc.HostLogin,
 		Auth: []ssh.AuthMethod{
-			ssh.PublicKeysCallback(tc.LocalAgent().Signers),
+			ssh.PublicKeysCallback(tc.GetLocalAgent().Signers),
 		},
 		HostKeyCallback: tc.HostKeyCallback,
 	})
@@ -205,7 +205,7 @@ func sshProxy(ctx context.Context, tc *libclient.TeleportClient, sp sshProxyPara
 	}
 	defer sess.Close()
 
-	err = agent.ForwardToAgent(client.Client, tc.LocalAgent())
+	err = agent.ForwardToAgent(client.Client, tc.GetLocalAgent())
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -235,7 +235,7 @@ func dialSSHProxy(ctx context.Context, tc *libclient.TeleportClient, sp sshProxy
 		return conn, nil
 	}
 
-	pool, err := tc.LocalAgent().ClientCertPool(sp.clusterName)
+	pool, err := tc.GetLocalAgent().ClientCertPool(sp.clusterName)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -592,7 +592,7 @@ func onProxyCommandAWS(cf *CLIConf) error {
 
 // loadAppCertificate loads the app certificate for the provided app.
 func loadAppCertificate(tc *libclient.TeleportClient, appName string) (tls.Certificate, error) {
-	key, err := tc.LocalAgent().GetKey(tc.SiteName, libclient.WithAppCerts{})
+	key, err := tc.GetLocalAgent().GetKey(tc.SiteName, libclient.WithAppCerts{})
 	if err != nil {
 		return tls.Certificate{}, trace.Wrap(err)
 	}

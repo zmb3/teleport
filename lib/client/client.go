@@ -178,7 +178,7 @@ type ReissueParams struct {
 	// existing user credentials. The TeleportClient in lib/web/terminal.go
 	// doesn't have a real LocalKeystore and keeps all certs in memory.
 	// Normally, existing credentials are loaded from
-	// TeleportClient.localAgent.
+	// TeleportClient.LocalAgent.
 	//
 	// TODO(awly): refactor lib/web to use a Keystore implementation that
 	// mimics LocalKeystore and remove this.
@@ -1574,10 +1574,10 @@ func (proxy *ProxyClient) ConnectToNode(ctx context.Context, nodeAddress NodeAdd
 	// creates a new context which holds the agent. if ForwardToAgent returns an error
 	// "already have handler for" we ignore it.
 	if recordingProxy {
-		if proxy.teleportClient.localAgent == nil {
+		if proxy.teleportClient.LocalAgent == nil {
 			return nil, trace.BadParameter("cluster is in proxy recording mode and requires agent forwarding for connections, but no agent was initialized")
 		}
-		err = agent.ForwardToAgent(proxy.Client.Client, proxy.teleportClient.localAgent.Agent)
+		err = agent.ForwardToAgent(proxy.Client.Client, proxy.teleportClient.LocalAgent.Agent)
 		if err != nil && !strings.Contains(err.Error(), "agent: already have handler for") {
 			return nil, trace.Wrap(err)
 		}
@@ -1679,10 +1679,10 @@ func (proxy *ProxyClient) PortForwardToNode(ctx context.Context, nodeAddress Nod
 	// creates a new context which holds the agent. if ForwardToAgent returns an error
 	// "already have handler for" we ignore it.
 	if recordingProxy {
-		if proxy.teleportClient.localAgent == nil {
+		if proxy.teleportClient.LocalAgent == nil {
 			return nil, trace.BadParameter("cluster is in proxy recording mode and requires agent forwarding for connections, but no agent was initialized")
 		}
-		err = agent.ForwardToAgent(proxy.Client.Client, proxy.teleportClient.localAgent.Agent)
+		err = agent.ForwardToAgent(proxy.Client.Client, proxy.teleportClient.LocalAgent.Agent)
 		if err != nil && !strings.Contains(err.Error(), "agent: already have handler for") {
 			return nil, trace.Wrap(err)
 		}
@@ -2140,7 +2140,7 @@ func (proxy *ProxyClient) currentCluster(ctx context.Context) (*types.Site, erro
 }
 
 func (proxy *ProxyClient) sessionSSHCertificate(ctx context.Context, nodeAddr NodeAddr) ([]ssh.AuthMethod, error) {
-	if _, err := proxy.teleportClient.localAgent.GetKey(nodeAddr.Cluster); err != nil {
+	if _, err := proxy.teleportClient.LocalAgent.GetKey(nodeAddr.Cluster); err != nil {
 		if trace.IsNotFound(err) {
 			// Either running inside the web UI in a proxy or using an identity
 			// file. Fall back to whatever AuthMethod we currently have.
@@ -2171,5 +2171,5 @@ func (proxy *ProxyClient) sessionSSHCertificate(ctx context.Context, nodeAddr No
 
 // localAgent returns for the Teleport client's local agent.
 func (proxy *ProxyClient) localAgent() *LocalKeyAgent {
-	return proxy.teleportClient.LocalAgent()
+	return proxy.teleportClient.GetLocalAgent()
 }

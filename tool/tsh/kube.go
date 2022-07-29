@@ -139,7 +139,7 @@ func (c *kubeJoinCommand) run(cf *CLIConf) error {
 	var k *client.Key
 
 	// Try loading existing keys.
-	k, err = tc.LocalAgent().GetKey(cluster, client.WithKubeCerts{})
+	k, err = tc.GetLocalAgent().GetKey(cluster, client.WithKubeCerts{})
 	if err != nil && !trace.IsNotFound(err) {
 		return trace.Wrap(err)
 	}
@@ -169,7 +169,7 @@ func (c *kubeJoinCommand) run(cf *CLIConf) error {
 			}
 
 			// Cache the new cert on disk for reuse.
-			if _, err := tc.LocalAgent().AddKey(k); err != nil {
+			if _, err := tc.GetLocalAgent().AddKey(k); err != nil {
 				return trace.Wrap(err)
 			}
 		}
@@ -580,7 +580,7 @@ func (c *kubeCredentialsCommand) run(cf *CLIConf) error {
 	}
 
 	// Try loading existing keys.
-	k, err := tc.LocalAgent().GetKey(c.teleportCluster, client.WithKubeCerts{})
+	k, err := tc.GetLocalAgent().GetKey(c.teleportCluster, client.WithKubeCerts{})
 	if err != nil && !trace.IsNotFound(err) {
 		return trace.Wrap(err)
 	}
@@ -613,7 +613,7 @@ func (c *kubeCredentialsCommand) run(cf *CLIConf) error {
 	}
 
 	// Cache the new cert on disk for reuse.
-	if _, err := tc.LocalAgent().AddKey(k); err != nil {
+	if _, err := tc.GetLocalAgent().AddKey(k); err != nil {
 		return trace.Wrap(err)
 	}
 
@@ -998,7 +998,7 @@ func fetchKubeStatus(ctx context.Context, tc *client.TeleportClient) (*kubernete
 	kubeStatus := &kubernetesStatus{
 		clusterAddr: tc.KubeClusterAddr(),
 	}
-	kubeStatus.credentials, err = tc.LocalAgent().GetCoreKey()
+	kubeStatus.credentials, err = tc.GetLocalAgent().GetCoreKey()
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

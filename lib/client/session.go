@@ -275,10 +275,10 @@ func selectKeyAgent(tc *TeleportClient) agent.Agent {
 	switch tc.ForwardAgent {
 	case ForwardAgentYes:
 		log.Debugf("Selecting system key agent.")
-		return tc.localAgent.sshAgent
+		return tc.LocalAgent.sshAgent
 	case ForwardAgentLocal:
 		log.Debugf("Selecting local Teleport key agent.")
-		return tc.localAgent.Agent
+		return tc.LocalAgent.Agent
 	default:
 		log.Debugf("No Key Agent selected.")
 		return nil

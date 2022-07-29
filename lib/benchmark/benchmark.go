@@ -216,12 +216,6 @@ func (c *Config) Benchmark(ctx context.Context, tc *client.TeleportClient) (Resu
 }
 
 func (c *Config) Test(ctx context.Context, tc *client.TeleportClient) (Result, error) {
-	tc.Stdout = io.Discard
-	tc.Stderr = io.Discard
-	tc.Stdin = &bytes.Buffer{}
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	g, ctx := errgroup.WithContext(ctx)
 	g.SetLimit(c.Rate)
 
@@ -238,11 +232,13 @@ func (c *Config) Test(ctx context.Context, tc *client.TeleportClient) (Result, e
 					if err != nil {
 						return trace.Wrap(err)
 					}
+					clt.LocalAgent = tc.LocalAgent
+
 					reader, writer := io.Pipe()
 					defer reader.Close()
 					defer writer.Close()
 					clt.Stdin = reader
-					out := &utils.SyncBuffer{}
+					out := utils.NewSyncBuffer()
 					clt.Stdout = out
 					clt.Stderr = out
 

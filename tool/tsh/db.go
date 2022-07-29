@@ -302,7 +302,7 @@ func databaseLogin(cf *CLIConf, tc *client.TeleportClient, db tlsca.RouteToDatab
 		}); err != nil {
 			return trace.Wrap(err)
 		}
-		if err = tc.LocalAgent().AddDatabaseKey(key); err != nil {
+		if err = tc.GetLocalAgent().AddDatabaseKey(key); err != nil {
 			return trace.Wrap(err)
 		}
 	}
@@ -677,7 +677,7 @@ func onDatabaseConnect(cf *CLIConf) error {
 		return trace.Wrap(err)
 	}
 
-	key, err := tc.LocalAgent().GetCoreKey()
+	key, err := tc.GetLocalAgent().GetCoreKey()
 	if err != nil {
 		return trace.Wrap(err)
 	}

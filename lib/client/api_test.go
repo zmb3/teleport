@@ -203,7 +203,7 @@ func (s *APITestSuite) TestNew(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(tc, check.NotNil)
 
-	la := tc.LocalAgent()
+	la := tc.GetLocalAgent()
 	c.Assert(la, check.NotNil)
 }
 

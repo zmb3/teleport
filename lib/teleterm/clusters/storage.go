@@ -201,7 +201,7 @@ func (s *Storage) fromProfile(profileName, leafClusterName string) (*Cluster, er
 	status := &client.ProfileStatus{}
 
 	// load profile status if key exists
-	_, err = clusterClient.LocalAgent().GetKey(clusterNameForKey)
+	_, err = clusterClient.GetLocalAgent().GetKey(clusterNameForKey)
 	if err != nil {
 		s.Log.WithError(err).Infof("Unable to load the keys for cluster %v.", clusterNameForKey)
 	}
