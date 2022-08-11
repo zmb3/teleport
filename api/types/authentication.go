@@ -416,13 +416,9 @@ func (c *AuthPreferenceV2) CheckAndSetDefaults() error {
 		c.SetOrigin(OriginDynamic)
 	}
 
+	// make sure type makes sense
 	switch c.Spec.Type {
-	case constants.Local:
-		if !c.Spec.AllowLocalAuth.Value {
-			log.Warn("Ignoring local_auth=false when authentication.type=local")
-			c.Spec.AllowLocalAuth.Value = true
-		}
-	case constants.OIDC, constants.SAML, constants.Github:
+	case constants.Local, constants.OIDC, constants.SAML, constants.Github:
 	default:
 		return trace.BadParameter("authentication type %q not supported", c.Spec.Type)
 	}
