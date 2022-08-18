@@ -338,6 +338,7 @@ type standaloneBundle struct {
 	Device                 *mocku2f.Key
 	OTPKey                 string
 	Auth, Proxy            *service.TeleportProcess
+	StaticToken            string
 }
 
 // TODO(codingllama): Consider refactoring newStandaloneTeleport into a public
@@ -358,6 +359,9 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 	role, err := types.NewRoleV3(user.GetName(), types.RoleSpecV5{
 		Allow: types.RoleConditions{
 			Logins: []string{user.GetName()},
+			NodeLabels: types.Labels{
+				"env": {"stage"},
+			},
 		},
 	})
 	require.NoError(t, err)
@@ -382,7 +386,7 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 	cfg.Auth.StaticTokens, err = types.NewStaticTokens(types.StaticTokensSpecV2{
 		StaticTokens: []types.ProvisionTokenV1{
 			{
-				Roles:   []types.SystemRole{types.RoleProxy},
+				Roles:   []types.SystemRole{types.RoleProxy, types.RoleNode},
 				Expires: time.Now().Add(1 * time.Hour),
 				Token:   staticToken,
 			},
@@ -476,6 +480,7 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 		OTPKey:       otpKey,
 		Auth:         authProcess,
 		Proxy:        proxyProcess,
+		StaticToken:  staticToken,
 	}
 }
 
