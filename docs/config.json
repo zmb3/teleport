@@ -299,12 +299,7 @@
               "forScopes": ["enterprise", "cloud"]
             },
             {
-              "title": "Jira Server",
-              "slug": "/access-controls/access-request-plugins/ssh-approval-jira-server/",
-              "forScopes": ["enterprise", "cloud"]
-            },
-            {
-              "title": "Jira Cloud",
+              "title": "Jira",
               "slug": "/access-controls/access-request-plugins/ssh-approval-jira-cloud/",
               "forScopes": ["enterprise", "cloud"]
             },
@@ -1441,7 +1436,7 @@
     },
     {
       "source": "/enterprise/workflow/ssh-approval-jira-server/",
-      "destination": "/access-controls/access-request-plugins/ssh-approval-jira-server/",
+      "destination": "/access-controls/access-request-plugins/ssh-approval-jira-cloud/",
       "permanent": true
     },
     {
