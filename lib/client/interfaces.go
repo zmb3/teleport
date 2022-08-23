@@ -18,6 +18,7 @@ package client
 
 import (
 	"bytes"
+	"crypto/rsa"
 	"crypto/subtle"
 	"crypto/tls"
 	"crypto/x509"
@@ -73,7 +74,7 @@ type Key struct {
 	KeyIndex
 
 	// PrivateKey is a private key used for cryptographical operations.
-	keys.PrivateKey
+	*keys.PrivateKey
 
 	// Cert is an SSH client certificate
 	Cert []byte `json:"Cert,omitempty"`
@@ -106,7 +107,7 @@ func GenerateRSAKey() (*Key, error) {
 }
 
 // NewKey creates a new Key for the given private key.
-func NewKey(priv keys.PrivateKey) *Key {
+func NewKey(priv *keys.PrivateKey) *Key {
 	return &Key{
 		PrivateKey:          priv,
 		KubeTLSCerts:        make(map[string][]byte),
@@ -335,7 +336,6 @@ func (k *Key) clientCertPool(clusters ...string) (*x509.CertPool, error) {
 //
 // The config is set up to authenticate to proxy with the first available principal
 // and ( if keyStore != nil ) trust local SSH CAs without asking for public keys.
-//
 func (k *Key) ProxyClientSSHConfig(keyStore sshKnowHostGetter, host string) (*ssh.ClientConfig, error) {
 	sshCert, err := k.SSHCert()
 	if err != nil {
@@ -565,11 +565,11 @@ func (k *Key) SSHPublicKeyPEM() []byte {
 
 // PPKFile returns a PuTTY PPK-formatted keypair
 func (k *Key) PPKFile() ([]byte, error) {
-	priv, ok := k.PrivateKey.(*keys.RSAPrivateKey)
+	priv, ok := k.PrivateKey.Private().(*rsa.PrivateKey)
 	if !ok {
 		return nil, trace.BadParameter("cannot use private key of type %T as rsa.PrivateKey", k)
 	}
-	ppkFile, err := ppk.ConvertToPPK(priv.PrivateKey, k.SSHPublicKeyPEM())
+	ppkFile, err := ppk.ConvertToPPK(priv, k.SSHPublicKeyPEM())
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

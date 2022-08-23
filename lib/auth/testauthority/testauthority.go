@@ -24,10 +24,11 @@ import (
 
 	"github.com/jonboulle/clockwork"
 
+	"github.com/gravitational/trace"
+
 	"github.com/gravitational/teleport/api/utils/keys"
 	"github.com/gravitational/teleport/lib/auth/native"
 	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/trace"
 )
 
 type Keygen struct {
@@ -47,7 +48,7 @@ func NewWithClock(clock clockwork.Clock) *Keygen {
 }
 
 // GeneratePrivateKey generates a new PrivateKey.
-func (n *Keygen) GeneratePrivateKey() (keys.PrivateKey, error) {
+func (n *Keygen) GeneratePrivateKey() (*keys.PrivateKey, error) {
 	priv, _, err := n.GenerateKeyPair()
 	if err != nil {
 		return nil, trace.Wrap(err)
