@@ -23,13 +23,16 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/lib/utils/prompt"
 	"github.com/gravitational/trace"
 
+	"github.com/gravitational/teleport/api/client/proto"
 	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
 	wancli "github.com/gravitational/teleport/lib/auth/webauthncli"
+	"github.com/gravitational/teleport/lib/utils/prompt"
 )
+
+var PromptMFAStandalone = &promptMFAStandalone
+var PromptWebauthn = &promptWebauthn
 
 // promptWebauthn provides indirection for tests.
 var promptWebauthn = wancli.Login

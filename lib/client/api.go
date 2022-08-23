@@ -2730,7 +2730,7 @@ func (tc *TeleportClient) runCommandOnNodes(
 		return trace.Wrap(err)
 	}
 
-	g := errgroup.Group{}
+	g, gctx := errgroup.WithContext(ctx)
 	if mfaRequiredCheck.Required {
 		// Set limit 1 to run commands sequentially
 		g.SetLimit(1)
@@ -2738,10 +2738,11 @@ func (tc *TeleportClient) runCommandOnNodes(
 	for _, address := range nodeAddresses {
 		address := address
 		g.Go(func() error {
-			var nodeClient *NodeClient
-			nodeClient, err = proxyClient.ConnectToNode(ctx,
+			nodeClient, err := proxyClient.ConnectToNode(
+				gctx,
 				NodeAddr{Addr: address, Namespace: tc.Namespace, Cluster: siteName},
-				tc.Config.HostLogin)
+				tc.Config.HostLogin,
+			)
 			if err != nil {
 				fmt.Fprintln(tc.Stderr, err)
 				return trace.Wrap(err)
@@ -2749,16 +2750,12 @@ func (tc *TeleportClient) runCommandOnNodes(
 			defer nodeClient.Close()
 
 			fmt.Printf("Running command on %v:\n", address)
-			if err := tc.runCommand(ctx, nodeClient, command); err != nil {
-				return trace.Wrap(err)
-			}
-			return nil
+
+			return trace.Wrap(tc.runCommand(gctx, nodeClient, command))
 		})
 	}
-	if err := g.Wait(); err != nil {
-		return trace.Wrap(err)
-	}
-	return nil
+
+	return trace.Wrap(g.Wait())
 }
 
 // runCommand executes a given bash command on an established NodeClient.
