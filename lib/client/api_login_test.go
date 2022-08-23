@@ -17,10 +17,10 @@ package client_test
 import (
 	"bytes"
 	"context"
-	"encoding/base32"
 	"errors"
 	"io"
 	"os"
+	stduser "os/user"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -45,7 +45,6 @@ import (
 	"github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/service"
-	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/utils/prompt"
 )
@@ -358,13 +357,20 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 	require.NoError(t, err)
 	role, err := types.NewRoleV3(user.GetName(), types.RoleSpecV5{
 		Allow: types.RoleConditions{
-			Logins: []string{user.GetName()},
-			NodeLabels: types.Labels{
-				"env": {"stage"},
-			},
+			Logins:     []string{"{{internal.logins}}", user.GetName()},
+			NodeLabels: types.Labels{"env": []string{"stage"}},
 		},
 	})
 	require.NoError(t, err)
+
+	user.SetRoles([]string{user.GetName()})
+
+	u, err := stduser.Current()
+	require.NoError(t, err)
+	traits := map[string][]string{
+		constants.TraitLogins: {u.Username},
+	}
+	user.SetTraits(traits)
 
 	// AuthServer setup.
 	cfg := service.MakeDefaultConfig()
@@ -380,6 +386,7 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 		Webauthn: &types.Webauthn{
 			RPID: "localhost",
 		},
+		// RequireSessionMFA: true,
 	})
 	require.NoError(t, err)
 	cfg.Auth.Resources = []types.Resource{user, role}
@@ -442,11 +449,11 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 	})
 	require.NoError(t, err)
 
-	// Insert an OTP device.
-	otpKey := base32.StdEncoding.EncodeToString([]byte("llamasrule"))
-	otpDevice, err := services.NewTOTPDevice("otp", otpKey, clock.Now() /* addedAt */)
-	require.NoError(t, err)
-	require.NoError(t, authServer.UpsertMFADevice(ctx, username, otpDevice))
+	// // Insert an OTP device.
+	// otpKey := base32.StdEncoding.EncodeToString([]byte("llamasrule"))
+	// otpDevice, err := services.NewTOTPDevice("otp", otpKey, clock.Now() /* addedAt */)
+	// require.NoError(t, err)
+	// require.NoError(t, authServer.UpsertMFADevice(ctx, username, otpDevice))
 
 	// Proxy setup.
 	cfg = service.MakeDefaultConfig()
@@ -454,8 +461,8 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 	cfg.Hostname = "localhost"
 	cfg.SetToken(staticToken)
 	cfg.Clock = clock
-	cfg.Console = console
-	cfg.Log = logger
+	// cfg.Console = console
+	// cfg.Log = logger
 	cfg.AuthServers = []utils.NetAddr{*authAddr}
 	cfg.Auth.Enabled = false
 	cfg.Proxy.Enabled = true
@@ -477,10 +484,10 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 		Password:     password,
 		WebAuthnID:   webID,
 		Device:       device,
-		OTPKey:       otpKey,
-		Auth:         authProcess,
-		Proxy:        proxyProcess,
-		StaticToken:  staticToken,
+		// OTPKey:       otpKey,
+		Auth:        authProcess,
+		Proxy:       proxyProcess,
+		StaticToken: staticToken,
 	}
 }
 

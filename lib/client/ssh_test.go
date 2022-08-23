@@ -17,13 +17,14 @@ package client_test
 import (
 	"bytes"
 	"context"
-	"fmt"
+	"io"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/gravitational/teleport/api/breaker"
 	"github.com/gravitational/teleport/api/client/proto"
+	"github.com/gravitational/teleport/api/constants"
 	apidefaults "github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
 	apiutils "github.com/gravitational/teleport/api/utils"
@@ -33,6 +34,7 @@ import (
 	"github.com/gravitational/teleport/lib/service"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/utils/prompt"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
@@ -40,12 +42,11 @@ import (
 
 func TestSSHOnMultipleNodesWithPerSessionMFA(t *testing.T) {
 	silenceLogger(t)
-
 	clock := clockwork.NewFakeClockAt(time.Now())
 	sa := newStandaloneTeleport(t, clock)
 
 	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	node1 := makeTestSSHNode(t, utils.MustParseAddr(sa.AuthAddr), sa.StaticToken, withSSHLabel("env", "stage"))
@@ -64,6 +65,7 @@ func TestSSHOnMultipleNodesWithPerSessionMFA(t *testing.T) {
 			return foundCount == len(hostIDs)
 		}
 	}
+
 	// wait for auth to see nodes
 	require.Eventually(t, hasNodes(node1.Config.HostUUID, node2.Config.HostUUID, node3.Config.HostUUID),
 		10*time.Second, 100*time.Millisecond, "nodes never showed up")
@@ -120,15 +122,25 @@ func TestSSHOnMultipleNodesWithPerSessionMFA(t *testing.T) {
 		return resp, "", err
 	}
 
+	authServer := sa.Auth.GetAuthServer()
+	pref, err := authServer.GetAuthPreference(ctx)
+	require.NoError(t, err)
+	pref.SetSecondFactor(constants.SecondFactorOptional)
+	require.NoError(t, authServer.SetAuthPreference(ctx, pref))
+
+	clock.Advance(30 * time.Second)
+
 	key, err := tc.Login(ctx)
 	require.NoError(t, err)
-
-	fmt.Println(111, key.Username, key.ClusterName, key.TrustedCA[0].ClusterName, len(key.TrustedCA))
 
 	err = tc.ActivateKey(ctx, key)
 	require.NoError(t, err)
 
-	err = tc.SSH(ctx, []string{"ls", "/"}, false)
+	tc.Host = node1.Config.HostUUID
+
+	// tc.Labels = map[string]string{"env": "stage"}
+
+	err = tc.SSH(ctx, []string{"echo", "testTHTH"}, false)
 	require.NoError(t, err)
 
 }
@@ -155,7 +167,10 @@ func makeTestSSHNode(t *testing.T, authAddr *utils.NetAddr, token string, opts .
 	cfg.SSH.Addr = *utils.MustParseAddr("127.0.0.1:0")
 	cfg.SSH.PublicAddrs = []utils.NetAddr{cfg.SSH.Addr}
 	cfg.SSH.DisableCreateHostUser = true
-	cfg.Log = utils.NewLoggerForTests()
+	logger := utils.NewLoggerForTests()
+	logger.SetLevel(log.PanicLevel)
+	logger.SetOutput(io.Discard)
+	cfg.Log = logger
 
 	for _, fn := range options.configFuncs {
 		fn(cfg)
