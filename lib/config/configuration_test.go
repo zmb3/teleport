@@ -1187,7 +1187,7 @@ func TestParseCachePolicy(t *testing.T) {
 }
 
 func checkStaticConfig(t *testing.T, conf *FileConfig) {
-	require.Equal(t, conf.AuthToken, "xxxyyy")
+	require.Equal(t, conf.JoinParams.TokenName, "xxxyyy")
 	require.Equal(t, conf.AdvertiseIP, "10.10.10.1:3022")
 	require.Equal(t, conf.PIDFile, "/var/run/teleport.pid")
 
@@ -2733,15 +2733,6 @@ func TestJoinParams(t *testing.T) {
 			desc: "empty",
 		},
 		{
-			desc: "auth_token",
-			input: `
-teleport:
-  auth_token: xxxyyy
-`,
-			expectToken:      "xxxyyy",
-			expectJoinMethod: types.JoinMethodToken,
-		},
-		{
 			desc: "join_params token",
 			input: `
 teleport:
@@ -2781,17 +2772,6 @@ teleport:
   join_params:
     token_name: xxxyyy
     method: invalid
-`,
-			expectError: true,
-		},
-		{
-			desc: "both set",
-			input: `
-teleport:
-  auth_token: xxxyyy
-  join_params:
-    token_name: xxxyyy
-    method: iam
 `,
 			expectError: true,
 		},
