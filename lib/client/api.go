@@ -1691,11 +1691,23 @@ func (tc *TeleportClient) IssueUserCertsWithMFA(ctx context.Context, params Reis
 	}
 	defer proxyClient.Close()
 
+	clusterName := params.RouteToCluster
+	if clusterName == "" {
+		clusterName = proxyClient.siteName
+	}
+	rootOrLeafClusterConn, err := proxyClient.ConnectToCluster(ctx, clusterName)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	defer rootOrLeafClusterConn.Close()
+
 	return proxyClient.IssueUserCertsWithMFA(
 		ctx, params,
 		func(ctx context.Context, proxyAddr string, c *proto.MFAAuthenticateChallenge) (*proto.MFAAuthenticateResponse, error) {
 			return tc.PromptMFAChallenge(ctx, proxyAddr, c, nil /* applyOpts */)
-		})
+		},
+		rootOrLeafClusterConn,
+	)
 }
 
 // CreateAccessRequest registers a new access request with the auth server.
@@ -1886,17 +1898,28 @@ func (tc *TeleportClient) SSH(ctx context.Context, command []string, runLocally 
 		return trace.BadParameter("no target host specified")
 	}
 
-	if len(nodeAddrs) > 1 {
-		return tc.runShellOrCommandOnMultipleNodes(ctx, siteInfo.Name, nodeAddrs, proxyClient, command)
+	clusterName := siteInfo.Name
+	if clusterName == "" {
+		clusterName = proxyClient.siteName
 	}
-	return tc.runShellOrCommandOnSingleNode(ctx, siteInfo.Name, nodeAddrs[0], proxyClient, command, runLocally)
+	rootOrLeafClusterConn, err := proxyClient.ConnectToCluster(ctx, clusterName)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	defer rootOrLeafClusterConn.Close()
+
+	if len(nodeAddrs) > 1 {
+		return tc.runShellOrCommandOnMultipleNodes(ctx, siteInfo.Name, nodeAddrs, proxyClient, command, rootOrLeafClusterConn)
+	}
+	return tc.runShellOrCommandOnSingleNode(ctx, siteInfo.Name, nodeAddrs[0], proxyClient, command, runLocally, rootOrLeafClusterConn)
 }
 
-func (tc *TeleportClient) runShellOrCommandOnSingleNode(ctx context.Context, siteName string, nodeAddr string, proxyClient *ProxyClient, command []string, runLocally bool) error {
+func (tc *TeleportClient) runShellOrCommandOnSingleNode(ctx context.Context, siteName string, nodeAddr string, proxyClient *ProxyClient, command []string, runLocally bool, rootOrLeafClusterConn auth.ClientI) error {
 	nodeClient, err := proxyClient.ConnectToNode(
 		ctx,
 		NodeAddr{Addr: nodeAddr, Namespace: tc.Namespace, Cluster: siteName},
 		tc.Config.HostLogin,
+		rootOrLeafClusterConn,
 	)
 	if err != nil {
 		tc.ExitStatus = 1
@@ -1937,7 +1960,7 @@ func (tc *TeleportClient) runShellOrCommandOnSingleNode(ctx context.Context, sit
 	return tc.runShell(ctx, nodeClient, types.SessionPeerMode, nil, nil)
 }
 
-func (tc *TeleportClient) runShellOrCommandOnMultipleNodes(ctx context.Context, siteName string, nodeAddrs []string, proxyClient *ProxyClient, command []string) error {
+func (tc *TeleportClient) runShellOrCommandOnMultipleNodes(ctx context.Context, siteName string, nodeAddrs []string, proxyClient *ProxyClient, command []string, rootOrLeafClusterConn auth.ClientI) error {
 	if len(command) < 1 {
 		// Issue "shell" request to run single node.
 		fmt.Printf("\x1b[1mWARNING\x1b[0m: Multiple nodes match the label selector, picking first: %v\n", nodeAddrs[0])
@@ -1945,6 +1968,7 @@ func (tc *TeleportClient) runShellOrCommandOnMultipleNodes(ctx context.Context, 
 			ctx,
 			NodeAddr{Addr: nodeAddrs[0], Namespace: tc.Namespace, Cluster: siteName},
 			tc.Config.HostLogin,
+			rootOrLeafClusterConn,
 		)
 		if err != nil {
 			tc.ExitStatus = 1
@@ -1954,7 +1978,7 @@ func (tc *TeleportClient) runShellOrCommandOnMultipleNodes(ctx context.Context, 
 		return tc.runShell(ctx, nodeClient, types.SessionPeerMode, nil, nil)
 	}
 	fmt.Printf("\x1b[1mWARNING\x1b[0m: Multiple nodes matched label selector, running command on all.\n")
-	return tc.runCommandOnNodes(ctx, siteName, nodeAddrs, proxyClient, command)
+	return tc.runCommandOnNodes(ctx, siteName, nodeAddrs, proxyClient, command, rootOrLeafClusterConn)
 
 }
 
@@ -2040,7 +2064,8 @@ func (tc *TeleportClient) Join(ctx context.Context, mode types.SessionParticipan
 		Addr:      session.GetAddress() + ":0",
 		Namespace: tc.Namespace,
 		Cluster:   tc.SiteName,
-	}, tc.Config.HostLogin)
+	}, tc.Config.HostLogin,
+		site)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -2229,10 +2254,21 @@ func (tc *TeleportClient) ExecuteSCP(ctx context.Context, cmd scp.Command) (err 
 		return trace.BadParameter("no target host specified")
 	}
 
+	clusterName := clusterInfo.Name
+	if clusterName == "" {
+		clusterName = proxyClient.siteName
+	}
+	rootOrLeafClusterConn, err := proxyClient.ConnectToCluster(ctx, clusterName)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	defer rootOrLeafClusterConn.Close()
+
 	nodeClient, err := proxyClient.ConnectToNode(
 		ctx,
 		NodeAddr{Addr: nodeAddrs[0], Namespace: tc.Namespace, Cluster: clusterInfo.Name},
 		tc.Config.HostLogin,
+		rootOrLeafClusterConn,
 	)
 	if err != nil {
 		tc.ExitStatus = 1
@@ -2295,12 +2331,23 @@ func (tc *TeleportClient) SCP(ctx context.Context, args []string, port int, flag
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
+		clusterName := siteInfo.Name
+		if clusterName == "" {
+			clusterName = proxyClient.GetSiteName()
+		}
+		rootOrLeafClusterConn, err := proxyClient.ConnectToCluster(ctx, clusterName)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		defer rootOrLeafClusterConn.Close()
 		if hostLogin == "" {
 			hostLogin = tc.Config.HostLogin
 		}
 		return proxyClient.ConnectToNode(ctx,
 			NodeAddr{Addr: addr, Namespace: tc.Namespace, Cluster: siteInfo.Name},
-			hostLogin)
+			hostLogin,
+			rootOrLeafClusterConn,
+		)
 	}
 
 	// gets called to convert SSH error code to tc.ExitStatus
@@ -2731,22 +2778,15 @@ func (tc *TeleportClient) ListKubernetesClustersWithFiltersAllClusters(ctx conte
 
 // runCommandOnNodes executes a given bash command on a bunch of remote nodes.
 func (tc *TeleportClient) runCommandOnNodes(
-	ctx context.Context, siteName string, nodeAddresses []string, proxyClient *ProxyClient, command []string,
+	ctx context.Context, siteName string, nodeAddresses []string, proxyClient *ProxyClient, command []string, rootOrLeafClusterConn auth.ClientI,
 ) error {
-	clt, err := proxyClient.ConnectToCluster(ctx, siteName)
-	if err != nil {
-		return trace.Wrap(err)
-	}
-	defer clt.Close()
 
 	// Let's check is first node has mfa required.
 	// If it's required, run commands sequentially to avoid
 	// race conditions and weird ux during mfa.
-	mfaRequiredCheck, err := clt.IsMFARequired(ctx, &proto.IsMFARequiredRequest{
+	mfaRequiredCheck, err := rootOrLeafClusterConn.IsMFARequired(ctx, &proto.IsMFARequiredRequest{
 		Target: &proto.IsMFARequiredRequest_Node{
 			Node: &proto.NodeLogin{
-				// Let's check only single node, all must have the same settings.
-				// TODO(rosstimothy): is it right?
 				Node:  nodeAddresses[0],
 				Login: proxyClient.hostLogin,
 			},
@@ -2768,6 +2808,7 @@ func (tc *TeleportClient) runCommandOnNodes(
 				gctx,
 				NodeAddr{Addr: address, Namespace: tc.Namespace, Cluster: siteName},
 				tc.Config.HostLogin,
+				rootOrLeafClusterConn,
 			)
 			if err != nil {
 				fmt.Fprintln(tc.Stderr, err)

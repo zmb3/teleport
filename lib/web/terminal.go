@@ -375,6 +375,16 @@ func (t *TerminalHandler) issueSessionMFACerts(tc *client.TeleportClient, ws *we
 		return trace.Wrap(err)
 	}
 
+	clusterName := t.params.Cluster
+	if clusterName == "" {
+		clusterName = pc.GetSiteName()
+	}
+	rootOrLeafClusterConn, err := pc.ConnectToCluster(t.terminalContext, clusterName)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	defer rootOrLeafClusterConn.Close()
+
 	key, err := pc.IssueUserCertsWithMFA(t.terminalContext, client.ReissueParams{
 		RouteToCluster: t.params.Cluster,
 		NodeName:       t.params.Server,
@@ -384,7 +394,7 @@ func (t *TerminalHandler) issueSessionMFACerts(tc *client.TeleportClient, ws *we
 			Cert:    t.ctx.session.GetPub(),
 			TLSCert: t.ctx.session.GetTLSCert(),
 		},
-	}, promptMFAChallenge(ws, t.wsLock, protobufMFACodec{}))
+	}, promptMFAChallenge(ws, t.wsLock, protobufMFACodec{}), rootOrLeafClusterConn)
 	if err != nil {
 		return trace.Wrap(err)
 	}

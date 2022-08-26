@@ -217,6 +217,16 @@ func desktopTLSConfig(ctx context.Context, ws *websocket.Conn, pc *client.ProxyC
 		return nil, trace.Wrap(err)
 	}
 
+	clusterName := siteName
+	if clusterName == "" {
+		clusterName = pc.GetSiteName()
+	}
+	rootOrLeafClusterConn, err := pc.ConnectToCluster(ctx, clusterName)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	defer rootOrLeafClusterConn.Close()
+
 	var wsLock sync.Mutex
 	key, err := pc.IssueUserCertsWithMFA(ctx, client.ReissueParams{
 		RouteToWindowsDesktop: proto.RouteToWindowsDesktop{
@@ -231,7 +241,7 @@ func desktopTLSConfig(ctx context.Context, ws *websocket.Conn, pc *client.ProxyC
 			TLSCert:             sessCtx.session.GetTLSCert(),
 			WindowsDesktopCerts: make(map[string][]byte),
 		},
-	}, promptMFAChallenge(ws, &wsLock, tdpMFACodec{}))
+	}, promptMFAChallenge(ws, &wsLock, tdpMFACodec{}), rootOrLeafClusterConn)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
