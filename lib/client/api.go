@@ -1917,7 +1917,7 @@ func (tc *TeleportClient) SSH(ctx context.Context, command []string, runLocally 
 func (tc *TeleportClient) runShellOrCommandOnSingleNode(ctx context.Context, siteName string, nodeAddr string, proxyClient *ProxyClient, command []string, runLocally bool, rootOrLeafClusterConn auth.ClientI) error {
 	nodeClient, err := proxyClient.ConnectToNode(
 		ctx,
-		NodeAddr{Addr: nodeAddr, Namespace: tc.Namespace, Cluster: siteName},
+		NodeDetails{Addr: nodeAddr, Namespace: tc.Namespace, Cluster: siteName},
 		tc.Config.HostLogin,
 		rootOrLeafClusterConn,
 	)
@@ -1966,7 +1966,7 @@ func (tc *TeleportClient) runShellOrCommandOnMultipleNodes(ctx context.Context, 
 		fmt.Printf("\x1b[1mWARNING\x1b[0m: Multiple nodes match the label selector, picking first: %v\n", nodeAddrs[0])
 		nodeClient, err := proxyClient.ConnectToNode(
 			ctx,
-			NodeAddr{Addr: nodeAddrs[0], Namespace: tc.Namespace, Cluster: siteName},
+			NodeDetails{Addr: nodeAddrs[0], Namespace: tc.Namespace, Cluster: siteName},
 			tc.Config.HostLogin,
 			rootOrLeafClusterConn,
 		)
@@ -2060,7 +2060,7 @@ func (tc *TeleportClient) Join(ctx context.Context, mode types.SessionParticipan
 	}
 
 	// connect to server:
-	nc, err := proxyClient.ConnectToNode(ctx, NodeAddr{
+	nc, err := proxyClient.ConnectToNode(ctx, NodeDetails{
 		Addr:      session.GetAddress() + ":0",
 		Namespace: tc.Namespace,
 		Cluster:   tc.SiteName,
@@ -2266,7 +2266,7 @@ func (tc *TeleportClient) ExecuteSCP(ctx context.Context, cmd scp.Command) (err 
 
 	nodeClient, err := proxyClient.ConnectToNode(
 		ctx,
-		NodeAddr{Addr: nodeAddrs[0], Namespace: tc.Namespace, Cluster: clusterInfo.Name},
+		NodeDetails{Addr: nodeAddrs[0], Namespace: tc.Namespace, Cluster: clusterInfo.Name},
 		tc.Config.HostLogin,
 		rootOrLeafClusterConn,
 	)
@@ -2344,7 +2344,7 @@ func (tc *TeleportClient) SCP(ctx context.Context, args []string, port int, flag
 			hostLogin = tc.Config.HostLogin
 		}
 		return proxyClient.ConnectToNode(ctx,
-			NodeAddr{Addr: addr, Namespace: tc.Namespace, Cluster: siteInfo.Name},
+			NodeDetails{Addr: addr, Namespace: tc.Namespace, Cluster: siteInfo.Name},
 			hostLogin,
 			rootOrLeafClusterConn,
 		)
@@ -2806,7 +2806,12 @@ func (tc *TeleportClient) runCommandOnNodes(
 		g.Go(func() error {
 			nodeClient, err := proxyClient.ConnectToNode(
 				gctx,
-				NodeAddr{Addr: address, Namespace: tc.Namespace, Cluster: siteName},
+				NodeDetails{
+					Addr:      address,
+					Namespace: tc.Namespace,
+					Cluster:   siteName,
+					MFACheck:  mfaRequiredCheck,
+				},
 				tc.Config.HostLogin,
 				rootOrLeafClusterConn,
 			)
