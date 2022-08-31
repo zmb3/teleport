@@ -525,7 +525,8 @@ func (a *Server) checkForReleases(ctx context.Context) {
 	// are a bit further along.
 
 	var loadFailed bool
-	current := vc.Normalize(teleport.Version)
+	// current := vc.Normalize(teleport.Version)
+	current := "v8"
 
 	latest, err := github.LatestStable()
 	if err != nil {
