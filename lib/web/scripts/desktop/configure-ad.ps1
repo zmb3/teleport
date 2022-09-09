@@ -1,8 +1,10 @@
 $ErrorActionPreference = "Stop"
 
 $TELEPORT_CA_CERT_PEM = "{{.caCertPEM}}"
-$TELEPORT_CA_CERT_SHA1 = "{{.caCertsha1}}"
-$TELEPORT_CA_CERT_BLOB_BASE64 = "{{.caCertb64}}"
+$TELEPORT_CA_CERT_SHA1 = "{{.caCertSHA1}}"
+$TELEPORT_CA_CERT_BLOB_BASE64 = "{{.caCertBase64}}"
+$TELEPORT_PROXY_PUBLIC_ADDR = "{{.proxyPublicAddr}}"
+$TELEPORT_PROVISION_TOKEN = "{{.provisionToken}}"
 
 $AD_USER_NAME="Teleport Service Account"
 $SAM_ACCOUNT_NAME="svc-teleport"
@@ -132,27 +134,43 @@ $CA_CERT_YAML = $CA_CERT_PEM | ForEach-Object { "        " + $_  } | Out-String
 $NET_BIOS_NAME = (Get-ADDomain).NetBIOSName
 $LDAP_USERNAME = "$NET_BIOS_NAME\$SAM_ACCOUNT_NAME"
 
-$COMPUTER_IP=(Resolve-DnsName -Type A $Env:COMPUTERNAME).Address
+$COMPUTER_NAME = (Resolve-DnsName -Type A $Env:COMPUTERNAME).Name
+$COMPUTER_IP = (Resolve-DnsName -Type A $Env:COMPUTERNAME).Address
 $LDAP_ADDR="$COMPUTER_IP" + ":636"
 
 $DESKTOP_ACCESS_CONFIG_YAML=@'
+teleport:
+  auth_token: {0}
+  auth_servers: [ {1} ]
+
+auth_service:
+  enabled: no
+ssh_service:
+  enabled: no
+proxy_service:
+  enabled: no
+
 windows_desktop_service:
   enabled: yes
-  listen_addr: "0.0.0.0:3028"
   ldap:
-    addr:     '{0}'
-    domain:   '{1}'
-    username: '{2}'
+    addr:     '{2}'
+    domain:   '{3}'
+    username: '{4}'
+    server_name: '{5}'
     insecure_skip_verify: false
     ldap_ca_cert: |
-{3}
+{6}
   discovery:
     base_dn: '*'
-'@ -f $LDAP_ADDR, $DOMAIN_NAME, $LDAP_USERNAME, $CA_CERT_YAML
+'@ -f $TELEPORT_PROVISION_TOKEN, $TELEPORT_PROXY_PUBLIC_ADDR, $LDAP_ADDR, $DOMAIN_NAME, $LDAP_USERNAME, $COMPUTER_NAME, $CA_CERT_YAML
 
 $OUTPUT=@'
 
-Desktop Access Configuration Reference: https://goteleport.com/docs/desktop-access/reference/configuration/
+Use the following teleport.yaml to start a Windows Desktop Service.
+For a detailed configuration reference, see 
+
+https://goteleport.com/docs/desktop-access/reference/configuration/
+
 
 {0}
 

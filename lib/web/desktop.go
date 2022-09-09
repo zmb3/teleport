@@ -401,14 +401,28 @@ func createCertificateBlob(certData []byte) []byte {
 }
 
 func (h *Handler) desktopAccessScriptConfigureHandle(w http.ResponseWriter, r *http.Request, p httprouter.Params) (interface{}, error) {
-	httplib.SetScriptHeaders(w.Header())
-	clusterName, err := h.auth.proxyClient.GetDomainName(r.Context())
+	token := p.ByName("token")
+	// verify that the token exists
+	_, err := h.GetProxyClient().GetToken(r.Context(), p.ByName("token"))
+	if err != nil {
+		return "", trace.BadParameter("invalid token")
+	}
 
+	proxyServers, err := h.GetProxyClient().GetProxies()
+	if err != nil {
+		return "", trace.Wrap(err)
+	}
+
+	if len(proxyServers) == 0 {
+		return "", trace.NotFound("no proxy servers found")
+	}
+
+	clusterName, err := h.GetProxyClient().GetDomainName(r.Context())
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	certAuthority, err := h.auth.proxyClient.GetCertAuthority(
+	certAuthority, err := h.GetProxyClient().GetCertAuthority(
 		r.Context(),
 		types.CertAuthID{Type: types.UserCA, DomainName: clusterName},
 		false,
@@ -428,11 +442,14 @@ func (h *Handler) desktopAccessScriptConfigureHandle(w http.ResponseWriter, r *h
 		return nil, trace.BadParameter("no PEM data in CA data")
 	}
 
+	httplib.SetScriptHeaders(w.Header())
 	w.WriteHeader(http.StatusOK)
 	err = scripts.DesktopAccessScriptConfigure.Execute(w, map[string]string{
-		"caCertPEM":  string(keyPair.Cert),
-		"caCertsha1": fmt.Sprintf("%X", sha1.Sum(block.Bytes)),
-		"caCertb64":  base64.StdEncoding.EncodeToString(createCertificateBlob(block.Bytes)),
+		"caCertPEM":       string(keyPair.Cert),
+		"caCertsha1":      fmt.Sprintf("%X", sha1.Sum(block.Bytes)),
+		"caCertb64":       base64.StdEncoding.EncodeToString(createCertificateBlob(block.Bytes)),
+		"proxyPublicAddr": proxyServers[0].GetPublicAddr(),
+		"provisionToken":  token,
 	})
 
 	return nil, trace.Wrap(err)
