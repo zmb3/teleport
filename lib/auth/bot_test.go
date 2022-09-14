@@ -225,7 +225,7 @@ func TestRegisterBotOnboardFeatureDisabled(t *testing.T) {
 		ID: IdentityID{
 			Role: types.RoleBot,
 		},
-		Servers:      []utils.NetAddr{*utils.MustParseAddr(srv.Addr().String())},
+		AuthServers:  []utils.NetAddr{*utils.MustParseAddr(srv.Addr().String())},
 		PublicTLSKey: tlsPublicKey,
 		PublicSSHKey: publicKey,
 	})
@@ -290,7 +290,7 @@ func TestRegisterBotCertificateGenerationCheck(t *testing.T) {
 		ID: IdentityID{
 			Role: types.RoleBot,
 		},
-		Servers:      []utils.NetAddr{*utils.MustParseAddr(srv.Addr().String())},
+		AuthServers:  []utils.NetAddr{*utils.MustParseAddr(srv.Addr().String())},
 		PublicTLSKey: tlsPublicKey,
 		PublicSSHKey: publicKey,
 	})
@@ -347,7 +347,7 @@ func TestRegisterBotCertificateGenerationStolen(t *testing.T) {
 		ID: IdentityID{
 			Role: types.RoleBot,
 		},
-		Servers:      []utils.NetAddr{*utils.MustParseAddr(srv.Addr().String())},
+		AuthServers:  []utils.NetAddr{*utils.MustParseAddr(srv.Addr().String())},
 		PublicTLSKey: tlsPublicKey,
 		PublicSSHKey: publicKey,
 	})
