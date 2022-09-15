@@ -30,6 +30,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -401,9 +402,9 @@ func createCertificateBlob(certData []byte) []byte {
 }
 
 func (h *Handler) desktopAccessScriptConfigureHandle(w http.ResponseWriter, r *http.Request, p httprouter.Params) (interface{}, error) {
-	token := p.ByName("token")
+	tokenStr := p.ByName("token")
 	// verify that the token exists
-	_, err := h.GetProxyClient().GetToken(r.Context(), p.ByName("token"))
+	token, err := h.GetProxyClient().GetToken(r.Context(), tokenStr)
 	if err != nil {
 		return "", trace.BadParameter("invalid token")
 	}
@@ -436,6 +437,15 @@ func (h *Handler) desktopAccessScriptConfigureHandle(w http.ResponseWriter, r *h
 		return nil, trace.BadParameter("expected one TLS key pair, got %v", len(certAuthority.GetActiveKeys().TLS))
 	}
 
+	var internalResourceId string
+	for labelKey, labelValues := range token.GetSuggestedLabels() {
+		if labelKey == types.InternalResourceIDLabel {
+			internalResourceId = strings.Join(labelValues, " ")
+
+			break
+		}
+	}
+
 	keyPair := certAuthority.GetActiveKeys().TLS[0]
 	block, _ := pem.Decode(keyPair.Cert)
 	if block == nil {
@@ -445,11 +455,12 @@ func (h *Handler) desktopAccessScriptConfigureHandle(w http.ResponseWriter, r *h
 	httplib.SetScriptHeaders(w.Header())
 	w.WriteHeader(http.StatusOK)
 	err = scripts.DesktopAccessScriptConfigure.Execute(w, map[string]string{
-		"caCertPEM":       string(keyPair.Cert),
-		"caCertsha1":      fmt.Sprintf("%X", sha1.Sum(block.Bytes)),
-		"caCertb64":       base64.StdEncoding.EncodeToString(createCertificateBlob(block.Bytes)),
-		"proxyPublicAddr": proxyServers[0].GetPublicAddr(),
-		"provisionToken":  token,
+		"caCertPEM":          string(keyPair.Cert),
+		"caCertsha1":         fmt.Sprintf("%X", sha1.Sum(block.Bytes)),
+		"caCertb64":          base64.StdEncoding.EncodeToString(createCertificateBlob(block.Bytes)),
+		"proxyPublicAddr":    proxyServers[0].GetPublicAddr(),
+		"provisionToken":     tokenStr,
+		"internalResourceId": internalResourceId,
 	})
 
 	return nil, trace.Wrap(err)

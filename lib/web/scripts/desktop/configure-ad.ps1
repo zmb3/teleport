@@ -5,6 +5,7 @@ $TELEPORT_CA_CERT_SHA1 = "{{.caCertSHA1}}"
 $TELEPORT_CA_CERT_BLOB_BASE64 = "{{.caCertBase64}}"
 $TELEPORT_PROXY_PUBLIC_ADDR = "{{.proxyPublicAddr}}"
 $TELEPORT_PROVISION_TOKEN = "{{.provisionToken}}"
+$TELEPORT_INTERNAL_RESOURCE_ID = "{{.internalResourceId}}"
 
 $AD_USER_NAME="Teleport Service Account"
 $SAM_ACCOUNT_NAME="svc-teleport"
@@ -162,12 +163,14 @@ windows_desktop_service:
 {6}
   discovery:
     base_dn: '*'
-'@ -f $TELEPORT_PROVISION_TOKEN, $TELEPORT_PROXY_PUBLIC_ADDR, $LDAP_ADDR, $DOMAIN_NAME, $LDAP_USERNAME, $COMPUTER_NAME, $CA_CERT_YAML
+  labels:
+    teleport.internal/resource-id: {7}
+'@ -f $TELEPORT_PROVISION_TOKEN, $TELEPORT_PROXY_PUBLIC_ADDR, $LDAP_ADDR, $DOMAIN_NAME, $LDAP_USERNAME, $COMPUTER_NAME, $CA_CERT_YAML, $TELEPORT_INTERNAL_RESOURCE_ID
 
 $OUTPUT=@'
 
 Use the following teleport.yaml to start a Windows Desktop Service.
-For a detailed configuration reference, see 
+For a detailed configuration reference, see
 
 https://goteleport.com/docs/desktop-access/reference/configuration/
 
