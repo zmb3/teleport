@@ -256,8 +256,6 @@ type Desktop struct {
 	Labels []Label `json:"labels"`
 	// HostID is the ID of the Windows Desktop Service reporting the desktop.
 	HostID string `json:"host_id"`
-	// HostID is the ID of the Windows Desktop Service reporting the desktop.
-	HostAddr string `json:"host_addr"`
 }
 
 // MakeDesktop converts a desktop from its API form to a type the UI can display.
@@ -285,12 +283,11 @@ func MakeDesktop(windowsDesktop types.WindowsDesktop) Desktop {
 	fmt.Printf("%+v\n", windowsDesktop)
 
 	return Desktop{
-		OS:       constants.WindowsOS,
-		Name:     windowsDesktop.GetName(),
-		Addr:     stripRdpPort(windowsDesktop.GetAddr()),
-		Labels:   uiLabels,
-		HostID:   windowsDesktop.GetHostID(),
-		HostAddr: windowsDesktop.GetHostAddr(),
+		OS:     constants.WindowsOS,
+		Name:   windowsDesktop.GetName(),
+		Addr:   stripRdpPort(windowsDesktop.GetAddr()),
+		Labels: uiLabels,
+		HostID: windowsDesktop.GetHostID(),
 	}
 }
 

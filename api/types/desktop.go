@@ -154,8 +154,6 @@ type WindowsDesktop interface {
 	GetDomain() string
 	// GetHostID returns the ID of the Windows Desktop Service reporting the desktop.
 	GetHostID() string
-	// GetHostAddr returns the ID of the Windows Desktop Service reporting the desktop.
-	GetHostAddr() string
 }
 
 var _ WindowsDesktop = &WindowsDesktopV3{}
@@ -203,11 +201,6 @@ func (d *WindowsDesktopV3) GetAddr() string {
 // GetHostID returns the HostID for the associated desktop service.
 func (d *WindowsDesktopV3) GetHostID() string {
 	return d.Spec.HostID
-}
-
-// GetHostAddr returns the HostID for the associated desktop service.
-func (d *WindowsDesktopV3) GetHostAddr() string {
-	return d.Spec.HostAddr
 }
 
 // GetAllLabels returns combined static and dynamic labels.
