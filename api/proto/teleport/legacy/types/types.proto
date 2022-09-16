@@ -3851,6 +3851,8 @@ message WindowsDesktopSpecV3 {
   string Domain = 2 [(gogoproto.jsontag) = "domain"];
   // HostID is the ID of the host the Windows Desktop Service proxying the desktop.
   string HostID = 3 [(gogoproto.jsontag) = "host_id"];
+  // HostAddr is the ID of the host the Windows Desktop Service proxying the desktop.
+  string HostAddr = 4 [(gogoproto.jsontag) = "host_addr"];
 }
 
 // RegisterUsingTokenRequest is a request to register with the auth server using

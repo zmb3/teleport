@@ -1000,9 +1000,10 @@ func (s *WindowsService) staticHostHeartbeatInfo(netAddr utils.NetAddr,
 			name,
 			labels,
 			types.WindowsDesktopSpecV3{
-				Addr:   addr,
-				Domain: s.cfg.Domain,
-				HostID: s.cfg.Heartbeat.HostUUID,
+				Addr:     addr,
+				Domain:   s.cfg.Domain,
+				HostID:   s.cfg.Heartbeat.HostUUID,
+				HostAddr: s.cfg.Heartbeat.PublicAddr,
 			})
 		if err != nil {
 			return nil, trace.Wrap(err)
