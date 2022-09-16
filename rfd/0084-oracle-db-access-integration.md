@@ -8,24 +8,26 @@ state: draft
 ## What
 
 
-This RFD proposes a way to integrate Oracle Database Access with Teleport.
+This RFD outlines the scope of Oracle integration with Teleport Database Access.
 Oracle DB Access differs from currently supported database protocols by Teleport Database Access.
 Namely, Oracle DB protocol is private and there is not any official documentation describing the Oracle protocol.
 
 ## Why
 
-We want to increase the number of databases supported by Teleport and allow users to connect to Oracle using Teleport Database Access.
-Where we want to provide a way for users to connect to Oracle databases through Teleport using the same Teleport UI/UX as for other supported databases.
+Adding Oracle support to Teleport Database Access would allow our shared customer bases to take advantage of Teleport's access controls and audit logging capabilities when accessing their Oracle databases.
+
+* Administrators will be able to control access to their entire fleet of database servers through their identity provider with SSO.
+* Users will be able to connect to Oracle databases with the tools they're familiar with without having to deal with passwords or shared secrets.
+* Auditors will be able to view the database activity and tie it to a particular user identity within an organization.
 
 
 # Scope of Integration
-- **Teleport as Oracle Access Proxy**: Teleport Oracle DB agents should be able to act like a proxy between the incoming Oracle client connection and connection to Oracle Server where the Teleport DB Agent will terminate the incoming TLS connection and establish a new TLS connection to the Oracle Server using a new TLS Certificate and forward the traffic between Oracle client and server.
-- **Audit Logging** (Optional): After TLS termination of incoming client Oracle connection Teleport DB Agents needs to be able to parse the Oracle wire protocol to provide Teleport audit logs and audit client interaction with Oracle database.
+-- **Teleport as Oracle Access Proxy**: Teleport should be able to act like a proxy between the incoming Oracle client connection and connection to Oracle Server where the Teleport will terminate the incoming TLS connection and establish a new TLS connection to the Oracle Server using a new TLS Certificate and forward the traffic between Oracle client and server.
+- **Audit Logging**: Teleport needs to be able to inspect the Oracle wire protocol to provide Teleport audit logs and audit client interaction with Oracle database.
 
 
 ### TLS Termination of Incoming connection:
-Teleport needs to be able TLS terminate incoming Oracle client connections to replace the TLS certificate with a new one signed by Teleport Database CA and establish a new TLS connection to the Oracle Server.
-It seems that TLS connection between Oracle Client and Oracle Server can be renegotiated by some mechanism in L7 Oracle protocol. To support TLS termination on Teleport proxy side the TLS renegotiation triggered by Oracle Server needs to be also handled on Teleport DB Agent side.
+Teleport needs to be able to TLS-terminate incoming Oracle client connection and reestablish a new TLS connection that uses Teleport-signed client certificate to the Oracle Server. Oracle database server will need to be configured to trust Teleport's certificate authority to be able to validate client connections.
 
 
 ## Details
@@ -41,21 +43,17 @@ Teleport `tsh db login` command for Oracle database will generate cert in Oracle
 
 ##### UX:
 
-Oracle will integrate with teleport in the same way as other databases.
+Teleport will integrate with Oracle in the same way as other databases.
 
 * `tsh db connect` - would start [sqlplus](https://docs.oracle.com/cd/B19306_01/server.102/b14357/qstart.htm) Oracle CLI.
 * `tsh proxy db` - would start proxy for 3rd party GUI clients like  [SQL Oracle Developer](https://www.oracle.com/database/sqldeveloper/)
 
 
-
-
 #### Oracle Server Setup:
-The new `tctl auth sign` `--format=oracle` sign format will be introduced where Teleport Database CA authority and generated certificate/key pair will be store in Oracle Wallet SSO autologin format:
+The new `tctl auth sign` `--format=oracle` sign format will be introduced where Teleport certificate authority and generated certificate/key pair will be stored in Oracle Wallet SSO autologin format:
 ```
 tctl auth sign --format=oracle --host=oracle.example.com --out=server --ttl=2190h
 ```
-
-
 Generated Oracle Wallet will be used in Oracle server [sqlnet.ora](https://docs.oracle.com/cd/E11882_01/network.112/e10835/sqlnet.htm#NETRF416) configuration file:
 ```
 SSL_CLIENT_AUTHENTICATION = TRUE
