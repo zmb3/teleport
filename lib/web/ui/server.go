@@ -17,6 +17,7 @@ limitations under the License.
 package ui
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -279,6 +280,9 @@ func MakeDesktop(windowsDesktop types.WindowsDesktop) Desktop {
 	}
 
 	sort.Sort(sortedLabels(uiLabels))
+
+	fmt.Println("windowsDesktop")
+	fmt.Printf("%+v\n", windowsDesktop)
 
 	return Desktop{
 		OS:       constants.WindowsOS,
