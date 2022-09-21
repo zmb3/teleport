@@ -54,7 +54,7 @@ func TestServerCreateBotFeatureDisabled(t *testing.T) {
 		Roles: []string{"example"},
 	})
 	require.True(t, trace.IsAccessDenied(err))
-	require.Contains(t, err.Error(), "Machine ID is only supported in Teleport Enterprise")
+	require.ErrorIs(t, err, ErrRequiresEnterprise)
 }
 
 // TestServerCreateBot ensures that the create bot RPC creates the appropriate
@@ -224,7 +224,7 @@ func TestRegisterBotOnboardFeatureDisabled(t *testing.T) {
 		PublicSSHKey: publicKey,
 	})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Machine ID is only supported in Teleport Enterprise")
+	require.ErrorIs(t, err, ErrRequiresEnterprise)
 }
 
 func renewBotCerts(
