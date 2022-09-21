@@ -63,7 +63,7 @@ func TestServerCreateBotFeatureDisabled(t *testing.T) {
 // TODO: We should add more cases to this to properly exercise the token
 // creation elements of createBot.
 func TestServerCreateBot(t *testing.T) {
-	t.Parallel()
+	modules.SetTestModules(t, &modules.TestModules{TestBuildType: modules.BuildEnterprise})
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 	testRole := "test-role"
@@ -258,7 +258,7 @@ func renewBotCerts(
 // TestRegisterBotCertificateGenerationCheck ensures bot cert generation checks
 // work in ordinary conditions, with several rapid renewals.
 func TestRegisterBotCertificateGenerationCheck(t *testing.T) {
-	t.Parallel()
+	modules.SetTestModules(t, &modules.TestModules{TestBuildType: modules.BuildEnterprise})
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 
@@ -316,7 +316,7 @@ func TestRegisterBotCertificateGenerationCheck(t *testing.T) {
 // TestRegisterBotCertificateGenerationStolen simulates a stolen renewable
 // certificate where a generation check is expected to fail.
 func TestRegisterBotCertificateGenerationStolen(t *testing.T) {
-	t.Parallel()
+	modules.SetTestModules(t, &modules.TestModules{TestBuildType: modules.BuildEnterprise})
 	srv := newTestTLSServer(t)
 	ctx := context.Background()
 	_, err := CreateRole(ctx, srv.Auth(), "example", types.RoleSpecV5{})
