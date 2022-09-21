@@ -18,7 +18,6 @@ limitations under the License.
 package keys
 
 import (
-	"bytes"
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
@@ -27,7 +26,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"os"
 
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
@@ -35,17 +33,6 @@ import (
 
 	"github.com/gravitational/teleport/api/utils/sshutils/ppk"
 )
-
-const (
-	PKCS1PrivateKeyType      = "RSA PRIVATE KEY"
-	PKCS8PrivateKeyType      = "PRIVATE KEY"
-	ECPrivateKeyType         = "EC PRIVATE KEY"
-	pivYubiKeyPrivateKeyType = "PIV YUBIKEY PRIVATE KEY"
-)
-
-type cryptoPublicKeyI interface {
-	Equal(x crypto.PublicKey) bool
-}
 
 // PrivateKey implements crypto.Signer with additional helper methods. The underlying
 // private key may be a standard crypto.Signer implemented in the standard library
@@ -127,22 +114,13 @@ func (k *PrivateKey) TLSCertificate(certPEMBlock []byte) (tls.Certificate, error
 		return tls.Certificate{}, trace.Wrap(err)
 	}
 
-	if keyPub, ok := k.Public().(cryptoPublicKeyI); !ok {
+	if keyPub, ok := k.Public().(CryptoPublicKeyI); !ok {
 		return tls.Certificate{}, trace.BadParameter("private key does not contain a valid public key")
 	} else if !keyPub.Equal(x509Cert.PublicKey) {
 		return tls.Certificate{}, trace.BadParameter("private key does not match certificate's public key")
 	}
 
 	return cert, nil
-}
-
-// agentKeyComment is used to generate an agent key comment.
-type agentKeyComment struct {
-	user string
-}
-
-func (a *agentKeyComment) String() string {
-	return fmt.Sprintf("teleport:%s", a.user)
 }
 
 // AsAgentKey converts PrivateKey to a agent.AddedKey. If the given PrivateKey is not
@@ -170,6 +148,15 @@ func (k *PrivateKey) AsAgentKey(sshCert *ssh.Certificate) (agent.AddedKey, error
 	}
 }
 
+// agentKeyComment is used to generate an agent key comment.
+type agentKeyComment struct {
+	user string
+}
+
+func (a *agentKeyComment) String() string {
+	return fmt.Sprintf("teleport:%s", a.user)
+}
+
 // PPKFile returns a PuTTY PPK-formatted keypair
 func (k *PrivateKey) PPKFile() ([]byte, error) {
 	rsaKey, ok := k.Signer.(*rsa.PrivateKey)
@@ -195,128 +182,7 @@ func (k *PrivateKey) RSAPrivateKeyPEM() ([]byte, error) {
 	return k.keyPEM, nil
 }
 
-// LoadPrivateKey returns the PrivateKey for the given key file.
-func LoadPrivateKey(keyFile string) (*PrivateKey, error) {
-	keyPEM, err := os.ReadFile(keyFile)
-	if err != nil {
-		return nil, trace.ConvertSystemError(err)
-	}
-
-	priv, err := ParsePrivateKey(keyPEM)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return priv, nil
-}
-
-// ParsePrivateKey returns the PrivateKey for the given key PEM block.
-func ParsePrivateKey(keyPEM []byte) (*PrivateKey, error) {
-	block, _ := pem.Decode(keyPEM)
-	if block == nil {
-		return nil, trace.BadParameter("expected PEM encoded private key")
-	}
-
-	switch block.Type {
-	case PKCS1PrivateKeyType:
-		cryptoSigner, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		return NewPrivateKey(cryptoSigner, keyPEM)
-	case ECPrivateKeyType:
-		cryptoSigner, err := x509.ParseECPrivateKey(block.Bytes)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		return NewPrivateKey(cryptoSigner, keyPEM)
-	case PKCS8PrivateKeyType:
-		priv, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		cryptoSigner, ok := priv.(crypto.Signer)
-		if !ok {
-			return nil, trace.BadParameter("x509.ParsePKCS8PrivateKey returned an invalid private key of type %T", priv)
-		}
-		return NewPrivateKey(cryptoSigner, keyPEM)
-	case pivYubiKeyPrivateKeyType:
-		priv, err := parseYubiKeyPrivateKeyData(block.Bytes)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		return NewPrivateKey(priv, keyPEM)
-	default:
-		return nil, trace.BadParameter("unexpected private key PEM type %q", block.Type)
-	}
-}
-
-// LoadKeyPair returns the PrivateKey for the given private and public key files.
-func LoadKeyPair(privFile, sshPubFile string) (*PrivateKey, error) {
-	privPEM, err := os.ReadFile(privFile)
-	if err != nil {
-		return nil, trace.ConvertSystemError(err)
-	}
-
-	marshalledSSHPub, err := os.ReadFile(sshPubFile)
-	if err != nil {
-		return nil, trace.ConvertSystemError(err)
-	}
-
-	priv, err := ParseKeyPair(privPEM, marshalledSSHPub)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	return priv, nil
-}
-
-// ParseKeyPair returns the PrivateKey for the given private and public key PEM blocks.
-func ParseKeyPair(privPEM, marshalledSSHPub []byte) (*PrivateKey, error) {
-	priv, err := ParsePrivateKey(privPEM)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	// Verify that the private key's public key matches the expected public key.
-	if !bytes.Equal(ssh.MarshalAuthorizedKey(priv.SSHPublicKey()), marshalledSSHPub) {
-		return nil, trace.CompareFailed("the given private and public keys do not form a valid keypair")
-	}
-
-	return priv, nil
-}
-
-// LoadX509KeyPair parse a tls.Certificate from a private key file and certificate file.
-// This should be used instead of tls.LoadX509KeyPair to support non-raw private keys, like PIV keys.
-func LoadX509KeyPair(certFile, keyFile string) (tls.Certificate, error) {
-	keyPEMBlock, err := os.ReadFile(keyFile)
-	if err != nil {
-		return tls.Certificate{}, trace.ConvertSystemError(err)
-	}
-
-	certPEMBlock, err := os.ReadFile(certFile)
-	if err != nil {
-		return tls.Certificate{}, trace.ConvertSystemError(err)
-	}
-
-	tlsCert, err := X509KeyPair(certPEMBlock, keyPEMBlock)
-	if err != nil {
-		return tls.Certificate{}, trace.Wrap(err)
-	}
-
-	return tlsCert, nil
-}
-
-// X509KeyPair parse a tls.Certificate from a private key PEM and certificate PEM.
-// This should be used instead of tls.X509KeyPair to support non-raw private keys, like PIV keys.
-func X509KeyPair(certPEMBlock, keyPEMBlock []byte) (tls.Certificate, error) {
-	priv, err := ParsePrivateKey(keyPEMBlock)
-	if err != nil {
-		return tls.Certificate{}, trace.Wrap(err)
-	}
-
-	tlsCert, err := priv.TLSCertificate(certPEMBlock)
-	if err != nil {
-		return tls.Certificate{}, trace.Wrap(err)
-	}
-
-	return tlsCert, nil
+// CryptoPublicKeyI is the interface which crypto.PublicKey is implicitly expected to implement.
+type CryptoPublicKeyI interface {
+	Equal(x crypto.PublicKey) bool
 }

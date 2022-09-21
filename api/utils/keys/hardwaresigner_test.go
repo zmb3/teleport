@@ -47,10 +47,10 @@ func TestHardwareSigner(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	resetYubikey(ctx, t)
+	m := newTestingYubiKeyPIVManager(t, ctx)
 
 	// Generate a new YubiKeyPrivateKey. It should return a valid attestation statement and key policy.
-	priv, err = GetOrGenerateYubiKeyPrivateKey(ctx, false)
+	priv, err = m.getOrGenerateYubiKeyPrivateKey(ctx, false)
 	require.NoError(t, err)
 
 	att, err = GetAttestationStatement(priv)

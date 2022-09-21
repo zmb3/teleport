@@ -55,6 +55,7 @@ import (
 	apievents "github.com/gravitational/teleport/api/types/events"
 	"github.com/gravitational/teleport/api/types/wrappers"
 	apiutils "github.com/gravitational/teleport/api/utils"
+	"github.com/gravitational/teleport/api/utils/keys"
 	apisshutils "github.com/gravitational/teleport/api/utils/sshutils"
 	"github.com/gravitational/teleport/lib/asciitable"
 	"github.com/gravitational/teleport/lib/auth"
@@ -841,6 +842,11 @@ func Run(ctx context.Context, args []string, opts ...cliOption) error {
 	if err != nil {
 		return trace.Wrap(err)
 	}
+
+	if err := keys.InitYubiKeyPIVManager(ctx); err != nil {
+		return trace.Wrap(err)
+	}
+	defer keys.CloseYubiKeyPIVManager()
 
 	// configs
 	setEnvFlags(&cf, os.Getenv)

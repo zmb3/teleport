@@ -35,6 +35,7 @@ import (
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/breaker"
 	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/api/utils/keys"
 	"github.com/gravitational/teleport/api/utils/sshutils"
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/auth/authclient"
@@ -183,6 +184,11 @@ func TryRun(commands []CLICommand, args []string) error {
 		context.Background(), syscall.SIGTERM, syscall.SIGINT,
 	)
 	defer cancel()
+
+	if err := keys.InitYubiKeyPIVManager(ctx); err != nil {
+		return trace.Wrap(err)
+	}
+	defer keys.CloseYubiKeyPIVManager()
 
 	client, err := authclient.Connect(ctx, clientConfig)
 	if err != nil {

@@ -26,10 +26,18 @@ import (
 
 var errPIVUnavailable = errors.New("PIV is unavailable in current build")
 
+func initYubiKeyPIVManager(ctx context.Context) error {
+	return nil
+}
+
 func getOrGenerateYubiKeyPrivateKey(ctx context.Context, touchRequired bool) (*PrivateKey, error) {
 	return nil, trace.Wrap(errPIVUnavailable)
 }
 
 func parseYubiKeyPrivateKeyData(keyDataBytes []byte) (crypto.Signer, error) {
 	return nil, trace.Wrap(errPIVUnavailable)
+}
+
+func closeYubiKeyPIVManager() error {
+	return nil
 }
