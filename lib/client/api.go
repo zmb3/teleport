@@ -396,7 +396,7 @@ type Config struct {
 	// Tracer is the tracer to create spans with
 	Tracer oteltrace.Tracer
 
-	// PrivateKeyPolicy is a key policy that this client will use during login.
+	// PrivateKeyPolicy is a key policy that this client will try to follow during login.
 	PrivateKeyPolicy keys.PrivateKeyPolicy
 }
 
