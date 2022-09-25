@@ -121,7 +121,6 @@ func TestChaosUpload(t *testing.T) {
 		ScanPeriod: scanPeriod,
 		Streamer:   faultyStreamer,
 		Clock:      clock,
-		AuditLog:   &events.DiscardAuditLog{},
 	})
 	require.NoError(t, err)
 	go uploader.Serve(ctx)
