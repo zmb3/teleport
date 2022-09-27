@@ -46,77 +46,179 @@ message Event {
   reserved 7;
 
   // Operation identifies operation
-  Operation Type = 1 [(gogoproto.jsontag) = "type,omitempty"];
+  Operation Type = 1 [
+    (gogoproto.jsontag) = "type,omitempty",
+    json_name = "type"
+  ];
   // Resource contains the updated resource
   oneof Resource {
     // ResourceHeader is specified in delete events,
     // the full object is not available, so resource
     // header is used to provide information about object type
-    types.ResourceHeader ResourceHeader = 2 [(gogoproto.jsontag) = "resource,omitempty"];
+    types.ResourceHeader ResourceHeader = 2 [
+      (gogoproto.jsontag) = "resource,omitempty",
+      json_name = "resource"
+    ];
     // CertAuthority is filled in certificate-authority related events
-    types.CertAuthorityV2 CertAuthority = 3 [(gogoproto.jsontag) = "cert_authority,omitempty"];
+    types.CertAuthorityV2 CertAuthority = 3 [
+      (gogoproto.jsontag) = "cert_authority,omitempty",
+      json_name = "cert_authority"
+    ];
     // StaticTokens is filled in static-tokens related events
-    types.StaticTokensV2 StaticTokens = 4 [(gogoproto.jsontag) = "static_tokens,omitempty"];
+    types.StaticTokensV2 StaticTokens = 4 [
+      (gogoproto.jsontag) = "static_tokens,omitempty",
+      json_name = "static_tokens"
+    ];
     // ProvisionToken is filled in provision-token related events
-    types.ProvisionTokenV2 ProvisionToken = 5 [(gogoproto.jsontag) = "provision_token,omitempty"];
+    types.ProvisionTokenV2 ProvisionToken = 5 [
+      (gogoproto.jsontag) = "provision_token,omitempty",
+      json_name = "provision_token"
+    ];
     // ClusterNameV2 is a cluster name resource
-    types.ClusterNameV2 ClusterName = 6 [(gogoproto.jsontag) = "cluster_name,omitempty"];
+    types.ClusterNameV2 ClusterName = 6 [
+      (gogoproto.jsontag) = "cluster_name,omitempty",
+      json_name = "cluster_name"
+    ];
     // User is a user resource
-    types.UserV2 User = 8 [(gogoproto.jsontag) = "user,omitempty"];
+    types.UserV2 User = 8 [
+      (gogoproto.jsontag) = "user,omitempty",
+      json_name = "user"
+    ];
     // Role is a role resource
-    types.RoleV5 Role = 9 [(gogoproto.jsontag) = "role,omitempty"];
+    types.RoleV5 Role = 9 [
+      (gogoproto.jsontag) = "role,omitempty",
+      json_name = "role"
+    ];
     // Namespace is a namespace resource
-    types.Namespace Namespace = 10 [(gogoproto.jsontag) = "namespace,omitempty"];
+    types.Namespace Namespace = 10 [
+      (gogoproto.jsontag) = "namespace,omitempty",
+      json_name = "namespace"
+    ];
     // Server is a node or proxy resource
-    types.ServerV2 Server = 11 [(gogoproto.jsontag) = "server,omitempty"];
+    types.ServerV2 Server = 11 [
+      (gogoproto.jsontag) = "server,omitempty",
+      json_name = "server"
+    ];
     // ReverseTunnel is a resource with reverse tunnel
-    types.ReverseTunnelV2 ReverseTunnel = 12 [(gogoproto.jsontag) = "reverse_tunnel,omitempty"];
+    types.ReverseTunnelV2 ReverseTunnel = 12 [
+      (gogoproto.jsontag) = "reverse_tunnel,omitempty",
+      json_name = "reverse_tunnel"
+    ];
     // TunnelConnection is a resource for tunnel connnections
-    types.TunnelConnectionV2 TunnelConnection = 13 [(gogoproto.jsontag) = "tunnel_connection,omitempty"];
+    types.TunnelConnectionV2 TunnelConnection = 13 [
+      (gogoproto.jsontag) = "tunnel_connection,omitempty",
+      json_name = "tunnel_connection"
+    ];
     // AccessRequest is a resource for access requests
-    types.AccessRequestV3 AccessRequest = 14 [(gogoproto.jsontag) = "access_request,omitempty"];
+    types.AccessRequestV3 AccessRequest = 14 [
+      (gogoproto.jsontag) = "access_request,omitempty",
+      json_name = "access_request"
+    ];
     // AppSession is an application web session.
-    types.WebSessionV2 AppSession = 15 [(gogoproto.jsontag) = "app_session,omitempty"];
+    types.WebSessionV2 AppSession = 15 [
+      (gogoproto.jsontag) = "app_session,omitempty",
+      json_name = "app_session"
+    ];
     // RemoteCluster is a resource for remote clusters
-    types.RemoteClusterV3 RemoteCluster = 16 [(gogoproto.jsontag) = "remote_cluster,omitempty"];
+    types.RemoteClusterV3 RemoteCluster = 16 [
+      (gogoproto.jsontag) = "remote_cluster,omitempty",
+      json_name = "remote_cluster"
+    ];
     // DatabaseServer is a resource for database servers.
-    types.DatabaseServerV3 DatabaseServer = 17 [(gogoproto.jsontag) = "database_server,omitempty"];
+    types.DatabaseServerV3 DatabaseServer = 17 [
+      (gogoproto.jsontag) = "database_server,omitempty",
+      json_name = "database_server"
+    ];
     // WebSession is a regular web session.
-    types.WebSessionV2 WebSession = 18 [(gogoproto.jsontag) = "web_session,omitempty"];
+    types.WebSessionV2 WebSession = 18 [
+      (gogoproto.jsontag) = "web_session,omitempty",
+      json_name = "web_session"
+    ];
     // WebToken is a web token.
-    types.WebTokenV3 WebToken = 19 [(gogoproto.jsontag) = "web_token,omitempty"];
+    types.WebTokenV3 WebToken = 19 [
+      (gogoproto.jsontag) = "web_token,omitempty",
+      json_name = "web_token"
+    ];
     // ClusterNetworkingConfig is a resource for cluster networking configuration.
-    types.ClusterNetworkingConfigV2 ClusterNetworkingConfig = 20 [(gogoproto.jsontag) = "cluster_networking_config,omitempty"];
+    types.ClusterNetworkingConfigV2 ClusterNetworkingConfig = 20 [
+      (gogoproto.jsontag) = "cluster_networking_config,omitempty",
+      json_name = "cluster_networking_config"
+    ];
     // SessionRecordingConfig is a resource for session recording configuration.
-    types.SessionRecordingConfigV2 SessionRecordingConfig = 21 [(gogoproto.jsontag) = "session_recording_config,omitempty"];
+    types.SessionRecordingConfigV2 SessionRecordingConfig = 21 [
+      (gogoproto.jsontag) = "session_recording_config,omitempty",
+      json_name = "session_recording_config"
+    ];
     // AuthPreference is cluster auth preference.
-    types.AuthPreferenceV2 AuthPreference = 22 [(gogoproto.jsontag) = "auth_preference,omitempty"];
+    types.AuthPreferenceV2 AuthPreference = 22 [
+      (gogoproto.jsontag) = "auth_preference,omitempty",
+      json_name = "auth_preference"
+    ];
     // ClusterAuditConfig is a resource for cluster audit configuration.
-    types.ClusterAuditConfigV2 ClusterAuditConfig = 23 [(gogoproto.jsontag) = "cluster_audit_config,omitempty"];
+    types.ClusterAuditConfigV2 ClusterAuditConfig = 23 [
+      (gogoproto.jsontag) = "cluster_audit_config,omitempty",
+      json_name = "cluster_audit_config"
+    ];
     // Lock is a lock resource.
-    types.LockV2 Lock = 24 [(gogoproto.jsontag) = "lock,omitempty"];
+    types.LockV2 Lock = 24 [
+      (gogoproto.jsontag) = "lock,omitempty",
+      json_name = "lock"
+    ];
     // NetworkRestrictions is a resource for network restrictions
-    types.NetworkRestrictionsV4 NetworkRestrictions = 25 [(gogoproto.jsontag) = "network_restrictions,omitempty"];
+    types.NetworkRestrictionsV4 NetworkRestrictions = 25 [
+      (gogoproto.jsontag) = "network_restrictions,omitempty",
+      json_name = "network_restrictions"
+    ];
     // WindowsDesktopService is a resource for Windows desktop services.
-    types.WindowsDesktopServiceV3 WindowsDesktopService = 26 [(gogoproto.jsontag) = "windows_desktop_service,omitempty"];
+    types.WindowsDesktopServiceV3 WindowsDesktopService = 26 [
+      (gogoproto.jsontag) = "windows_desktop_service,omitempty",
+      json_name = "windows_desktop_service"
+    ];
     // WindowsDesktop is a resource for Windows desktop host.
-    types.WindowsDesktopV3 WindowsDesktop = 27 [(gogoproto.jsontag) = "windows_desktop,omitempty"];
+    types.WindowsDesktopV3 WindowsDesktop = 27 [
+      (gogoproto.jsontag) = "windows_desktop,omitempty",
+      json_name = "windows_desktop"
+    ];
     // Database is a database resource.
-    types.DatabaseV3 Database = 28 [(gogoproto.jsontag) = "database,omitempty"];
+    types.DatabaseV3 Database = 28 [
+      (gogoproto.jsontag) = "database,omitempty",
+      json_name = "database"
+    ];
     // AppServer is an application server resource.
-    types.AppServerV3 AppServer = 29 [(gogoproto.jsontag) = "app_server,omitempty"];
+    types.AppServerV3 AppServer = 29 [
+      (gogoproto.jsontag) = "app_server,omitempty",
+      json_name = "app_server"
+    ];
     // App is an application resource.
-    types.AppV3 App = 30 [(gogoproto.jsontag) = "app,omitempty"];
+    types.AppV3 App = 30 [
+      (gogoproto.jsontag) = "app,omitempty",
+      json_name = "app"
+    ];
     // SnowflakeSession is a Snowflake web session.
-    types.WebSessionV2 SnowflakeSession = 31 [(gogoproto.jsontag) = "snowflake_session,omitempty"];
+    types.WebSessionV2 SnowflakeSession = 31 [
+      (gogoproto.jsontag) = "snowflake_session,omitempty",
+      json_name = "snowflake_session"
+    ];
     // KubernetesServer is an Kubernetes server resource.
-    types.KubernetesServerV3 KubernetesServer = 32 [(gogoproto.jsontag) = "kubernetes_server,omitempty"];
+    types.KubernetesServerV3 KubernetesServer = 32 [
+      (gogoproto.jsontag) = "kubernetes_server,omitempty",
+      json_name = "kubernetes_server"
+    ];
     // KubernetesCluster is an Kubernetes cluster resource.
-    types.KubernetesClusterV3 KubernetesCluster = 33 [(gogoproto.jsontag) = "kubernetes_cluster,omitempty"];
+    types.KubernetesClusterV3 KubernetesCluster = 33 [
+      (gogoproto.jsontag) = "kubernetes_cluster,omitempty",
+      json_name = "kubernetes_cluster"
+    ];
     // Installer is an installer resource
-    types.InstallerV1 Installer = 34 [(gogoproto.jsontag) = "installer,omitempty"];
+    types.InstallerV1 Installer = 34 [
+      (gogoproto.jsontag) = "installer,omitempty",
+      json_name = "installer"
+    ];
     // ProvisionTokenV3 is a V3 Provision Token resource.
-    types.ProvisionTokenV3 ProvisionTokenV3 = 35 [(gogoproto.jsontag) = "provision_token_v3,omitempty"];
+    types.ProvisionTokenV3 ProvisionTokenV3 = 35 [
+      (gogoproto.jsontag) = "provision_token_v3,omitempty",
+      json_name = "provision_token_v3"
+    ];
   }
 }
 
@@ -125,113 +227,184 @@ message Watch {
   // Kinds specifies object kinds to watch
   repeated WatchKind Kinds = 1 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "kinds,omitempty"
+    (gogoproto.jsontag) = "kinds,omitempty",
+    json_name = "kinds"
   ];
 }
 
 // WatchKind specifies resource kind to watch
 message WatchKind {
   // Kind is a resource kind to watch
-  string Kind = 1 [(gogoproto.jsontag) = "kind"];
+  string Kind = 1 [
+    (gogoproto.jsontag) = "kind",
+    json_name = "kind"
+  ];
   // LoadSecrets specifies whether to load secrets
-  bool LoadSecrets = 2 [(gogoproto.jsontag) = "load_secrets"];
+  bool LoadSecrets = 2 [
+    (gogoproto.jsontag) = "load_secrets",
+    json_name = "load_secrets"
+  ];
   // Name is an optional specific resource type to watch,
   // if specified only the events with a specific resource
   // name will be sent
-  string Name = 3 [(gogoproto.jsontag) = "name"];
+  string Name = 3 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
   // Filter is an optional mapping of custom filter parameters.
   // Valid values vary by resource kind.
-  map<string, string> Filter = 4 [(gogoproto.jsontag) = "filter,omitempty"];
+  map<string, string> Filter = 4 [
+    (gogoproto.jsontag) = "filter,omitempty",
+    json_name = "filter"
+  ];
   // SubKind is a resource subkind to watch
-  string SubKind = 5 [(gogoproto.jsontag) = "sub_kind,omitempty"];
+  string SubKind = 5 [
+    (gogoproto.jsontag) = "sub_kind,omitempty",
+    json_name = "sub_kind"
+  ];
 }
 
 // HostCertsRequest specifies certificate-generation parameters
 // for a server.
 message HostCertsRequest {
   // HostID is a unique ID of the host.
-  string HostID = 1 [(gogoproto.jsontag) = "host_id"];
+  string HostID = 1 [
+    (gogoproto.jsontag) = "host_id",
+    json_name = "host_id"
+  ];
   // NodeName is a user-friendly host name.
-  string NodeName = 2 [(gogoproto.jsontag) = "node_name"];
+  string NodeName = 2 [
+    (gogoproto.jsontag) = "node_name",
+    json_name = "node_name"
+  ];
   // Role is a system role assigned to the host.
   string Role = 3 [
     (gogoproto.jsontag) = "role",
+    json_name = "role",
     (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
   ];
   // AdditionalPrincipals is a list of additional principals
   // to include in OpenSSH and X509 certificates
-  repeated string AdditionalPrincipals = 4 [(gogoproto.jsontag) = "additional_principals,omitempty"];
+  repeated string AdditionalPrincipals = 4 [
+    (gogoproto.jsontag) = "additional_principals,omitempty",
+    json_name = "additional_principals"
+  ];
   // DNSNames is a list of DNS names to include in x509 certificates.
-  repeated string DNSNames = 5 [(gogoproto.jsontag) = "dns_names,omitempty"];
+  repeated string DNSNames = 5 [
+    (gogoproto.jsontag) = "dns_names,omitempty",
+    json_name = "dns_names"
+  ];
   // PublicTLSKey is a PEM encoded public key, which the auth server will use
   // to create a signed TLS certificate. This field is required.
-  bytes PublicTLSKey = 6 [(gogoproto.jsontag) = "public_tls_key"];
+  bytes PublicTLSKey = 6 [
+    (gogoproto.jsontag) = "public_tls_key",
+    json_name = "public_tls_key"
+  ];
   // PublicSSHKey is a SSH encoded public key, which the auth server will use
   // to create a signed SSH certificate. This field is required.
-  bytes PublicSSHKey = 7 [(gogoproto.jsontag) = "public_ssh_key"];
+  bytes PublicSSHKey = 7 [
+    (gogoproto.jsontag) = "public_ssh_key",
+    json_name = "public_ssh_key"
+  ];
   // RemoteAddr is the IP address of the remote host requesting a certificate.
   // RemoteAddr is used to replace 0.0.0.0 in the list of additional principals.
-  string RemoteAddr = 8 [(gogoproto.jsontag) = "remote_addr"];
+  string RemoteAddr = 8 [
+    (gogoproto.jsontag) = "remote_addr",
+    json_name = "remote_addr"
+  ];
   // Rotation allows clients to send the certificate authority rotation state
   // expected by the client so that auth servers can avoid the situation when
   // clients request certs assuming one state and auth servers issue another.
-  types.Rotation Rotation = 9 [(gogoproto.jsontag) = "rotation,omitempty"];
+  types.Rotation Rotation = 9 [
+    (gogoproto.jsontag) = "rotation,omitempty",
+    json_name = "rotation"
+  ];
   // NoCache is argument that only local callers can supply to bypass cache
-  bool NoCache = 10 [(gogoproto.jsontag) = "-"];
+  bool NoCache = 10 [
+    (gogoproto.jsontag) = "-",
+    json_name = "-"
+  ];
   // SystemRoles is a list of system roles held by the host. Most host certs are
   // single-role and only specify the Role field. The SystemRoles field is only
   // currently used on Instance certs, which need to express all roles held by
   // the instance.
   repeated string SystemRoles = 11 [
     (gogoproto.jsontag) = "system_roles,omitempty",
+    json_name = "system_roles",
     (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
   ];
   // UnstableSystemRoleAssertionID is not a stable part of the public API. Used by
   // older instances to requisition a multi-role cert by individually proving which
   // system roles are held.
   // DELETE IN: 12.0 (deprecated in v11, but required for back-compat with v10 clients)
-  string UnstableSystemRoleAssertionID = 12 [(gogoproto.jsontag) = "system_role_assertion_id,omitempty"];
+  string UnstableSystemRoleAssertionID = 12 [
+    (gogoproto.jsontag) = "system_role_assertion_id,omitempty",
+    json_name = "system_role_assertion_id"
+  ];
 }
 
 // UserCertRequest specifies certificate-generation parameters
 // for a user.
 message UserCertsRequest {
   // PublicKey is a public key to be signed.
-  bytes PublicKey = 1 [(gogoproto.jsontag) = "public_key"];
+  bytes PublicKey = 1 [
+    (gogoproto.jsontag) = "public_key",
+    json_name = "public_key"
+  ];
   // Username of key owner.
-  string Username = 2 [(gogoproto.jsontag) = "username"];
+  string Username = 2 [
+    (gogoproto.jsontag) = "username",
+    json_name = "username"
+  ];
   // Expires is a desired time of the expiry of the certificate, could
   // be adjusted based on the permissions
   google.protobuf.Timestamp Expires = 3 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "expires,omitempty"
+    (gogoproto.jsontag) = "expires,omitempty",
+    json_name = "expires"
   ];
   // Format encodes the desired SSH Certificate format (either old ssh
   // compatibility
   // format to remove some metadata causing trouble with old SSH servers)
   // or standard SSH cert format with custom extensions
-  string Format = 4 [(gogoproto.jsontag) = "format,omitempty"];
+  string Format = 4 [
+    (gogoproto.jsontag) = "format,omitempty",
+    json_name = "format"
+  ];
   // RouteToCluster is an optional cluster name to add to the certificate,
   // so that requests originating with this certificate will be redirected
   // to this cluster
-  string RouteToCluster = 5 [(gogoproto.jsontag) = "route_to_cluster,omitempty"];
+  string RouteToCluster = 5 [
+    (gogoproto.jsontag) = "route_to_cluster,omitempty",
+    json_name = "route_to_cluster"
+  ];
   // AccessRequests is an optional list of request IDs indicating requests whose
   // escalated privileges should be added to the certificate.
-  repeated string AccessRequests = 6 [(gogoproto.jsontag) = "access_requests,omitempty"];
+  repeated string AccessRequests = 6 [
+    (gogoproto.jsontag) = "access_requests,omitempty",
+    json_name = "access_requests"
+  ];
   // KubernetesCluster specifies the target kubernetes cluster for TLS
   // identities. This can be empty on older Teleport clients.
-  string KubernetesCluster = 7 [(gogoproto.jsontag) = "kubernetes_cluster,omitempty"];
+  string KubernetesCluster = 7 [
+    (gogoproto.jsontag) = "kubernetes_cluster,omitempty",
+    json_name = "kubernetes_cluster"
+  ];
   // RouteToDatabase specifies the target database proxy name to encode into
   // certificate so database client requests are routed appropriately.
   RouteToDatabase RouteToDatabase = 8 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "route_to_database,omitempty"
+    (gogoproto.jsontag) = "route_to_database,omitempty",
+    json_name = "route_to_database"
   ];
 
   // NodeName is the name of the SSH node that this user certificate will be
   // scoped to.
-  string NodeName = 9 [(gogoproto.jsontag) = "node_name,omitempty"];
+  string NodeName = 9 [
+    (gogoproto.jsontag) = "node_name,omitempty",
+    json_name = "node_name"
+  ];
 
   enum CertUsage {
     // All means a request for both SSH and TLS certificates for the
@@ -255,149 +428,246 @@ message UserCertsRequest {
     WindowsDesktop = 5;
   }
   // CertUsage limits the resulting user certificate to a single protocol.
-  CertUsage Usage = 10 [(gogoproto.jsontag) = "usage,omitempty"];
+  CertUsage Usage = 10 [
+    (gogoproto.jsontag) = "usage,omitempty",
+    json_name = "usage"
+  ];
 
   // RouteToApp specifies application to issue certificate for.
   RouteToApp RouteToApp = 11 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "route_to_app,omitempty"
+    (gogoproto.jsontag) = "route_to_app,omitempty",
+    json_name = "route_to_app"
   ];
 
   // RoleRequests specify an alternative set of named roles to apply to the
   // certificate, assuming the requestor is allowed to impersonate said roles
   // directly. An empty set of requests returns the user's normal set of
   // roles.
-  repeated string RoleRequests = 12 [(gogoproto.jsontag) = "role_requests,omitempty"];
+  repeated string RoleRequests = 12 [
+    (gogoproto.jsontag) = "role_requests,omitempty",
+    json_name = "role_requests"
+  ];
 
   // RouteToWindowsDesktop specifies the target windows desktop name to encode into
   // certificate so windows desktop client requests are routed appropriately.
   RouteToWindowsDesktop RouteToWindowsDesktop = 13 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "route_to_windows_desktop,omitempty"
+    (gogoproto.jsontag) = "route_to_windows_desktop,omitempty",
+    json_name = "route_to_windows_desktop"
   ];
 
   // UseRoleRequests is used to ensure a certificate request is intended to
   // use role impersonation, even if the list of role requests is empty.
-  bool UseRoleRequests = 14 [(gogoproto.jsontag) = "use_role_requests,omitempty"];
+  bool UseRoleRequests = 14 [
+    (gogoproto.jsontag) = "use_role_requests,omitempty",
+    json_name = "use_role_requests"
+  ];
 
   // DropAccessRequests is an optional list of request IDs indicating requests
   // whose escalated privileges should be removed from the certificate.
-  repeated string DropAccessRequests = 15 [(gogoproto.jsontag) = "drop_access_requests,omitempty"];
+  repeated string DropAccessRequests = 15 [
+    (gogoproto.jsontag) = "drop_access_requests,omitempty",
+    json_name = "drop_access_requests"
+  ];
 
   // ConnectionDiagnosticID is the ID of the ConnectionDiagnostic resource we should use to add
   // traces as we pass certain checkpoints.
-  string ConnectionDiagnosticID = 16 [(gogoproto.jsontag) = "connection_diagnostic_id,omitempty"];
+  string ConnectionDiagnosticID = 16 [
+    (gogoproto.jsontag) = "connection_diagnostic_id,omitempty",
+    json_name = "connection_diagnostic_id"
+  ];
 }
 
 // RouteToDatabase combines parameters for database service routing information.
 message RouteToDatabase {
   // ServiceName is the Teleport database proxy service name the cert is for.
-  string ServiceName = 1 [(gogoproto.jsontag) = "service_name"];
+  string ServiceName = 1 [
+    (gogoproto.jsontag) = "service_name",
+    json_name = "service_name"
+  ];
   // Protocol is the type of the database the cert is for.
-  string Protocol = 2 [(gogoproto.jsontag) = "protocol"];
+  string Protocol = 2 [
+    (gogoproto.jsontag) = "protocol",
+    json_name = "protocol"
+  ];
   // Username is an optional database username to embed.
-  string Username = 3 [(gogoproto.jsontag) = "username,omitempty"];
+  string Username = 3 [
+    (gogoproto.jsontag) = "username,omitempty",
+    json_name = "username"
+  ];
   // Database is an optional database name to embed.
-  string Database = 4 [(gogoproto.jsontag) = "database,omitempty"];
+  string Database = 4 [
+    (gogoproto.jsontag) = "database,omitempty",
+    json_name = "database"
+  ];
 }
 
 // RouteToWindowsDesktop combines parameters for windows desktop routing information.
 message RouteToWindowsDesktop {
   // WindowsDesktop is the Windows Desktop server name to embed.
-  string WindowsDesktop = 1 [(gogoproto.jsontag) = "windows_desktop"];
+  string WindowsDesktop = 1 [
+    (gogoproto.jsontag) = "windows_desktop",
+    json_name = "windows_desktop"
+  ];
   // Login is the Windows desktop user login to embed.
-  string Login = 2 [(gogoproto.jsontag) = "login"];
+  string Login = 2 [
+    (gogoproto.jsontag) = "login",
+    json_name = "login"
+  ];
 }
 
 // RouteToApp contains parameters for application access certificate requests.
 message RouteToApp {
   // Name is the application name certificate is being requested for.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
   // SessionID is the ID of the application session.
-  string SessionID = 2 [(gogoproto.jsontag) = "session_id"];
+  string SessionID = 2 [
+    (gogoproto.jsontag) = "session_id",
+    json_name = "session_id"
+  ];
   // PublicAddr is the application public address.
-  string PublicAddr = 3 [(gogoproto.jsontag) = "public_addr"];
+  string PublicAddr = 3 [
+    (gogoproto.jsontag) = "public_addr",
+    json_name = "public_addr"
+  ];
   // ClusterName is the cluster where the application resides.
-  string ClusterName = 4 [(gogoproto.jsontag) = "cluster_name"];
+  string ClusterName = 4 [
+    (gogoproto.jsontag) = "cluster_name",
+    json_name = "cluster_name"
+  ];
   // AWSRoleARN is the AWS role to assume when accessing AWS API.
-  string AWSRoleARN = 5 [(gogoproto.jsontag) = "aws_role_arn,omitempty"];
+  string AWSRoleARN = 5 [
+    (gogoproto.jsontag) = "aws_role_arn,omitempty",
+    json_name = "aws_role_arn"
+  ];
 }
 
 // GetUserRequest specifies parameters for the GetUser method.
 message GetUserRequest {
   // Name is the name of the desired user.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
   // WithSecrets specifies whether to load associated secrets.
-  bool WithSecrets = 2 [(gogoproto.jsontag) = "with_secrets,omitempty"];
+  bool WithSecrets = 2 [
+    (gogoproto.jsontag) = "with_secrets,omitempty",
+    json_name = "with_secrets"
+  ];
 }
 
 // GetUsersRequest specifies parameters for the GetUsers method.
 message GetUsersRequest {
   // WithSecrets specifies whether to load associated secrets.
-  bool WithSecrets = 1 [(gogoproto.jsontag) = "with_secrets"];
+  bool WithSecrets = 1 [
+    (gogoproto.jsontag) = "with_secrets",
+    json_name = "with_secrets"
+  ];
 }
 
 // AccessRequests is a collection of AccessRequest values.
 message AccessRequests {
-  repeated types.AccessRequestV3 AccessRequests = 1 [(gogoproto.jsontag) = "access_requests"];
+  repeated types.AccessRequestV3 AccessRequests = 1 [
+    (gogoproto.jsontag) = "access_requests",
+    json_name = "access_requests"
+  ];
 }
 
 // PluginDataSeq is a sequence of plugin data.
 message PluginDataSeq {
-  repeated types.PluginDataV3 PluginData = 1 [(gogoproto.jsontag) = "plugin_data"];
+  repeated types.PluginDataV3 PluginData = 1 [
+    (gogoproto.jsontag) = "plugin_data",
+    json_name = "plugin_data"
+  ];
 }
 
 // RequestStateSetter encodes the paramters necessary to update the
 // state of a privilege escalation request.
 message RequestStateSetter {
   // ID is the request ID being targeted
-  string ID = 1 [(gogoproto.jsontag) = "id"];
+  string ID = 1 [
+    (gogoproto.jsontag) = "id",
+    json_name = "id"
+  ];
   // State is the desired state to be set
-  types.RequestState State = 2 [(gogoproto.jsontag) = "state"];
+  types.RequestState State = 2 [
+    (gogoproto.jsontag) = "state",
+    json_name = "state"
+  ];
   // Delegator is an optional indicator of who delegated this
   // state update (used by plugins to indicate which user approved
   // or denied the request).
-  string Delegator = 3 [(gogoproto.jsontag) = "delegator,omitempty"];
+  string Delegator = 3 [
+    (gogoproto.jsontag) = "delegator,omitempty",
+    json_name = "delegator"
+  ];
   // Reason is an optional message indicating the reason for the
   // resolution (approval, denail , etc...).
-  string Reason = 4 [(gogoproto.jsontag) = "reason,omitempty"];
+  string Reason = 4 [
+    (gogoproto.jsontag) = "reason,omitempty",
+    json_name = "reason"
+  ];
   // Annotations are key/value pairs received from plugins during request
   // resolution.  They are currently only used to provide additional logging
   // information.
   wrappers.LabelValues Annotations = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "annotations,omitempty",
+    json_name = "annotations",
     (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
   ];
   // Roles, if present, overrides the existing set of roles associated
   // with the access request.
-  repeated string Roles = 6 [(gogoproto.jsontag) = "roles,omitempty"];
+  repeated string Roles = 6 [
+    (gogoproto.jsontag) = "roles,omitempty",
+    json_name = "roles"
+  ];
 }
 
 // RequestID is the unique identifier of an access request.
 message RequestID {
-  string ID = 1 [(gogoproto.jsontag) = "id"];
+  string ID = 1 [
+    (gogoproto.jsontag) = "id",
+    json_name = "id"
+  ];
 }
 
 // RotateUserTokenSecretsRequest is a request to rotate token secrets.
 message RotateUserTokenSecretsRequest {
-  string TokenID = 1 [(gogoproto.jsontag) = "token"];
+  string TokenID = 1 [
+    (gogoproto.jsontag) = "token",
+    json_name = "token"
+  ];
 }
 
 // GetResetPasswordTokenRequest is a request to get a reset password token.
 message GetResetPasswordTokenRequest {
-  string TokenID = 1 [(gogoproto.jsontag) = "token"];
+  string TokenID = 1 [
+    (gogoproto.jsontag) = "token",
+    json_name = "token"
+  ];
 }
 
 // CreateResetPasswordTokenRequest is a request to create a reset password token.
 message CreateResetPasswordTokenRequest {
   // Name is the user name.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
   // Type is a token type.
-  string Type = 2 [(gogoproto.jsontag) = "type"];
+  string Type = 2 [
+    (gogoproto.jsontag) = "type",
+    json_name = "type"
+  ];
   // TTL specifies how long the generated token is valid for.
   int64 TTL = 3 [
     (gogoproto.jsontag) = "ttl",
+    json_name = "ttl",
     (gogoproto.casttype) = "Duration"
   ];
 }
@@ -406,37 +676,54 @@ message CreateResetPasswordTokenRequest {
 // certificates from a bot join token.
 message RenewableCertsRequest {
   // Token is a bot join token.
-  string Token = 1 [(gogoproto.jsontag) = "token"];
+  string Token = 1 [
+    (gogoproto.jsontag) = "token",
+    json_name = "token"
+  ];
 
   // PublicKey is a public key to be signed.
-  bytes PublicKey = 2 [(gogoproto.jsontag) = "public_key"];
+  bytes PublicKey = 2 [
+    (gogoproto.jsontag) = "public_key",
+    json_name = "public_key"
+  ];
 }
 
 // CreateBotRequest is used to create a bot User and associated resources.
 message CreateBotRequest {
   // Name is the name of the bot, i.e. the unprefixed User name.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 
   // TTL is the desired TTL for the token if one is created. If unset, a
   // server default is used.
   int64 TTL = 2 [
     (gogoproto.jsontag) = "ttl",
+    json_name = "ttl",
     (gogoproto.casttype) = "Duration"
   ];
 
   // TokenID is an optional token name of an EC2/IAM join token should be
   // used. If unset, a new random token is created and its name returned.
-  string TokenID = 3 [(gogoproto.jsontag) = "token_id"];
+  string TokenID = 3 [
+    (gogoproto.jsontag) = "token_id",
+    json_name = "token_id"
+  ];
 
   // Roles is a list of roles the created bot should be allowed to assume
   // via role impersonation.
-  repeated string Roles = 4 [(gogoproto.jsontag) = "roles"];
+  repeated string Roles = 4 [
+    (gogoproto.jsontag) = "roles",
+    json_name = "roles"
+  ];
 
   // Traits are used to populate role variables. These will propagate to
   // role impersonated certificates generated by the bot.
   wrappers.LabelValues Traits = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "traits,omitempty",
+    json_name = "traits",
     (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
   ];
 }
@@ -444,20 +731,31 @@ message CreateBotRequest {
 // CreateBotResponse returns details for bootstrapping a new bot.
 message CreateBotResponse {
   // UserName is the name of the associated bot user.
-  string UserName = 1 [(gogoproto.jsontag) = "user_name"];
+  string UserName = 1 [
+    (gogoproto.jsontag) = "user_name",
+    json_name = "user_name"
+  ];
   // RoleName is the name of the associated bot role.
-  string RoleName = 2 [(gogoproto.jsontag) = "role_name"];
+  string RoleName = 2 [
+    (gogoproto.jsontag) = "role_name",
+    json_name = "role_name"
+  ];
   // TokenID is the name of the join token for the bot.
-  string TokenID = 3 [(gogoproto.jsontag) = "token_id"];
+  string TokenID = 3 [
+    (gogoproto.jsontag) = "token_id",
+    json_name = "token_id"
+  ];
   // TokenTTL is the TTL for the token. If it differs from the requested TTL,
   // it may have been limited by server policy.
   int64 TokenTTL = 4 [
     (gogoproto.jsontag) = "ttl",
+    json_name = "ttl",
     (gogoproto.casttype) = "Duration"
   ];
   // JoinMethod is the join method the bot must use to join the cluster.
   string JoinMethod = 5 [
     (gogoproto.jsontag) = "join_method",
+    json_name = "join_method",
     (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.JoinMethod"
   ];
 }
@@ -465,7 +763,10 @@ message CreateBotResponse {
 // DeleteBotRequest is a request to delete a bot user
 message DeleteBotRequest {
   // Name is the name of the bot, i.e. the unprefixed User name.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 }
 
 // GetBotUsersRequest specifies parameters for the GetUsers method.
@@ -481,61 +782,127 @@ message PingRequest {
 // PingResponse contains data about the teleport auth server.
 message PingResponse {
   // ClusterName is the name of the teleport cluster.
-  string ClusterName = 1 [(gogoproto.jsontag) = "cluster_name"];
+  string ClusterName = 1 [
+    (gogoproto.jsontag) = "cluster_name",
+    json_name = "cluster_name"
+  ];
   // ServerVersion is the version of the auth server.
-  string ServerVersion = 2 [(gogoproto.jsontag) = "server_version"];
+  string ServerVersion = 2 [
+    (gogoproto.jsontag) = "server_version",
+    json_name = "server_version"
+  ];
   // ServerFeatures are the features supported by the auth server.
-  Features ServerFeatures = 3 [(gogoproto.jsontag) = "server_features"];
+  Features ServerFeatures = 3 [
+    (gogoproto.jsontag) = "server_features",
+    json_name = "server_features"
+  ];
   // ProxyPublicAddr is the server's public proxy address.
-  string ProxyPublicAddr = 4 [(gogoproto.jsontag) = "proxy_public_addr"];
+  string ProxyPublicAddr = 4 [
+    (gogoproto.jsontag) = "proxy_public_addr",
+    json_name = "proxy_public_addr"
+  ];
   // IsBoring signals whether or not the server was compiled with BoringCrypto.
-  bool IsBoring = 5 [(gogoproto.jsontag) = "is_boring"];
+  bool IsBoring = 5 [
+    (gogoproto.jsontag) = "is_boring",
+    json_name = "is_boring"
+  ];
   // LicenseWarnings is a list of license compliance warnings.
-  repeated string LicenseWarnings = 6 [(gogoproto.jsontag) = "license_warnings"];
+  repeated string LicenseWarnings = 6 [
+    (gogoproto.jsontag) = "license_warnings",
+    json_name = "license_warnings"
+  ];
   // RemoteAddr is the client peer addr as seen from the auth server (used to assist
   // instances in guessing their external IP when none is configured).
-  string RemoteAddr = 7 [(gogoproto.jsontag) = "remote_addr"];
+  string RemoteAddr = 7 [
+    (gogoproto.jsontag) = "remote_addr",
+    json_name = "remote_addr"
+  ];
 }
 
 // Features are auth server features.
 message Features {
   // Kubernetes enables Kubernetes Access product
-  bool Kubernetes = 1 [(gogoproto.jsontag) = "kubernetes"];
+  bool Kubernetes = 1 [
+    (gogoproto.jsontag) = "kubernetes",
+    json_name = "kubernetes"
+  ];
   // App enables Application Access product
-  bool App = 2 [(gogoproto.jsontag) = "app"];
+  bool App = 2 [
+    (gogoproto.jsontag) = "app",
+    json_name = "app"
+  ];
   // DB enables database access product
-  bool DB = 3 [(gogoproto.jsontag) = "db"];
+  bool DB = 3 [
+    (gogoproto.jsontag) = "db",
+    json_name = "db"
+  ];
   // OIDC enables OIDC connectors
-  bool OIDC = 4 [(gogoproto.jsontag) = "oidc"];
+  bool OIDC = 4 [
+    (gogoproto.jsontag) = "oidc",
+    json_name = "oidc"
+  ];
   // SAML enables SAML connectors
-  bool SAML = 5 [(gogoproto.jsontag) = "saml"];
+  bool SAML = 5 [
+    (gogoproto.jsontag) = "saml",
+    json_name = "saml"
+  ];
   // AccessControls enables FIPS access controls
-  bool AccessControls = 6 [(gogoproto.jsontag) = "access_controls"];
+  bool AccessControls = 6 [
+    (gogoproto.jsontag) = "access_controls",
+    json_name = "access_controls"
+  ];
   // AdvancedAccessWorkflows enables advanced access workflows
-  bool AdvancedAccessWorkflows = 7 [(gogoproto.jsontag) = "advanced_access_workflows"];
+  bool AdvancedAccessWorkflows = 7 [
+    (gogoproto.jsontag) = "advanced_access_workflows",
+    json_name = "advanced_access_workflows"
+  ];
   // Cloud enables some cloud-related features
-  bool Cloud = 8 [(gogoproto.jsontag) = "cloud"];
+  bool Cloud = 8 [
+    (gogoproto.jsontag) = "cloud",
+    json_name = "cloud"
+  ];
   // HSM enables PKCS#11 HSM support
-  bool HSM = 9 [(gogoproto.jsontag) = "hsm"];
+  bool HSM = 9 [
+    (gogoproto.jsontag) = "hsm",
+    json_name = "hsm"
+  ];
   // Desktop enables desktop access product
-  bool Desktop = 10 [(gogoproto.jsontag) = "desktop"];
+  bool Desktop = 10 [
+    (gogoproto.jsontag) = "desktop",
+    json_name = "desktop"
+  ];
   // ModeratedSessions enables moderated sessions product
-  bool ModeratedSessions = 11 [(gogoproto.jsontag) = "moderated_sessions"];
+  bool ModeratedSessions = 11 [
+    (gogoproto.jsontag) = "moderated_sessions",
+    json_name = "moderated_sessions"
+  ];
   // MachineID enables MachineID product
-  bool MachineID = 12 [(gogoproto.jsontag) = "machine_id"];
+  bool MachineID = 12 [
+    (gogoproto.jsontag) = "machine_id",
+    json_name = "machine_id"
+  ];
   // ResourceAccessRequests enables resource access requests product
-  bool ResourceAccessRequests = 13 [(gogoproto.jsontag) = "resource_access_requests"];
+  bool ResourceAccessRequests = 13 [
+    (gogoproto.jsontag) = "resource_access_requests",
+    json_name = "resource_access_requests"
+  ];
 }
 
 // DeleteUserRequest is the input value for the DeleteUser method.
 message DeleteUserRequest {
   // Name is the user name to delete.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 }
 
 // Semaphores is a sequence of Semaphore resources.
 message Semaphores {
-  repeated types.SemaphoreV3 Semaphores = 1 [(gogoproto.jsontag) = "semaphores"];
+  repeated types.SemaphoreV3 Semaphores = 1 [
+    (gogoproto.jsontag) = "semaphores",
+    json_name = "semaphores"
+  ];
 }
 
 // AuditStreamRequest contains stream request - event or stream control request
@@ -590,36 +957,57 @@ message FlushAndCloseStream {}
 // DELETE IN 10.0.
 message GetApplicationServersRequest {
   // Namespace is the app servers namespace.
-  string Namespace = 1 [(gogoproto.jsontag) = "namespace"];
+  string Namespace = 1 [
+    (gogoproto.jsontag) = "namespace",
+    json_name = "namespace"
+  ];
 }
 
 // GetApplicationServersResponse contains all registered app servers.
 // DELETE IN 10.0.
 message GetApplicationServersResponse {
   // Servers is a list of proxied applications.
-  repeated types.AppServerV3 Servers = 1 [(gogoproto.jsontag) = "servers"];
+  repeated types.AppServerV3 Servers = 1 [
+    (gogoproto.jsontag) = "servers",
+    json_name = "servers"
+  ];
 }
 
 // UpsertApplicationServerRequest upserts an app server.
 message UpsertApplicationServerRequest {
   // Server is an app server resource to register.
-  types.AppServerV3 Server = 1 [(gogoproto.jsontag) = "server"];
+  types.AppServerV3 Server = 1 [
+    (gogoproto.jsontag) = "server",
+    json_name = "server"
+  ];
 }
 
 // DeleteApplicationServerRequest is a request to delete an app server.
 message DeleteApplicationServerRequest {
   // Namespace is the app server namespace.
-  string Namespace = 1 [(gogoproto.jsontag) = "namespace"];
+  string Namespace = 1 [
+    (gogoproto.jsontag) = "namespace",
+    json_name = "namespace"
+  ];
   // HostID is the app server host uuid.
-  string HostID = 2 [(gogoproto.jsontag) = "host_id"];
+  string HostID = 2 [
+    (gogoproto.jsontag) = "host_id",
+    json_name = "host_id"
+  ];
   // Name is the name of the application to delete.
-  string Name = 3 [(gogoproto.jsontag) = "name"];
+  string Name = 3 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 }
 
 // DeleteAllApplicationServersRequest are the parameters used to remove all applications.
 message DeleteAllApplicationServersRequest {
   // Namespace is the app servers namespace.
-  string Namespace = 1 [(gogoproto.jsontag) = "namespace"];
+  string Namespace = 1 [
+    (gogoproto.jsontag) = "namespace",
+    json_name = "namespace"
+  ];
 }
 
 // GetAppServersRequest are the parameters used to request application servers.
@@ -627,11 +1015,15 @@ message DeleteAllApplicationServersRequest {
 // DELETE IN 9.0. Deprecated, use GetApplicationServersRequest.
 message GetAppServersRequest {
   // Namespace is the namespace for application.
-  string Namespace = 1 [(gogoproto.jsontag) = "namespace"];
+  string Namespace = 1 [
+    (gogoproto.jsontag) = "namespace",
+    json_name = "namespace"
+  ];
   // DEPRECATED: SkipValidation is used to skip JSON schema validation.
   bool SkipValidation = 2 [
     deprecated = true,
-    (gogoproto.jsontag) = "skip_validation"
+    (gogoproto.jsontag) = "skip_validation",
+    json_name = "skip_validation"
   ];
 }
 
@@ -640,14 +1032,20 @@ message GetAppServersRequest {
 // DELETE IN 9.0. Deprecated, use GetApplicationServersResponse.
 message GetAppServersResponse {
   // Servers is a slice of types.Server that represent applications.
-  repeated types.ServerV2 Servers = 1 [(gogoproto.jsontag) = "servers"];
+  repeated types.ServerV2 Servers = 1 [
+    (gogoproto.jsontag) = "servers",
+    json_name = "servers"
+  ];
 }
 
 // UpsertAppServerRequest are the parameters used to add an application.
 //
 // DELETE IN 9.0. Deprecated, use UpsertApplicationServerRequest.
 message UpsertAppServerRequest {
-  types.ServerV2 Server = 1 [(gogoproto.jsontag) = "server"];
+  types.ServerV2 Server = 1 [
+    (gogoproto.jsontag) = "server",
+    json_name = "server"
+  ];
 }
 
 // DeleteAppServerRequest are the parameters used to remove an application.
@@ -655,9 +1053,15 @@ message UpsertAppServerRequest {
 // DELETE IN 9.0. Deprecated, use DeleteApplicationServerRequest.
 message DeleteAppServerRequest {
   // Namespace is the namespace for application.
-  string Namespace = 1 [(gogoproto.jsontag) = "namespace"];
+  string Namespace = 1 [
+    (gogoproto.jsontag) = "namespace",
+    json_name = "namespace"
+  ];
   // Name is the name of the application to delete.
-  string Name = 2 [(gogoproto.jsontag) = "name"];
+  string Name = 2 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 }
 
 // DeleteAllAppServersRequest are the parameters used to remove all applications.
@@ -665,142 +1069,222 @@ message DeleteAppServerRequest {
 // DELETE IN 9.0. Deprecated, use DeleteAllApplicationServersRequest.
 message DeleteAllAppServersRequest {
   // Namespace is the namespace for application.
-  string Namespace = 1 [(gogoproto.jsontag) = "namespace"];
+  string Namespace = 1 [
+    (gogoproto.jsontag) = "namespace",
+    json_name = "namespace"
+  ];
 }
 
 // GenerateAppTokenRequest are the parameters used to request an application
 // token.
 message GenerateAppTokenRequest {
   // Username is the Teleport username.
-  string Username = 1 [(gogoproto.jsontag) = "username"];
+  string Username = 1 [
+    (gogoproto.jsontag) = "username",
+    json_name = "username"
+  ];
   // Roles is a list of Teleport roles assigned to the user.
-  repeated string Roles = 2 [(gogoproto.jsontag) = "roles"];
+  repeated string Roles = 2 [
+    (gogoproto.jsontag) = "roles",
+    json_name = "roles"
+  ];
   // URI is the URI of the application this token is targeting.
-  string URI = 3 [(gogoproto.jsontag) = "uri"];
+  string URI = 3 [
+    (gogoproto.jsontag) = "uri",
+    json_name = "uri"
+  ];
   // Expires is the time this token expires.
   google.protobuf.Timestamp Expires = 4 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "expires"
+    (gogoproto.jsontag) = "expires",
+    json_name = "expires"
   ];
 }
 
 // GenerateAppTokenResponse contains a signed application token.
 message GenerateAppTokenResponse {
-  string Token = 1 [(gogoproto.jsontag) = "token"];
+  string Token = 1 [
+    (gogoproto.jsontag) = "token",
+    json_name = "token"
+  ];
 }
 
 // GetAppSessionRequest are the parameters used to request an application web session.
 message GetAppSessionRequest {
   // SessionID is the ID of the session being requested.
-  string SessionID = 1 [(gogoproto.jsontag) = "session_id"];
+  string SessionID = 1 [
+    (gogoproto.jsontag) = "session_id",
+    json_name = "session_id"
+  ];
 }
 
 // GetAppSessionResponse contains the requested application web session.
 message GetAppSessionResponse {
   // Session is the application web session.
-  types.WebSessionV2 Session = 1 [(gogoproto.jsontag) = "session"];
+  types.WebSessionV2 Session = 1 [
+    (gogoproto.jsontag) = "session",
+    json_name = "session"
+  ];
 }
 
 // GetAppSessionsResponse contains all the requested application web sessions.
 message GetAppSessionsResponse {
   // Sessions is a list of application web sessions.
-  repeated types.WebSessionV2 Sessions = 1 [(gogoproto.jsontag) = "sessions"];
+  repeated types.WebSessionV2 Sessions = 1 [
+    (gogoproto.jsontag) = "sessions",
+    json_name = "sessions"
+  ];
 }
 
 // GetSnowflakeSessionsResponse contains all the requested Snowflake web sessions.
 message GetSnowflakeSessionsResponse {
   // Sessions is a list of Snowflake web sessions.
-  repeated types.WebSessionV2 Sessions = 1 [(gogoproto.jsontag) = "sessions"];
+  repeated types.WebSessionV2 Sessions = 1 [
+    (gogoproto.jsontag) = "sessions",
+    json_name = "sessions"
+  ];
 }
 
 // CreateAppSessionRequest contains the parameters to request a application web session.
 message CreateAppSessionRequest {
   reserved 2;
   // Username is the name of the user requesting the session.
-  string Username = 1 [(gogoproto.jsontag) = "username"];
+  string Username = 1 [
+    (gogoproto.jsontag) = "username",
+    json_name = "username"
+  ];
   // PublicAddr is the public address the application.
-  string PublicAddr = 3 [(gogoproto.jsontag) = "public_addr"];
+  string PublicAddr = 3 [
+    (gogoproto.jsontag) = "public_addr",
+    json_name = "public_addr"
+  ];
   // ClusterName is cluster within which the application is running.
-  string ClusterName = 4 [(gogoproto.jsontag) = "cluster_name"];
+  string ClusterName = 4 [
+    (gogoproto.jsontag) = "cluster_name",
+    json_name = "cluster_name"
+  ];
   // AWSRoleARN is AWS role the user wants to assume.
-  string AWSRoleARN = 5 [(gogoproto.jsontag) = "aws_role_arn"];
+  string AWSRoleARN = 5 [
+    (gogoproto.jsontag) = "aws_role_arn",
+    json_name = "aws_role_arn"
+  ];
 }
 
 // CreateAppSessionResponse contains the requested application web session.
 message CreateAppSessionResponse {
   // Session is the application web session.
-  types.WebSessionV2 Session = 1 [(gogoproto.jsontag) = "session"];
+  types.WebSessionV2 Session = 1 [
+    (gogoproto.jsontag) = "session",
+    json_name = "session"
+  ];
 }
 
 // CreateSnowflakeSessionRequest contains data required to create Snowflake web session.
 message CreateSnowflakeSessionRequest {
   // Username is the name of the user requesting the session.
-  string Username = 1 [(gogoproto.jsontag) = "username"];
+  string Username = 1 [
+    (gogoproto.jsontag) = "username",
+    json_name = "username"
+  ];
   // SessionToken is the Snowflake server session token.
-  string SessionToken = 2 [(gogoproto.jsontag) = "session_token"];
+  string SessionToken = 2 [
+    (gogoproto.jsontag) = "session_token",
+    json_name = "session_token"
+  ];
   // TokenTTL is the token validity period.
   int64 TokenTTL = 3 [
     (gogoproto.jsontag) = "token_ttl",
+    json_name = "token_ttl",
     (gogoproto.casttype) = "Duration"
   ];
 }
 
 // CreateSnowflakeSessionResponse contains Snowflake WebSession.
 message CreateSnowflakeSessionResponse {
-  types.WebSessionV2 Session = 1 [(gogoproto.jsontag) = "session"];
+  types.WebSessionV2 Session = 1 [
+    (gogoproto.jsontag) = "session",
+    json_name = "session"
+  ];
 }
 
 // GetSnowflakeSessionRequest are the parameters used to request an Snowflake web session.
 message GetSnowflakeSessionRequest {
   // SessionID is the ID of the session being requested.
-  string SessionID = 1 [(gogoproto.jsontag) = "session_id"];
+  string SessionID = 1 [
+    (gogoproto.jsontag) = "session_id",
+    json_name = "session_id"
+  ];
 }
 
 // GetSnowflakeSessionResponse contains the requested Snowflake web session.
 message GetSnowflakeSessionResponse {
   // Session is the Snowflake web session.
-  types.WebSessionV2 Session = 1 [(gogoproto.jsontag) = "session"];
+  types.WebSessionV2 Session = 1 [
+    (gogoproto.jsontag) = "session",
+    json_name = "session"
+  ];
 }
 
 // DeleteAppSessionRequest contains the parameters used to remove an application web session.
 message DeleteAppSessionRequest {
-  string SessionID = 1 [(gogoproto.jsontag) = "session_id"];
+  string SessionID = 1 [
+    (gogoproto.jsontag) = "session_id",
+    json_name = "session_id"
+  ];
 }
 
 // DeleteSnowflakeSessionRequest contains the parameters used to remove a Snowflake web session.
 message DeleteSnowflakeSessionRequest {
-  string SessionID = 1 [(gogoproto.jsontag) = "session_id"];
+  string SessionID = 1 [
+    (gogoproto.jsontag) = "session_id",
+    json_name = "session_id"
+  ];
 }
 
 // DeleteUserAppSessionsRequest contains the parameters used to remove the
 // user's application web sessions.
 message DeleteUserAppSessionsRequest {
-  string Username = 1 [(gogoproto.jsontag) = "username"];
+  string Username = 1 [
+    (gogoproto.jsontag) = "username",
+    json_name = "username"
+  ];
 }
 
 // GetWebSessionResponse contains the requested web session.
 message GetWebSessionResponse {
   // Session is the web session.
-  types.WebSessionV2 Session = 1 [(gogoproto.jsontag) = "session"];
+  types.WebSessionV2 Session = 1 [
+    (gogoproto.jsontag) = "session",
+    json_name = "session"
+  ];
 }
 
 // GetWebSessionsResponse contains all the requested web sessions.
 message GetWebSessionsResponse {
   // Sessions is a list of web sessions.
-  repeated types.WebSessionV2 Sessions = 1 [(gogoproto.jsontag) = "sessions"];
+  repeated types.WebSessionV2 Sessions = 1 [
+    (gogoproto.jsontag) = "sessions",
+    json_name = "sessions"
+  ];
 }
 
 // GetWebTokenResponse contains the requested web token.
 message GetWebTokenResponse {
   // Token is the web token being requested.
-  types.WebTokenV3 Token = 1 [(gogoproto.jsontag) = "token"];
+  types.WebTokenV3 Token = 1 [
+    (gogoproto.jsontag) = "token",
+    json_name = "token"
+  ];
 }
 
 // GetWebTokensResponse contains all the requested web tokens.
 message GetWebTokensResponse {
   // Tokens is a list of web tokens.
-  repeated types.WebTokenV3 Tokens = 1 [(gogoproto.jsontag) = "tokens"];
+  repeated types.WebTokenV3 Tokens = 1 [
+    (gogoproto.jsontag) = "tokens",
+    json_name = "tokens"
+  ];
 }
 
 // GetKubeServicesRequest are the parameters used to request kubernetes services.
@@ -812,21 +1296,30 @@ message GetKubeServicesRequest {}
 message GetKubeServicesResponse {
   // Servers is a slice of types.Server that represent kubernetes
   // services.
-  repeated types.ServerV2 Servers = 1 [(gogoproto.jsontag) = "servers"];
+  repeated types.ServerV2 Servers = 1 [
+    (gogoproto.jsontag) = "servers",
+    json_name = "servers"
+  ];
 }
 
 // UpsertKubeServiceRequest are the parameters used to add or update a
 // kubernetes service.
 // DELETE IN 12.0.0
 message UpsertKubeServiceRequest {
-  types.ServerV2 Server = 1 [(gogoproto.jsontag) = "server"];
+  types.ServerV2 Server = 1 [
+    (gogoproto.jsontag) = "server",
+    json_name = "server"
+  ];
 }
 
 // DeleteKubeServiceRequest are the parameters used to remove a kubernetes service.
 // DELETE IN 12.0.0
 message DeleteKubeServiceRequest {
   // Name is the name of the kubernetes service to delete.
-  string Name = 2 [(gogoproto.jsontag) = "name"];
+  string Name = 2 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 }
 
 // DeleteAllKubeServicesRequest are the parameters used to remove all kubernetes services.
@@ -836,15 +1329,24 @@ message DeleteAllKubeServicesRequest {}
 // UpsertKubernetesServerRequest are the parameters used to add or update a
 // kubernetes server.
 message UpsertKubernetesServerRequest {
-  types.KubernetesServerV3 Server = 1 [(gogoproto.jsontag) = "server"];
+  types.KubernetesServerV3 Server = 1 [
+    (gogoproto.jsontag) = "server",
+    json_name = "server"
+  ];
 }
 
 // DeleteKubernetesServerRequest are the parameters used to remove a kubernetes server.
 message DeleteKubernetesServerRequest {
   // HostID is the kube server host uuid.
-  string HostID = 1 [(gogoproto.jsontag) = "host_id"];
+  string HostID = 1 [
+    (gogoproto.jsontag) = "host_id",
+    json_name = "host_id"
+  ];
   // Name is the name of the kubernetes service to delete.
-  string Name = 2 [(gogoproto.jsontag) = "name"];
+  string Name = 2 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 }
 
 // DeleteAllKubernetesServersRequest are the parameters used to remove all kubernetes servers.
@@ -854,11 +1356,15 @@ message DeleteAllKubernetesServersRequest {}
 // DELETE IN 10.0.
 message GetDatabaseServersRequest {
   // Namespace is the database server namespace.
-  string Namespace = 1 [(gogoproto.jsontag) = "namespace"];
+  string Namespace = 1 [
+    (gogoproto.jsontag) = "namespace",
+    json_name = "namespace"
+  ];
   // DEPRECATED: SkipValidation allows to turn off JSON schema validation.
   bool SkipValidation = 2 [
     deprecated = true,
-    (gogoproto.jsontag) = "skip_validation"
+    (gogoproto.jsontag) = "skip_validation",
+    json_name = "skip_validation"
   ];
 }
 
@@ -866,71 +1372,112 @@ message GetDatabaseServersRequest {
 // DELETE IN 10.0.
 message GetDatabaseServersResponse {
   // Servers is a list of database proxy servers.
-  repeated types.DatabaseServerV3 Servers = 1 [(gogoproto.jsontag) = "servers"];
+  repeated types.DatabaseServerV3 Servers = 1 [
+    (gogoproto.jsontag) = "servers",
+    json_name = "servers"
+  ];
 }
 
 // UpsertDatabaseServerRequest is a request to register database server.
 message UpsertDatabaseServerRequest {
   // Server is the database proxy server to register.
-  types.DatabaseServerV3 Server = 1 [(gogoproto.jsontag) = "server"];
+  types.DatabaseServerV3 Server = 1 [
+    (gogoproto.jsontag) = "server",
+    json_name = "server"
+  ];
 }
 
 // DeleteDatabaseServerRequest is a request to delete a database server.
 message DeleteDatabaseServerRequest {
   // Namespace is the database server namespace.
-  string Namespace = 1 [(gogoproto.jsontag) = "namespace"];
+  string Namespace = 1 [
+    (gogoproto.jsontag) = "namespace",
+    json_name = "namespace"
+  ];
   // HostID is the ID of the host database server is running on.
-  string HostID = 2 [(gogoproto.jsontag) = "host_id"];
+  string HostID = 2 [
+    (gogoproto.jsontag) = "host_id",
+    json_name = "host_id"
+  ];
   // Name is the database server name.
-  string Name = 3 [(gogoproto.jsontag) = "name"];
+  string Name = 3 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 }
 
 // DeleteAllDatabaseServersRequest is a request to delete all database servers.
 message DeleteAllDatabaseServersRequest {
   // Namespace is the database servers namespace.
-  string Namespace = 1 [(gogoproto.jsontag) = "namespace"];
+  string Namespace = 1 [
+    (gogoproto.jsontag) = "namespace",
+    json_name = "namespace"
+  ];
 }
 
 // DatabaseCSRRequest is a request to generate a client certificate used
 // by the proxy to authenticate with a remote database service.
 message DatabaseCSRRequest {
   // CSR is the request to sign.
-  bytes CSR = 1 [(gogoproto.jsontag) = "csr"];
+  bytes CSR = 1 [
+    (gogoproto.jsontag) = "csr",
+    json_name = "csr"
+  ];
   // ClusterName is the name of the cluster the request is for.
-  string ClusterName = 2 [(gogoproto.jsontag) = "cluster_name"];
+  string ClusterName = 2 [
+    (gogoproto.jsontag) = "cluster_name",
+    json_name = "cluster_name"
+  ];
   // SignWithDatabaseCA if set to true will use Database CA to sign the created certificate.
   // This flag was created to enable Database CA for new proxies and don't break old one that
   // are still using UserCA.
   // DELETE IN 11.0.
-  bool SignWithDatabaseCA = 3 [(gogoproto.jsontag) = "sign_with_database_ca"];
+  bool SignWithDatabaseCA = 3 [
+    (gogoproto.jsontag) = "sign_with_database_ca",
+    json_name = "sign_with_database_ca"
+  ];
 }
 
 // DatabaseCSRResponse contains the signed database certificate.
 message DatabaseCSRResponse {
   // Cert is the signed certificate.
-  bytes Cert = 1 [(gogoproto.jsontag) = "cert"];
+  bytes Cert = 1 [
+    (gogoproto.jsontag) = "cert",
+    json_name = "cert"
+  ];
   // CACerts is a list of certificate authorities.
-  repeated bytes CACerts = 2 [(gogoproto.jsontag) = "ca_certs"];
+  repeated bytes CACerts = 2 [
+    (gogoproto.jsontag) = "ca_certs",
+    json_name = "ca_certs"
+  ];
 }
 
 // DatabaseCertRequest is a request to generate a client certificate used
 // by a database service to authenticate with a database instance.
 message DatabaseCertRequest {
   // CSR is the request to sign.
-  bytes CSR = 1 [(gogoproto.jsontag) = "csr"];
+  bytes CSR = 1 [
+    (gogoproto.jsontag) = "csr",
+    json_name = "csr"
+  ];
   // ServerName is the SAN to include in the certificate.
   // DEPRECATED: Replaced by ServerNames.
   string ServerName = 2 [
     (gogoproto.jsontag) = "server_name",
+    json_name = "server_name",
     deprecated = true
   ];
   // TTL is the certificate validity period.
   int64 TTL = 3 [
     (gogoproto.jsontag) = "ttl",
+    json_name = "ttl",
     (gogoproto.casttype) = "Duration"
   ];
   // ServerNames are SANs to include in the certificate.
-  repeated string ServerNames = 4 [(gogoproto.jsontag) = "server_names"];
+  repeated string ServerNames = 4 [
+    (gogoproto.jsontag) = "server_names",
+    json_name = "server_names"
+  ];
   // Requester is a name of service that sent the request.
   enum Requester {
     // UNSPECIFIED is set when the requester in unknown.
@@ -939,26 +1486,44 @@ message DatabaseCertRequest {
     TCTL = 1;
   }
   // RequesterName identifies who sent the request.
-  Requester RequesterName = 5 [(gogoproto.jsontag) = "requester_name"];
+  Requester RequesterName = 5 [
+    (gogoproto.jsontag) = "requester_name",
+    json_name = "requester_name"
+  ];
 }
 
 // DatabaseCertResponse contains the signed certificate.
 message DatabaseCertResponse {
   // Cert is the signed certificate.
-  bytes Cert = 1 [(gogoproto.jsontag) = "cert"];
+  bytes Cert = 1 [
+    (gogoproto.jsontag) = "cert",
+    json_name = "cert"
+  ];
   // CACerts is a list of certificate authorities.
-  repeated bytes CACerts = 2 [(gogoproto.jsontag) = "ca_certs"];
+  repeated bytes CACerts = 2 [
+    (gogoproto.jsontag) = "ca_certs",
+    json_name = "ca_certs"
+  ];
 }
 
 // SnowflakeJWTRequest contains data required to generate Snowflake JWT used for authorization.
 message SnowflakeJWTRequest {
-  string AccountName = 1 [(gogoproto.jsontag) = "account_name"];
-  string UserName = 2 [(gogoproto.jsontag) = "user_name"];
+  string AccountName = 1 [
+    (gogoproto.jsontag) = "account_name",
+    json_name = "account_name"
+  ];
+  string UserName = 2 [
+    (gogoproto.jsontag) = "user_name",
+    json_name = "user_name"
+  ];
 }
 
 // SnowflakeJWTResponse contains signed JWT that can be used for Snowflake authentication.
 message SnowflakeJWTResponse {
-  string Token = 1 [(gogoproto.jsontag) = "token"];
+  string Token = 1 [
+    (gogoproto.jsontag) = "token",
+    json_name = "token"
+  ];
 }
 
 // GetRoleRequest is a request to query a role.
@@ -1123,7 +1688,10 @@ message AddMFADeviceRequestInit {
   DeviceType DeviceType = 3;
   // DeviceUsage is the requested usage for the device.
   // Defaults to DEVICE_USAGE_MFA.
-  DeviceUsage DeviceUsage = 4 [(gogoproto.jsontag) = "device_usage,omitempty"];
+  DeviceUsage DeviceUsage = 4 [
+    (gogoproto.jsontag) = "device_usage,omitempty",
+    json_name = "device_usage"
+  ];
 }
 
 // AddMFADeviceResponseAck is a confirmation of successful device registration.
@@ -1168,9 +1736,15 @@ message DeleteMFADeviceSyncRequest {
   // Token types accepted are:
   //   - Recovery approved token that is obtained with RPC VerifyAccountRecovery
   //   - Privilege token that is obtained with RPC CreatePrivilegeToken
-  string TokenID = 1 [(gogoproto.jsontag) = "token_id"];
+  string TokenID = 1 [
+    (gogoproto.jsontag) = "token_id",
+    json_name = "token_id"
+  ];
   // DeviceName is the name of the device to delete.
-  string DeviceName = 2 [(gogoproto.jsontag) = "device_name"];
+  string DeviceName = 2 [
+    (gogoproto.jsontag) = "device_name",
+    json_name = "device_name"
+  ];
 }
 
 // AddMFADeviceSyncRequest is a request to add a MFA device (nonstream).
@@ -1178,19 +1752,34 @@ message AddMFADeviceSyncRequest {
   // TokenID is the ID of a user token that will be used to verify this request.
   // Token types accepted are:
   //  - Privilege token that is obtained with RPC CreatePrivilegeToken
-  string TokenID = 1 [(gogoproto.jsontag) = "token_id"];
+  string TokenID = 1 [
+    (gogoproto.jsontag) = "token_id",
+    json_name = "token_id"
+  ];
   // NewDeviceName is the name of a new mfa device.
-  string NewDeviceName = 2 [(gogoproto.jsontag) = "new_device_name,omitempty"];
+  string NewDeviceName = 2 [
+    (gogoproto.jsontag) = "new_device_name,omitempty",
+    json_name = "new_device_name"
+  ];
   // NewMFAResponse is a user's new mfa response to a mfa register challenge.
-  MFARegisterResponse NewMFAResponse = 3 [(gogoproto.jsontag) = "new_mfa_response,omitempty"];
+  MFARegisterResponse NewMFAResponse = 3 [
+    (gogoproto.jsontag) = "new_mfa_response,omitempty",
+    json_name = "new_mfa_response"
+  ];
   // DeviceUsage is the requested usage for the device.
   // Defaults to DEVICE_USAGE_MFA.
-  DeviceUsage DeviceUsage = 4 [(gogoproto.jsontag) = "device_usage,omitempty"];
+  DeviceUsage DeviceUsage = 4 [
+    (gogoproto.jsontag) = "device_usage,omitempty",
+    json_name = "device_usage"
+  ];
 }
 
 // AddMFADeviceSyncResponse is a response to AddMFADeviceSyncRequest.
 message AddMFADeviceSyncResponse {
-  types.MFADevice Device = 1 [(gogoproto.jsontag) = "device"];
+  types.MFADevice Device = 1 [
+    (gogoproto.jsontag) = "device",
+    json_name = "device"
+  ];
 }
 
 // GetMFADeviceRequest is a request for MFA devices for the calling user.
@@ -1202,7 +1791,10 @@ message GetMFADevicesRequest {
   // Token types accepted are:
   //  - Recovery approved token that is obtained after successful invocation of RPC
   //  VerifyAccountRecovery
-  string TokenID = 1 [(gogoproto.jsontag) = "token_id,omitempty"];
+  string TokenID = 1 [
+    (gogoproto.jsontag) = "token_id,omitempty",
+    json_name = "token_id"
+  ];
 }
 
 // GetMFADeviceResponse is a response for GetMFADevices RPC.
@@ -1368,31 +1960,46 @@ message ReplaceRemoteLocksRequest {
 // GetWindowsDesktopServicesResponse contains all registered Windows desktop services.
 message GetWindowsDesktopServicesResponse {
   // Services is a list of Windows desktop services.
-  repeated types.WindowsDesktopServiceV3 services = 1 [(gogoproto.jsontag) = "services"];
+  repeated types.WindowsDesktopServiceV3 services = 1 [
+    (gogoproto.jsontag) = "services",
+    json_name = "services"
+  ];
 }
 
 // GetWindowsDesktopServiceRequest is a request for a specific Windows Desktop Service.
 message GetWindowsDesktopServiceRequest {
   // Name is the name of the Windows Desktop Service to be requested.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 }
 
 // GetWindowsDesktopServiceResponse contains the requested WindowsDesktopService
 message GetWindowsDesktopServiceResponse {
   // Service is the requested Windows Desktop Service.
-  types.WindowsDesktopServiceV3 service = 1 [(gogoproto.jsontag) = "service"];
+  types.WindowsDesktopServiceV3 service = 1 [
+    (gogoproto.jsontag) = "service",
+    json_name = "service"
+  ];
 }
 
 // DeleteWindowsDesktopServiceRequest is a request to delete a Windows desktop service.
 message DeleteWindowsDesktopServiceRequest {
   // Name is the Windows desktop service name.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 }
 
 // GetWindowsDesktopsResponse contains all registered Windows desktop hosts.
 message GetWindowsDesktopsResponse {
   // Servers is a list of Windows desktop hosts.
-  repeated types.WindowsDesktopV3 Desktops = 1 [(gogoproto.jsontag) = "desktops"];
+  repeated types.WindowsDesktopV3 Desktops = 1 [
+    (gogoproto.jsontag) = "desktops",
+    json_name = "desktops"
+  ];
 }
 
 // DeleteWindowsDesktopRequest is a request to delete a Windows
@@ -1400,9 +2007,15 @@ message GetWindowsDesktopsResponse {
 // specified Name will be deleted
 message DeleteWindowsDesktopRequest {
   // Name is the name of the Windows desktop host.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
   // HostID is the ID of the Windows Desktop Service reporting the desktop.
-  string HostID = 2 [(gogoproto.jsontag) = "host_id"];
+  string HostID = 2 [
+    (gogoproto.jsontag) = "host_id",
+    json_name = "host_id"
+  ];
 }
 
 // WindowsDesktopCertRequest is a request to generate a client certificate used
@@ -1448,27 +2061,45 @@ message ChangeUserAuthenticationRequest {
   // TokenID is the ID of a reset or invite token.
   // The token allows the user to change their credentials without being logged
   // in.
-  string TokenID = 1 [(gogoproto.jsontag) = "token_id"];
+  string TokenID = 1 [
+    (gogoproto.jsontag) = "token_id",
+    json_name = "token_id"
+  ];
   // NewPassword is the new password in plain text.
-  bytes NewPassword = 2 [(gogoproto.jsontag) = "new_password"];
+  bytes NewPassword = 2 [
+    (gogoproto.jsontag) = "new_password",
+    json_name = "new_password"
+  ];
   // NewMFARegisterResponse is a MFA response to a MFA authentication challenge.
   // This field can be empty which implies that user chose not to add a new device (allowable when
   // cluster settings enable optional second factor), or cluster settings disabled second factor.
-  MFARegisterResponse NewMFARegisterResponse = 3 [(gogoproto.jsontag) = "new_mfa_register_response,omitempty"];
+  MFARegisterResponse NewMFARegisterResponse = 3 [
+    (gogoproto.jsontag) = "new_mfa_register_response,omitempty",
+    json_name = "new_mfa_register_response"
+  ];
   // NewDeviceName is the name of a new mfa or passwordless device.
-  string NewDeviceName = 4 [(gogoproto.jsontag) = "new_device_name,omitempty"];
+  string NewDeviceName = 4 [
+    (gogoproto.jsontag) = "new_device_name,omitempty",
+    json_name = "new_device_name"
+  ];
 }
 
 // ChangeUserAuthenticationResponse is a response for ChangeUserAuthentication.
 message ChangeUserAuthenticationResponse {
   // WebSession is a user's web sesssion created from successful changing of password.
-  types.WebSessionV2 WebSession = 1 [(gogoproto.jsontag) = "web_session"];
+  types.WebSessionV2 WebSession = 1 [
+    (gogoproto.jsontag) = "web_session",
+    json_name = "web_session"
+  ];
   // Recovery holds user's new recovery related fields. Previous recovery codes become invalid.
   // This field can be empty if a user does not meet the following
   // requirements to receive recovery codes:
   //  - cloud feature is enabled
   //  - username is in valid email format
-  RecoveryCodes Recovery = 2 [(gogoproto.jsontag) = "recovery,omitempty"];
+  RecoveryCodes Recovery = 2 [
+    (gogoproto.jsontag) = "recovery,omitempty",
+    json_name = "recovery"
+  ];
 }
 
 // StartAccountRecoveryRequest defines a request to create a recovery start token for a user who is
@@ -1480,11 +2111,20 @@ message StartAccountRecoveryRequest {
   // allowed to recover their account:
   //  - cloud feature is enabled
   //  - username is in valid email format
-  string Username = 1 [(gogoproto.jsontag) = "username"];
+  string Username = 1 [
+    (gogoproto.jsontag) = "username",
+    json_name = "username"
+  ];
   // RecoveryCode is one of the user's recovery code in plain text.
-  bytes RecoveryCode = 2 [(gogoproto.jsontag) = "recovery_code"];
+  bytes RecoveryCode = 2 [
+    (gogoproto.jsontag) = "recovery_code",
+    json_name = "recovery_code"
+  ];
   // RecoverType defines what type of authentication user needs to recover.
-  types.UserTokenUsage RecoverType = 3 [(gogoproto.jsontag) = "recover_type"];
+  types.UserTokenUsage RecoverType = 3 [
+    (gogoproto.jsontag) = "recover_type",
+    json_name = "recover_type"
+  ];
 }
 
 // VerifyAccountRecoveryRequest is a request to create a recovery approved token that allows users
@@ -1493,16 +2133,28 @@ message StartAccountRecoveryRequest {
 message VerifyAccountRecoveryRequest {
   // RecoveryStartTokenID is the ID of a recovery start token that's required to verify this
   // request.
-  string RecoveryStartTokenID = 1 [(gogoproto.jsontag) = "recovery_start_token_id"];
+  string RecoveryStartTokenID = 1 [
+    (gogoproto.jsontag) = "recovery_start_token_id",
+    json_name = "recovery_start_token_id"
+  ];
   // Username is the name of the user that the token belongs to, used to verify that this name
   // is the same as defined in token for use with emails.
-  string Username = 2 [(gogoproto.jsontag) = "username"];
+  string Username = 2 [
+    (gogoproto.jsontag) = "username",
+    json_name = "username"
+  ];
   // AuthnCred is the authentication cred that needs to be verified.
   oneof AuthnCred {
     // Password is users password in plain text.
-    bytes Password = 3 [(gogoproto.jsontag) = "password,omitempty"];
+    bytes Password = 3 [
+      (gogoproto.jsontag) = "password,omitempty",
+      json_name = "password"
+    ];
     // MFAAuthenticateResponse is a response to a MFA challenge.
-    MFAAuthenticateResponse MFAAuthenticateResponse = 4 [(gogoproto.jsontag) = "mfa_authenticate_response,omitempty"];
+    MFAAuthenticateResponse MFAAuthenticateResponse = 4 [
+      (gogoproto.jsontag) = "mfa_authenticate_response,omitempty",
+      json_name = "mfa_authenticate_response"
+    ];
   }
 }
 
@@ -1513,16 +2165,28 @@ message VerifyAccountRecoveryRequest {
 message CompleteAccountRecoveryRequest {
   // RecoveryApprovedTokenID is the ID of a recovery approved token that's required to verify this
   // request.
-  string RecoveryApprovedTokenID = 1 [(gogoproto.jsontag) = "recovery_approved_token_id"];
+  string RecoveryApprovedTokenID = 1 [
+    (gogoproto.jsontag) = "recovery_approved_token_id",
+    json_name = "recovery_approved_token_id"
+  ];
   // NewDeviceName is the name of a new mfa device.
   // Optional if NewPassword is used.
-  string NewDeviceName = 2 [(gogoproto.jsontag) = "new_device_name,omitempty"];
+  string NewDeviceName = 2 [
+    (gogoproto.jsontag) = "new_device_name,omitempty",
+    json_name = "new_device_name"
+  ];
   // NewAuthnCred contains the new authentication credential.
   oneof NewAuthnCred {
     // NewPassword is user's new password in plain text.
-    bytes NewPassword = 3 [(gogoproto.jsontag) = "new_password,omitempty"];
+    bytes NewPassword = 3 [
+      (gogoproto.jsontag) = "new_password,omitempty",
+      json_name = "new_password"
+    ];
     // NewMFAResponse is a user's new mfa response to a mfa register challenge.
-    MFARegisterResponse NewMFAResponse = 4 [(gogoproto.jsontag) = "new_mfa_response,omitempty"];
+    MFARegisterResponse NewMFAResponse = 4 [
+      (gogoproto.jsontag) = "new_mfa_response,omitempty",
+      json_name = "new_mfa_response"
+    ];
   }
 }
 
@@ -1531,12 +2195,16 @@ message CompleteAccountRecoveryRequest {
 message RecoveryCodes {
   // Codes holds the list of recovery phrase words.
   // Field is only used when new recovery codes are generated and returned to user.
-  repeated string Codes = 1 [(gogoproto.jsontag) = "codes,omitempty"];
+  repeated string Codes = 1 [
+    (gogoproto.jsontag) = "codes,omitempty",
+    json_name = "codes"
+  ];
   // Created is the date the recovery codes were created.
   google.protobuf.Timestamp Created = 2 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "created"
+    (gogoproto.jsontag) = "created",
+    json_name = "created"
   ];
 }
 
@@ -1550,7 +2218,10 @@ message CreateAccountRecoveryCodesRequest {
   // Token types accepted are:
   //   - Recovery approved token that is obtained with RPC VerifyAccountRecovery
   //   - Privilege token that is obtained with RPC CreatePrivilegeToken
-  string TokenID = 1 [(gogoproto.jsontag) = "token_id"];
+  string TokenID = 1 [
+    (gogoproto.jsontag) = "token_id",
+    json_name = "token_id"
+  ];
 }
 
 // GetAccountRecoveryTokenRequest is a request to return a user token resource after verifying that
@@ -1558,7 +2229,10 @@ message CreateAccountRecoveryCodesRequest {
 message GetAccountRecoveryTokenRequest {
   // RecoveryTokenID is the ID of a recovery token to verify.
   // Recovery tokens are obtained with RPC StartAccountRecovery or VerifyAccountRecovery.
-  string RecoveryTokenID = 1 [(gogoproto.jsontag) = "recovery_token_id"];
+  string RecoveryTokenID = 1 [
+    (gogoproto.jsontag) = "recovery_token_id",
+    json_name = "recovery_token_id"
+  ];
 }
 
 // GetAccountRecoveryCodesRequest is a request to return the user in context their
@@ -1567,8 +2241,14 @@ message GetAccountRecoveryCodesRequest {}
 
 // UserCredentials describes fields for a user's username and password.
 message UserCredentials {
-  string Username = 1 [(gogoproto.jsontag) = "username"];
-  bytes Password = 2 [(gogoproto.jsontag) = "password"];
+  string Username = 1 [
+    (gogoproto.jsontag) = "username",
+    json_name = "username"
+  ];
+  bytes Password = 2 [
+    (gogoproto.jsontag) = "password",
+    json_name = "password"
+  ];
 }
 
 // ContextUser marks requests that rely in the currently authenticated user.
@@ -1585,17 +2265,29 @@ message CreateAuthenticateChallengeRequest {
   oneof Request {
     // UserCredentials verifies request with username and password. Used with logins or
     // when the logged in user wants to change their password.
-    UserCredentials UserCredentials = 1 [(gogoproto.jsontag) = "user_credentials,omitempty"];
+    UserCredentials UserCredentials = 1 [
+      (gogoproto.jsontag) = "user_credentials,omitempty",
+      json_name = "user_credentials"
+    ];
     // RecoveryStartTokenID is the ID of a recovery start token obtained with RPC
     // StartAccountRecovery. This token allows a user to retrieve their MFA challenges for RPC
     // VerifyAccountRecovery (step 2 of the recovery process after RPC StartAccountRecovery).
-    string RecoveryStartTokenID = 2 [(gogoproto.jsontag) = "recovery_start_token_id,omitempty"];
+    string RecoveryStartTokenID = 2 [
+      (gogoproto.jsontag) = "recovery_start_token_id,omitempty",
+      json_name = "recovery_start_token_id"
+    ];
     // ContextUser issues a challenge for the currently-authenticated user.
     // Default option if no other is provided.
-    ContextUser ContextUser = 3 [(gogoproto.jsontag) = "context_user,omitempty"];
+    ContextUser ContextUser = 3 [
+      (gogoproto.jsontag) = "context_user,omitempty",
+      json_name = "context_user"
+    ];
     // Passwordless issues a passwordless challenge (authenticated user not
     // required).
-    Passwordless Passwordless = 4 [(gogoproto.jsontag) = "passwordless,omitempty"];
+    Passwordless Passwordless = 4 [
+      (gogoproto.jsontag) = "passwordless,omitempty",
+      json_name = "passwordless"
+    ];
   }
 }
 
@@ -1607,7 +2299,10 @@ message CreatePrivilegeTokenRequest {
   // This field can be empty to create a UserTokenTypePrivilegeException token that
   // allows a user to bypass second factor re-authentication eg: allowing a user
   // with no mfa devices to add a device without re-authenticating.
-  MFAAuthenticateResponse ExistingMFAResponse = 1 [(gogoproto.jsontag) = "existing_mfa_response,omitempty"];
+  MFAAuthenticateResponse ExistingMFAResponse = 1 [
+    (gogoproto.jsontag) = "existing_mfa_response,omitempty",
+    json_name = "existing_mfa_response"
+  ];
 }
 
 // CreateRegisterChallengeRequest is a request for creating MFA register challenge for a
@@ -1615,12 +2310,21 @@ message CreatePrivilegeTokenRequest {
 message CreateRegisterChallengeRequest {
   // TokenID is the ID of a user token that will be used to verify this request.
   // All user token types are accepted except UserTokenTypeRecoveryStart.
-  string TokenID = 1 [(gogoproto.jsontag) = "token_id"];
+  string TokenID = 1 [
+    (gogoproto.jsontag) = "token_id",
+    json_name = "token_id"
+  ];
   // DeviceType is the type of MFA device to make a register challenge for.
-  DeviceType DeviceType = 2 [(gogoproto.jsontag) = "device_type"];
+  DeviceType DeviceType = 2 [
+    (gogoproto.jsontag) = "device_type",
+    json_name = "device_type"
+  ];
   // DeviceUsage is the requested usage for the device.
   // Defaults to DEVICE_USAGE_MFA.
-  DeviceUsage DeviceUsage = 3 [(gogoproto.jsontag) = "device_usage,omitempty"];
+  DeviceUsage DeviceUsage = 3 [
+    (gogoproto.jsontag) = "device_usage,omitempty",
+    json_name = "device_usage"
+  ];
 }
 
 // PaginatedResource represents one of the supported resources.
@@ -1632,18 +2336,36 @@ message PaginatedResource {
     // AppServer represents a AppServer resource.
     types.AppServerV3 AppServer = 2;
     // Nodes represents a Server resource.
-    types.ServerV2 Node = 3 [(gogoproto.jsontag) = "node,omitempty"];
+    types.ServerV2 Node = 3 [
+      (gogoproto.jsontag) = "node,omitempty",
+      json_name = "node"
+    ];
     // KubeService represents a KubernetesService resource.
     // DELETE IN 12.0.0. Deprecated, use KubernetesService field.
-    types.ServerV2 KubeService = 4 [(gogoproto.jsontag) = "kube_service,omitempty"];
+    types.ServerV2 KubeService = 4 [
+      (gogoproto.jsontag) = "kube_service,omitempty",
+      json_name = "kube_service"
+    ];
     // WindowsDesktop represents a WindowsDesktop resource.
-    types.WindowsDesktopV3 WindowsDesktop = 5 [(gogoproto.jsontag) = "windows_desktop,omitempty"];
+    types.WindowsDesktopV3 WindowsDesktop = 5 [
+      (gogoproto.jsontag) = "windows_desktop,omitempty",
+      json_name = "windows_desktop"
+    ];
     // KubeCluster represents a KubeCluster resource.
-    types.KubernetesClusterV3 KubeCluster = 6 [(gogoproto.jsontag) = "kube_cluster,omitempty"];
+    types.KubernetesClusterV3 KubeCluster = 6 [
+      (gogoproto.jsontag) = "kube_cluster,omitempty",
+      json_name = "kube_cluster"
+    ];
     // KubernetesServer represents a Kubernetes Server resource.
-    types.KubernetesServerV3 KubernetesServer = 7 [(gogoproto.jsontag) = "kubernetes_server,omitempty"];
+    types.KubernetesServerV3 KubernetesServer = 7 [
+      (gogoproto.jsontag) = "kubernetes_server,omitempty",
+      json_name = "kubernetes_server"
+    ];
     // WindowsDesktopService represents a WindowsDesktopServiceV3 resource.
-    types.WindowsDesktopServiceV3 WindowsDesktopService = 8 [(gogoproto.jsontag) = "windows_desktop_service,omitempty"];
+    types.WindowsDesktopServiceV3 WindowsDesktopService = 8 [
+      (gogoproto.jsontag) = "windows_desktop_service,omitempty",
+      json_name = "windows_desktop_service"
+    ];
   }
 }
 
@@ -1660,49 +2382,87 @@ message PaginatedResource {
 message ListResourcesRequest {
   // ResourceType is the resource that is going to be retrieved.
   // This only needs to be set explicitly for the `ListResources` rpc.
-  string ResourceType = 1 [(gogoproto.jsontag) = "resource_type,omitempty"];
+  string ResourceType = 1 [
+    (gogoproto.jsontag) = "resource_type,omitempty",
+    json_name = "resource_type"
+  ];
   // Namespace is the namespace of resources.
-  string Namespace = 2 [(gogoproto.jsontag) = "namespace,omitempty"];
+  string Namespace = 2 [
+    (gogoproto.jsontag) = "namespace,omitempty",
+    json_name = "namespace"
+  ];
   // Limit is the maximum amount of resources to retrieve.
-  int32 Limit = 3 [(gogoproto.jsontag) = "limit,omitempty"];
+  int32 Limit = 3 [
+    (gogoproto.jsontag) = "limit,omitempty",
+    json_name = "limit"
+  ];
   // StartKey is used to start listing resources from a specific spot. It
   // should be set to the previous NextKey value if using pagination, or
   // left empty.
-  string StartKey = 4 [(gogoproto.jsontag) = "start_key,omitempty"];
+  string StartKey = 4 [
+    (gogoproto.jsontag) = "start_key,omitempty",
+    json_name = "start_key"
+  ];
   // Labels is a label-based matcher if non-empty.
-  map<string, string> Labels = 5 [(gogoproto.jsontag) = "labels,omitempty"];
+  map<string, string> Labels = 5 [
+    (gogoproto.jsontag) = "labels,omitempty",
+    json_name = "labels"
+  ];
   // PredicateExpression defines boolean conditions that will be matched against the resource.
-  string PredicateExpression = 6 [(gogoproto.jsontag) = "predicate_expression,omitempty"];
+  string PredicateExpression = 6 [
+    (gogoproto.jsontag) = "predicate_expression,omitempty",
+    json_name = "predicate_expression"
+  ];
   // SearchKeywords is a list of search keywords to match against resource field values.
-  repeated string SearchKeywords = 7 [(gogoproto.jsontag) = "search_keywords,omitempty"];
+  repeated string SearchKeywords = 7 [
+    (gogoproto.jsontag) = "search_keywords,omitempty",
+    json_name = "search_keywords"
+  ];
   // SortBy describes which resource field and which direction to sort by.
   types.SortBy SortBy = 8 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "sort_by,omitempty"
+    (gogoproto.jsontag) = "sort_by,omitempty",
+    json_name = "sort_by"
   ];
   // NeedTotalCount indicates whether or not the caller also wants the total number of resources
   // after filtering.
-  bool NeedTotalCount = 9 [(gogoproto.jsontag) = "need_total_count,omitempty"];
+  bool NeedTotalCount = 9 [
+    (gogoproto.jsontag) = "need_total_count,omitempty",
+    json_name = "need_total_count"
+  ];
   // WindowsDesktopFilter specifies windows desktop specific filters.
   types.WindowsDesktopFilter WindowsDesktopFilter = 10 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "windows_desktop_filter,omitempty"
+    (gogoproto.jsontag) = "windows_desktop_filter,omitempty",
+    json_name = "windows_desktop_filter"
   ];
   // UseSearchAsRoles indicates that the response should include all resources
   // the caller is able to request access to using search_as_roles
-  bool UseSearchAsRoles = 11 [(gogoproto.jsontag) = "use_search_as_roles,omitempty"];
+  bool UseSearchAsRoles = 11 [
+    (gogoproto.jsontag) = "use_search_as_roles,omitempty",
+    json_name = "use_search_as_roles"
+  ];
 }
 
 // ListResourceResponse response of ListResources.
 message ListResourcesResponse {
   // Resources is a list of resource.
-  repeated PaginatedResource Resources = 1 [(gogoproto.jsontag) = "resources,omitempty"];
+  repeated PaginatedResource Resources = 1 [
+    (gogoproto.jsontag) = "resources,omitempty",
+    json_name = "resources"
+  ];
   // NextKey is the next Key to use as StartKey in a ListResourcesRequest to
   // continue retrieving pages of resource. If NextKey is empty, there are no
   // more pages.
-  string NextKey = 2 [(gogoproto.jsontag) = "next_key,omitempty"];
+  string NextKey = 2 [
+    (gogoproto.jsontag) = "next_key,omitempty",
+    json_name = "next_key"
+  ];
   // TotalCount is the total number of resources available after filter, if any.
-  int32 TotalCount = 3 [(gogoproto.jsontag) = "total_count,omitempty"];
+  int32 TotalCount = 3 [
+    (gogoproto.jsontag) = "total_count,omitempty",
+    json_name = "total_count"
+  ];
 }
 
 // CreateSessionTrackerRequest is a request to create a new session.
@@ -1711,97 +2471,155 @@ message ListResourcesResponse {
 message CreateSessionTrackerRequest {
   // Namespace is a session namespace, separating sessions from each other.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  string Namespace = 1 [(gogoproto.jsontag) = "namespace,omitempty"];
+  string Namespace = 1 [
+    (gogoproto.jsontag) = "namespace,omitempty",
+    json_name = "namespace"
+  ];
 
   // Type describes what type of session this is.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  string Type = 2 [(gogoproto.jsontag) = "type,omitempty"];
+  string Type = 2 [
+    (gogoproto.jsontag) = "type,omitempty",
+    json_name = "type"
+  ];
 
   // Reason is an arbitrary string that may be used to describe the session and/or it's
   // purpose.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  string Reason = 3 [(gogoproto.jsontag) = "reason,omitempty"];
+  string Reason = 3 [
+    (gogoproto.jsontag) = "reason,omitempty",
+    json_name = "reason"
+  ];
 
   // Invited is a list of invited users, this field is interpreted by different
   // clients on a best-effort basis and used for delivering notifications to invited users.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  repeated string Invited = 4 [(gogoproto.jsontag) = "invited,omitempty"];
+  repeated string Invited = 4 [
+    (gogoproto.jsontag) = "invited,omitempty",
+    json_name = "invited"
+  ];
 
   // Hostname is the address of the target this session is connected to.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  string Hostname = 5 [(gogoproto.jsontag) = "target_hostname,omitempty"];
+  string Hostname = 5 [
+    (gogoproto.jsontag) = "target_hostname,omitempty",
+    json_name = "target_hostname"
+  ];
 
   // Address is the address of the target this session is connected to.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  string Address = 6 [(gogoproto.jsontag) = "target_address,omitempty"];
+  string Address = 6 [
+    (gogoproto.jsontag) = "target_address,omitempty",
+    json_name = "target_address"
+  ];
 
   // ClusterName is the name of cluster that this session belongs to.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  string ClusterName = 7 [(gogoproto.jsontag) = "cluster_name,omitempty"];
+  string ClusterName = 7 [
+    (gogoproto.jsontag) = "cluster_name,omitempty",
+    json_name = "cluster_name"
+  ];
 
   // Login is the local login/user on the target used by the session.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  string Login = 8 [(gogoproto.jsontag) = "login,omitempty"];
+  string Login = 8 [
+    (gogoproto.jsontag) = "login,omitempty",
+    json_name = "login"
+  ];
 
   // Initiator is the participant that initiated the session.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  types.Participant Initiator = 9 [(gogoproto.jsontag) = "initiator,omitempty"];
+  types.Participant Initiator = 9 [
+    (gogoproto.jsontag) = "initiator,omitempty",
+    json_name = "initiator"
+  ];
 
   // Expires encodes the time at which this session expires and becomes invalid.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
   google.protobuf.Timestamp Expires = 10 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "expires,omitempty"
+    (gogoproto.jsontag) = "expires,omitempty",
+    json_name = "expires"
   ];
 
   // The Kubernetes cluster this session belongs to.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  string KubernetesCluster = 11 [(gogoproto.jsontag) = "kubernetes_cluster,omitempty"];
+  string KubernetesCluster = 11 [
+    (gogoproto.jsontag) = "kubernetes_cluster,omitempty",
+    json_name = "kubernetes_cluster"
+  ];
 
   // HostUser is the user regarded as the owner of this session, RBAC checks are performed
   // against the require policies of this user.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  string HostUser = 12 [(gogoproto.jsontag) = "host_user,omitempty"];
+  string HostUser = 12 [
+    (gogoproto.jsontag) = "host_user,omitempty",
+    json_name = "host_user"
+  ];
 
   // ID is the ID of the session.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  string ID = 13 [(gogoproto.jsontag) = "id,omitempty"];
+  string ID = 13 [
+    (gogoproto.jsontag) = "id,omitempty",
+    json_name = "id"
+  ];
 
   // HostPolicies is a list of RBAC policy sets held by the host user at the time of session
   // creation.
   // DELETE IN V11 - deprecated/reserve in favor of SessionTracker field.
-  repeated types.SessionTrackerPolicySet HostPolicies = 14 [(gogoproto.jsontag) = "host_policies,omitempty"];
+  repeated types.SessionTrackerPolicySet HostPolicies = 14 [
+    (gogoproto.jsontag) = "host_policies,omitempty",
+    json_name = "host_policies"
+  ];
 
   // SessionTracker is the session tracker to be created.
-  types.SessionTrackerV1 SessionTracker = 15 [(gogoproto.jsontag) = "session_tracker,omitempty"];
+  types.SessionTrackerV1 SessionTracker = 15 [
+    (gogoproto.jsontag) = "session_tracker,omitempty",
+    json_name = "session_tracker"
+  ];
 }
 
 // GetSessionTrackerRequest is a request to fetch a session resource.
 message GetSessionTrackerRequest {
   // SessionID is unique identifier of this session.
-  string SessionID = 1 [(gogoproto.jsontag) = "session_id,omitempty"];
+  string SessionID = 1 [
+    (gogoproto.jsontag) = "session_id,omitempty",
+    json_name = "session_id"
+  ];
 }
 
 // RemoveSessionTrackerRequest is a request to remove a session.
 message RemoveSessionTrackerRequest {
   // SessionID is unique identifier of this session.
-  string SessionID = 1 [(gogoproto.jsontag) = "session_id,omitempty"];
+  string SessionID = 1 [
+    (gogoproto.jsontag) = "session_id,omitempty",
+    json_name = "session_id"
+  ];
 }
 
 message SessionTrackerUpdateState {
   // State is the new state of the session tracker.
-  types.SessionState State = 2 [(gogoproto.jsontag) = "state,omitempty"];
+  types.SessionState State = 2 [
+    (gogoproto.jsontag) = "state,omitempty",
+    json_name = "state"
+  ];
 }
 
 message SessionTrackerAddParticipant {
   // Participant is the participant to be added to the session.
-  types.Participant Participant = 2 [(gogoproto.jsontag) = "participant,omitempty"];
+  types.Participant Participant = 2 [
+    (gogoproto.jsontag) = "participant,omitempty",
+    json_name = "participant"
+  ];
 }
 
 message SessionTrackerRemoveParticipant {
   // ParticipantID is unique identifier of the participant.
-  string ParticipantID = 2 [(gogoproto.jsontag) = "participant_id,omitempty"];
+  string ParticipantID = 2 [
+    (gogoproto.jsontag) = "participant_id,omitempty",
+    json_name = "participant_id"
+  ];
 }
 
 // SessionTrackerUpdateExpiry is used to update the session tracker expiration time.
@@ -1809,27 +2627,46 @@ message SessionTrackerUpdateExpiry {
   // Expires is when the session tracker will expire.
   google.protobuf.Timestamp Expires = 1 [
     (gogoproto.stdtime) = true,
-    (gogoproto.jsontag) = "expires"
+    (gogoproto.jsontag) = "expires",
+    json_name = "expires"
   ];
 }
 
 // UpdateSessionTrackerRequest is a request to update some state of a session.
 message UpdateSessionTrackerRequest {
   // SessionID is unique identifier of this session.
-  string SessionID = 1 [(gogoproto.jsontag) = "session_id,omitempty"];
+  string SessionID = 1 [
+    (gogoproto.jsontag) = "session_id,omitempty",
+    json_name = "session_id"
+  ];
 
   oneof Update {
-    SessionTrackerUpdateState UpdateState = 2 [(gogoproto.jsontag) = "update_state,omitempty"];
-    SessionTrackerAddParticipant AddParticipant = 3 [(gogoproto.jsontag) = "add_participant,omitempty"];
-    SessionTrackerRemoveParticipant RemoveParticipant = 4 [(gogoproto.jsontag) = "remove_participant,omitempty"];
-    SessionTrackerUpdateExpiry UpdateExpiry = 5 [(gogoproto.jsontag) = "update_expiry,omitempty"];
+    SessionTrackerUpdateState UpdateState = 2 [
+      (gogoproto.jsontag) = "update_state,omitempty",
+      json_name = "update_state"
+    ];
+    SessionTrackerAddParticipant AddParticipant = 3 [
+      (gogoproto.jsontag) = "add_participant,omitempty",
+      json_name = "add_participant"
+    ];
+    SessionTrackerRemoveParticipant RemoveParticipant = 4 [
+      (gogoproto.jsontag) = "remove_participant,omitempty",
+      json_name = "remove_participant"
+    ];
+    SessionTrackerUpdateExpiry UpdateExpiry = 5 [
+      (gogoproto.jsontag) = "update_expiry,omitempty",
+      json_name = "update_expiry"
+    ];
   }
 }
 
 // PresenceMFAChallengeRequest is a request for a presence MFA challenge.
 message PresenceMFAChallengeRequest {
   // SessionID is unique identifier of the session you want to request presence for.
-  string SessionID = 1 [(gogoproto.jsontag) = "session_id,omitempty"];
+  string SessionID = 1 [
+    (gogoproto.jsontag) = "session_id,omitempty",
+    json_name = "session_id"
+  ];
 }
 
 // PresenceMFAChallengeSend is a presence challenge request or response.
@@ -1843,74 +2680,113 @@ message PresenceMFAChallengeSend {
 // GetDomainNameResponse is a response from GetDomainName.
 message GetDomainNameResponse {
   // DomainName is the local auth domain of the current auth server.
-  string DomainName = 1 [(gogoproto.jsontag) = "domain_name"];
+  string DomainName = 1 [
+    (gogoproto.jsontag) = "domain_name",
+    json_name = "domain_name"
+  ];
 }
 
 // GetClusterCACertResponse is a response from GetClusterCACert.
 message GetClusterCACertResponse {
   // TLSCA is a PEM-encoded TLS certificate authority.
-  bytes TLSCA = 1 [(gogoproto.jsontag) = "tls_ca"];
+  bytes TLSCA = 1 [
+    (gogoproto.jsontag) = "tls_ca",
+    json_name = "tls_ca"
+  ];
 }
 
 // GenerateTokenRequest is a request to generate auth token.
 message GenerateTokenRequest {
   // Token sets the token value. If not set, it will be auto generated.
-  string Token = 1 [(gogoproto.jsontag) = "token"];
+  string Token = 1 [
+    (gogoproto.jsontag) = "token",
+    json_name = "token"
+  ];
   // Roles is a list of roles this token authenticates as.
   repeated string Roles = 2 [
     (gogoproto.jsontag) = "roles",
+    json_name = "roles",
     (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
   ];
   // TTL specifies how long the generated token will be valid for.
   // Defaults to 30 minutes if not set.
   int64 TTL = 3 [
     (gogoproto.jsontag) = "ttl",
+    json_name = "ttl",
     (gogoproto.casttype) = "Duration"
   ];
   // Labels is a label-based matcher if non-empty.
-  map<string, string> Labels = 4 [(gogoproto.jsontag) = "labels"];
+  map<string, string> Labels = 4 [
+    (gogoproto.jsontag) = "labels",
+    json_name = "labels"
+  ];
 }
 
 // GenerateTokenResponse contains a generated auth token.
 message GenerateTokenResponse {
   // Token is the generated auth token.
-  string Token = 1 [(gogoproto.jsontag) = "token"];
+  string Token = 1 [
+    (gogoproto.jsontag) = "token",
+    json_name = "token"
+  ];
 }
 
 // GetOIDCAuthRequestRequest is a request for GetOIDCAuthRequest.
 message GetOIDCAuthRequestRequest {
   // StateToken is an oidc auth request state token.
-  string StateToken = 1 [(gogoproto.jsontag) = "state_token"];
+  string StateToken = 1 [
+    (gogoproto.jsontag) = "state_token",
+    json_name = "state_token"
+  ];
 }
 
 // GetSAMLAuthRequestRequest is a request for GetSAMLAuthRequest.
 message GetSAMLAuthRequestRequest {
   // ID is a saml auth request unique id.
-  string ID = 1 [(gogoproto.jsontag) = "id"];
+  string ID = 1 [
+    (gogoproto.jsontag) = "id",
+    json_name = "id"
+  ];
 }
 
 // GetGithubAuthRequestRequest is a request for GetGithubAuthRequest.
 message GetGithubAuthRequestRequest {
   // StateToken is a github auth request state token.
-  string StateToken = 1 [(gogoproto.jsontag) = "state_token"];
+  string StateToken = 1 [
+    (gogoproto.jsontag) = "state_token",
+    json_name = "state_token"
+  ];
 }
 
 // GetSSODiagnosticInfoRequest is a request for GetSSODiagnosticInfo.
 message GetSSODiagnosticInfoRequest {
   // AuthRequestKind is the SSO Auth Request kind (oidc, saml, or github).
-  string AuthRequestKind = 1 [(gogoproto.jsontag) = "auth_request_kind"];
+  string AuthRequestKind = 1 [
+    (gogoproto.jsontag) = "auth_request_kind",
+    json_name = "auth_request_kind"
+  ];
   // AuthRequestID is the SSO Auth Request id or state token.
-  string AuthRequestID = 2 [(gogoproto.jsontag) = "auth_request_id"];
+  string AuthRequestID = 2 [
+    (gogoproto.jsontag) = "auth_request_id",
+    json_name = "auth_request_id"
+  ];
 }
 
 // UnstableSystemRoleAssertion is not a stable part of the public API. Used by older instances
 // to prove that they hold a given system role.
 // DELETE IN: 12.0 (deprecated in v11, but required for back-compat with v10 clients)
 message UnstableSystemRoleAssertion {
-  string ServerID = 1 [(gogoproto.jsontag) = "server_id,omitempty"];
-  string AssertionID = 2 [(gogoproto.jsontag) = "assertion_id,omitempty"];
+  string ServerID = 1 [
+    (gogoproto.jsontag) = "server_id,omitempty",
+    json_name = "server_id"
+  ];
+  string AssertionID = 2 [
+    (gogoproto.jsontag) = "assertion_id,omitempty",
+    json_name = "assertion_id"
+  ];
   string SystemRole = 3 [
     (gogoproto.jsontag) = "system_role,omitempty",
+    json_name = "system_role",
     (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
   ];
 }
@@ -1919,10 +2795,17 @@ message UnstableSystemRoleAssertion {
 // role assertions provided by a given instance.
 // DELETE IN: 12.0 (deprecated in v11, but required for back-compat with v10 clients)
 message UnstableSystemRoleAssertionSet {
-  string ServerID = 1 [(gogoproto.jsontag) = "server_id,omitempty"];
-  string AssertionID = 2 [(gogoproto.jsontag) = "assertion_id,omitempty"];
+  string ServerID = 1 [
+    (gogoproto.jsontag) = "server_id,omitempty",
+    json_name = "server_id"
+  ];
+  string AssertionID = 2 [
+    (gogoproto.jsontag) = "assertion_id,omitempty",
+    json_name = "assertion_id"
+  ];
   repeated string SystemRoles = 3 [
     (gogoproto.jsontag) = "system_roles,omitempty",
+    json_name = "system_roles",
     (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
   ];
 }
@@ -2039,15 +2922,24 @@ message UpsertClusterAlertRequest {
 // GetConnectionDiagnosticRequest is a request to return a connection diagnostic.
 message GetConnectionDiagnosticRequest {
   // Name is the name of the connection diagnostic.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 }
 
 // AppendDiagnosticTraceRequest is a request to append a trace into a DiagnosticConnection.
 message AppendDiagnosticTraceRequest {
   // Name is the name of the connection diagnostic.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
   // Trace is the ConnectionDiagnosticTrace to append into the DiagnosticConnection.
-  types.ConnectionDiagnosticTrace Trace = 2 [(gogoproto.jsontag) = "trace"];
+  types.ConnectionDiagnosticTrace Trace = 2 [
+    (gogoproto.jsontag) = "trace",
+    json_name = "trace"
+  ];
 }
 
 // AuthService is authentication/authorization service implementation

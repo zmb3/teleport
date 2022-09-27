@@ -26,11 +26,23 @@ option (gogoproto.unmarshaler_all) = true;
 // Set of certificates corresponding to a single public key.
 message Certs {
   // SSH X509 cert (PEM-encoded).
-  bytes SSH = 1 [(gogoproto.jsontag) = "ssh,omitempty"];
+  bytes SSH = 1 [
+    (gogoproto.jsontag) = "ssh,omitempty",
+    json_name = "ssh"
+  ];
   // TLS X509 cert (PEM-encoded).
-  bytes TLS = 2 [(gogoproto.jsontag) = "tls,omitempty"];
+  bytes TLS = 2 [
+    (gogoproto.jsontag) = "tls,omitempty",
+    json_name = "tls"
+  ];
   // TLSCACerts is a list of TLS certificate authorities.
-  repeated bytes TLSCACerts = 3 [(gogoproto.jsontag) = "tls_ca_certs,omitempty"];
+  repeated bytes TLSCACerts = 3 [
+    (gogoproto.jsontag) = "tls_ca_certs,omitempty",
+    json_name = "tls_ca_certs"
+  ];
   // SSHCACerts is a list of SSH certificate authorities.
-  repeated bytes SSHCACerts = 4 [(gogoproto.jsontag) = "ssh_ca_certs,omitempty"];
+  repeated bytes SSHCACerts = 4 [
+    (gogoproto.jsontag) = "ssh_ca_certs,omitempty",
+    json_name = "ssh_ca_certs"
+  ];
 }

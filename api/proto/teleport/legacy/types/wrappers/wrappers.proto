@@ -34,7 +34,8 @@ message LabelValues {
   // Values contains key value pairs.
   map<string, StringValues> Values = 1 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "labels"
+    (gogoproto.jsontag) = "labels",
+    json_name = "labels"
   ];
 }
 
@@ -42,5 +43,8 @@ message LabelValues {
 // useful when defining customtypes for use with the (gogoproto.customtype) extension.
 message CustomType {
   // Bytes is the marshalled json data of a struct.
-  bytes Bytes = 1 [(gogoproto.jsontag) = "json"];
+  bytes Bytes = 1 [
+    (gogoproto.jsontag) = "json",
+    json_name = "json"
+  ];
 }

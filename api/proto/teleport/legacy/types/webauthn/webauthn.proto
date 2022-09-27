@@ -45,17 +45,32 @@ option (gogoproto.unmarshaler_all) = true;
 // Mirrors https://pkg.go.dev/github.com/duo-labs/webauthn/webauthn#SessionData.
 message SessionData {
   // Raw challenge used for the ceremony.
-  bytes challenge = 1 [(gogoproto.jsontag) = "challenge,omitempty"];
+  bytes challenge = 1 [
+    (gogoproto.jsontag) = "challenge,omitempty",
+    json_name = "challenge"
+  ];
   // Raw User ID.
-  bytes user_id = 2 [(gogoproto.jsontag) = "userId,omitempty"];
+  bytes user_id = 2 [
+    (gogoproto.jsontag) = "userId,omitempty",
+    json_name = "userId"
+  ];
   // Raw Credential IDs of the credentials allowed for the ceremony.
-  repeated bytes allow_credentials = 3 [(gogoproto.jsontag) = "allowCredentials,omitempty"];
+  repeated bytes allow_credentials = 3 [
+    (gogoproto.jsontag) = "allowCredentials,omitempty",
+    json_name = "allowCredentials"
+  ];
   // True if resident keys were required by the server / Relying Party.
-  bool resident_key = 4 [(gogoproto.jsontag) = "residentKey,omitempty"];
+  bool resident_key = 4 [
+    (gogoproto.jsontag) = "residentKey,omitempty",
+    json_name = "residentKey"
+  ];
   // Requested user verification requirement, either "discouraged" or
   // "required".
   // An empty value is treated equivalently to "discouraged".
-  string user_verification = 5 [(gogoproto.jsontag) = "userVerification,omitempty"];
+  string user_verification = 5 [
+    (gogoproto.jsontag) = "userVerification,omitempty",
+    json_name = "userVerification"
+  ];
 }
 
 // User represents a WebAuthn user.

@@ -31,126 +31,218 @@ option (gogoproto.unmarshaler_all) = true;
 // Metadata is a common event metadata
 message Metadata {
   // Index is a monotonicaly incremented index in the event sequence
-  int64 Index = 1 [(gogoproto.jsontag) = "ei"];
+  int64 Index = 1 [
+    (gogoproto.jsontag) = "ei",
+    json_name = "ei"
+  ];
 
   // Type is the event type
-  string Type = 2 [(gogoproto.jsontag) = "event"];
+  string Type = 2 [
+    (gogoproto.jsontag) = "event",
+    json_name = "event"
+  ];
 
   // ID is a unique event identifier
-  string ID = 3 [(gogoproto.jsontag) = "uid,omitempty"];
+  string ID = 3 [
+    (gogoproto.jsontag) = "uid,omitempty",
+    json_name = "uid"
+  ];
 
   // Code is a unique event code
-  string Code = 4 [(gogoproto.jsontag) = "code,omitempty"];
+  string Code = 4 [
+    (gogoproto.jsontag) = "code,omitempty",
+    json_name = "code"
+  ];
 
   // Time is event time
   google.protobuf.Timestamp Time = 5 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "time"
+    (gogoproto.jsontag) = "time",
+    json_name = "time"
   ];
 
   // ClusterName identifies the originating teleport cluster
-  string ClusterName = 6 [(gogoproto.jsontag) = "cluster_name,omitempty"];
+  string ClusterName = 6 [
+    (gogoproto.jsontag) = "cluster_name,omitempty",
+    json_name = "cluster_name"
+  ];
 }
 
 // SesssionMetadata is a common session event metadata
 message SessionMetadata {
   // SessionID is a unique UUID of the session.
-  string SessionID = 1 [(gogoproto.jsontag) = "sid"];
+  string SessionID = 1 [
+    (gogoproto.jsontag) = "sid",
+    json_name = "sid"
+  ];
   // WithMFA is a UUID of an MFA device used to start this session.
-  string WithMFA = 2 [(gogoproto.jsontag) = "with_mfa,omitempty"];
+  string WithMFA = 2 [
+    (gogoproto.jsontag) = "with_mfa,omitempty",
+    json_name = "with_mfa"
+  ];
 }
 
 // UserMetadata is a common user event metadata
 message UserMetadata {
   // User is teleport user name
-  string User = 1 [(gogoproto.jsontag) = "user,omitempty"];
+  string User = 1 [
+    (gogoproto.jsontag) = "user,omitempty",
+    json_name = "user"
+  ];
 
   // Login is OS login
-  string Login = 2 [(gogoproto.jsontag) = "login,omitempty"];
+  string Login = 2 [
+    (gogoproto.jsontag) = "login,omitempty",
+    json_name = "login"
+  ];
 
   // Impersonator is a user acting on behalf of another user
-  string Impersonator = 3 [(gogoproto.jsontag) = "impersonator,omitempty"];
+  string Impersonator = 3 [
+    (gogoproto.jsontag) = "impersonator,omitempty",
+    json_name = "impersonator"
+  ];
 
   // AWSRoleARN is AWS IAM role user assumes when accessing AWS console.
-  string AWSRoleARN = 4 [(gogoproto.jsontag) = "aws_role_arn,omitempty"];
+  string AWSRoleARN = 4 [
+    (gogoproto.jsontag) = "aws_role_arn,omitempty",
+    json_name = "aws_role_arn"
+  ];
 
   // AccessRequests are the IDs of access requests created by the user
-  repeated string AccessRequests = 5 [(gogoproto.jsontag) = "access_requests,omitempty"];
+  repeated string AccessRequests = 5 [
+    (gogoproto.jsontag) = "access_requests,omitempty",
+    json_name = "access_requests"
+  ];
 }
 
 // Server is a server metadata
 message ServerMetadata {
   // ServerNamespace is a namespace of the server event
-  string ServerNamespace = 1 [(gogoproto.jsontag) = "namespace,omitempty"];
+  string ServerNamespace = 1 [
+    (gogoproto.jsontag) = "namespace,omitempty",
+    json_name = "namespace"
+  ];
 
   // ServerID is the UUID of the server the session occurred on.
-  string ServerID = 2 [(gogoproto.jsontag) = "server_id"];
+  string ServerID = 2 [
+    (gogoproto.jsontag) = "server_id",
+    json_name = "server_id"
+  ];
 
   // ServerHostname is the hostname of the server the session occurred on.
-  string ServerHostname = 3 [(gogoproto.jsontag) = "server_hostname,omitempty"];
+  string ServerHostname = 3 [
+    (gogoproto.jsontag) = "server_hostname,omitempty",
+    json_name = "server_hostname"
+  ];
 
   // ServerAddr is the address of the server the session occurred on.
-  string ServerAddr = 4 [(gogoproto.jsontag) = "server_addr,omitempty"];
+  string ServerAddr = 4 [
+    (gogoproto.jsontag) = "server_addr,omitempty",
+    json_name = "server_addr"
+  ];
 
   // ServerLabels are the labels (static and dynamic) of the server the
   // session occurred on.
   map<string, string> ServerLabels = 5 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "server_labels,omitempty"
+    (gogoproto.jsontag) = "server_labels,omitempty",
+    json_name = "server_labels"
   ];
 
   // ForwardedBy tells us if the metadata was sent by the node itself or by another node in it's
   // place. We can't verify emit permissions fully for these events so care should be taken with
   // them.
-  string ForwardedBy = 6 [(gogoproto.jsontag) = "forwarded_by,omitempty"];
+  string ForwardedBy = 6 [
+    (gogoproto.jsontag) = "forwarded_by,omitempty",
+    json_name = "forwarded_by"
+  ];
 }
 
 // Connection contains connection info
 message ConnectionMetadata {
   // LocalAddr is a target address on the host
-  string LocalAddr = 1 [(gogoproto.jsontag) = "addr.local,omitempty"];
+  string LocalAddr = 1 [
+    (gogoproto.jsontag) = "addr.local,omitempty",
+    json_name = "addr.local"
+  ];
 
   // RemoteAddr is a client (user's) address
-  string RemoteAddr = 2 [(gogoproto.jsontag) = "addr.remote,omitempty"];
+  string RemoteAddr = 2 [
+    (gogoproto.jsontag) = "addr.remote,omitempty",
+    json_name = "addr.remote"
+  ];
 
   // Protocol specifies protocol that was captured
-  string Protocol = 3 [(gogoproto.jsontag) = "proto,omitempty"];
+  string Protocol = 3 [
+    (gogoproto.jsontag) = "proto,omitempty",
+    json_name = "proto"
+  ];
 }
 
 // ClientMetadata identifies the originating client for an event.
 message ClientMetadata {
   // UserAgent identifies the type of client that attempted the event.
-  string UserAgent = 1 [(gogoproto.jsontag) = "user_agent,omitempty"];
+  string UserAgent = 1 [
+    (gogoproto.jsontag) = "user_agent,omitempty",
+    json_name = "user_agent"
+  ];
 }
 
 // KubernetesClusterMetadata contains common metadata for kubernetes-related
 // events.
 message KubernetesClusterMetadata {
   // KubernetesCluster is a kubernetes cluster name.
-  string KubernetesCluster = 1 [(gogoproto.jsontag) = "kubernetes_cluster,omitempty"];
+  string KubernetesCluster = 1 [
+    (gogoproto.jsontag) = "kubernetes_cluster,omitempty",
+    json_name = "kubernetes_cluster"
+  ];
   // KubernetesUsers is a list of kubernetes usernames for the user.
-  repeated string KubernetesUsers = 2 [(gogoproto.jsontag) = "kubernetes_users,omitempty"];
+  repeated string KubernetesUsers = 2 [
+    (gogoproto.jsontag) = "kubernetes_users,omitempty",
+    json_name = "kubernetes_users"
+  ];
   // KubernetesGroups is a list of kubernetes groups for the user.
-  repeated string KubernetesGroups = 3 [(gogoproto.jsontag) = "kubernetes_groups,omitempty"];
+  repeated string KubernetesGroups = 3 [
+    (gogoproto.jsontag) = "kubernetes_groups,omitempty",
+    json_name = "kubernetes_groups"
+  ];
   // KubernetesLabels are the labels (static and dynamic) of the kubernetes cluster the
   // session occurred on.
-  map<string, string> KubernetesLabels = 4 [(gogoproto.jsontag) = "kubernetes_labels,omitempty"];
+  map<string, string> KubernetesLabels = 4 [
+    (gogoproto.jsontag) = "kubernetes_labels,omitempty",
+    json_name = "kubernetes_labels"
+  ];
 }
 
 // KubernetesPodMetadata contains common metadata for kubernetes pod-related
 // events.
 message KubernetesPodMetadata {
   // KubernetesPodName is the name of the pod.
-  string KubernetesPodName = 1 [(gogoproto.jsontag) = "kubernetes_pod_name,omitempty"];
+  string KubernetesPodName = 1 [
+    (gogoproto.jsontag) = "kubernetes_pod_name,omitempty",
+    json_name = "kubernetes_pod_name"
+  ];
   // KubernetesPodNamespace is the namespace of the pod.
-  string KubernetesPodNamespace = 2 [(gogoproto.jsontag) = "kubernetes_pod_namespace,omitempty"];
+  string KubernetesPodNamespace = 2 [
+    (gogoproto.jsontag) = "kubernetes_pod_namespace,omitempty",
+    json_name = "kubernetes_pod_namespace"
+  ];
   // KubernetesContainerName is the name of the container within the pod.
-  string KubernetesContainerName = 3 [(gogoproto.jsontag) = "kubernetes_container_name,omitempty"];
+  string KubernetesContainerName = 3 [
+    (gogoproto.jsontag) = "kubernetes_container_name,omitempty",
+    json_name = "kubernetes_container_name"
+  ];
   // KubernetesContainerImage is the image of the container within the pod.
-  string KubernetesContainerImage = 4 [(gogoproto.jsontag) = "kubernetes_container_image,omitempty"];
+  string KubernetesContainerImage = 4 [
+    (gogoproto.jsontag) = "kubernetes_container_image,omitempty",
+    json_name = "kubernetes_container_image"
+  ];
   // KubernetesNodeName is the node that runs the pod.
-  string KubernetesNodeName = 5 [(gogoproto.jsontag) = "kubernetes_node_name,omitempty"];
+  string KubernetesNodeName = 5 [
+    (gogoproto.jsontag) = "kubernetes_node_name,omitempty",
+    json_name = "kubernetes_node_name"
+  ];
 }
 
 // SessionStart is a session start event
@@ -159,60 +251,76 @@ message SessionStart {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // TerminalSize is expressed as 'W:H'
-  string TerminalSize = 6 [(gogoproto.jsontag) = "size,omitempty"];
+  string TerminalSize = 6 [
+    (gogoproto.jsontag) = "size,omitempty",
+    json_name = "size"
+  ];
 
   // KubernetesCluster has information about a kubernetes cluster, if
   // applicable.
   KubernetesClusterMetadata KubernetesCluster = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // KubernetesPod has information about a kubernetes pod, if applicable.
   KubernetesPodMetadata KubernetesPod = 8 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // InitialCommand is the command used to start this session.
-  repeated string InitialCommand = 9 [(gogoproto.jsontag) = "initial_command,omitempty"];
+  repeated string InitialCommand = 9 [
+    (gogoproto.jsontag) = "initial_command,omitempty",
+    json_name = "initial_command"
+  ];
 
   // SessionRecording is the type of session recording.
-  string SessionRecording = 10 [(gogoproto.jsontag) = "session_recording,omitempty"];
+  string SessionRecording = 10 [
+    (gogoproto.jsontag) = "session_recording,omitempty",
+    json_name = "session_recording"
+  ];
 
   // AccessRequests used to be here, it is now part of UserMetadata
   reserved "AccessRequests";
@@ -226,35 +334,40 @@ message SessionJoin {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // KubernetesCluster has information about a kubernetes cluster, if
@@ -262,7 +375,8 @@ message SessionJoin {
   KubernetesClusterMetadata KubernetesCluster = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -273,27 +387,41 @@ message SessionPrint {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ChunkIndex is a monotonicaly incremented index for ordering print events
-  int64 ChunkIndex = 2 [(gogoproto.jsontag) = "ci"];
+  int64 ChunkIndex = 2 [
+    (gogoproto.jsontag) = "ci",
+    json_name = "ci"
+  ];
 
   // Data is data transferred, it is not marshaled to JSON format
   bytes Data = 3 [
     (gogoproto.nullable) = true,
-    (gogoproto.jsontag) = "-"
+    (gogoproto.jsontag) = "-",
+    json_name = "-"
   ];
 
   // Bytes says how many bytes have been written into the session
   // during "print" event
-  int64 Bytes = 4 [(gogoproto.jsontag) = "bytes"];
+  int64 Bytes = 4 [
+    (gogoproto.jsontag) = "bytes",
+    json_name = "bytes"
+  ];
 
   // DelayMilliseconds is the delay in milliseconds from the start of the session
-  int64 DelayMilliseconds = 5 [(gogoproto.jsontag) = "ms"];
+  int64 DelayMilliseconds = 5 [
+    (gogoproto.jsontag) = "ms",
+    json_name = "ms"
+  ];
 
   // Offset is the offset in bytes in the session file
-  int64 Offset = 6 [(gogoproto.jsontag) = "offset"];
+  int64 Offset = 6 [
+    (gogoproto.jsontag) = "offset",
+    json_name = "offset"
+  ];
 }
 
 // DesktopRecording happens when a Teleport Desktop Protocol message
@@ -303,17 +431,22 @@ message DesktopRecording {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Message is the encoded TDP message.
   bytes Message = 2 [
     (gogoproto.nullable) = true,
-    (gogoproto.jsontag) = "message"
+    (gogoproto.jsontag) = "message",
+    json_name = "message"
   ];
 
   // DelayMilliseconds is the delay in milliseconds from the start of the session
-  int64 DelayMilliseconds = 3 [(gogoproto.jsontag) = "ms"]; // JSON tag intentionally matches SessionPrintEvent
+  int64 DelayMilliseconds = 3 [
+    (gogoproto.jsontag) = "ms",
+    json_name = "ms"
+  ]; // JSON tag intentionally matches SessionPrintEvent
 }
 
 // DesktopClipboardReceive is emitted when Teleport receives
@@ -323,30 +456,40 @@ message DesktopClipboardReceive {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Session is common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Connection holds information about the connection.
   ConnectionMetadata Connection = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // DesktopAddr is the address of the desktop being accessed.
-  string DesktopAddr = 5 [(gogoproto.jsontag) = "desktop_addr"];
+  string DesktopAddr = 5 [
+    (gogoproto.jsontag) = "desktop_addr",
+    json_name = "desktop_addr"
+  ];
   // Length is the number of bytes of data received from the remote clipboard.
-  int32 Length = 6 [(gogoproto.jsontag) = "length"];
+  int32 Length = 6 [
+    (gogoproto.jsontag) = "length",
+    json_name = "length"
+  ];
 }
 
 // DesktopClipboardSend is emitted when clipboard data is
@@ -356,30 +499,40 @@ message DesktopClipboardSend {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Session is common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Connection holds information about the connection.
   ConnectionMetadata Connection = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // DesktopAddr is the address of the desktop being accessed.
-  string DesktopAddr = 5 [(gogoproto.jsontag) = "desktop_addr"];
+  string DesktopAddr = 5 [
+    (gogoproto.jsontag) = "desktop_addr",
+    json_name = "desktop_addr"
+  ];
   // Length is the number of bytes of data sent.
-  int32 Length = 6 [(gogoproto.jsontag) = "length"];
+  int32 Length = 6 [
+    (gogoproto.jsontag) = "length",
+    json_name = "length"
+  ];
 }
 
 // SessionReject event happens when a user hits a session control restriction.
@@ -388,37 +541,47 @@ message SessionReject {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Reason is a field that specifies reason for event, e.g. in disconnect
   // event it explains why server disconnected the client
-  string Reason = 5 [(gogoproto.jsontag) = "reason"];
+  string Reason = 5 [
+    (gogoproto.jsontag) = "reason",
+    json_name = "reason"
+  ];
 
   // Maximum is an event field specifying a maximal value (e.g. the value
   // of `max_connections` for a `session.rejected` event).
-  int64 Maximum = 6 [(gogoproto.jsontag) = "max"];
+  int64 Maximum = 6 [
+    (gogoproto.jsontag) = "max",
+    json_name = "max"
+  ];
 }
 
 // SessionConnect is emitted when a non-Teleport connection is made over net.Dial.
@@ -426,19 +589,22 @@ message SessionConnect {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   ServerMetadata Server = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   ConnectionMetadata Connection = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -448,53 +614,63 @@ message Resize {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // TerminalSize is expressed as 'W:H'
-  string TerminalSize = 6 [(gogoproto.jsontag) = "size,omitempty"];
+  string TerminalSize = 6 [
+    (gogoproto.jsontag) = "size,omitempty",
+    json_name = "size"
+  ];
 
   // KubernetesCluster has information about a kubernetes cluster, if
   // applicable.
   KubernetesClusterMetadata KubernetesCluster = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // KubernetesPod has information about a kubernetes pod, if applicable.
   KubernetesPodMetadata KubernetesPod = 8 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -504,60 +680,76 @@ message SessionEnd {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // EnhancedRecording is used to indicate if the recording was an
   // enhanced recording or not.
-  bool EnhancedRecording = 6 [(gogoproto.jsontag) = "enhanced_recording"];
+  bool EnhancedRecording = 6 [
+    (gogoproto.jsontag) = "enhanced_recording",
+    json_name = "enhanced_recording"
+  ];
 
   // Interactive is used to indicate if the session was interactive
   // (has PTY attached) or not (exec session).
-  bool Interactive = 7 [(gogoproto.jsontag) = "interactive"];
+  bool Interactive = 7 [
+    (gogoproto.jsontag) = "interactive",
+    json_name = "interactive"
+  ];
 
   // Participants is a list of participants in the session.
-  repeated string Participants = 8 [(gogoproto.jsontag) = "participants"];
+  repeated string Participants = 8 [
+    (gogoproto.jsontag) = "participants",
+    json_name = "participants"
+  ];
 
   // StartTime is the timestamp at which the session began.
   google.protobuf.Timestamp StartTime = 9 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "session_start,omitempty"
+    (gogoproto.jsontag) = "session_start,omitempty",
+    json_name = "session_start"
   ];
 
   // EndTime is the timestamp at which the session ended.
   google.protobuf.Timestamp EndTime = 10 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "session_stop,omitempty"
+    (gogoproto.jsontag) = "session_stop,omitempty",
+    json_name = "session_stop"
   ];
 
   // KubernetesCluster has information about a kubernetes cluster, if
@@ -565,45 +757,71 @@ message SessionEnd {
   KubernetesClusterMetadata KubernetesCluster = 11 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // KubernetesPod has information about a kubernetes pod, if applicable.
   KubernetesPodMetadata KubernetesPod = 12 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // InitialCommand is the command used to start this session.
-  repeated string InitialCommand = 13 [(gogoproto.jsontag) = "initial_command,omitempty"];
+  repeated string InitialCommand = 13 [
+    (gogoproto.jsontag) = "initial_command,omitempty",
+    json_name = "initial_command"
+  ];
 
   // SessionRecording is the type of session recording.
-  string SessionRecording = 14 [(gogoproto.jsontag) = "session_recording,omitempty"];
+  string SessionRecording = 14 [
+    (gogoproto.jsontag) = "session_recording,omitempty",
+    json_name = "session_recording"
+  ];
 }
 
 // BPFMetadata is a common BPF process metadata
 message BPFMetadata {
   // PID is the ID of the process.
-  uint64 PID = 1 [(gogoproto.jsontag) = "pid"];
+  uint64 PID = 1 [
+    (gogoproto.jsontag) = "pid",
+    json_name = "pid"
+  ];
 
   // CgroupID is the internal cgroupv2 ID of the event.
-  uint64 CgroupID = 2 [(gogoproto.jsontag) = "cgroup_id"];
+  uint64 CgroupID = 2 [
+    (gogoproto.jsontag) = "cgroup_id",
+    json_name = "cgroup_id"
+  ];
 
   // Program is name of the executable.
-  string Program = 3 [(gogoproto.jsontag) = "program"];
+  string Program = 3 [
+    (gogoproto.jsontag) = "program",
+    json_name = "program"
+  ];
 }
 
 // Status contains common command or operation status fields
 message Status {
   // Success indicates the success or failure of the operation
-  bool Success = 1 [(gogoproto.jsontag) = "success"];
+  bool Success = 1 [
+    (gogoproto.jsontag) = "success",
+    json_name = "success"
+  ];
 
   // Error includes system error message for the failed attempt
-  string Error = 2 [(gogoproto.jsontag) = "error,omitempty"];
+  string Error = 2 [
+    (gogoproto.jsontag) = "error,omitempty",
+    json_name = "error"
+  ];
 
   // UserMessage is a user-friendly message for successfull or unsuccessfull auth attempt
-  string UserMessage = 3 [(gogoproto.jsontag) = "message,omitempty"];
+  string UserMessage = 3 [
+    (gogoproto.jsontag) = "message,omitempty",
+    json_name = "message"
+  ];
 }
 
 // SessionCommand is a session command event
@@ -612,49 +830,66 @@ message SessionCommand {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // BPFMetadata is a common BPF subsystem metadata
   BPFMetadata BPF = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // PPID is the PID of the parent process.
-  uint64 PPID = 6 [(gogoproto.jsontag) = "ppid"];
+  uint64 PPID = 6 [
+    (gogoproto.jsontag) = "ppid",
+    json_name = "ppid"
+  ];
 
   // Path is the full path to the executable.
-  string Path = 7 [(gogoproto.jsontag) = "path"];
+  string Path = 7 [
+    (gogoproto.jsontag) = "path",
+    json_name = "path"
+  ];
 
   // Argv is the list of arguments to the program. Note, the first element does
   // not contain the name of the process.
-  repeated string Argv = 8 [(gogoproto.jsontag) = "argv"];
+  repeated string Argv = 8 [
+    (gogoproto.jsontag) = "argv",
+    json_name = "argv"
+  ];
 
   // ReturnCode is the return code of execve.
-  int32 ReturnCode = 9 [(gogoproto.jsontag) = "return_code"];
+  int32 ReturnCode = 9 [
+    (gogoproto.jsontag) = "return_code",
+    json_name = "return_code"
+  ];
 }
 
 // SessionDisk is a session disk access event
@@ -663,45 +898,59 @@ message SessionDisk {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // BPFMetadata is a common BPF subsystem metadata
   BPFMetadata BPF = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Path is the full path to the executable.
-  string Path = 6 [(gogoproto.jsontag) = "path"];
+  string Path = 6 [
+    (gogoproto.jsontag) = "path",
+    json_name = "path"
+  ];
 
   // Flags are the flags passed to open.
-  int32 Flags = 7 [(gogoproto.jsontag) = "flags"];
+  int32 Flags = 7 [
+    (gogoproto.jsontag) = "flags",
+    json_name = "flags"
+  ];
 
   // ReturnCode is the return code of disk open
-  int32 ReturnCode = 8 [(gogoproto.jsontag) = "return_code"];
+  int32 ReturnCode = 8 [
+    (gogoproto.jsontag) = "return_code",
+    json_name = "return_code"
+  ];
 }
 
 // Action communicates what was done in response to the event
@@ -724,54 +973,77 @@ message SessionNetwork {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // BPFMetadata is a common BPF subsystem metadata
   BPFMetadata BPF = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SrcAddr is the source IP address of the connection.
-  string SrcAddr = 6 [(gogoproto.jsontag) = "src_addr"];
+  string SrcAddr = 6 [
+    (gogoproto.jsontag) = "src_addr",
+    json_name = "src_addr"
+  ];
 
   // DstAddr is the destination IP address of the connection.
-  string DstAddr = 7 [(gogoproto.jsontag) = "dst_addr"];
+  string DstAddr = 7 [
+    (gogoproto.jsontag) = "dst_addr",
+    json_name = "dst_addr"
+  ];
 
   // DstPort is the destination port of the connection.
-  int32 DstPort = 8 [(gogoproto.jsontag) = "dst_port"];
+  int32 DstPort = 8 [
+    (gogoproto.jsontag) = "dst_port",
+    json_name = "dst_port"
+  ];
 
   // TCPVersion is the version of TCP (4 or 6).
-  int32 TCPVersion = 9 [(gogoproto.jsontag) = "version"];
+  int32 TCPVersion = 9 [
+    (gogoproto.jsontag) = "version",
+    json_name = "version"
+  ];
 
   // Operation denotes what network operation was performed (e.g. connect)
-  NetworkOperation Operation = 10 [(gogoproto.jsontag) = "operation"];
+  NetworkOperation Operation = 10 [
+    (gogoproto.jsontag) = "operation",
+    json_name = "operation"
+  ];
 
   // Action denotes what happened in response to the event
-  EventAction Action = 11 [(gogoproto.jsontag) = "action"];
+  EventAction Action = 11 [
+    (gogoproto.jsontag) = "action",
+    json_name = "action"
+  ];
 }
 
 // SessionData is emitted to report session data usage.
@@ -780,42 +1052,53 @@ message SessionData {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // BytesTransmitted is the amount of bytes transmitted
-  uint64 BytesTransmitted = 6 [(gogoproto.jsontag) = "tx"];
+  uint64 BytesTransmitted = 6 [
+    (gogoproto.jsontag) = "tx",
+    json_name = "tx"
+  ];
 
   // BytesReceived is the amount of bytes received
-  uint64 BytesReceived = 7 [(gogoproto.jsontag) = "rx"];
+  uint64 BytesReceived = 7 [
+    (gogoproto.jsontag) = "rx",
+    json_name = "rx"
+  ];
 }
 
 // SessionLeave is emitted to report that a user left the session
@@ -824,35 +1107,40 @@ message SessionLeave {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -862,69 +1150,91 @@ message UserLogin {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Status contains common command or operation status fields
   Status Status = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Method is the event field indicating how the login was performed
-  string Method = 4 [(gogoproto.jsontag) = "method,omitempty"];
+  string Method = 4 [
+    (gogoproto.jsontag) = "method,omitempty",
+    json_name = "method"
+  ];
 
   // IdentityAttributes is a map of user attributes received from identity provider
   google.protobuf.Struct IdentityAttributes = 5 [
     (gogoproto.jsontag) = "attributes,omitempty",
+    json_name = "attributes",
     (gogoproto.casttype) = "Struct"
   ];
 
   // MFA is the MFA device used during the login.
-  MFADeviceMetadata MFADevice = 6 [(gogoproto.jsontag) = "mfa_device,omitempty"];
+  MFADeviceMetadata MFADevice = 6 [
+    (gogoproto.jsontag) = "mfa_device,omitempty",
+    json_name = "mfa_device"
+  ];
 
   // Client is the common client event metadata
   ClientMetadata Client = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 8 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
 // ResourceMetadata is a common resource metadata
 message ResourceMetadata {
   // ResourceName is a resource name
-  string Name = 1 [(gogoproto.jsontag) = "name,omitempty"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name,omitempty",
+    json_name = "name"
+  ];
 
   // Expires is set if resource expires
   google.protobuf.Timestamp Expires = 2 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "expires,omitempty"
+    (gogoproto.jsontag) = "expires,omitempty",
+    json_name = "expires"
   ];
 
   // UpdatedBy if set indicates the user who modified the resource
-  string UpdatedBy = 3 [(gogoproto.jsontag) = "updated_by,omitempty"];
+  string UpdatedBy = 3 [
+    (gogoproto.jsontag) = "updated_by,omitempty",
+    json_name = "updated_by"
+  ];
 
   // TTL is a TTL of reset password token represented as duration, e.g. "10m"
   // used for compatibility purposes for some events, Expires should be used instead
   // as it's more useful (contains exact expiration date/time)
-  string TTL = 4 [(gogoproto.jsontag) = "ttl,omitempty"];
+  string TTL = 4 [
+    (gogoproto.jsontag) = "ttl,omitempty",
+    json_name = "ttl"
+  ];
 }
 
 // UserCreate is emitted when the user is created or updated (upsert).
@@ -933,28 +1243,37 @@ message UserCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Roles is a list of roles for the user.
-  repeated string Roles = 4 [(gogoproto.jsontag) = "roles"];
+  repeated string Roles = 4 [
+    (gogoproto.jsontag) = "roles",
+    json_name = "roles"
+  ];
 
   // Connector is the connector used to create the user.
-  string Connector = 5 [(gogoproto.jsontag) = "connector"];
+  string Connector = 5 [
+    (gogoproto.jsontag) = "connector",
+    json_name = "connector"
+  ];
 }
 
 // UserDelete is emitted when a user gets deleted
@@ -963,21 +1282,24 @@ message UserDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -987,14 +1309,16 @@ message UserPasswordChange {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1004,58 +1328,84 @@ message AccessRequestCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Roles is a list of roles for the user.
-  repeated string Roles = 4 [(gogoproto.jsontag) = "roles,omitempty"];
+  repeated string Roles = 4 [
+    (gogoproto.jsontag) = "roles,omitempty",
+    json_name = "roles"
+  ];
 
   // RequestID is access request ID
-  string RequestID = 5 [(gogoproto.jsontag) = "id"];
+  string RequestID = 5 [
+    (gogoproto.jsontag) = "id",
+    json_name = "id"
+  ];
 
   // RequestState is access request state (in the access_request.review variant of
   // the event this represents the post-review state of the request).
-  string RequestState = 6 [(gogoproto.jsontag) = "state"];
+  string RequestState = 6 [
+    (gogoproto.jsontag) = "state",
+    json_name = "state"
+  ];
 
   // Delegator is used by teleport plugins to indicate the identity
   // which caused them to update state.
-  string Delegator = 7 [(gogoproto.jsontag) = "delegator,omitempty"];
+  string Delegator = 7 [
+    (gogoproto.jsontag) = "delegator,omitempty",
+    json_name = "delegator"
+  ];
 
   // Reason is an optional description of why the request is being
   // created or updated.
-  string Reason = 8 [(gogoproto.jsontag) = "reason,omitempty"];
+  string Reason = 8 [
+    (gogoproto.jsontag) = "reason,omitempty",
+    json_name = "reason"
+  ];
 
   // Annotations is an optional set of attributes supplied by a plugin during
   // approval/denail of the request.
   google.protobuf.Struct Annotations = 9 [
     (gogoproto.jsontag) = "annotations,omitempty",
+    json_name = "annotations",
     (gogoproto.casttype) = "Struct"
   ];
 
   // Reviewer is the author of the review (only used in the access_request.review event variant).
-  string Reviewer = 10 [(gogoproto.jsontag) = "reviewer,omitempty"];
+  string Reviewer = 10 [
+    (gogoproto.jsontag) = "reviewer,omitempty",
+    json_name = "reviewer"
+  ];
 
   // ProposedState is the state proposed by a review (only used in the access_request.review event
   // variant).
-  string ProposedState = 11 [(gogoproto.jsontag) = "proposed_state,omitempty"];
+  string ProposedState = 11 [
+    (gogoproto.jsontag) = "proposed_state,omitempty",
+    json_name = "proposed_state"
+  ];
 
   // RequestedResourceIDs is the set of resources to which access is being requested.
   repeated ResourceID RequestedResourceIDs = 12 [
     (gogoproto.jsontag) = "resource_ids,omitempty",
+    json_name = "resource_ids",
     (gogoproto.nullable) = false
   ];
 }
@@ -1065,11 +1415,20 @@ message AccessRequestCreate {
 // neither file currently imports the other.
 message ResourceID {
   // ClusterName is the name of the cluster the resource is in.
-  string ClusterName = 1 [(gogoproto.jsontag) = "cluster"];
+  string ClusterName = 1 [
+    (gogoproto.jsontag) = "cluster",
+    json_name = "cluster"
+  ];
   // Kind is the resource kind.
-  string Kind = 2 [(gogoproto.jsontag) = "kind"];
+  string Kind = 2 [
+    (gogoproto.jsontag) = "kind",
+    json_name = "kind"
+  ];
   // Name is the name of the specific resource.
-  string Name = 3 [(gogoproto.jsontag) = "name"];
+  string Name = 3 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 }
 
 // AccessRequestDelete is emitted when an access request has been deleted.
@@ -1078,18 +1437,23 @@ message AccessRequestDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // RequestID is access request ID
-  string RequestID = 3 [(gogoproto.jsontag) = "id"];
+  string RequestID = 3 [
+    (gogoproto.jsontag) = "id",
+    json_name = "id"
+  ];
 }
 
 // PortForward is emitted when a user requests port forwarding.
@@ -1098,32 +1462,39 @@ message PortForward {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Status contains operation success or failure status
   Status Status = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Addr is a target port forwarding address
-  string Addr = 5 [(gogoproto.jsontag) = "addr"];
+  string Addr = 5 [
+    (gogoproto.jsontag) = "addr",
+    json_name = "addr"
+  ];
 }
 
 // X11Forward is emitted when a user requests X11 protocol forwarding
@@ -1132,39 +1503,52 @@ message X11Forward {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Status contains operation success or failure status
   Status Status = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
 // CommandMetadata specifies common command fields
 message CommandMetadata {
   // Command is the executed command name
-  string Command = 1 [(gogoproto.jsontag) = "command"];
+  string Command = 1 [
+    (gogoproto.jsontag) = "command",
+    json_name = "command"
+  ];
   // ExitCode specifies command exit code
-  string ExitCode = 2 [(gogoproto.jsontag) = "exitCode,omitempty"];
+  string ExitCode = 2 [
+    (gogoproto.jsontag) = "exitCode,omitempty",
+    json_name = "exitCode"
+  ];
   // Error is an optional exit error, set if command has failed
-  string Error = 3 [(gogoproto.jsontag) = "exitError,omitempty"];
+  string Error = 3 [
+    (gogoproto.jsontag) = "exitError,omitempty",
+    json_name = "exitError"
+  ];
 }
 
 // Exec specifies command exec event
@@ -1173,42 +1557,48 @@ message Exec {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // CommandMetadata is a common command metadata
   CommandMetadata Command = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // KubernetesCluster has information about a kubernetes cluster, if
@@ -1216,14 +1606,16 @@ message Exec {
   KubernetesClusterMetadata KubernetesCluster = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // KubernetesPod has information about a kubernetes pod, if applicable.
   KubernetesPodMetadata KubernetesPod = 8 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1233,49 +1625,61 @@ message SCP {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // CommandMetadata is a common command metadata
   CommandMetadata Command = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Path is a copy path
-  string Path = 7 [(gogoproto.jsontag) = "path"];
+  string Path = 7 [
+    (gogoproto.jsontag) = "path",
+    json_name = "path"
+  ];
 
   // Action is upload or download
-  string Action = 8 [(gogoproto.jsontag) = "action"];
+  string Action = 8 [
+    (gogoproto.jsontag) = "action",
+    json_name = "action"
+  ];
 }
 
 // SFTPAttributes are file metadata sent over SFTP
@@ -1283,37 +1687,43 @@ message SFTPAttributes {
   // FileSize is file size
   google.protobuf.UInt64Value FileSize = 1 [
     (gogoproto.wktpointer) = true,
-    (gogoproto.jsontag) = "file_size"
+    (gogoproto.jsontag) = "file_size",
+    json_name = "file_size"
   ];
 
   // UID is the user owner of a file
   google.protobuf.UInt32Value UID = 2 [
     (gogoproto.wktpointer) = true,
-    (gogoproto.jsontag) = "uid"
+    (gogoproto.jsontag) = "uid",
+    json_name = "uid"
   ];
 
   // GID is the group owner of the file
   google.protobuf.UInt32Value GID = 3 [
     (gogoproto.wktpointer) = true,
-    (gogoproto.jsontag) = "gid"
+    (gogoproto.jsontag) = "gid",
+    json_name = "gid"
   ];
 
   // Permissions is the file permissions
   google.protobuf.UInt32Value Permissions = 4 [
     (gogoproto.wktpointer) = true,
-    (gogoproto.jsontag) = "permissions"
+    (gogoproto.jsontag) = "permissions",
+    json_name = "permissions"
   ];
 
   // AccessTime is when the file was last read
   google.protobuf.Timestamp AccessTime = 5 [
     (gogoproto.stdtime) = true,
-    (gogoproto.jsontag) = "access_time,omitempty"
+    (gogoproto.jsontag) = "access_time,omitempty",
+    json_name = "access_time"
   ];
 
   // ModificationTime was when the file was last changed
   google.protobuf.Timestamp ModificationTime = 6 [
     (gogoproto.stdtime) = true,
-    (gogoproto.jsontag) = "modification_time,omitempty"
+    (gogoproto.jsontag) = "modification_time,omitempty",
+    json_name = "modification_time"
   ];
 }
 
@@ -1347,60 +1757,86 @@ message SFTP {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // WorkingDirectory is the current directory the SFTP server is in
-  string WorkingDirectory = 6 [(gogoproto.jsontag) = "working_directory"];
+  string WorkingDirectory = 6 [
+    (gogoproto.jsontag) = "working_directory",
+    json_name = "working_directory"
+  ];
 
   // Path is the filepath that was operated on. It is the exact path that
   // was sent by the client, so it may be relative or absolute.
-  string Path = 7 [(gogoproto.jsontag) = "path"];
+  string Path = 7 [
+    (gogoproto.jsontag) = "path",
+    json_name = "path"
+  ];
 
   // TargetPath is the new path in file renames, or the path of the symlink
   // when creating symlinks. It is the exact path that wassent by the client,
   // so it may be relative or absolute.
-  string TargetPath = 8 [(gogoproto.jsontag) = "target_path,omitempty"];
+  string TargetPath = 8 [
+    (gogoproto.jsontag) = "target_path,omitempty",
+    json_name = "target_path"
+  ];
 
   // Flags is options that were passed that affect file creation events
-  uint32 Flags = 9 [(gogoproto.jsontag) = "flags,omitempty"];
+  uint32 Flags = 9 [
+    (gogoproto.jsontag) = "flags,omitempty",
+    json_name = "flags"
+  ];
 
   // Attributes is file metadata that the user requested to be changed
-  SFTPAttributes Attributes = 10 [(gogoproto.jsontag) = "attributes,omitempty"];
+  SFTPAttributes Attributes = 10 [
+    (gogoproto.jsontag) = "attributes,omitempty",
+    json_name = "attributes"
+  ];
 
   // Action is what kind of file operation
-  SFTPAction Action = 11 [(gogoproto.jsontag) = "action"];
+  SFTPAction Action = 11 [
+    (gogoproto.jsontag) = "action",
+    json_name = "action"
+  ];
 
   // Error is the optional error that may have occurred
-  string Error = 12 [(gogoproto.jsontag) = "error,omitempty"];
+  string Error = 12 [
+    (gogoproto.jsontag) = "error,omitempty",
+    json_name = "error"
+  ];
 }
 
 // Subsystem is emitted when a user requests a new subsystem.
@@ -1409,28 +1845,37 @@ message Subsystem {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Name is a subsystem name
-  string Name = 4 [(gogoproto.jsontag) = "name"];
+  string Name = 4 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
 
   // Error contains error in case of unsucessfull attempt
-  string Error = 5 [(gogoproto.jsontag) = "exitError"];
+  string Error = 5 [
+    (gogoproto.jsontag) = "exitError",
+    json_name = "exitError"
+  ];
 }
 
 // ClientDisconnect is emitted when client is disconnected
@@ -1440,33 +1885,40 @@ message ClientDisconnect {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Reason is a field that specifies reason for event, e.g. in disconnect
   // event it explains why server disconnected the client
-  string Reason = 5 [(gogoproto.jsontag) = "reason"];
+  string Reason = 5 [
+    (gogoproto.jsontag) = "reason",
+    json_name = "reason"
+  ];
 }
 
 // AuthAttempt is emitted upon a failed or successfull authentication attempt.
@@ -1475,28 +1927,32 @@ message AuthAttempt {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Status contains common command or operation status fields
   Status Status = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1506,21 +1962,24 @@ message UserTokenCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1530,21 +1989,24 @@ message RoleCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1554,21 +2016,24 @@ message RoleDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1578,21 +2043,24 @@ message TrustedClusterCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1602,21 +2070,24 @@ message TrustedClusterDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1627,21 +2098,24 @@ message TrustedClusterTokenCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1651,21 +2125,24 @@ message GithubConnectorCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1675,21 +2152,24 @@ message GithubConnectorDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1699,21 +2179,24 @@ message OIDCConnectorCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1723,21 +2206,24 @@ message OIDCConnectorDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1747,21 +2233,24 @@ message SAMLConnectorCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1771,21 +2260,24 @@ message SAMLConnectorDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1795,66 +2287,102 @@ message KubeRequest {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // RequestPath is the raw request URL path.
-  string RequestPath = 5 [(gogoproto.jsontag) = "request_path"];
+  string RequestPath = 5 [
+    (gogoproto.jsontag) = "request_path",
+    json_name = "request_path"
+  ];
   // Verb is the HTTP verb used for this request (e.g. GET, POST, etc)
-  string Verb = 6 [(gogoproto.jsontag) = "verb"];
+  string Verb = 6 [
+    (gogoproto.jsontag) = "verb",
+    json_name = "verb"
+  ];
   // ResourceAPIGroup is the resource API group.
-  string ResourceAPIGroup = 7 [(gogoproto.jsontag) = "resource_api_group,omitempty"];
+  string ResourceAPIGroup = 7 [
+    (gogoproto.jsontag) = "resource_api_group,omitempty",
+    json_name = "resource_api_group"
+  ];
   // ResourceNamespace is the resource namespace.
-  string ResourceNamespace = 8 [(gogoproto.jsontag) = "resource_namespace,omitempty"];
+  string ResourceNamespace = 8 [
+    (gogoproto.jsontag) = "resource_namespace,omitempty",
+    json_name = "resource_namespace"
+  ];
   // ResourceKind is the API resource kind (e.g. "pod", "service", etc).
-  string ResourceKind = 9 [(gogoproto.jsontag) = "resource_kind,omitempty"];
+  string ResourceKind = 9 [
+    (gogoproto.jsontag) = "resource_kind,omitempty",
+    json_name = "resource_kind"
+  ];
   // ResourceName is the API resource name.
-  string ResourceName = 10 [(gogoproto.jsontag) = "resource_name,omitempty"];
+  string ResourceName = 10 [
+    (gogoproto.jsontag) = "resource_name,omitempty",
+    json_name = "resource_name"
+  ];
   // ResponseCode is the HTTP response code for this request.
-  int32 ResponseCode = 11 [(gogoproto.jsontag) = "response_code"];
+  int32 ResponseCode = 11 [
+    (gogoproto.jsontag) = "response_code",
+    json_name = "response_code"
+  ];
 
   // Kubernetes has information about a kubernetes cluster, if applicable.
   KubernetesClusterMetadata Kubernetes = 12 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
 // AppMetadata contains common application information.
 message AppMetadata {
   // AppURI is the application endpoint.
-  string AppURI = 1 [(gogoproto.jsontag) = "app_uri,omitempty"];
+  string AppURI = 1 [
+    (gogoproto.jsontag) = "app_uri,omitempty",
+    json_name = "app_uri"
+  ];
   // AppPublicAddr is the configured application public address.
-  string AppPublicAddr = 2 [(gogoproto.jsontag) = "app_public_addr,omitempty"];
+  string AppPublicAddr = 2 [
+    (gogoproto.jsontag) = "app_public_addr,omitempty",
+    json_name = "app_public_addr"
+  ];
   // AppLabels are the configured application labels.
   map<string, string> AppLabels = 3 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "app_labels,omitempty"
+    (gogoproto.jsontag) = "app_labels,omitempty",
+    json_name = "app_labels"
   ];
   // AppName is the configured application name.
-  string AppName = 4 [(gogoproto.jsontag) = "app_name,omitempty"];
+  string AppName = 4 [
+    (gogoproto.jsontag) = "app_name,omitempty",
+    json_name = "app_name"
+  ];
 }
 
 // AppCreate is emitted when a new application resource is created.
@@ -1863,25 +2391,29 @@ message AppCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // ResourceMetadata is a common resource event metadata.
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // AppMetadata is a common application resource metadata.
   AppMetadata App = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1891,25 +2423,29 @@ message AppUpdate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // ResourceMetadata is a common resource event metadata.
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // AppMetadata is a common application resource metadata.
   AppMetadata App = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1919,19 +2455,22 @@ message AppDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // ResourceMetadata is a common resource event metadata.
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1941,41 +2480,47 @@ message AppSessionStart {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // PublicAddr is the public address of the application being requested.
   // DELETE IN 10.0: this information is also present on the AppMetadata.
   string PublicAddr = 7 [
     (gogoproto.jsontag) = "public_addr",
+    json_name = "public_addr",
     deprecated = true
   ];
 
@@ -1983,7 +2528,8 @@ message AppSessionStart {
   AppMetadata App = 8 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -1993,42 +2539,48 @@ message AppSessionEnd {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // App is a common application resource metadata.
   AppMetadata App = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2040,46 +2592,55 @@ message AppSessionChunk {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ServerMetadata is a common server metadata
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ConnectionMetadata holds information about the connection
   ConnectionMetadata Connection = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionChunkID is the ID of the session that was created for this 5 minute
   // application log chunk.
-  string SessionChunkID = 6 [(gogoproto.jsontag) = "session_chunk_id"];
+  string SessionChunkID = 6 [
+    (gogoproto.jsontag) = "session_chunk_id",
+    json_name = "session_chunk_id"
+  ];
 
   // App is a common application resource metadata.
   AppMetadata App = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2089,66 +2650,118 @@ message AppSessionRequest {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // StatusCode the HTTP response code for the request.
-  uint32 StatusCode = 2 [(gogoproto.jsontag) = "status_code"];
+  uint32 StatusCode = 2 [
+    (gogoproto.jsontag) = "status_code",
+    json_name = "status_code"
+  ];
   // Path is relative path in the URL.
-  string Path = 3 [(gogoproto.jsontag) = "path"];
+  string Path = 3 [
+    (gogoproto.jsontag) = "path",
+    json_name = "path"
+  ];
   // RawQuery are the encoded query values.
-  string RawQuery = 4 [(gogoproto.jsontag) = "raw_query"];
+  string RawQuery = 4 [
+    (gogoproto.jsontag) = "raw_query",
+    json_name = "raw_query"
+  ];
   // Method is the request HTTP method, like GET/POST/DELETE/etc.
-  string Method = 5 [(gogoproto.jsontag) = "method"];
+  string Method = 5 [
+    (gogoproto.jsontag) = "method",
+    json_name = "method"
+  ];
   // App is a common application resource metadata.
   AppMetadata App = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // AWS contains extra AWS metadata of the request.
   AWSRequestMetadata AWS = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
 // AWSRequestMetadata contains extra AWS metadata of an AppSessionRequest.
 message AWSRequestMetadata {
   // AWSRegion is the requested AWS region.
-  string AWSRegion = 1 [(gogoproto.jsontag) = "aws_region,omitempty"];
+  string AWSRegion = 1 [
+    (gogoproto.jsontag) = "aws_region,omitempty",
+    json_name = "aws_region"
+  ];
   // AWSService is the requested AWS service name.
-  string AWSService = 2 [(gogoproto.jsontag) = "aws_service,omitempty"];
+  string AWSService = 2 [
+    (gogoproto.jsontag) = "aws_service,omitempty",
+    json_name = "aws_service"
+  ];
   // AWSHost is the requested host of the AWS service.
-  string AWSHost = 3 [(gogoproto.jsontag) = "aws_host,omitempty"];
+  string AWSHost = 3 [
+    (gogoproto.jsontag) = "aws_host,omitempty",
+    json_name = "aws_host"
+  ];
 }
 
 // DatabaseMetadata contains common database information.
 message DatabaseMetadata {
   // DatabaseService is the name of the database service proxying the database.
-  string DatabaseService = 1 [(gogoproto.jsontag) = "db_service,omitempty"];
+  string DatabaseService = 1 [
+    (gogoproto.jsontag) = "db_service,omitempty",
+    json_name = "db_service"
+  ];
   // DatabaseProtocol is the database type, e.g. postgres or mysql.
-  string DatabaseProtocol = 2 [(gogoproto.jsontag) = "db_protocol"];
+  string DatabaseProtocol = 2 [
+    (gogoproto.jsontag) = "db_protocol",
+    json_name = "db_protocol"
+  ];
   // DatabaseURI is the database URI to connect to.
-  string DatabaseURI = 3 [(gogoproto.jsontag) = "db_uri"];
+  string DatabaseURI = 3 [
+    (gogoproto.jsontag) = "db_uri",
+    json_name = "db_uri"
+  ];
   // DatabaseName is the name of the database a user is connecting to.
-  string DatabaseName = 4 [(gogoproto.jsontag) = "db_name,omitempty"];
+  string DatabaseName = 4 [
+    (gogoproto.jsontag) = "db_name,omitempty",
+    json_name = "db_name"
+  ];
   // DatabaseUser is the database username used to connect.
-  string DatabaseUser = 5 [(gogoproto.jsontag) = "db_user,omitempty"];
+  string DatabaseUser = 5 [
+    (gogoproto.jsontag) = "db_user,omitempty",
+    json_name = "db_user"
+  ];
   // DatabaseLabels is the database resource labels.
   map<string, string> DatabaseLabels = 6 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "db_labels,omitempty"
+    (gogoproto.jsontag) = "db_labels,omitempty",
+    json_name = "db_labels"
   ];
   // DatabaseAWSRegion is AWS regions for AWS hosted databases.
-  string DatabaseAWSRegion = 7 [(gogoproto.jsontag) = "db_aws_region,omitempty"];
+  string DatabaseAWSRegion = 7 [
+    (gogoproto.jsontag) = "db_aws_region,omitempty",
+    json_name = "db_aws_region"
+  ];
   // DatabaseAWSRegion is cluster ID for Redshift databases.
-  string DatabaseAWSRedshiftClusterID = 8 [(gogoproto.jsontag) = "db_aws_redshift_cluster_id,omitempty"];
+  string DatabaseAWSRedshiftClusterID = 8 [
+    (gogoproto.jsontag) = "db_aws_redshift_cluster_id,omitempty",
+    json_name = "db_aws_redshift_cluster_id"
+  ];
   // DatabaseGCPProjectID is project ID for GCP hosted databases.
-  string DatabaseGCPProjectID = 9 [(gogoproto.jsontag) = "db_gcp_project_id,omitempty"];
+  string DatabaseGCPProjectID = 9 [
+    (gogoproto.jsontag) = "db_gcp_project_id,omitempty",
+    json_name = "db_gcp_project_id"
+  ];
   // DatabaseGCPInstanceID is instance ID for GCP hosted databases.
-  string DatabaseGCPInstanceID = 10 [(gogoproto.jsontag) = "db_gcp_instance_id,omitempty"];
+  string DatabaseGCPInstanceID = 10 [
+    (gogoproto.jsontag) = "db_gcp_instance_id,omitempty",
+    json_name = "db_gcp_instance_id"
+  ];
 }
 
 // DatabaseCreate is emitted when a new database resource is created.
@@ -2157,25 +2770,29 @@ message DatabaseCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // ResourceMetadata is a common resource event metadata.
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // DatabaseMetadata is a common database resource metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2185,25 +2802,29 @@ message DatabaseUpdate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // ResourceMetadata is a common resource event metadata.
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // DatabaseMetadata is a common database resource metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2213,19 +2834,22 @@ message DatabaseDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // ResourceMetadata is a common resource event metadata.
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2235,43 +2859,50 @@ message DatabaseSessionStart {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Session is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Server is a common server metadata.
   ServerMetadata Server = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Connection holds information about the connection.
   ConnectionMetadata Connection = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Status indicates whether the connection was successful or denied.
   Status Status = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2281,35 +2912,46 @@ message DatabaseSessionQuery {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // DatabaseQuery is the executed query string.
-  string DatabaseQuery = 5 [(gogoproto.jsontag) = "db_query"];
+  string DatabaseQuery = 5 [
+    (gogoproto.jsontag) = "db_query",
+    json_name = "db_query"
+  ];
   // DatabaseQueryParameters are the query parameters for prepared statements.
-  repeated string DatabaseQueryParameters = 6 [(gogoproto.jsontag) = "db_query_parameters,omitempty"];
+  repeated string DatabaseQueryParameters = 6 [
+    (gogoproto.jsontag) = "db_query_parameters,omitempty",
+    json_name = "db_query_parameters"
+  ];
   // Status indicates whether the query was successfully sent to the database.
   Status Status = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2320,30 +2962,40 @@ message PostgresParse {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // StatementName is the prepared statement name.
-  string StatementName = 5 [(gogoproto.jsontag) = "statement_name"];
+  string StatementName = 5 [
+    (gogoproto.jsontag) = "statement_name",
+    json_name = "statement_name"
+  ];
   // Query is the prepared statement query.
-  string Query = 6 [(gogoproto.jsontag) = "query"];
+  string Query = 6 [
+    (gogoproto.jsontag) = "query",
+    json_name = "query"
+  ];
 }
 
 // PostgresBind is emitted when a Postgres client readies a prepared statement
@@ -2353,32 +3005,45 @@ message PostgresBind {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // StatementName is the name of prepared statement that's being bound to parameters.
-  string StatementName = 5 [(gogoproto.jsontag) = "statement_name"];
+  string StatementName = 5 [
+    (gogoproto.jsontag) = "statement_name",
+    json_name = "statement_name"
+  ];
   // PortalName is the destination portal name that binds statement to parameters.
-  string PortalName = 6 [(gogoproto.jsontag) = "portal_name"];
+  string PortalName = 6 [
+    (gogoproto.jsontag) = "portal_name",
+    json_name = "portal_name"
+  ];
   // Parameters are the query bind parameters.
-  repeated string Parameters = 7 [(gogoproto.jsontag) = "parameters"];
+  repeated string Parameters = 7 [
+    (gogoproto.jsontag) = "parameters",
+    json_name = "parameters"
+  ];
 }
 
 // PostgresExecute is emitted when a Postgres client executes a previously
@@ -2388,28 +3053,35 @@ message PostgresExecute {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // PortalName is the name of destination portal that's being executed.
-  string PortalName = 5 [(gogoproto.jsontag) = "portal_name"];
+  string PortalName = 5 [
+    (gogoproto.jsontag) = "portal_name",
+    json_name = "portal_name"
+  ];
 }
 
 // PostgresClose is emitted when a Postgres client closes an existing prepared
@@ -2419,30 +3091,40 @@ message PostgresClose {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // StatementName is the name of prepared statement that's being closed.
-  string StatementName = 5 [(gogoproto.jsontag) = "statement_name"];
+  string StatementName = 5 [
+    (gogoproto.jsontag) = "statement_name",
+    json_name = "statement_name"
+  ];
   // PortalName is the name of destination portal that's being closed.
-  string PortalName = 6 [(gogoproto.jsontag) = "portal_name"];
+  string PortalName = 6 [
+    (gogoproto.jsontag) = "portal_name",
+    json_name = "portal_name"
+  ];
 }
 
 // PostgresFunctionCall is emitted when a Postgres client calls internal
@@ -2452,30 +3134,40 @@ message PostgresFunctionCall {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // FunctionOID is the Postgres object ID of the called function.
-  uint32 FunctionOID = 5 [(gogoproto.jsontag) = "function_oid"];
+  uint32 FunctionOID = 5 [
+    (gogoproto.jsontag) = "function_oid",
+    json_name = "function_oid"
+  ];
   // FunctionArgs contains formatted function arguments.
-  repeated string FunctionArgs = 6 [(gogoproto.jsontag) = "function_args,omitempty"];
+  repeated string FunctionArgs = 6 [
+    (gogoproto.jsontag) = "function_args,omitempty",
+    json_name = "function_args"
+  ];
 }
 
 // WindowsDesktopSessionStart is emitted when a user connects to a desktop.
@@ -2484,44 +3176,67 @@ message WindowsDesktopSessionStart {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Session is common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Connection holds information about the connection.
   ConnectionMetadata Connection = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Status indicates whether the connection was successful or denied.
   Status Status = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // WindowsDesktopService is the name of the service proxying the RDP session.
-  string WindowsDesktopService = 6 [(gogoproto.jsontag) = "windows_desktop_service"];
+  string WindowsDesktopService = 6 [
+    (gogoproto.jsontag) = "windows_desktop_service",
+    json_name = "windows_desktop_service"
+  ];
   // DesktopAddr is the address of the desktop being accessed.
-  string DesktopAddr = 7 [(gogoproto.jsontag) = "desktop_addr"];
+  string DesktopAddr = 7 [
+    (gogoproto.jsontag) = "desktop_addr",
+    json_name = "desktop_addr"
+  ];
   // Domain is the Active Directory domain of the desktop being accessed.
-  string Domain = 8 [(gogoproto.jsontag) = "windows_domain"];
+  string Domain = 8 [
+    (gogoproto.jsontag) = "windows_domain",
+    json_name = "windows_domain"
+  ];
   // WindowsUser is the Windows username used to connect.
-  string WindowsUser = 9 [(gogoproto.jsontag) = "windows_user"];
+  string WindowsUser = 9 [
+    (gogoproto.jsontag) = "windows_user",
+    json_name = "windows_user"
+  ];
   // DesktopLabels are the labels on the desktop resource.
-  map<string, string> DesktopLabels = 10 [(gogoproto.jsontag) = "desktop_labels"];
+  map<string, string> DesktopLabels = 10 [
+    (gogoproto.jsontag) = "desktop_labels",
+    json_name = "desktop_labels"
+  ];
   // DesktopName is the name of the desktop resource.
-  string DesktopName = 11 [(gogoproto.jsontag) = "desktop_name"];
+  string DesktopName = 11 [
+    (gogoproto.jsontag) = "desktop_name",
+    json_name = "desktop_name"
+  ];
 }
 
 // DatabaseSessionEnd is emitted when a user ends the database session.
@@ -2530,36 +3245,49 @@ message DatabaseSessionEnd {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Session is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
 // MFADeviceMetadata is a common MFA device metadata.
 message MFADeviceMetadata {
   // Name is the user-specified name of the MFA device.
-  string DeviceName = 1 [(gogoproto.jsontag) = "mfa_device_name"];
+  string DeviceName = 1 [
+    (gogoproto.jsontag) = "mfa_device_name",
+    json_name = "mfa_device_name"
+  ];
   // ID is the UUID of the MFA device generated by Teleport.
-  string DeviceID = 2 [(gogoproto.jsontag) = "mfa_device_uuid"];
+  string DeviceID = 2 [
+    (gogoproto.jsontag) = "mfa_device_uuid",
+    json_name = "mfa_device_uuid"
+  ];
   // Type is the type of this MFA device.
-  string DeviceType = 3 [(gogoproto.jsontag) = "mfa_device_type"];
+  string DeviceType = 3 [
+    (gogoproto.jsontag) = "mfa_device_type",
+    json_name = "mfa_device_type"
+  ];
 }
 
 // MFADeviceAdd is emitted when a user adds an MFA device.
@@ -2568,19 +3296,22 @@ message MFADeviceAdd {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Device is the new MFA device added by the user.
   MFADeviceMetadata Device = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2590,19 +3321,22 @@ message MFADeviceDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Device is the MFA device deleted by the user.
   MFADeviceMetadata Device = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2612,13 +3346,15 @@ message BillingInformationUpdate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2628,13 +3364,15 @@ message BillingCardCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2644,13 +3382,15 @@ message BillingCardDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2663,27 +3403,31 @@ message LockCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Target describes the set of interactions that the lock applies to
   types.LockTarget Target = 4 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "target"
+    (gogoproto.jsontag) = "target",
+    json_name = "target"
   ];
 }
 
@@ -2693,21 +3437,24 @@ message LockDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ResourceMetadata is a common resource event metadata
   ResourceMetadata Resource = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // User is a common user event metadata
   UserMetadata User = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2717,13 +3464,15 @@ message RecoveryCodeGenerate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2734,19 +3483,22 @@ message RecoveryCodeUsed {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Status contains fields to indicate whether attempt was successful or not.
   Status Status = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2756,48 +3508,77 @@ message WindowsDesktopSessionEnd {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Session is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // WindowsDesktopService is the name of the service proxying the RDP session.
-  string WindowsDesktopService = 4 [(gogoproto.jsontag) = "windows_desktop_service"];
+  string WindowsDesktopService = 4 [
+    (gogoproto.jsontag) = "windows_desktop_service",
+    json_name = "windows_desktop_service"
+  ];
   // DesktopAddr is the address of the desktop being accessed.
-  string DesktopAddr = 5 [(gogoproto.jsontag) = "desktop_addr"];
+  string DesktopAddr = 5 [
+    (gogoproto.jsontag) = "desktop_addr",
+    json_name = "desktop_addr"
+  ];
   // Domain is the Active Directory domain of the desktop being accessed.
-  string Domain = 6 [(gogoproto.jsontag) = "windows_domain"];
+  string Domain = 6 [
+    (gogoproto.jsontag) = "windows_domain",
+    json_name = "windows_domain"
+  ];
   // WindowsUser is the Windows username used to connect.
-  string WindowsUser = 7 [(gogoproto.jsontag) = "windows_user"];
+  string WindowsUser = 7 [
+    (gogoproto.jsontag) = "windows_user",
+    json_name = "windows_user"
+  ];
   // DesktopLabels are the labels on the desktop resource.
-  map<string, string> DesktopLabels = 8 [(gogoproto.jsontag) = "desktop_labels"];
+  map<string, string> DesktopLabels = 8 [
+    (gogoproto.jsontag) = "desktop_labels",
+    json_name = "desktop_labels"
+  ];
   // StartTime is the timestamp at which the session began.
   google.protobuf.Timestamp StartTime = 9 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "session_start,omitempty" // JSON tag intentionally matches SessionEnd event
+    (gogoproto.jsontag) = "session_start,omitempty",
+    json_name = "session_start" // JSON tag intentionally matches SessionEnd event
   ];
   // EndTime is the timestamp at which the session ended.
   google.protobuf.Timestamp EndTime = 10 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "session_stop,omitempty"
+    (gogoproto.jsontag) = "session_stop,omitempty",
+    json_name = "session_stop"
   ];
   // DesktopName is the name of the desktop resource.
-  string DesktopName = 11 [(gogoproto.jsontag) = "desktop_name"];
+  string DesktopName = 11 [
+    (gogoproto.jsontag) = "desktop_name",
+    json_name = "desktop_name"
+  ];
   // Recorded is true if the session was recorded, false otherwise.
-  bool Recorded = 12 [(gogoproto.jsontag) = "recorded"];
+  bool Recorded = 12 [
+    (gogoproto.jsontag) = "recorded",
+    json_name = "recorded"
+  ];
   // Participants is a list of participants in the session.
-  repeated string Participants = 13 [(gogoproto.jsontag) = "participants"];
+  repeated string Participants = 13 [
+    (gogoproto.jsontag) = "participants",
+    json_name = "participants"
+  ];
 }
 
 // CertificateCreate is emitted when a certificate is issued.
@@ -2806,14 +3587,21 @@ message CertificateCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // CertificateType is the type of certificate that was just issued.
-  string CertificateType = 2 [(gogoproto.jsontag) = "cert_type,omitempty"];
+  string CertificateType = 2 [
+    (gogoproto.jsontag) = "cert_type,omitempty",
+    json_name = "cert_type"
+  ];
 
   // Identity is the identity associated with the certificate, as interpreted by Teleport.
-  Identity Identity = 3 [(gogoproto.jsontag) = "identity"];
+  Identity Identity = 3 [
+    (gogoproto.jsontag) = "identity",
+    json_name = "identity"
+  ];
 }
 
 // RenewableCertificateGenerationMismatch is emitted when a renewable
@@ -2824,14 +3612,16 @@ message RenewableCertificateGenerationMismatch {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // UserMetadata is a common user event metadata.
   UserMetadata UserMetadata = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -2841,17 +3631,27 @@ message Unknown {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // UnknownType is the event type extracted from the unknown event.
-  string UnknownType = 2 [(gogoproto.jsontag) = "unknown_event"];
+  string UnknownType = 2 [
+    (gogoproto.jsontag) = "unknown_event",
+    json_name = "unknown_event"
+  ];
 
   // UnknownCode is the event code extracted from the unknown event.
-  string UnknownCode = 3 [(gogoproto.jsontag) = "unknown_code,omitempty"];
+  string UnknownCode = 3 [
+    (gogoproto.jsontag) = "unknown_code,omitempty",
+    json_name = "unknown_code"
+  ];
 
   // Data is the serialized JSON data of the unknown event.
-  string Data = 4 [(gogoproto.jsontag) = "data"];
+  string Data = 4 [
+    (gogoproto.jsontag) = "data",
+    json_name = "data"
+  ];
 }
 
 // OneOf is a union of one of audit events submitted to the auth service
@@ -2979,21 +3779,29 @@ message SessionUpload {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // SessionMetadata is a common event session metadata
   SessionMetadata SessionMetadata = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // ID is a unique event identifier
-  string UID = 4 [(gogoproto.jsontag) = "uid,omitempty"];
+  string UID = 4 [
+    (gogoproto.jsontag) = "uid,omitempty",
+    json_name = "uid"
+  ];
 
   // URL is where the url the session event data upload is at
-  string SessionURL = 5 [(gogoproto.jsontag) = "url"];
+  string SessionURL = 5 [
+    (gogoproto.jsontag) = "url",
+    json_name = "url"
+  ];
 }
 
 // Identity matches github.com/gravitational/teleport/lib/tlsca.Identity except
@@ -3003,69 +3811,129 @@ message SessionUpload {
 // rather than the field names in tlsca.Identity.
 message Identity {
   // User is a username or name of the node connection
-  string User = 1 [(gogoproto.jsontag) = "user,omitempty"];
+  string User = 1 [
+    (gogoproto.jsontag) = "user,omitempty",
+    json_name = "user"
+  ];
   // Impersonator is a username of a user impersonating this user
-  string Impersonator = 2 [(gogoproto.jsontag) = "impersonator,omitempty"];
+  string Impersonator = 2 [
+    (gogoproto.jsontag) = "impersonator,omitempty",
+    json_name = "impersonator"
+  ];
   // Roles is a list of groups (Teleport roles) encoded in the identity
-  repeated string Roles = 3 [(gogoproto.jsontag) = "roles,omitempty"];
+  repeated string Roles = 3 [
+    (gogoproto.jsontag) = "roles,omitempty",
+    json_name = "roles"
+  ];
   // Usage is a list of usage restrictions encoded in the identity
-  repeated string Usage = 4 [(gogoproto.jsontag) = "usage,omitempty"];
+  repeated string Usage = 4 [
+    (gogoproto.jsontag) = "usage,omitempty",
+    json_name = "usage"
+  ];
   // Logins is a list of Unix logins allowed.
-  repeated string Logins = 5 [(gogoproto.jsontag) = "logins,omitempty"];
+  repeated string Logins = 5 [
+    (gogoproto.jsontag) = "logins,omitempty",
+    json_name = "logins"
+  ];
   // KubernetesGroups is a list of Kubernetes groups allowed
-  repeated string KubernetesGroups = 6 [(gogoproto.jsontag) = "kubernetes_groups,omitempty"];
+  repeated string KubernetesGroups = 6 [
+    (gogoproto.jsontag) = "kubernetes_groups,omitempty",
+    json_name = "kubernetes_groups"
+  ];
   // KubernetesUsers is a list of Kubernetes users allowed
-  repeated string KubernetesUsers = 7 [(gogoproto.jsontag) = "kubernetes_users,omitempty"];
+  repeated string KubernetesUsers = 7 [
+    (gogoproto.jsontag) = "kubernetes_users,omitempty",
+    json_name = "kubernetes_users"
+  ];
   // Expires specifies whenever the session will expire
   google.protobuf.Timestamp Expires = 8 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "expires"
+    (gogoproto.jsontag) = "expires",
+    json_name = "expires"
   ];
   // RouteToCluster specifies the target cluster
   // if present in the session
-  string RouteToCluster = 9 [(gogoproto.jsontag) = "route_to_cluster,omitempty"];
+  string RouteToCluster = 9 [
+    (gogoproto.jsontag) = "route_to_cluster,omitempty",
+    json_name = "route_to_cluster"
+  ];
   // KubernetesCluster specifies the target kubernetes cluster for TLS
   // identities. This can be empty on older Teleport clients.
-  string KubernetesCluster = 10 [(gogoproto.jsontag) = "kubernetes_cluster,omitempty"];
+  string KubernetesCluster = 10 [
+    (gogoproto.jsontag) = "kubernetes_cluster,omitempty",
+    json_name = "kubernetes_cluster"
+  ];
   // Traits hold claim data used to populate a role at runtime.
   wrappers.LabelValues Traits = 11 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "traits,omitempty",
+    json_name = "traits",
     (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
   ];
   // RouteToApp holds routing information for applications. Routing metadata
   // allows Teleport web proxy to route HTTP requests to the appropriate
   // cluster and Teleport application proxy within the cluster.
-  RouteToApp RouteToApp = 12 [(gogoproto.jsontag) = "route_to_app,omitempty"];
+  RouteToApp RouteToApp = 12 [
+    (gogoproto.jsontag) = "route_to_app,omitempty",
+    json_name = "route_to_app"
+  ];
   // TeleportCluster is the name of the teleport cluster that this identity
   // originated from. For TLS certs this may not be the same as cert issuer,
   // in case of multi-hop requests that originate from a remote cluster.
-  string TeleportCluster = 13 [(gogoproto.jsontag) = "teleport_cluster,omitempty"];
+  string TeleportCluster = 13 [
+    (gogoproto.jsontag) = "teleport_cluster,omitempty",
+    json_name = "teleport_cluster"
+  ];
   // RouteToDatabase contains routing information for databases.
-  RouteToDatabase RouteToDatabase = 14 [(gogoproto.jsontag) = "route_to_database,omitempty"];
+  RouteToDatabase RouteToDatabase = 14 [
+    (gogoproto.jsontag) = "route_to_database,omitempty",
+    json_name = "route_to_database"
+  ];
   // DatabaseNames is a list of allowed database names.
-  repeated string DatabaseNames = 15 [(gogoproto.jsontag) = "database_names,omitempty"];
+  repeated string DatabaseNames = 15 [
+    (gogoproto.jsontag) = "database_names,omitempty",
+    json_name = "database_names"
+  ];
   // DatabaseUsers is a list of allowed database users.
-  repeated string DatabaseUsers = 16 [(gogoproto.jsontag) = "database_users,omitempty"];
+  repeated string DatabaseUsers = 16 [
+    (gogoproto.jsontag) = "database_users,omitempty",
+    json_name = "database_users"
+  ];
   // MFADeviceUUID is the UUID of an MFA device when this Identity was
   // confirmed immediately after an MFA check.
-  string MFADeviceUUID = 17 [(gogoproto.jsontag) = "mfa_device_uuid,omitempty"];
+  string MFADeviceUUID = 17 [
+    (gogoproto.jsontag) = "mfa_device_uuid,omitempty",
+    json_name = "mfa_device_uuid"
+  ];
   // ClientIP is an observed IP of the client that this Identity represents.
-  string ClientIP = 18 [(gogoproto.jsontag) = "client_ip,omitempty"];
+  string ClientIP = 18 [
+    (gogoproto.jsontag) = "client_ip,omitempty",
+    json_name = "client_ip"
+  ];
   // AWSRoleARNs is a list of allowed AWS role ARNs user can assume.
-  repeated string AWSRoleARNs = 19 [(gogoproto.jsontag) = "aws_role_arns,omitempty"];
+  repeated string AWSRoleARNs = 19 [
+    (gogoproto.jsontag) = "aws_role_arns,omitempty",
+    json_name = "aws_role_arns"
+  ];
   // AccessRequests is a list of UUIDs of active requests for this Identity.
-  repeated string AccessRequests = 20 [(gogoproto.jsontag) = "access_requests,omitempty"];
+  repeated string AccessRequests = 20 [
+    (gogoproto.jsontag) = "access_requests,omitempty",
+    json_name = "access_requests"
+  ];
   // DisallowReissue is a flag that, if set, instructs the auth server to
   // deny any attempts to reissue new certificates while authenticated with
   // this certificate.
-  bool DisallowReissue = 21 [(gogoproto.jsontag) = "disallow_reissue,omitempty"];
+  bool DisallowReissue = 21 [
+    (gogoproto.jsontag) = "disallow_reissue,omitempty",
+    json_name = "disallow_reissue"
+  ];
   // AllowedResourceIds is the list of resources which the identity will be
   // allowed to access. An empty list indicates that no resource-specific
   // restrictions will be applied.
   repeated ResourceID AllowedResourceIDs = 22 [
     (gogoproto.jsontag) = "allowed_resource_ids,omitempty",
+    json_name = "allowed_resource_ids",
     (gogoproto.nullable) = false
   ];
 }
@@ -3073,27 +3941,54 @@ message Identity {
 // RouteToApp contains parameters for application access certificate requests.
 message RouteToApp {
   // Name is the application name certificate is being requested for.
-  string Name = 1 [(gogoproto.jsontag) = "name"];
+  string Name = 1 [
+    (gogoproto.jsontag) = "name",
+    json_name = "name"
+  ];
   // SessionID is the ID of the application session.
-  string SessionID = 2 [(gogoproto.jsontag) = "session_id"];
+  string SessionID = 2 [
+    (gogoproto.jsontag) = "session_id",
+    json_name = "session_id"
+  ];
   // PublicAddr is the application public address.
-  string PublicAddr = 3 [(gogoproto.jsontag) = "public_addr"];
+  string PublicAddr = 3 [
+    (gogoproto.jsontag) = "public_addr",
+    json_name = "public_addr"
+  ];
   // ClusterName is the cluster where the application resides.
-  string ClusterName = 4 [(gogoproto.jsontag) = "cluster_name"];
+  string ClusterName = 4 [
+    (gogoproto.jsontag) = "cluster_name",
+    json_name = "cluster_name"
+  ];
   // AWSRoleARN is the AWS role to assume when accessing AWS API.
-  string AWSRoleARN = 5 [(gogoproto.jsontag) = "aws_role_arn,omitempty"];
+  string AWSRoleARN = 5 [
+    (gogoproto.jsontag) = "aws_role_arn,omitempty",
+    json_name = "aws_role_arn"
+  ];
 }
 
 // RouteToDatabase combines parameters for database service routing information.
 message RouteToDatabase {
   // ServiceName is the Teleport database proxy service name the cert is for.
-  string ServiceName = 1 [(gogoproto.jsontag) = "service_name"];
+  string ServiceName = 1 [
+    (gogoproto.jsontag) = "service_name",
+    json_name = "service_name"
+  ];
   // Protocol is the type of the database the cert is for.
-  string Protocol = 2 [(gogoproto.jsontag) = "protocol"];
+  string Protocol = 2 [
+    (gogoproto.jsontag) = "protocol",
+    json_name = "protocol"
+  ];
   // Username is an optional database username to embed.
-  string Username = 3 [(gogoproto.jsontag) = "username,omitempty"];
+  string Username = 3 [
+    (gogoproto.jsontag) = "username,omitempty",
+    json_name = "username"
+  ];
   // Database is an optional database name to embed.
-  string Database = 4 [(gogoproto.jsontag) = "database,omitempty"];
+  string Database = 4 [
+    (gogoproto.jsontag) = "database,omitempty",
+    json_name = "database"
+  ];
 }
 
 // AccessRequestResourceSearch is emitted when a user searches for resources as
@@ -3103,26 +3998,46 @@ message AccessRequestResourceSearch {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is common user metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SearchAsRoles is the list of roles the search was performed as.
-  repeated string SearchAsRoles = 3 [(gogoproto.jsontag) = "search_as_roles"];
+  repeated string SearchAsRoles = 3 [
+    (gogoproto.jsontag) = "search_as_roles",
+    json_name = "search_as_roles"
+  ];
   // ResourceType is the type of resource being searched for.
-  string ResourceType = 4 [(gogoproto.jsontag) = "resource_type,omitempty"];
+  string ResourceType = 4 [
+    (gogoproto.jsontag) = "resource_type,omitempty",
+    json_name = "resource_type"
+  ];
   // Namespace is the namespace of resources.
-  string Namespace = 5 [(gogoproto.jsontag) = "namespace,omitempty"];
+  string Namespace = 5 [
+    (gogoproto.jsontag) = "namespace,omitempty",
+    json_name = "namespace"
+  ];
   // Labels is the label-based matcher used for the search.
-  map<string, string> Labels = 6 [(gogoproto.jsontag) = "labels,omitempty"];
+  map<string, string> Labels = 6 [
+    (gogoproto.jsontag) = "labels,omitempty",
+    json_name = "labels"
+  ];
   // PredicateExpression is the list of boolean conditions that were used for the search.
-  string PredicateExpression = 7 [(gogoproto.jsontag) = "predicate_expression,omitempty"];
+  string PredicateExpression = 7 [
+    (gogoproto.jsontag) = "predicate_expression,omitempty",
+    json_name = "predicate_expression"
+  ];
   // SearchKeywords is the list of search keywords used to match against resource field values.
-  repeated string SearchKeywords = 8 [(gogoproto.jsontag) = "search_keywords,omitempty"];
+  repeated string SearchKeywords = 8 [
+    (gogoproto.jsontag) = "search_keywords,omitempty",
+    json_name = "search_keywords"
+  ];
 }
 
 // MySQLStatementPrepare is emitted when a MySQL client creates a prepared
@@ -3132,28 +4047,35 @@ message MySQLStatementPrepare {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Query is the prepared statement query.
-  string Query = 5 [(gogoproto.jsontag) = "query"];
+  string Query = 5 [
+    (gogoproto.jsontag) = "query",
+    json_name = "query"
+  ];
 }
 
 // MySQLStatementExecute is emitted when a MySQL client executes a prepared
@@ -3163,30 +4085,40 @@ message MySQLStatementExecute {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // StatementID is the identifier of the prepared statement.
-  uint32 StatementID = 5 [(gogoproto.jsontag) = "statement_id"];
+  uint32 StatementID = 5 [
+    (gogoproto.jsontag) = "statement_id",
+    json_name = "statement_id"
+  ];
   // Parameters are the parameters used to execute the prepared statement.
-  repeated string Parameters = 6 [(gogoproto.jsontag) = "parameters"];
+  repeated string Parameters = 6 [
+    (gogoproto.jsontag) = "parameters",
+    json_name = "parameters"
+  ];
 }
 
 // MySQLStatementSendLongData is emitted when a MySQL client sends long bytes
@@ -3196,32 +4128,45 @@ message MySQLStatementSendLongData {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // StatementID is the identifier of the prepared statement.
-  uint32 StatementID = 5 [(gogoproto.jsontag) = "statement_id"];
+  uint32 StatementID = 5 [
+    (gogoproto.jsontag) = "statement_id",
+    json_name = "statement_id"
+  ];
   // ParameterID is the identifier of the parameter.
-  uint32 ParameterID = 6 [(gogoproto.jsontag) = "parameter_id"];
+  uint32 ParameterID = 6 [
+    (gogoproto.jsontag) = "parameter_id",
+    json_name = "parameter_id"
+  ];
   // DataSize is the size of the data.
-  uint32 DataSize = 7 [(gogoproto.jsontag) = "data_size"];
+  uint32 DataSize = 7 [
+    (gogoproto.jsontag) = "data_size",
+    json_name = "data_size"
+  ];
 }
 
 // MySQLStatementClose is emitted when a MySQL client deallocates a prepared
@@ -3231,28 +4176,35 @@ message MySQLStatementClose {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // StatementID is the identifier of the prepared statement.
-  uint32 StatementID = 5 [(gogoproto.jsontag) = "statement_id"];
+  uint32 StatementID = 5 [
+    (gogoproto.jsontag) = "statement_id",
+    json_name = "statement_id"
+  ];
 }
 
 // MySQLStatementReset is emitted when a MySQL client resets the data of a
@@ -3262,28 +4214,35 @@ message MySQLStatementReset {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // StatementID is the identifier of the prepared statement.
-  uint32 StatementID = 5 [(gogoproto.jsontag) = "statement_id"];
+  uint32 StatementID = 5 [
+    (gogoproto.jsontag) = "statement_id",
+    json_name = "statement_id"
+  ];
 }
 
 // MySQLStatementFetch is emitted when a MySQL client fetches rows from a
@@ -3293,30 +4252,40 @@ message MySQLStatementFetch {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // StatementID is the identifier of the prepared statement.
-  uint32 StatementID = 5 [(gogoproto.jsontag) = "statement_id"];
+  uint32 StatementID = 5 [
+    (gogoproto.jsontag) = "statement_id",
+    json_name = "statement_id"
+  ];
   // RowsCount is the number of rows to fetch.
-  uint32 RowsCount = 6 [(gogoproto.jsontag) = "rows_count"];
+  uint32 RowsCount = 6 [
+    (gogoproto.jsontag) = "rows_count",
+    json_name = "rows_count"
+  ];
 }
 
 // MySQLStatementBulkExecute is emitted when a MySQL client executes a bulk
@@ -3326,30 +4295,40 @@ message MySQLStatementBulkExecute {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // StatementID is the identifier of the prepared statement.
-  uint32 StatementID = 5 [(gogoproto.jsontag) = "statement_id"];
+  uint32 StatementID = 5 [
+    (gogoproto.jsontag) = "statement_id",
+    json_name = "statement_id"
+  ];
   // Parameters are the parameters used to execute the prepared statement.
-  repeated string Parameters = 6 [(gogoproto.jsontag) = "parameters"];
+  repeated string Parameters = 6 [
+    (gogoproto.jsontag) = "parameters",
+    json_name = "parameters"
+  ];
 }
 
 // MySQLInitDB is emitted when a MySQL client changes the default schema for
@@ -3359,28 +4338,35 @@ message MySQLInitDB {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SchemaName is the name of the schema to use.
-  string SchemaName = 5 [(gogoproto.jsontag) = "schema_name"];
+  string SchemaName = 5 [
+    (gogoproto.jsontag) = "schema_name",
+    json_name = "schema_name"
+  ];
 }
 
 // MySQLCreateDB is emitted when a MySQL client creates a schema.
@@ -3389,28 +4375,35 @@ message MySQLCreateDB {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SchemaName is the name of the schema to create.
-  string SchemaName = 5 [(gogoproto.jsontag) = "schema_name"];
+  string SchemaName = 5 [
+    (gogoproto.jsontag) = "schema_name",
+    json_name = "schema_name"
+  ];
 }
 
 // MySQLDropDB is emitted when a MySQL client drops a schema.
@@ -3419,28 +4412,35 @@ message MySQLDropDB {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SchemaName is the name of the schema to drop.
-  string SchemaName = 5 [(gogoproto.jsontag) = "schema_name"];
+  string SchemaName = 5 [
+    (gogoproto.jsontag) = "schema_name",
+    json_name = "schema_name"
+  ];
 }
 
 // MySQLShutDown is emitted when a MySQL client asks the server to shut down.
@@ -3449,25 +4449,29 @@ message MySQLShutDown {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -3478,28 +4482,35 @@ message MySQLProcessKill {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // ProcessID is the process ID of a connection.
-  uint32 ProcessID = 5 [(gogoproto.jsontag) = "process_id"];
+  uint32 ProcessID = 5 [
+    (gogoproto.jsontag) = "process_id",
+    json_name = "process_id"
+  ];
 }
 
 // MySQLDebug is emitted when a MySQL client asks the server to dump internal
@@ -3509,25 +4520,29 @@ message MySQLDebug {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -3537,28 +4552,35 @@ message MySQLRefresh {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Subcommand is the string representation of the subcommand.
-  string Subcommand = 5 [(gogoproto.jsontag) = "subcommand"];
+  string Subcommand = 5 [
+    (gogoproto.jsontag) = "subcommand",
+    json_name = "subcommand"
+  ];
 }
 
 // SQLServerRPCRequest is emitted when a user executes a MSSQL Server RPC command.
@@ -3567,30 +4589,40 @@ message SQLServerRPCRequest {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Procname is the RPC SQL Server procedure name.
-  string Procname = 5 [(gogoproto.jsontag) = "proc_name,omitempty"];
+  string Procname = 5 [
+    (gogoproto.jsontag) = "proc_name,omitempty",
+    json_name = "proc_name"
+  ];
   // Parameters are the RPC parameters used to execute RPC Procedure..
-  repeated string Parameters = 6 [(gogoproto.jsontag) = "parameters,omitempty"];
+  repeated string Parameters = 6 [
+    (gogoproto.jsontag) = "parameters,omitempty",
+    json_name = "parameters"
+  ];
 }
 
 // DatabaseSessionMalformedPacket is emitted when a database sends a malformed packet.
@@ -3599,28 +4631,35 @@ message DatabaseSessionMalformedPacket {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Payload is the malformed packet payload.
-  bytes Payload = 5 [(gogoproto.jsontag) = "payload,omitempty"];
+  bytes Payload = 5 [
+    (gogoproto.jsontag) = "payload,omitempty",
+    json_name = "payload"
+  ];
 }
 
 // ElasticsearchCategory specifies Elasticsearch request category.
@@ -3642,56 +4681,85 @@ message ElasticsearchRequest {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // Database contains database related metadata.
   DatabaseMetadata Database = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // Path is relative path in the URL.
-  string Path = 5 [(gogoproto.jsontag) = "path"];
+  string Path = 5 [
+    (gogoproto.jsontag) = "path",
+    json_name = "path"
+  ];
   // RawQuery are the encoded query values.
-  string RawQuery = 6 [(gogoproto.jsontag) = "raw_query"];
+  string RawQuery = 6 [
+    (gogoproto.jsontag) = "raw_query",
+    json_name = "raw_query"
+  ];
   // Method is the request HTTP method, like GET/POST/DELETE/etc.
-  string Method = 7 [(gogoproto.jsontag) = "method"];
+  string Method = 7 [
+    (gogoproto.jsontag) = "method",
+    json_name = "method"
+  ];
   // Body is the request HTTP body.
-  bytes Body = 8 [(gogoproto.jsontag) = "body"];
+  bytes Body = 8 [
+    (gogoproto.jsontag) = "body",
+    json_name = "body"
+  ];
   // Headers are the HTTP request headers.
   wrappers.LabelValues Headers = 9 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "headers,omitempty",
+    json_name = "headers",
     (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
   ];
 
   // Category represents the category if API being accessed in a given request.
-  ElasticsearchCategory Category = 10 [(gogoproto.jsontag) = "category"];
+  ElasticsearchCategory Category = 10 [
+    (gogoproto.jsontag) = "category",
+    json_name = "category"
+  ];
 
   // Target is an optional field indicating the target index or set of indices used as a subject of request.
-  string Target = 11 [(gogoproto.jsontag) = "target"];
+  string Target = 11 [
+    (gogoproto.jsontag) = "target",
+    json_name = "target"
+  ];
 
   // Query is an optional text of query (e.g. an SQL select statement for _sql API), if a request includes it.
-  string Query = 12 [(gogoproto.jsontag) = "query"];
+  string Query = 12 [
+    (gogoproto.jsontag) = "query",
+    json_name = "query"
+  ];
 }
 
 // UpgradeWindowStartMetadata contains common upgrade window information.
 message UpgradeWindowStartMetadata {
   // UpgradeWindowStart is the upgrade window time.
-  string UpgradeWindowStart = 1 [(gogoproto.jsontag) = "upgrade_window_start,omitempty"];
+  string UpgradeWindowStart = 1 [
+    (gogoproto.jsontag) = "upgrade_window_start,omitempty",
+    json_name = "upgrade_window_start"
+  ];
 }
 
 // UpgradeWindowStartUpdate is emitted when a user updates the cloud upgrade window start time.
@@ -3700,25 +4768,29 @@ message UpgradeWindowStartUpdate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionMetadata is a common event session metadata.
   SessionMetadata Session = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // UpgradeWindowStartMetadata contains upgrade window related metadata.
   UpgradeWindowStartMetadata UpgradeWindowStart = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -3729,15 +4801,20 @@ message SessionRecordingAccess {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // SessionID is the ID of the session.
-  string SessionID = 2 [(gogoproto.jsontag) = "sid"];
+  string SessionID = 2 [
+    (gogoproto.jsontag) = "sid",
+    json_name = "sid"
+  ];
   // UserMetadata is a common user event metadata.
   UserMetadata UserMetadata = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -3746,7 +4823,8 @@ message KubeClusterMetadata {
   // KubeLabels are the configured cluster labels.
   map<string, string> KubeLabels = 1 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "kube_labels,omitempty"
+    (gogoproto.jsontag) = "kube_labels,omitempty",
+    json_name = "kube_labels"
   ];
 }
 
@@ -3756,25 +4834,29 @@ message KubernetesClusterCreate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // ResourceMetadata is a common resource event metadata.
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // KubeClusterMetadata is a common kubernetes resource metadata.
   KubeClusterMetadata KubeClusterMetadata = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -3784,25 +4866,29 @@ message KubernetesClusterUpdate {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // ResourceMetadata is a common resource event metadata.
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // KubeClusterMetadata is a common kubernetes resource metadata.
   KubeClusterMetadata KubeClusterMetadata = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -3812,19 +4898,22 @@ message KubernetesClusterDelete {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // User is a common user event metadata.
   UserMetadata User = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
   // ResourceMetadata is a common resource event metadata.
   ResourceMetadata Resource = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 }
 
@@ -3834,24 +4923,43 @@ message SSMRun {
   Metadata Metadata = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
-    (gogoproto.jsontag) = ""
+    (gogoproto.jsontag) = "",
+    json_name = ""
   ];
 
   // CommandID is the id of the SSM command that was run.
-  string CommandID = 2 [(gogoproto.jsontag) = "command_id"];
+  string CommandID = 2 [
+    (gogoproto.jsontag) = "command_id",
+    json_name = "command_id"
+  ];
 
   // InstanceID is the id of the EC2 instance the command was run on.
-  string InstanceID = 3 [(gogoproto.jsontag) = "instance_id"];
+  string InstanceID = 3 [
+    (gogoproto.jsontag) = "instance_id",
+    json_name = "instance_id"
+  ];
 
   // ExitCode is the exit code resulting from the script run.
-  int64 ExitCode = 4 [(gogoproto.jsontag) = "exit_code"];
+  int64 ExitCode = 4 [
+    (gogoproto.jsontag) = "exit_code",
+    json_name = "exit_code"
+  ];
 
   // Status represents the success or failure status of a script run.
-  string Status = 5 [(gogoproto.jsontag) = "status"];
+  string Status = 5 [
+    (gogoproto.jsontag) = "status",
+    json_name = "status"
+  ];
 
   // AccountID is the id of the AWS account that ran the command.
-  string AccountID = 6 [(gogoproto.jsontag) = "account_id"];
+  string AccountID = 6 [
+    (gogoproto.jsontag) = "account_id",
+    json_name = "account_id"
+  ];
 
   // Region is the AWS region the command was ran in.
-  string Region = 7 [(gogoproto.jsontag) = "region"];
+  string Region = 7 [
+    (gogoproto.jsontag) = "region",
+    json_name = "region"
+  ];
 }
