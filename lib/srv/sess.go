@@ -216,15 +216,15 @@ func (s *SessionRegistry) OpenSession(ctx context.Context, ch ssh.Channel, scx *
 	if session != nil && !session.isStopped() {
 		scx.Infof("Joining existing session %v.", session.id)
 
-		mode := types.SessionParticipantMode(scx.env[teleport.EnvSSHJoinMode])
+		mode := types.SessionPeerMode
+		if m := scx.env[teleport.EnvSSHJoinMode]; m != "" {
+			mode = types.SessionParticipantMode(m)
+		}
+
 		switch mode {
-		case types.SessionModeratorMode, types.SessionObserverMode:
+		case types.SessionModeratorMode, types.SessionObserverMode, types.SessionPeerMode:
 		default:
-			if mode == types.SessionPeerMode || len(mode) == 0 {
-				mode = types.SessionPeerMode
-			} else {
-				return trace.BadParameter("Unrecognized session participant mode: %v", mode)
-			}
+			return trace.BadParameter("Unrecognized session participant mode: %v", mode)
 		}
 
 		// Update the in-memory data structure that a party member has joined.
@@ -246,12 +246,14 @@ func (s *SessionRegistry) OpenSession(ctx context.Context, ch ssh.Channel, scx *
 		sid = string(rsession.NewID())
 		scx.SetEnv(sshutils.SessionEnvVar, sid)
 	}
+
 	// This logic allows concurrent request to create a new session
 	// to fail, what is ok because we should never have this condition
-	sess, err := newSession(ctx, rsession.ID(sid), s, scx)
+	sess, p, err := newInteractiveSession(ctx, rsession.ID(sid), s, scx, ch)
 	if err != nil {
 		return trace.Wrap(err)
 	}
+
 	scx.setSession(sess)
 	s.addSession(sess)
 	scx.Infof("Creating (interactive) session %v.", sid)
@@ -260,12 +262,13 @@ func (s *SessionRegistry) OpenSession(ctx context.Context, ch ssh.Channel, scx *
 	if err != nil {
 		return trace.Wrap(err)
 	}
+
 	// Start an interactive session (TTY attached). Close the session if an error
 	// occurs, otherwise it will be closed by the callee.
-	if err := sess.startInteractive(ctx, ch, scx, tempUser); err != nil {
-		sess.Close()
+	if err := sess.startInteractive(ctx, scx, tempUser, p); err != nil {
 		return trace.Wrap(err)
 	}
+
 	return nil
 }
 
@@ -601,6 +604,141 @@ func newSession(ctx context.Context, id rsession.ID, r *SessionRegistry, scx *Se
 	}
 
 	return sess, nil
+}
+
+// newInteractiveSession creates a new session with a given ID within a given context.
+func newInteractiveSession(ctx context.Context, id rsession.ID, r *SessionRegistry, scx *ServerContext, ch ssh.Channel) (*session, *party, error) {
+	serverSessions.Inc()
+	startTime := time.Now().UTC()
+	rsess := rsession.Session{
+		ID: id,
+		TerminalParams: rsession.TerminalParams{
+			W: teleport.DefaultTerminalWidth,
+			H: teleport.DefaultTerminalHeight,
+		},
+		Login:          scx.Identity.Login,
+		Created:        startTime,
+		LastActive:     startTime,
+		ServerID:       scx.srv.ID(),
+		Namespace:      r.Srv.GetNamespace(),
+		ServerHostname: scx.srv.GetInfo().GetHostname(),
+		ServerAddr:     scx.ServerConn.LocalAddr().String(),
+		ClusterName:    scx.ClusterName,
+	}
+
+	terminal := scx.GetTerm()
+	if terminal != nil {
+		winsize, err := terminal.GetWinSize()
+		if err != nil {
+			return nil, nil, trace.Wrap(err)
+		}
+		rsess.TerminalParams.W = int(winsize.Width)
+		rsess.TerminalParams.H = int(winsize.Height)
+	}
+
+	// get the session server where session information lives. if the recording
+	// proxy is being used and this is a node, then a discard session server will
+	// be returned here.
+	sessionServer := r.Srv.GetSessionServer()
+
+	err := sessionServer.CreateSession(ctx, rsess)
+	if err != nil {
+		if trace.IsAlreadyExists(err) {
+			// if session already exists, make sure they are compatible
+			// Login matches existing login
+			existing, err := sessionServer.GetSession(ctx, r.Srv.GetNamespace(), id)
+			if err != nil {
+				return nil, nil, trace.Wrap(err)
+			}
+			if existing.Login != rsess.Login && rsess.Login != teleport.SSHSessionJoinPrincipal {
+				return nil, nil, trace.AccessDenied(
+					"can't switch users from %v to %v for session %v",
+					rsess.Login, existing.Login, id)
+			}
+		}
+		// return nil, trace.Wrap(err)
+		// No need to abort. Perhaps the auth server is down?
+		// Log the error and continue:
+		r.log.Errorf("Failed to create new session: %v.", err)
+	}
+
+	policySets := scx.Identity.AccessChecker.SessionPolicySets()
+
+	// create a new "party" (connected client) for the session.
+	p := &party{
+		log: log.WithFields(log.Fields{
+			trace.Component: teleport.Component(teleport.ComponentSession, scx.srv.Component()),
+		}),
+		user:     scx.Identity.TeleportUser,
+		login:    scx.Identity.Login,
+		serverID: scx.srv.ID(),
+		site:     scx.ServerConn.RemoteAddr().String(),
+		id:       rsession.NewID(),
+		ch:       ch,
+		ctx:      scx,
+		sconn:    scx.ServerConn,
+		mode:     types.SessionPeerMode,
+	}
+
+	sess := &session{
+		log: log.WithFields(log.Fields{
+			trace.Component: teleport.Component(teleport.ComponentSession, r.Srv.Component()),
+		}),
+		id:                             id,
+		registry:                       r,
+		parties:                        map[rsession.ID]*party{p.id: p},
+		participants:                   map[rsession.ID]*party{p.id: p},
+		login:                          scx.Identity.Login,
+		stopC:                          make(chan struct{}),
+		startTime:                      startTime,
+		serverCtx:                      scx.srv.Context(),
+		access:                         auth.NewSessionAccessEvaluator(policySets, types.SSHSessionKind, scx.Identity.TeleportUser),
+		scx:                            scx,
+		presenceEnabled:                scx.Identity.Certificate.Extensions[teleport.CertExtensionMFAVerified] != "",
+		io:                             NewTermManager(),
+		doneCh:                         make(chan struct{}),
+		initiator:                      scx.Identity.TeleportUser,
+		displayParticipantRequirements: utils.AsBool(scx.env[teleport.EnvSSHSessionDisplayParticipantRequirements]),
+		serverMeta:                     scx.srv.TargetMetadata(),
+	}
+
+	sess.io.OnWriteError = sess.onWriteError
+
+	// Register this party as one of the session writers (output will go to it).
+	sess.io.AddWriter(string(p.id), p)
+	p.s = sess
+	scx.AddCloser(p)
+
+	go func() {
+		if _, open := <-sess.io.TerminateNotifier(); open {
+			err := sess.registry.ForceTerminate(sess.scx)
+			if err != nil {
+				sess.log.Errorf("Failed to terminate session: %v.", err)
+			}
+		}
+	}()
+
+	participant := types.Participant{
+		ID:         p.id.String(),
+		User:       p.user,
+		Mode:       string(p.mode),
+		LastActive: time.Now().UTC(),
+	}
+
+	sess.log.Debugf("Tracking participant: %s", p.id)
+	if err = sess.trackSession(scx.Identity.TeleportUser, policySets, participant); err != nil {
+		if trace.IsNotImplemented(err) {
+			return nil, nil, trace.NotImplemented("Attempted to use Moderated Sessions with an Auth Server below the minimum version of 9.0.0.")
+		}
+		return nil, nil, trace.Wrap(err)
+	}
+
+	sess.recorder, err = newRecorder(sess, scx)
+	if err != nil {
+		return nil, nil, trace.Wrap(err)
+	}
+
+	return sess, p, nil
 }
 
 // ID returns a string representation of the session ID.
@@ -958,9 +1096,73 @@ func (s *session) launch(ctx *ServerContext) error {
 	return nil
 }
 
+func (s *session) checkInteractive(p *party) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.tracker.GetState() == types.SessionState_SessionStateTerminated {
+		return trace.AccessDenied("the requested session is not active")
+	}
+
+	if len(s.parties) == 1 {
+		canStart, _, err := s.checkIfStart()
+		if err != nil {
+			return trace.Wrap(err)
+		}
+
+		if !canStart && services.IsRecordAtProxy(s.scx.SessionRecordingConfig.GetMode()) {
+			go s.Stop()
+			return trace.AccessDenied("session requires additional moderation but is in proxy-record mode")
+		}
+	}
+
+	// Cancel lingerAndDie goroutine if one is running.
+	if s.lingerAndDieCancel != nil {
+		s.lingerAndDieCancel()
+		s.lingerAndDieCancel = nil
+	}
+
+	s.BroadcastMessage("User %v joined the session.", p.user)
+	s.log.Infof("New party %v joined session: %v", p.String(), s.id)
+
+	if p.mode == types.SessionPeerMode {
+		s.term.AddParty(1)
+
+		// This goroutine keeps pumping party's input into the session.
+		go func() {
+			defer s.term.AddParty(-1)
+			_, err := io.Copy(s.inWriter, p)
+			s.log.Debugf("Copying from Party %v to session writer completed with error %v.", p.id, err)
+		}()
+	}
+
+	if s.tracker.GetState() == types.SessionState_SessionStatePending {
+		canStart, _, err := s.checkIfStart()
+		if err != nil {
+			return trace.Wrap(err)
+		}
+
+		if canStart {
+			if err := s.launch(s.scx); err != nil {
+				s.log.Errorf("Failed to launch session %v: %v", s.id, err)
+			}
+			return nil
+		}
+
+		base := "Waiting for required participants..."
+		if s.displayParticipantRequirements {
+			s.BroadcastMessage(base+"\r\n%v", s.access.PrettyRequirementsList())
+		} else {
+			s.BroadcastMessage(base)
+		}
+	}
+
+	return nil
+}
+
 // startInteractive starts a new interactive process (or a shell) in the
 // current session.
-func (s *session) startInteractive(ctx context.Context, ch ssh.Channel, scx *ServerContext, tempUser *user.User) error {
+func (s *session) startInteractive(ctx context.Context, scx *ServerContext, tempUser *user.User, p *party) error {
 	inReader, inWriter := io.Pipe()
 	s.inWriter = inWriter
 	s.io.AddReader("reader", inReader)
@@ -975,10 +1177,7 @@ func (s *session) startInteractive(ctx context.Context, ch ssh.Channel, scx *Ser
 	// Emit a session.start event for the interactive session.
 	s.emitSessionStartEvent(scx)
 
-	// create a new "party" (connected client) and launch/join the session.
-	p := newParty(s, types.SessionPeerMode, ch, scx)
-	if err := s.addParty(p, types.SessionPeerMode); err != nil {
-		s.log.WithError(err).Errorf("Failed to add participant %v to session", p.id)
+	if err := s.checkInteractive(p); err != nil {
 		return trace.Wrap(err)
 	}
 
@@ -1729,7 +1928,7 @@ func (p *party) closeUnderSessionLock() {
 // trackSession creates a new session tracker for the ssh session.
 // While ctx is open, the session tracker's expiration will be extended
 // on an interval until the session tracker is closed.
-func (s *session) trackSession(teleportUser string, policySet []*types.SessionTrackerPolicySet) error {
+func (s *session) trackSession(teleportUser string, policySet []*types.SessionTrackerPolicySet, participants ...types.Participant) error {
 	trackerSpec := types.SessionTrackerSpecV1{
 		SessionID:    s.id.String(),
 		Kind:         string(types.SSHSessionKind),
@@ -1742,6 +1941,7 @@ func (s *session) trackSession(teleportUser string, policySet []*types.SessionTr
 		Reason:       s.scx.env[teleport.EnvSSHSessionReason],
 		HostPolicies: policySet,
 		Created:      s.registry.clock.Now(),
+		Participants: participants,
 	}
 
 	if s.scx.env[teleport.EnvSSHSessionInvited] != "" {
