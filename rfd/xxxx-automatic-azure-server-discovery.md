@@ -85,8 +85,7 @@ discovery_service:
         "teleport": "yes"
 ```
 
-Minimal custom service principal role (optional, can also be accomplished with an Azure
-built-in role such as [Contributor](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#contributor)):
+The discovery node's service principal should have permission to list virtual machines:
 ```json
 {
   "Name": "teleport discover role",
