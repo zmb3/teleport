@@ -5,6 +5,11 @@ state: draft
 
 # RFD X - Automatic discovery of Azure servers
 
+## Required Approvers
+Engineering: @jakule && @r0mant
+Product: @klizhentas && @xinding33
+Security: @reedloden
+
 ## What
 
 Teleport SSH services will be able to automatically discover Azure virtual machine
