@@ -34,8 +34,6 @@ const (
 	fileNameKnownHosts = "known_hosts"
 	// fileExtTLSCert is the suffix/extension of a file where a TLS cert is stored.
 	fileExtTLSCert = "-x509.pem"
-	// fileNameTLSCerts is a file where TLS Cert Authorities are stored.
-	fileNameTLSCerts = "certs.pem"
 	// fileExtCert is the suffix/extension of a file where an SSH Cert is stored.
 	fileExtSSHCert = "-cert.pub"
 	// fileExtPPK is the suffix/extension of a file where an SSH keypair is stored in PuTTY PPK format.
@@ -63,7 +61,6 @@ const (
 // ├── known_hosts                     --> trusted certificate authorities (their keys) in a format similar to known_hosts
 // └── keys							   --> session keys directory
 //    ├── one.example.com              --> Proxy hostname
-//    │   ├── certs.pem                --> TLS CA certs for the Teleport CA
 //    │   ├── foo                      --> Private Key for user "foo"
 //    │   ├── foo.pub                  --> Public Key
 //    │   ├── foo.ppk                  --> PuTTY PPK-formatted keypair for user "foo"
@@ -152,14 +149,6 @@ func CAsDir(baseDir, proxy string) string {
 	return filepath.Join(ProxyKeyDir(baseDir, proxy), casDir)
 }
 
-// TLSCAsPath returns the path to the users's TLS CA's certificates
-// for the given proxy.
-// <baseDir>/keys/<proxy>/certs.pem
-// DELETE IN 10.0. Deprecated
-func TLSCAsPath(baseDir, proxy string) string {
-	return filepath.Join(ProxyKeyDir(baseDir, proxy), fileNameTLSCerts)
-}
-
 // TLSCAsPathCluster returns the path to the specified cluster's CA directory.
 //
 // <baseDir>/keys/<proxy>/cas/<cluster>.pem
@@ -188,12 +177,6 @@ func PPKFilePath(baseDir, proxy, username string) string {
 // <baseDir>/keys/<proxy>/<username>-ssh/<cluster>-cert.pub
 func SSHCertPath(baseDir, proxy, username, cluster string) string {
 	return filepath.Join(SSHDir(baseDir, proxy, username), cluster+fileExtSSHCert)
-}
-
-// OldSSHCertPath returns the old (before v6.1) path to the profile's ssh certificate.
-// DELETE IN 8.0.0
-func OldSSHCertPath(baseDir, proxy, username string) string {
-	return filepath.Join(ProxyKeyDir(baseDir, proxy), username+fileExtSSHCert)
 }
 
 // AppDir returns the path to the user's app directory

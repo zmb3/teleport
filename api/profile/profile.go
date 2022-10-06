@@ -130,18 +130,6 @@ func (p *Profile) TLSConfig() (*tls.Config, error) {
 }
 
 func certPoolFromProfile(p *Profile) (*x509.CertPool, error) {
-	// Check if CAS dir exist if not try to load certs from legacy certs.pem file.
-	if _, err := os.Stat(p.TLSClusterCASDir()); err != nil {
-		if !os.IsNotExist(err) {
-			return nil, trace.Wrap(err)
-		}
-		pool, err := certPoolFromLegacyCAFile(p)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		return pool, nil
-	}
-
 	// Load CertPool from CAS directory.
 	pool, err := certPoolFromCASDir(p)
 	if err != nil {
@@ -170,18 +158,6 @@ func certPoolFromCASDir(p *Profile) (*x509.CertPool, error) {
 	})
 	if err != nil {
 		return nil, trace.Wrap(err)
-	}
-	return pool, nil
-}
-
-func certPoolFromLegacyCAFile(p *Profile) (*x509.CertPool, error) {
-	caCerts, err := os.ReadFile(p.TLSCAsPath())
-	if err != nil {
-		return nil, trace.ConvertSystemError(err)
-	}
-	pool := x509.NewCertPool()
-	if !pool.AppendCertsFromPEM(caCerts) {
-		return nil, trace.BadParameter("invalid CA cert PEM")
 	}
 	return pool, nil
 }
@@ -391,11 +367,6 @@ func (p *Profile) TLSCertPath() string {
 	return keypaths.TLSCertPath(p.Dir, p.Name(), p.Username)
 }
 
-// TLSCAsLegacyPath returns the path to the profile's TLS certificate authorities.
-func (p *Profile) TLSCAsLegacyPath() string {
-	return keypaths.TLSCAsPath(p.Dir, p.Name())
-}
-
 // TLSCAPathCluster returns CA for particular cluster.
 func (p *Profile) TLSCAPathCluster(cluster string) string {
 	return keypaths.TLSCAsPathCluster(p.Dir, p.Name(), cluster)
@@ -404,11 +375,6 @@ func (p *Profile) TLSCAPathCluster(cluster string) string {
 // TLSClusterCASDir returns CAS directory where cluster CAs are stored.
 func (p *Profile) TLSClusterCASDir() string {
 	return keypaths.CAsDir(p.Dir, p.Name())
-}
-
-// TLSCAsPath returns the legacy path to the profile's TLS certificate authorities.
-func (p *Profile) TLSCAsPath() string {
-	return keypaths.TLSCAsPath(p.Dir, p.Name())
 }
 
 // SSHDir returns the path to the profile's ssh directory.
