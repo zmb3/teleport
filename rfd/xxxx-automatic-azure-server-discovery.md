@@ -75,7 +75,7 @@ the Azure subscription ID and the virtual machine ID.
 }
 ```
 
-Alternatively, ff the instance has the tag `teleport.dev/instance_name` present, the tag
+Alternatively, if the instance has the tag `teleport.dev/instance_name` present, the tag
 value will override the node name.
 
 ```json
