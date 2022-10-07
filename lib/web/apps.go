@@ -89,7 +89,7 @@ type CreateAppSessionRequest resolveAppParams
 
 type CreateAppSessionResponse struct {
 	// CookieValue is the application session cookie value.
-	CookieValue string `json:"value"`
+	CookieValue string `json:"cookie_value"`
 	// FQDN is application FQDN.
 	FQDN string `json:"fqdn"`
 }

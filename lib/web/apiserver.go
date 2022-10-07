@@ -245,14 +245,12 @@ func (h *APIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// request is already authenticated (has a session cookie), forward to
 	// application handlers. If the request is unauthenticated and requesting a
 	// FQDN that is not of the proxy, redirect to application launcher.
+
 	if h.appHandler != nil && (app.HasFragment(r) || app.HasSession(r) || app.HasClientCert(r)) {
 		h.appHandler.ServeHTTP(w, r)
 		return
 	}
-	if redir, ok := app.HasName(r, h.handler.cfg.ProxyPublicAddrs); ok {
-		http.Redirect(w, r, redir, http.StatusFound)
-		return
-	}
+
 	// Serve the Web UI.
 	h.handler.ServeHTTP(w, r)
 }
@@ -422,12 +420,13 @@ func NewHandler(cfg Config, opts ...HandlerOption) (*APIHandler, error) {
 	var appHandler *app.Handler
 	if !cfg.MinimalReverseTunnelRoutesOnly {
 		appHandler, err = app.NewHandler(cfg.Context, &app.HandlerConfig{
-			Clock:         h.clock,
-			AuthClient:    cfg.ProxyClient,
-			AccessPoint:   cfg.AccessPoint,
-			ProxyClient:   cfg.Proxy,
-			CipherSuites:  cfg.CipherSuites,
-			WebPublicAddr: resp.SSH.PublicAddr,
+			Clock:            h.clock,
+			AuthClient:       cfg.ProxyClient,
+			AccessPoint:      cfg.AccessPoint,
+			ProxyClient:      cfg.Proxy,
+			CipherSuites:     cfg.CipherSuites,
+			ProxyPublicAddrs: cfg.ProxyPublicAddrs,
+			WebPublicAddr:    resp.SSH.PublicAddr,
 		})
 		if err != nil {
 			return nil, trace.Wrap(err)
