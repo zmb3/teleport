@@ -22,10 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gravitational/teleport/api/constants"
-
 	"github.com/gravitational/trace"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
+
+	"github.com/gravitational/teleport/api/constants"
 )
 
 type Conn interface {
@@ -57,15 +58,27 @@ func newChConn(conn Conn, ch ssh.Channel, exclusive bool) *ChConn {
 		reader:    reader,
 		writer:    writer,
 	}
+
+	log := logrus.WithFields(logrus.Fields{
+		trace.Component: "ChConn",
+		"src":           c.LocalAddr(),
+		"dst":           c.RemoteAddr(),
+	})
+
 	// Start copying from the SSH channel to the writer part of the pipe. The
 	// clients are reading from the reader part of the pipe (see Read below).
 	//
 	// This goroutine stops when either the SSH channel closes or this
 	// connection is closed e.g. by a http.Server (see Close below).
 	go func() {
-		io.Copy(writer, ch)
+		_, err := io.Copy(writer, ch)
+		if err != nil {
+			log.WithError(err).Warn("ChConn finished copying to ssh channel")
+		}
 		// propagate EOF across the pipe to the read half.
-		writer.Close()
+		if err := writer.Close(); err != nil {
+			log.WithError(err).Warn("ChConn failed to close the writer pipe")
+		}
 	}()
 	return c
 }

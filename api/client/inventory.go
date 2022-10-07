@@ -21,9 +21,11 @@ import (
 	"io"
 	"sync"
 
-	"github.com/gravitational/teleport/api/client/proto"
 	"github.com/gravitational/trace"
 	"github.com/gravitational/trace/trail"
+	"github.com/sirupsen/logrus"
+
+	"github.com/gravitational/teleport/api/client/proto"
 )
 
 // DownstreamInventoryControlStream is the client/agent side of a bidirectional stream established
@@ -199,6 +201,8 @@ func (c *Client) InventoryControlStream(ctx context.Context) (DownstreamInventor
 		cancel()
 		return nil, trail.FromGRPC(err)
 	}
+
+	logrus.Info("----- inventory control stream started----")
 	return newDownstreamInventoryControlStream(stream, cancel), nil
 }
 
@@ -221,6 +225,8 @@ func (c *Client) PingInventory(ctx context.Context, req proto.InventoryPingReque
 }
 
 func newDownstreamInventoryControlStream(stream proto.AuthService_InventoryControlStreamClient, cancel context.CancelFunc) DownstreamInventoryControlStream {
+	logrus.Info("")
+
 	ics := &downstreamICS{
 		sendC:  make(chan upstreamSend),
 		recvC:  make(chan proto.DownstreamInventoryMessage),
@@ -257,6 +263,7 @@ func (i *downstreamICS) runRecvLoop(stream proto.AuthService_InventoryControlStr
 	for {
 		oneOf, err := stream.Recv()
 		if err != nil {
+			logrus.WithError(err).Warn("------ downstreamICS received an error")
 			// preserve EOF to help distinguish "ok" closure.
 			if !trace.IsEOF(err) {
 				err = trace.Errorf("inventory control stream closed: %v", trail.FromGRPC(err))
@@ -270,8 +277,10 @@ func (i *downstreamICS) runRecvLoop(stream proto.AuthService_InventoryControlStr
 		switch {
 		case oneOf.GetHello() != nil:
 			msg = *oneOf.GetHello()
+			logrus.WithField("hello_from", oneOf.GetHello().ServerID).Debugf("------ downstreamICS received a hello")
 		case oneOf.GetPing() != nil:
 			msg = *oneOf.GetPing()
+			logrus.WithField("ping_id", oneOf.GetPing().ID).Debugf("------ downstreamICS received a ping")
 		default:
 			// TODO: log unknown message variants once we have a better story around
 			// logging in api/* packages.
@@ -296,14 +305,17 @@ func (i *downstreamICS) runSendLoop(stream proto.AuthService_InventoryControlStr
 			var oneOf proto.UpstreamInventoryOneOf
 			switch msg := sendMsg.msg.(type) {
 			case proto.UpstreamInventoryHello:
+				logrus.Debug("------ downstreamICS sending Hello")
 				oneOf.Msg = &proto.UpstreamInventoryOneOf_Hello{
 					Hello: &msg,
 				}
 			case proto.InventoryHeartbeat:
+				logrus.Debug("------ downstreamICS sending Heartbeat")
 				oneOf.Msg = &proto.UpstreamInventoryOneOf_Heartbeat{
 					Heartbeat: &msg,
 				}
 			case proto.UpstreamInventoryPong:
+				logrus.Debug("------ downstreamICS sending Pong")
 				oneOf.Msg = &proto.UpstreamInventoryOneOf_Pong{
 					Pong: &msg,
 				}
@@ -314,6 +326,7 @@ func (i *downstreamICS) runSendLoop(stream proto.AuthService_InventoryControlStr
 			err := trail.FromGRPC(stream.Send(&oneOf))
 			sendMsg.errC <- err
 			if err != nil {
+				logrus.WithError(err).Warn("------ downstreamICS failed to send message")
 				// preserve EOF errors
 				if !trace.IsEOF(err) {
 					err = trace.Errorf("upstream send failed: %v", err)

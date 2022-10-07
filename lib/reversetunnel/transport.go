@@ -21,7 +21,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net"
 	"time"
 
@@ -81,9 +80,7 @@ type TunnelAuthDialer struct {
 // DialContext dials auth server via SSH tunnel
 func (t *TunnelAuthDialer) DialContext(ctx context.Context, _, _ string) (net.Conn, error) {
 	// Connect to the reverse tunnel server.
-	opts := []proxy.DialerOptionFunc{
-		proxy.WithInsecureSkipTLSVerify(t.InsecureSkipTLSVerify),
-	}
+	opts := []proxy.DialerOptionFunc{proxy.WithInsecureSkipTLSVerify(t.InsecureSkipTLSVerify)}
 
 	addr, err := t.Resolver(ctx)
 	if err != nil {
@@ -92,8 +89,7 @@ func (t *TunnelAuthDialer) DialContext(ctx context.Context, _, _ string) (net.Co
 	}
 
 	// Check if t.ProxyAddr is ProxyWebPort and remote Proxy supports TLS ALPNSNIListener.
-	resp, err := webclient.Find(
-		&webclient.Config{Context: ctx, ProxyAddr: addr.Addr, Insecure: t.InsecureSkipTLSVerify})
+	resp, err := webclient.Find(&webclient.Config{Context: ctx, ProxyAddr: addr.Addr, Insecure: t.InsecureSkipTLSVerify})
 	if err != nil {
 		// If TLS Routing is disabled the address is the proxy reverse tunnel
 		// address thus the ping call will always fail.
@@ -112,13 +108,13 @@ func (t *TunnelAuthDialer) DialContext(ctx context.Context, _, _ string) (net.Co
 
 	// Build a net.Conn over the tunnel. Make this an exclusive connection:
 	// close the net.Conn as well as the channel upon close.
-	conn, _, err := sshutils.ConnectProxyTransport(sconn.Conn, &sshutils.DialReq{
-		Address: RemoteAuthServer,
-	}, true)
+	conn, _, err := sshutils.ConnectProxyTransport(sconn.Conn, &sshutils.DialReq{Address: RemoteAuthServer}, true)
 	if err != nil {
+		t.Log.WithError(err).Warn("failed to connect to remote auth server")
 		err2 := sconn.Close()
 		return nil, trace.NewAggregate(err, err2)
 	}
+
 	return conn, nil
 }
 
@@ -319,31 +315,8 @@ func (p *transport) start() {
 	defer cancel()
 	go p.handleChannelRequests(ctx, useTunnel)
 
-	errorCh := make(chan error, 2)
-
-	go func() {
-		// Make sure that we close the client connection on a channel
-		// close, otherwise the other goroutine would never know
-		// as it will block on read from the connection.
-		defer conn.Close()
-		_, err := io.Copy(conn, p.channel)
-		errorCh <- err
-	}()
-
-	go func() {
-		_, err := io.Copy(p.channel, conn)
-		errorCh <- err
-	}()
-
-	// wait for both io.Copy goroutines to finish, or for
-	// the context to be canceled.
-	for i := 0; i < 2; i++ {
-		select {
-		case <-errorCh:
-		case <-p.closeContext.Done():
-			p.log.Warnf("Proxy transport failed: closing context.")
-			return
-		}
+	if err := utils.ProxyConn(p.closeContext, p.channel, conn); err != nil {
+		p.log.WithError(err).Warnf("Proxying connection to %v %q, failed.", dreq.Address, dreq.ServerID)
 	}
 }
 
