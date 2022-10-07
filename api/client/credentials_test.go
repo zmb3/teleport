@@ -225,16 +225,14 @@ func testProfileContents(t *testing.T, dir, name string) {
 func writeProfile(t *testing.T, p *profile.Profile) {
 	// Save profile and keys to disk.
 	require.NoError(t, p.SaveToDir(p.Dir, true))
-	require.NoError(t, os.MkdirAll(p.KeyDir(), 0700))
-	require.NoError(t, os.MkdirAll(p.ProxyKeyDir(), 0700))
+	require.NoError(t, os.MkdirAll(p.SSHDir(), 0700))
 	require.NoError(t, os.MkdirAll(p.TLSClusterCASDir(), 0700))
+	require.NoError(t, os.MkdirAll(p.UserKeyDir(), 0700))
 	require.NoError(t, os.WriteFile(p.UserKeyPath(), keyPEM, 0600))
 	require.NoError(t, os.WriteFile(p.TLSCertPath(), tlsCert, 0600))
 	require.NoError(t, os.WriteFile(p.TLSCAPathCluster(p.SiteName), tlsCACert, 0600))
 	require.NoError(t, os.WriteFile(p.KnownHostsPath(), sshCACert, 0600))
-	require.NoError(t, os.MkdirAll(p.SSHDir(), 0700))
 	require.NoError(t, os.WriteFile(p.SSHCertPath(), sshCert, 0600))
-	require.NoError(t, os.WriteFile(p.PPKFilePath(), ppkFile, 0600))
 }
 
 func getExpectedTLSConfig(t *testing.T) *tls.Config {

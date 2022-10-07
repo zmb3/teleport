@@ -333,7 +333,7 @@ func (a *LocalKeyAgent) UnloadKeys() error {
 // GetKey returns the key for the given cluster of the proxy from
 // the backing keystore.
 func (a *LocalKeyAgent) GetKey(clusterName string, opts ...CertOption) (*Key, error) {
-	idx := KeyIndex{a.proxyHost, a.username, clusterName}
+	idx := KeyIndex{ProxyHost: a.proxyHost, ClusterName: clusterName, Username: a.username}
 	return a.keyStore.GetKey(idx, opts...)
 }
 
@@ -605,7 +605,8 @@ func (a *LocalKeyAgent) DeleteKey() error {
 // DeleteUserCerts deletes only the specified certs of the user's key,
 // keeping the private key intact.
 func (a *LocalKeyAgent) DeleteUserCerts(clusterName string, opts ...CertOption) error {
-	err := a.keyStore.DeleteUserCerts(KeyIndex{a.proxyHost, a.username, clusterName}, opts...)
+	idx := KeyIndex{ProxyHost: a.proxyHost, Username: a.username, ClusterName: clusterName}
+	err := a.keyStore.DeleteUserCerts(idx, opts...)
 	return trace.Wrap(err)
 }
 

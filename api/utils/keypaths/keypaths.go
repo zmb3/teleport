@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+
+	"github.com/gravitational/trace"
 )
 
 // keypath constants aren't exported in order to force
@@ -54,17 +56,32 @@ const (
 	casDir = "cas"
 	// fileExtPem is the extension of a file where a public certificate is stored.
 	fileExtPem = ".pem"
+
+	// keyPEMFileName is the file name for a PEM encoded private key
+	keyPEMFileName = "key.pem"
+	// keyPPKFileName is the file name for a PuTTY PPK-formatted keypair
+	keyPPKFileName = "key.ppk"
+	// sshPubFileName is the file name for an SSH formatted public key
+	sshPubFileName = "ssh.pub"
+	// tlsCertFileName is the file name for a TLS certificate
+	tlsCertFileName = "cert-x509.pem"
 )
 
 // Here's the file layout of all these keypaths.
-// ~/.tsh/							   --> default base directory
+// ~/.tsh/                             --> default base directory
 // ├── known_hosts                     --> trusted certificate authorities (their keys) in a format similar to known_hosts
-// └── keys							   --> session keys directory
+// └── keys                            --> session keys directory
 //    ├── one.example.com              --> Proxy hostname
-//    │   ├── foo                      --> Private Key for user "foo"
-//    │   ├── foo.pub                  --> Public Key
-//    │   ├── foo.ppk                  --> PuTTY PPK-formatted keypair for user "foo"
-//    │   ├── foo-x509.pem             --> TLS client certificate for Auth Server
+//    │   ├── root                     --> Teleport cluster
+//    │   │   ├── key.pem              --> Private Key
+//    │   │   ├── key.ppk              --> PuTTY PPK-formatted keypair
+//    │   │   ├── ssh.pub              --> SSH Public key
+//    │   │   └── root-x509.pem        --> TLS client certificate
+//    │   ├── leaf                     --> Teleport cluster
+//    │   │   ├── key.pem              --> Private Key
+//    │   │   ├── key.ppk              --> PuTTY PPK-formatted keypair
+//    │   │   ├── ssh.pub              --> SSH Public key
+//    │   │   └── root-x509.pem        --> TLS client certificate
 //    │   ├── foo-ssh                  --> SSH certs for user "foo"
 //    │   │   ├── root-cert.pub        --> SSH cert for Teleport cluster "root"
 //    │   │   └── leaf-cert.pub        --> SSH cert for Teleport cluster "leaf"
@@ -82,33 +99,33 @@ const (
 //    │   │   └── leaf                 --> App access certs for cluster "leaf"
 //    │   │       └── dbC-x509.pem     --> TLS cert for database service "dbC"
 //    │   ├── foo-kube                 --> Kubernetes certs for user "foo"
-//    │   |    ├── root                 --> Kubernetes certs for Teleport cluster "root"
-//    │   |    │   ├── kubeA-kubeconfig --> standalone kubeconfig for Kubernetes cluster "kubeA"
-//    │   |    │   ├── kubeA-x509.pem   --> TLS cert for Kubernetes cluster "kubeA"
-//    │   |    │   ├── kubeB-kubeconfig --> standalone kubeconfig for Kubernetes cluster "kubeB"
-//    │   |    │   └── kubeB-x509.pem   --> TLS cert for Kubernetes cluster "kubeB"
-//    │   |    └── leaf                 --> Kubernetes certs for Teleport cluster "leaf"
-//    │   |        ├── kubeC-kubeconfig --> standalone kubeconfig for Kubernetes cluster "kubeC"
-//    │   |        └── kubeC-x509.pem   --> TLS cert for Kubernetes cluster "kubeC"
-//    |   └── cas                       --> Trusted clusters certificates
-//    |        ├── root.pem             --> TLS CA for teleport cluster "root"
-//    |        ├── leaf1.pem            --> TLS CA for teleport cluster "leaf1"
-//    |        └── leaf2.pem            --> TLS CA for teleport cluster "leaf2"
-//    └── two.example.com			    --> Additional proxy host entries follow the same format
-//		  ...
-
-// KeyDir returns the path to the keys directory.
-//
-// <baseDir>/keys
-func KeyDir(baseDir string) string {
-	return filepath.Join(baseDir, sessionKeyDir)
-}
+//    │   │   ├── root                 --> Kubernetes certs for Teleport cluster "root"
+//    │   │   │   ├── kubeA-kubeconfig --> standalone kubeconfig for Kubernetes cluster "kubeA"
+//    │   │   │   ├── kubeA-x509.pem   --> TLS cert for Kubernetes cluster "kubeA"
+//    │   │   │   ├── kubeB-kubeconfig --> standalone kubeconfig for Kubernetes cluster "kubeB"
+//    │   │   │   └── kubeB-x509.pem   --> TLS cert for Kubernetes cluster "kubeB"
+//    │   │   └── leaf                 --> Kubernetes certs for Teleport cluster "leaf"
+//    │   │       ├── kubeC-kubeconfig --> standalone kubeconfig for Kubernetes cluster "kubeC"
+//    │   │       └── kubeC-x509.pem   --> TLS cert for Kubernetes cluster "kubeC"
+//    │   └── cas                      --> Trusted clusters certificates
+//    │       ├── root.pem             --> TLS CA for teleport cluster "root"
+//    │       ├── leaf1.pem            --> TLS CA for teleport cluster "leaf1"
+//    │       └── leaf2.pem            --> TLS CA for teleport cluster "leaf2"
+//    └── two.example.com              --> Additional proxy host entries follow the same format
+//        ...
 
 // KnownHostsPath returns the path to the known hosts file.
 //
 // <baseDir>/known_hosts
 func KnownHostsPath(baseDir string) string {
 	return filepath.Join(baseDir, fileNameKnownHosts)
+}
+
+// KeyDir returns the path to the keys directory.
+//
+// <baseDir>/keys
+func KeyDir(baseDir string) string {
+	return filepath.Join(baseDir, sessionKeyDir)
 }
 
 // ProxyKeyDir returns the path to the proxy's keys directory.
@@ -118,27 +135,33 @@ func ProxyKeyDir(baseDir, proxy string) string {
 	return filepath.Join(KeyDir(baseDir), proxy)
 }
 
-// UserKeyPath returns the path to the users's private key
-// for the given proxy.
+// UserKeyPathOld returns the path to the users's private key
+// for the given user.
 //
 // <baseDir>/keys/<proxy>/<username>.
-func UserKeyPath(baseDir, proxy, username string) string {
+//
+// DELETE IN 13.0.0
+func UserKeyPathOld(baseDir, proxy, username string) string {
 	return filepath.Join(ProxyKeyDir(baseDir, proxy), username)
 }
 
-// TLSCertPath returns the path to the users's TLS certificate
+// TLSCertPathOld returns the path to the users's TLS certificate
 // for the given proxy.
 //
 // <baseDir>/keys/<proxy>/<username>-x509.pem
-func TLSCertPath(baseDir, proxy, username string) string {
+//
+// DELETE IN 13.0.0
+func TLSCertPathOld(baseDir, proxy, username string) string {
 	return filepath.Join(ProxyKeyDir(baseDir, proxy), username+fileExtTLSCert)
 }
 
-// PublicKeyPath returns the path to the users's public key
+// PublicKeyPathOld returns the path to the users's public key
 // for the given proxy.
 //
 // <baseDir>/keys/<proxy>/<username>.pub
-func PublicKeyPath(baseDir, proxy, username string) string {
+//
+// DELETE IN 13.0.0
+func PublicKeyPathOld(baseDir, proxy, username string) string {
 	return filepath.Join(ProxyKeyDir(baseDir, proxy), username+fileExtPub)
 }
 
@@ -163,11 +186,13 @@ func SSHDir(baseDir, proxy, username string) string {
 	return filepath.Join(ProxyKeyDir(baseDir, proxy), username+sshDirSuffix)
 }
 
-// PPKFilePath returns the path to the user's PuTTY PPK-formatted keypair
+// PPKFilePathOld returns the path to the user's PuTTY PPK-formatted keypair
 // for the given proxy and cluster.
 //
 // <baseDir>/keys/<proxy>/<username>.ppk
-func PPKFilePath(baseDir, proxy, username string) string {
+//
+// DELETE IN 13.0.0
+func PPKFilePathOld(baseDir, proxy, username string) string {
 	return filepath.Join(ProxyKeyDir(baseDir, proxy), username+fileExtPPK)
 }
 
@@ -291,4 +316,64 @@ func TrimCertPathSuffix(path string) string {
 	trimmedPath := strings.TrimSuffix(path, fileExtTLSCert)
 	trimmedPath = strings.TrimSuffix(trimmedPath, fileExtSSHCert)
 	return trimmedPath
+}
+
+// KeyIndex helps to identify a key in the store.
+type KeyIndex struct {
+	// ProxyHost is the root proxy hostname that a key is associated with.
+	ProxyHost string
+	// ClusterName is the cluster name that a key is associated with.
+	ClusterName string
+	// Username is the username that a key is associated with.
+	Username string
+}
+
+// Check verifies the KeyIndex is fully specified.
+func (idx KeyIndex) Check() error {
+	missingField := "key index field %s is not set"
+	if idx.ProxyHost == "" {
+		return trace.BadParameter(missingField, "ProxyHost")
+	}
+	if idx.ClusterName == "" {
+		return trace.BadParameter(missingField, "ClusterName")
+	}
+	if idx.Username == "" {
+		return trace.BadParameter(missingField, "Username")
+	}
+	return nil
+}
+
+// UserKeyDir returns the path to the cluster's keys directory.
+//
+// <baseDir>/keys/<proxy>/<cluster>/<username>
+func UserKeyDir(baseDir string, idx KeyIndex) string {
+	return filepath.Join(ProxyKeyDir(baseDir, idx.ProxyHost), idx.ClusterName, idx.Username)
+}
+
+// UserKeyPath returns the path to the users's private key.
+//
+// <baseDir>/keys/<proxy>/<cluster>/<username>/key.pem
+func UserKeyPath(baseDir string, idx KeyIndex) string {
+	return filepath.Join(UserKeyDir(baseDir, idx), keyPEMFileName)
+}
+
+// PPKFilePath returns the path to the user's PuTTY PPK-formatted keypair.
+//
+// <baseDir>/keys/<proxy>/<cluster>/<username>/key.ppk
+func PPKFilePath(baseDir string, idx KeyIndex) string {
+	return filepath.Join(UserKeyDir(baseDir, idx), keyPPKFileName)
+}
+
+// PublicKeyPath returns the path to the users's public key.
+//
+// <baseDir>/keys/<proxy>/<cluster>/<username>/ssh.pub
+func PublicKeyPath(baseDir string, idx KeyIndex) string {
+	return filepath.Join(UserKeyDir(baseDir, idx), sshPubFileName)
+}
+
+// TLSCertPath returns the path to the users's TLS certificate.
+//
+// <baseDir>/keys/<proxy>/<cluster>/<username>/cert-x509.pem
+func TLSCertPath(baseDir string, idx KeyIndex) string {
+	return filepath.Join(UserKeyDir(baseDir, idx), tlsCertFileName)
 }

@@ -33,6 +33,7 @@ import (
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/identityfile"
 	apiutils "github.com/gravitational/teleport/api/utils"
+	"github.com/gravitational/teleport/api/utils/keypaths"
 	"github.com/gravitational/teleport/api/utils/keys"
 	"github.com/gravitational/teleport/api/utils/sshutils"
 	"github.com/gravitational/teleport/lib/auth"
@@ -42,30 +43,7 @@ import (
 	"github.com/gravitational/teleport/lib/utils"
 )
 
-// KeyIndex helps to identify a key in the store.
-type KeyIndex struct {
-	// ProxyHost is the root proxy hostname that a key is associated with.
-	ProxyHost string
-	// Username is the username that a key is associated with.
-	Username string
-	// ClusterName is the cluster name that a key is associated with.
-	ClusterName string
-}
-
-// Check verifies the KeyIndex is fully specified.
-func (idx KeyIndex) Check() error {
-	missingField := "key index field %s is not set"
-	if idx.ProxyHost == "" {
-		return trace.BadParameter(missingField, "ProxyHost")
-	}
-	if idx.Username == "" {
-		return trace.BadParameter(missingField, "Username")
-	}
-	if idx.ClusterName == "" {
-		return trace.BadParameter(missingField, "ClusterName")
-	}
-	return nil
-}
+type KeyIndex = keypaths.KeyIndex
 
 // Key describes a complete (signed) client key
 type Key struct {

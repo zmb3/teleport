@@ -150,7 +150,7 @@ func (a *awsApp) GetAWSCredentials() (*credentials.Credentials, error) {
 	//
 	// https://docs.aws.amazon.com/STS/latest/APIReference/API_Credentials.html
 	a.credentialsOnce.Do(func() {
-		keyPem, err := utils.ReadPath(a.profile.KeyPath())
+		keyPem, err := utils.ReadPath(a.profile.KeyPath(""))
 		if err != nil {
 			log.WithError(err).Errorf("Failed to read key.")
 			return

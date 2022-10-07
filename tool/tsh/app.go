@@ -251,7 +251,7 @@ func formatAppConfig(tc *client.TeleportClient, profile *client.ProfileStatus, a
   %v`,
 		curlInsecureFlag,
 		profile.AppCertPath(appName),
-		profile.KeyPath(),
+		profile.KeyPath(cluster),
 		uri)
 	format = strings.ToLower(format)
 	switch format {
@@ -262,13 +262,13 @@ func formatAppConfig(tc *client.TeleportClient, profile *client.ProfileStatus, a
 	case appFormatCert:
 		return profile.AppCertPath(appName), nil
 	case appFormatKey:
-		return profile.KeyPath(), nil
+		return profile.KeyPath(cluster), nil
 	case appFormatCURL:
 		return curlCmd, nil
 	case appFormatJSON, appFormatYAML:
 		appConfig := &appConfigInfo{
 			appName, uri, profile.CACertPathForCluster(cluster),
-			profile.AppCertPath(appName), profile.KeyPath(), curlCmd,
+			profile.AppCertPath(appName), profile.KeyPath(cluster), curlCmd,
 		}
 		out, err := serializeAppConfig(appConfig, format)
 		if err != nil {
@@ -282,7 +282,7 @@ CA:        %v
 Cert:      %v
 Key:       %v
 `, appName, uri, profile.CACertPathForCluster(cluster),
-		profile.AppCertPath(appName), profile.KeyPath()), nil
+		profile.AppCertPath(appName), profile.KeyPath(cluster)), nil
 }
 
 type appConfigInfo struct {
@@ -359,7 +359,7 @@ func removeFileIfExist(filePath string) {
 // generate a new CA if first load fails.
 func loadAppSelfSignedCA(profile *client.ProfileStatus, tc *client.TeleportClient, appName string) (tls.Certificate, error) {
 	caPath := profile.AppLocalCAPath(appName)
-	keyPath := profile.KeyPath()
+	keyPath := profile.KeyPath("")
 
 	caTLSCert, err := keys.LoadX509KeyPair(caPath, keyPath)
 	if err == nil {
@@ -392,7 +392,7 @@ func generateAppSelfSignedCA(profile *client.ProfileStatus, tc *client.TeleportC
 		return trace.Wrap(err)
 	}
 
-	keyPem, err := utils.ReadPath(profile.KeyPath())
+	keyPem, err := utils.ReadPath(profile.KeyPath(""))
 	if err != nil {
 		return trace.Wrap(err)
 	}

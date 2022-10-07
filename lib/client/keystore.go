@@ -147,14 +147,31 @@ func (fs *FSLocalKeyStore) AddKey(key *Key) error {
 		return trace.Wrap(err)
 	}
 
-	// Store TLS cert
 	if err := fs.writeBytes(key.TLSCert, fs.tlsCertPath(key.KeyIndex)); err != nil {
 		return trace.Wrap(err)
 	}
+
+	// DELETE IN 13.0.0
+	if err := fs.writeBytes(key.PrivateKeyPEM(), fs.userKeyPathOld(key.KeyIndex)); err != nil {
+		return trace.Wrap(err)
+	}
+	// DELETE IN 13.0.0
+	if err := fs.writeBytes(key.MarshalSSHPublicKey(), fs.publicKeyPathOld(key.KeyIndex)); err != nil {
+		return trace.Wrap(err)
+	}
+	// DELETE IN 13.0.0
+	if err := fs.writeBytes(key.TLSCert, fs.tlsCertPathOld(key.KeyIndex)); err != nil {
+		return trace.Wrap(err)
+	}
+
 	if runtime.GOOS == constants.WindowsOS {
 		ppkFile, err := key.PPKFile()
 		if err == nil {
 			if err := fs.writeBytes(ppkFile, fs.ppkFilePath(key.KeyIndex)); err != nil {
+				return trace.Wrap(err)
+			}
+			// DELETE IN 13.0.0
+			if err := fs.writeBytes(ppkFile, fs.ppkFilePathOld(key.KeyIndex)); err != nil {
 				return trace.Wrap(err)
 			}
 		} else if !trace.IsBadParameter(err) {
@@ -219,6 +236,10 @@ func (fs *FSLocalKeyStore) DeleteKey(idx KeyIndex) error {
 		fs.userKeyPath(idx),
 		fs.publicKeyPath(idx),
 		fs.tlsCertPath(idx),
+		// DELETE IN 13.0.0
+		fs.userKeyPathOld(idx),
+		fs.publicKeyPathOld(idx),
+		fs.tlsCertPathOld(idx),
 	}
 	for _, fn := range files {
 		if err := os.Remove(fn); err != nil {
@@ -230,6 +251,8 @@ func (fs *FSLocalKeyStore) DeleteKey(idx KeyIndex) error {
 	// as such, deletion should be best-effort and not generate an error if it fails.
 	if runtime.GOOS == constants.WindowsOS {
 		os.Remove(fs.ppkFilePath(idx))
+		// DELETE IN 13.0.0
+		os.Remove(fs.ppkFilePathOld(idx))
 	}
 
 	// Clear ClusterName to delete the user certs stored for all clusters.
@@ -281,10 +304,8 @@ func (fs *FSLocalKeyStore) DeleteKeys() error {
 // GetKey returns the user's key including the specified certs.
 // If the key is not found, returns trace.NotFound error.
 func (fs *FSLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error) {
-	if len(opts) > 0 {
-		if err := idx.Check(); err != nil {
-			return nil, trace.Wrap(err, "GetKey with CertOptions requires a fully specified KeyIndex")
-		}
+	if err := idx.Check(); err != nil {
+		return nil, trace.Wrap(err, "GetKey with CertOptions requires a fully specified KeyIndex")
 	}
 
 	if _, err := os.ReadDir(fs.KeyDir); err != nil && trace.IsNotFound(err) {
@@ -293,6 +314,11 @@ func (fs *FSLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error
 
 	tlsCertFile := fs.tlsCertPath(idx)
 	tlsCert, err := os.ReadFile(tlsCertFile)
+	// DELETE IN 13.0.0
+	if os.IsNotExist(err) {
+		tlsCertFile = fs.tlsCertPathOld(idx)
+		tlsCert, err = os.ReadFile(fs.tlsCertPathOld(idx))
+	}
 	if err != nil {
 		fs.log.Error(err)
 		return nil, trace.ConvertSystemError(err)
@@ -304,6 +330,10 @@ func (fs *FSLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error
 	}
 
 	priv, err := keys.LoadKeyPair(fs.userKeyPath(idx), fs.publicKeyPath(idx))
+	// DELETE IN 13.0.0
+	if os.IsNotExist(err) {
+		priv, err = keys.LoadKeyPair(fs.userKeyPathOld(idx), fs.publicKeyPathOld(idx))
+	}
 	if err != nil {
 		fs.log.Error(err)
 		return nil, trace.ConvertSystemError(err)
@@ -528,14 +558,16 @@ func (fs *fsLocalNonSessionKeyStore) knownHostsPath() string {
 	return keypaths.KnownHostsPath(fs.KeyDir)
 }
 
-// userKeyPath returns the private key path for the given KeyIndex.
-func (fs *fsLocalNonSessionKeyStore) userKeyPath(idx KeyIndex) string {
-	return keypaths.UserKeyPath(fs.KeyDir, idx.ProxyHost, idx.Username)
+// userKeyPathOld returns the private key path for the given KeyIndex.
+// DELETE IN 13.0.0
+func (fs *fsLocalNonSessionKeyStore) userKeyPathOld(idx KeyIndex) string {
+	return keypaths.UserKeyPathOld(fs.KeyDir, idx.ProxyHost, idx.Username)
 }
 
-// tlsCertPath returns the TLS certificate path given KeyIndex.
-func (fs *fsLocalNonSessionKeyStore) tlsCertPath(idx KeyIndex) string {
-	return keypaths.TLSCertPath(fs.KeyDir, idx.ProxyHost, idx.Username)
+// tlsCertPathOld returns the TLS certificate path given KeyIndex.
+// DELETE IN 13.0.0
+func (fs *fsLocalNonSessionKeyStore) tlsCertPathOld(idx KeyIndex) string {
+	return keypaths.TLSCertPathOld(fs.KeyDir, idx.ProxyHost, idx.Username)
 }
 
 // sshDir returns the SSH certificate path for the given KeyIndex.
@@ -548,14 +580,16 @@ func (fs *fsLocalNonSessionKeyStore) sshCertPath(idx KeyIndex) string {
 	return keypaths.SSHCertPath(fs.KeyDir, idx.ProxyHost, idx.Username, idx.ClusterName)
 }
 
-// ppkFilePath returns the PPK (PuTTY-formatted) keypair path for the given KeyIndex.
-func (fs *fsLocalNonSessionKeyStore) ppkFilePath(idx KeyIndex) string {
-	return keypaths.PPKFilePath(fs.KeyDir, idx.ProxyHost, idx.Username)
+// ppkFilePathOld returns the PPK (PuTTY-formatted) keypair path for the given KeyIndex.
+// DELETE IN 13.0.0
+func (fs *fsLocalNonSessionKeyStore) ppkFilePathOld(idx KeyIndex) string {
+	return keypaths.PPKFilePathOld(fs.KeyDir, idx.ProxyHost, idx.Username)
 }
 
-// publicKeyPath returns the public key path for the given KeyIndex.
-func (fs *fsLocalNonSessionKeyStore) publicKeyPath(idx KeyIndex) string {
-	return keypaths.PublicKeyPath(fs.KeyDir, idx.ProxyHost, idx.Username)
+// publicKeyPathOld returns the public key path for the given KeyIndex.
+// DELETE IN 13.0.0
+func (fs *fsLocalNonSessionKeyStore) publicKeyPathOld(idx KeyIndex) string {
+	return keypaths.PublicKeyPathOld(fs.KeyDir, idx.ProxyHost, idx.Username)
 }
 
 // appCertPath returns the TLS certificate path for the given KeyIndex and app name.
@@ -571,6 +605,26 @@ func (fs *fsLocalNonSessionKeyStore) databaseCertPath(idx KeyIndex, dbname strin
 // kubeCertPath returns the TLS certificate path for the given KeyIndex and kube cluster name.
 func (fs *fsLocalNonSessionKeyStore) kubeCertPath(idx KeyIndex, kubename string) string {
 	return keypaths.KubeCertPath(fs.KeyDir, idx.ProxyHost, idx.Username, idx.ClusterName, kubename)
+}
+
+// userKeyPath returns the private key path for the given KeyIndex.
+func (fs *fsLocalNonSessionKeyStore) userKeyPath(idx KeyIndex) string {
+	return keypaths.UserKeyPath(fs.KeyDir, idx)
+}
+
+// tlsCertPath returns the TLS certificate path given KeyIndex.
+func (fs *fsLocalNonSessionKeyStore) tlsCertPath(idx KeyIndex) string {
+	return keypaths.TLSCertPath(fs.KeyDir, idx)
+}
+
+// ppkFilePath returns the PPK (PuTTY-formatted) keypair path for the given KeyIndex.
+func (fs *fsLocalNonSessionKeyStore) ppkFilePath(idx KeyIndex) string {
+	return keypaths.PPKFilePath(fs.KeyDir, idx)
+}
+
+// publicKeyPath returns the public key path for the given KeyIndex.
+func (fs *fsLocalNonSessionKeyStore) publicKeyPath(idx KeyIndex) string {
+	return keypaths.PublicKeyPath(fs.KeyDir, idx)
 }
 
 // AddKnownHostKeys adds a new entry to `known_hosts` file.

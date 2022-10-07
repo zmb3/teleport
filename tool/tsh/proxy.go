@@ -473,7 +473,7 @@ func onProxyCommandDB(cf *CLIConf) error {
 			"address":    listener.Addr().String(),
 			"ca":         profile.CACertPathForCluster(rootCluster),
 			"cert":       profile.DatabaseCertPathForCluster(cf.SiteName, routeToDatabase.ServiceName),
-			"key":        profile.KeyPath(),
+			"key":        profile.KeyPath(cf.SiteName),
 			"randomPort": randomPort,
 		})
 		if err != nil {

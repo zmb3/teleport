@@ -104,8 +104,8 @@ func TestAddKey(t *testing.T) {
 
 	// check that the key has been written to disk
 	expectedFiles := []string{
-		keypaths.UserKeyPath(s.keyDir, s.hostname, s.username),                    // private key
-		keypaths.TLSCertPath(s.keyDir, s.hostname, s.username),                    // Teleport TLS certificate
+		keypaths.UserKeyPath(s.keyDir, s.key.KeyIndex),                            // private key
+		keypaths.TLSCertPath(s.keyDir, s.key.KeyIndex),                            // Teleport TLS certificate
 		keypaths.SSHCertPath(s.keyDir, s.hostname, s.username, s.key.ClusterName), // SSH certificate
 	}
 	for _, file := range expectedFiles {

@@ -623,16 +623,34 @@ func (p *ProfileStatus) CACertPathForCluster(cluster string) string {
 	return filepath.Join(keypaths.ProxyKeyDir(p.Dir, p.Name), "cas", cluster+".pem")
 }
 
+// keyIndex returns the current profile's keyIndex.
+func (p *ProfileStatus) keyIndex(cluster string) keypaths.KeyIndex {
+	if cluster == "" {
+		cluster = p.Cluster
+	}
+	return keypaths.KeyIndex{
+		ProxyHost:   p.Name,
+		ClusterName: cluster,
+		Username:    p.Username,
+	}
+}
+
 // KeyPath returns path to the private key for this profile.
 //
-// It's kept in <profile-dir>/keys/<proxy>/<user>.
-func (p *ProfileStatus) KeyPath() string {
+// It's kept in <profile-dir>/keys/<proxy>/<cluster>/<username>/key.pem.
+func (p *ProfileStatus) KeyPath(cluster string) string {
 	// Return an env var override if both valid and present for this identity.
 	if path, ok := p.virtualPathFromEnv(VirtualPathKey, nil); ok {
 		return path
 	}
 
-	return keypaths.UserKeyPath(p.Dir, p.Name, p.Username)
+	path := keypaths.UserKeyPath(p.Dir, p.keyIndex(cluster))
+	// DELETE IN 13.0.0
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		path = keypaths.UserKeyPathOld(p.Dir, p.Name, p.Username)
+	}
+
+	return path
 }
 
 // DatabaseCertPathForCluster returns path to the specified database access
@@ -700,12 +718,7 @@ func (p *ProfileStatus) DatabasesForCluster(clusterName string) ([]tlsca.RouteTo
 		return p.Databases, nil
 	}
 
-	idx := KeyIndex{
-		ProxyHost:   p.Name,
-		Username:    p.Username,
-		ClusterName: clusterName,
-	}
-
+	idx := p.keyIndex(clusterName)
 	store, err := NewFSLocalKeyStore(p.Dir)
 	if err != nil {
 		return nil, trace.Wrap(err)

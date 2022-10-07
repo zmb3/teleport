@@ -114,6 +114,10 @@ func (p *Profile) Name() string {
 // TLSConfig returns the profile's associated TLSConfig.
 func (p *Profile) TLSConfig() (*tls.Config, error) {
 	cert, err := keys.LoadX509KeyPair(p.TLSCertPath(), p.UserKeyPath())
+	// DELETE IN 13.0.0
+	if os.IsNotExist(err) {
+		cert, err = keys.LoadX509KeyPair(p.TLSCertPathOld(), p.UserKeyPathOld())
+	}
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -180,6 +184,9 @@ func (p *Profile) SSHClientConfig() (*ssh.ClientConfig, error) {
 	}
 
 	priv, err := keys.LoadPrivateKey(p.UserKeyPath())
+	if os.IsNotExist(err) {
+		priv, err = keys.LoadPrivateKey(p.UserKeyPathOld())
+	}
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -352,19 +359,16 @@ func (p *Profile) KeyDir() string {
 	return keypaths.KeyDir(p.Dir)
 }
 
-// ProxyKeyDir returns the path to the profile's key directory.
-func (p *Profile) ProxyKeyDir() string {
-	return keypaths.ProxyKeyDir(p.Dir, p.Name())
+// UserKeyPathOld returns the path to the profile's private key.
+// DELETE IN 13.0.0
+func (p *Profile) UserKeyPathOld() string {
+	return keypaths.UserKeyPathOld(p.Dir, p.Name(), p.Username)
 }
 
-// UserKeyPath returns the path to the profile's private key.
-func (p *Profile) UserKeyPath() string {
-	return keypaths.UserKeyPath(p.Dir, p.Name(), p.Username)
-}
-
-// TLSCertPath returns the path to the profile's TLS certificate.
-func (p *Profile) TLSCertPath() string {
-	return keypaths.TLSCertPath(p.Dir, p.Name(), p.Username)
+// TLSCertPathOld returns the path to the profile's TLS certificate.
+// DELETE IN 13.0.0
+func (p *Profile) TLSCertPathOld() string {
+	return keypaths.TLSCertPathOld(p.Dir, p.Name(), p.Username)
 }
 
 // TLSCAPathCluster returns CA for particular cluster.
@@ -387,11 +391,6 @@ func (p *Profile) SSHCertPath() string {
 	return keypaths.SSHCertPath(p.Dir, p.Name(), p.Username, p.SiteName)
 }
 
-// PPKFilePath returns the path to the profile's PuTTY PPK-formatted keypair.
-func (p *Profile) PPKFilePath() string {
-	return keypaths.PPKFilePath(p.Dir, p.Name(), p.Username)
-}
-
 // KnownHostsPath returns the path to the profile's ssh certificate authorities.
 func (p *Profile) KnownHostsPath() string {
 	return keypaths.KnownHostsPath(p.Dir)
@@ -402,4 +401,33 @@ func (p *Profile) KnownHostsPath() string {
 // is no guarantee that there is an actual certificate at that location.
 func (p *Profile) AppCertPath(appName string) string {
 	return keypaths.AppCertPath(p.Dir, p.Name(), p.Username, p.SiteName, appName)
+}
+
+// keyIndex returns the current profile's keyIndex.
+func (p *Profile) keyIndex() keypaths.KeyIndex {
+	return keypaths.KeyIndex{
+		ProxyHost:   p.Name(),
+		ClusterName: p.SiteName,
+		Username:    p.Username,
+	}
+}
+
+// UserKeyDir returns the path to the profile's keys.
+func (p *Profile) UserKeyDir() string {
+	return keypaths.UserKeyDir(p.Dir, p.keyIndex())
+}
+
+// UserKeyPath returns the path to the profile's private key.
+func (p *Profile) UserKeyPath() string {
+	return keypaths.UserKeyPath(p.Dir, p.keyIndex())
+}
+
+// TLSCertPath returns the path to the profile's TLS certificate.
+func (p *Profile) TLSCertPath() string {
+	return keypaths.TLSCertPath(p.Dir, p.keyIndex())
+}
+
+// PPKFilePath returns the path to the profile's PuTTY PPK-formatted keypair.
+func (p *Profile) PPKFilePath() string {
+	return keypaths.PPKFilePath(p.Dir, p.keyIndex())
 }

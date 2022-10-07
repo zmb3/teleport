@@ -518,7 +518,7 @@ func onDatabaseConfig(cf *CLIConf) error {
 			database.ServiceName, host, port, database.Username,
 			database.Database, profile.CACertPathForCluster(rootCluster),
 			profile.DatabaseCertPathForCluster(tc.SiteName, database.ServiceName),
-			profile.KeyPath(),
+			profile.KeyPath(tc.SiteName),
 		}
 		out, err := serializeDatabaseConfig(configInfo, format)
 		if err != nil {
@@ -537,7 +537,7 @@ Key:       %v
 `,
 			database.ServiceName, host, port, database.Username,
 			database.Database, profile.CACertPathForCluster(rootCluster),
-			profile.DatabaseCertPathForCluster(tc.SiteName, database.ServiceName), profile.KeyPath())
+			profile.DatabaseCertPathForCluster(tc.SiteName, database.ServiceName), profile.KeyPath(tc.SiteName))
 	}
 	return nil
 }
@@ -656,7 +656,7 @@ func prepareLocalProxyOptions(arg *localProxyConfig) (*localProxyOpts, error) {
 		// For SQL Server and Cassandra connections, local proxy must be configured with the
 		// client certificate that will be used to route connections.
 		certFile = arg.profile.DatabaseCertPathForCluster(arg.teleportClient.SiteName, arg.routeToDatabase.ServiceName)
-		keyFile = arg.profile.KeyPath()
+		keyFile = arg.profile.KeyPath(arg.teleportClient.SiteName)
 	}
 	certs, err := mkLocalProxyCerts(certFile, keyFile)
 	if err != nil {

@@ -291,7 +291,7 @@ func (c *CLICommandBuilder) getMariaDBArgs() []string {
 
 	sslCertPath := c.profile.DatabaseCertPathForCluster(c.tc.SiteName, c.db.ServiceName)
 
-	args = append(args, []string{"--ssl-key", c.profile.KeyPath()}...)
+	args = append(args, []string{"--ssl-key", c.profile.KeyPath(c.tc.SiteName)}...)
 	args = append(args, []string{"--ssl-ca", c.profile.CACertPathForCluster(c.rootCluster)}...)
 	args = append(args, []string{"--ssl-cert", sslCertPath}...)
 
@@ -492,7 +492,7 @@ func (c *CLICommandBuilder) getRedisCommand() *exec.Cmd {
 	if !c.options.noTLS {
 		args = append(args,
 			"--tls",
-			"--key", c.profile.KeyPath(),
+			"--key", c.profile.KeyPath(c.tc.SiteName),
 			"--cert", c.profile.DatabaseCertPathForCluster(c.tc.SiteName, c.db.ServiceName))
 
 		if c.tc.InsecureSkipVerify {
@@ -585,7 +585,7 @@ func (c *CLICommandBuilder) getElasticsearchAlternativeCommands() []CommandAlter
 	} else {
 		args := []string{
 			fmt.Sprintf("https://%v:%v/", c.host, c.port),
-			"--key", c.profile.KeyPath(),
+			"--key", c.profile.KeyPath(c.tc.SiteName),
 			"--cert", c.profile.DatabaseCertPathForCluster(c.tc.SiteName, c.db.ServiceName),
 		}
 

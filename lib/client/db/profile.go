@@ -92,7 +92,7 @@ func New(tc *client.TeleportClient, db tlsca.RouteToDatabase, clientProfile clie
 		Insecure:   tc.InsecureSkipVerify,
 		CACertPath: clientProfile.CACertPathForCluster(rootCluster),
 		CertPath:   clientProfile.DatabaseCertPathForCluster(tc.SiteName, db.ServiceName),
-		KeyPath:    clientProfile.KeyPath(),
+		KeyPath:    clientProfile.KeyPath(tc.SiteName),
 	}
 }
 
