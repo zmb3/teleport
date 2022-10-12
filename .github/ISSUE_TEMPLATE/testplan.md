@@ -983,6 +983,10 @@ tsh bench sessions --max=5000 --web user ls
 - [ ] Verify that all 5000 sessions are able to be established.
 - [ ] Verify that tsh and the web UI are still functional.
 
+### Robustness
+
+- [ ] Verify that loss Auth service does not prevent access to resources from an already issued certificate
+
 ## Teleport with Cloud Providers
 
 ### AWS
