@@ -985,7 +985,10 @@ tsh bench sessions --max=5000 --web user ls
 
 ### Robustness
 
-- [ ] Verify that loss Auth service does not prevent access to resources from an already issued certificate
+* Connectivity Issues:
+
+- [ ] Verify that a lack of connectivity to Auth does not prevent access to resources which do not require a moderated session from an already issued certificate
+- [ ] Verify that a lack of connectivity to Auth prevents access to resources which require a moderated session from an already issued certificate
 
 ## Teleport with Cloud Providers
 
