@@ -4072,9 +4072,6 @@ func TestDiagnoseSSHConnection(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			// if tt.name != "success" {
-			// 	return
-			// }
 			localEnv := env
 
 			if tt.stopNode {
@@ -4891,16 +4888,15 @@ func newWebPack(t *testing.T, numProxies int) *webPack {
 	}
 
 	// Wait for proxies to fully register before starting the test.
-	for start := time.Now(); ; {
-		proxies, err := proxies[0].client.GetProxies()
+	require.Eventually(t, func() bool {
+		proxyList, err := proxies[0].client.GetProxies()
 		require.NoError(t, err)
-		if len(proxies) == numProxies {
-			break
-		}
-		if time.Since(start) > 5*time.Second {
-			t.Fatalf("Proxies didn't register within 5s after startup; registered: %d, want: %d", len(proxies), numProxies)
-		}
-	}
+
+		nodeList, err := proxies[0].client.GetNodes(ctx, apidefaults.Namespace)
+		require.NoError(t, err)
+
+		return len(proxyList) == numProxies && len(nodeList) == 1
+	}, 5*time.Second, time.Second)
 
 	return &webPack{
 		proxies: proxies,
