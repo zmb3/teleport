@@ -1684,7 +1684,7 @@ var xxx_messageInfo_AzureRedis proto.InternalMessageInfo
 type AD struct {
 	// KeytabFile is the path to the Kerberos keytab file.
 	KeytabFile string `protobuf:"bytes,1,opt,name=KeytabFile,proto3" json:"keytab_file,omitempty"`
-	// Krb5File is the path to the Kerberos configuration file. Defaults to /etc/krb5.conf.
+	// Krb5File is the path to the Kerberos configuration file. Defaults to /etc/krb5.conf on linux
 	Krb5File string `protobuf:"bytes,2,opt,name=Krb5File,proto3" json:"krb5_file,omitempty"`
 	// Domain is the Active Directory domain the database resides in.
 	Domain string `protobuf:"bytes,3,opt,name=Domain,proto3" json:"domain"`

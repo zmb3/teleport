@@ -502,7 +502,7 @@ message AzureRedis {
 message AD {
   // KeytabFile is the path to the Kerberos keytab file.
   string KeytabFile = 1 [(gogoproto.jsontag) = "keytab_file,omitempty"];
-  // Krb5File is the path to the Kerberos configuration file. Defaults to /etc/krb5.conf.
+  // Krb5File is the path to the Kerberos configuration file. Defaults to /etc/krb5.conf on linux
   string Krb5File = 2 [(gogoproto.jsontag) = "krb5_file,omitempty"];
   // Domain is the Active Directory domain the database resides in.
   string Domain = 3 [(gogoproto.jsontag) = "domain"];
