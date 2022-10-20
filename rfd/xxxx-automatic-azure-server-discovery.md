@@ -37,6 +37,8 @@ discovery_service:
   enabled: "yes"
   azure:
     - types: ["vm"]
+      subscriptions: ["<subscription id>"]
+      resource_groups: ["<resource group"]
       regions: ["westcentralus"]
       tags:
         "teleport": "yes"
@@ -121,6 +123,8 @@ discovery_service:
   enabled: "yes"
   azure:
     - types: ["vm"]
+      subscriptions: ["<subscription id>"]
+      resource_groups: ["<resource group"]
       regions: ["westcentralus"]
       tags:
         "teleport": "yes"
