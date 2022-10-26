@@ -124,16 +124,15 @@ Next, use the appropriate commands for your environment to install your package.
 <Tabs>
   <TabItem label="tar.gz">
 
-    For example, use the following commands to install Teleport on a machine with an
-    x86-64 chip via tarball. Adjust as needed for your system architecture:
+Adjust the path provided to `curl` for the download option that matches your system architecture:
 
     ```code
-    $ curl https://get.gravitational.com/teleport-ent-v(=teleport.version=)-linux-amd64-bin.tar.gz.sha256
+    $ curl https://get.gravitational.com/teleport-ent-v(=teleport.version=)-linux-{YOUR-SYSTEM-Architecture}-bin.tar.gz.sha256
     # <checksum> <filename>
-    $ curl -O https://get.gravitational.com/teleport-ent-v(=teleport.version=)-linux-amd64-bin.tar.gz
-    $ shasum -a 256 teleport-ent-v(=teleport.version=)-linux-amd64-bin.tar.gz
+    $ curl -O https://get.gravitational.com/teleport-ent-v(=teleport.version=)-linux-{YOUR-SYSTEM-Architecture}-bin.tar.gz
+    $ shasum -a 256 teleport-ent-v(=teleport.version=)-linux-{YOUR-SYSTEM-Architecture}-bin.tar.gz
     # Verify that the checksums match
-    $ tar -xzf teleport-ent-v(=teleport.version=)-linux-amd64-bin.tar.gz
+    $ tar -xzf teleport-ent-v(=teleport.version=)-linux-*-bin.tar.gz
     $ cd teleport
     $ sudo ./install
     ```
@@ -155,21 +154,21 @@ Next, use the appropriate commands for your environment to install your package.
   </TabItem>
   <TabItem label="deb Package">
 
-    After Downloading the `.deb` file for your system architecture, install it with `dpkg`. The example
+    After downloading the `.deb` file for your system architecture, install it with `dpkg`. The example
     below assumes the `root` user and the amd64 architecture:
 
     ```code
     $ dpkg -i ~/Downloads/teleport-ent_(=teleport.version=)_amd64.deb
     Selecting previously unselected package teleport-ent.
     (Reading database ... 30810 files and directories currently installed.)
-    Preparing to unpack teleport-ent_10.3.1_amd64.deb ...
-    Unpacking teleport-ent (10.3.1) ...
-    Setting up teleport-ent (10.3.1) ...
+    Preparing to unpack teleport-ent_(=teleport.version=)_amd64.deb ...
+    Unpacking teleport-ent ((=teleport.version=)) ...
+    Setting up teleport-ent ((=teleport.version=)) ...
     ```
 
   </TabItem>
   <TabItem label="Amazon Linux 2/RHEL (RPM)">
-    Aftter Downloading the `.rpm` file for your system architecture, install it with `rpm`. The example
+    After downloading the `.rpm` file for your system architecture, install it with `rpm`. The example
     below assumes the `root` user and the amd64 architecture:
 
     ```code
