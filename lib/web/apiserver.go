@@ -35,6 +35,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gravitational/oxy/ratelimit"
+	"github.com/gravitational/roundtrip"
+	"github.com/gravitational/trace"
+	"github.com/jonboulle/clockwork"
+	"github.com/julienschmidt/httprouter"
+	lemma_secret "github.com/mailgun/lemma/secret"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/mod/semver"
+
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client/proto"
 	"github.com/gravitational/teleport/api/client/webclient"
@@ -63,17 +73,6 @@ import (
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/web/app"
 	"github.com/gravitational/teleport/lib/web/ui"
-
-	"github.com/gravitational/oxy/ratelimit"
-	"github.com/gravitational/roundtrip"
-	"github.com/gravitational/trace"
-
-	"github.com/jonboulle/clockwork"
-	"github.com/julienschmidt/httprouter"
-	lemma_secret "github.com/mailgun/lemma/secret"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh"
-	"golang.org/x/mod/semver"
 )
 
 const (
@@ -539,6 +538,9 @@ func (h *Handler) bindDefaultEndpoints(challengeLimiter *limiter.RateLimiter) {
 
 	// Sign required files to set up mTLS using the db format.
 	h.POST("/webapi/sites/:site/sign/db", h.WithProvisionTokenAuth(h.signDatabaseCertificate))
+
+	// Returns the CA Certs
+	h.GET("/webapi/sites/:site/auth/export", h.authExportPublic)
 
 	// token generation
 	h.POST("/webapi/token", h.WithAuth(h.createTokenHandle))
@@ -3124,4 +3126,28 @@ func SSOSetWebSessionAndRedirectURL(w http.ResponseWriter, r *http.Request, resp
 	response.ClientRedirectURL = parsedURL.RequestURI()
 
 	return nil
+}
+
+// authExportPublic returns the CA Certs that can be used to set up a chain of trust which includes the current Teleport Cluster
+//
+// GET /webapi/sites/:site/auth/export?type=<auth type>
+func (h *Handler) authExportPublic(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	authorities, err := client.ExportAuthorities(
+		r.Context(),
+		h.GetProxyClient(),
+		client.ExportAuthoritiesRequest{
+			AuthType: r.URL.Query().Get("type"),
+		},
+	)
+	if err != nil {
+		h.log.WithError(err).Debug("Failed to generate CA Certs.")
+		http.Error(w, err.Error(), trace.ErrorToCode(err))
+		return
+	}
+
+	reader := strings.NewReader(authorities)
+
+	// ServeContent sets the correct headers: Content-Type, Content-Length and Accept-Ranges.
+	// It also handles the Range negotiation
+	http.ServeContent(w, r, "authorized_hosts.txt", time.Now(), reader)
 }

@@ -23,9 +23,11 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/base32"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"image"
@@ -48,8 +50,25 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-
 	"github.com/gravitational/roundtrip"
+	"github.com/gravitational/trace"
+	"github.com/jonboulle/clockwork"
+	"github.com/julienschmidt/httprouter"
+	lemma_secret "github.com/mailgun/lemma/secret"
+	"github.com/pquerna/otp/totp"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/exp/slices"
+	"golang.org/x/text/encoding/unicode"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	authztypes "k8s.io/client-go/kubernetes/typed/authorization/v1"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/breaker"
 	authproto "github.com/gravitational/teleport/api/client/proto"
@@ -87,24 +106,6 @@ import (
 	"github.com/gravitational/teleport/lib/tlsca"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/web/ui"
-	"github.com/gravitational/trace"
-
-	"github.com/jonboulle/clockwork"
-	"github.com/julienschmidt/httprouter"
-	lemma_secret "github.com/mailgun/lemma/secret"
-	"github.com/pquerna/otp/totp"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/ssh"
-	"golang.org/x/exp/slices"
-	"golang.org/x/text/encoding/unicode"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	authztypes "k8s.io/client-go/kubernetes/typed/authorization/v1"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 const hostID = "00000000-0000-0000-0000-000000000000"
@@ -1987,7 +1988,7 @@ func TestSearchClusterEvents(t *testing.T) {
 				require.Equal(t, tc.Result[i].GetID(), resultEvent.GetID())
 			}
 
-			// Session prints do not have ID's, only sessionStart and sessionEnd.
+			// Session prints do not have IDs, only sessionStart and sessionEnd.
 			// When retrieving events for sessionStart and sessionEnd, sessionStart is returned first.
 			if tc.TestStartKey {
 				require.Equal(t, tc.StartKeyValue, result.StartKey)
@@ -2477,6 +2478,126 @@ func TestCheckAccessToRegisteredResource(t *testing.T) {
 			require.True(t, resp.HasResource)
 
 			tc.deleteResource()
+		})
+	}
+}
+
+func TestAuthExport(t *testing.T) {
+	ctx := context.Background()
+
+	env := newWebPack(t, 1)
+	clusterName := env.server.ClusterName()
+
+	proxy := env.proxies[0]
+	pack := proxy.authPack(t, "test-user@example.com", nil)
+
+	validateTLSCertificateDERFunc := func(t *testing.T, b []byte) {
+		cert, err := x509.ParseCertificate(b)
+		require.NoError(t, err)
+		require.NotNil(t, cert, "ParseCertificate failed")
+		require.Equal(t, "localhost", cert.Subject.CommonName, "unexpected certificate subject CN")
+	}
+
+	validateTLSCertificatePEMFunc := func(t *testing.T, b []byte) {
+		pemBlock, _ := pem.Decode(b)
+		require.NotNil(t, pemBlock, "pem.Decode failed")
+
+		validateTLSCertificateDERFunc(t, pemBlock.Bytes)
+	}
+
+	for _, tt := range []struct {
+		name           string
+		authType       string
+		expectedStatus int
+		assertBody     func(t *testing.T, bs []byte)
+	}{
+		{
+			name:           "all",
+			authType:       "",
+			expectedStatus: http.StatusOK,
+			assertBody: func(t *testing.T, b []byte) {
+				require.Contains(t, string(b), "@cert-authority localhost,*.localhost ssh-rsa ")
+				require.Contains(t, string(b), "cert-authority ssh-rsa")
+			},
+		},
+		{
+			name:           "host",
+			authType:       "host",
+			expectedStatus: http.StatusOK,
+			assertBody: func(t *testing.T, b []byte) {
+				require.Contains(t, string(b), "@cert-authority localhost,*.localhost ssh-rsa ")
+			},
+		},
+		{
+			name:           "user",
+			authType:       "user",
+			expectedStatus: http.StatusOK,
+			assertBody: func(t *testing.T, b []byte) {
+				require.Contains(t, string(b), "cert-authority ssh-rsa")
+			},
+		},
+		{
+			name:           "windows",
+			authType:       "windows",
+			expectedStatus: http.StatusOK,
+			assertBody:     validateTLSCertificateDERFunc,
+		},
+		{
+			name:           "db",
+			authType:       "db",
+			expectedStatus: http.StatusOK,
+			assertBody:     validateTLSCertificatePEMFunc,
+		},
+		{
+			name:           "tls",
+			authType:       "tls",
+			expectedStatus: http.StatusOK,
+			assertBody:     validateTLSCertificatePEMFunc,
+		},
+		{
+			name:           "invalid",
+			authType:       "invalid",
+			expectedStatus: http.StatusBadRequest,
+			assertBody: func(t *testing.T, b []byte) {
+				require.Contains(t, string(b), `"invalid" authority type is not supported`)
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			// export host certificate
+			endpointExport := pack.clt.Endpoint("webapi", "sites", clusterName, "auth", "export")
+
+			if tt.authType != "" {
+				endpointExport = fmt.Sprintf("%s?type=%s", endpointExport, tt.authType)
+			}
+
+			reqCtx, cancel := context.WithTimeout(ctx, time.Second)
+			defer cancel()
+
+			req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, endpointExport, nil)
+			require.NoError(t, err)
+
+			anonHTTPClient := &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: true,
+					},
+				},
+			}
+
+			resp, err := anonHTTPClient.Do(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			bs, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+
+			require.Equal(t, tt.expectedStatus, resp.StatusCode, "invalid status code with body %s", string(bs))
+
+			require.NotEmpty(t, bs, "unexpected empty body from http response")
+			if tt.assertBody != nil {
+				tt.assertBody(t, bs)
+			}
 		})
 	}
 }
