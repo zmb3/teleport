@@ -96,6 +96,15 @@ If you're updating an existing user:
 ALTER USER 'alice'@'%' REQUIRE SUBJECT '/CN=alice';
 ```
 
+<Admonition type="tip">
+If the existing user already has a password set, Teleport will be unable to authenticate as that user. Remove the password in the MySQL CLI:
+
+```sql
+SET PASSWORD FOR 'alice'@'%' = PASSWORD("");
+```
+
+</Admonition>
+
 By default, the created user may not have access to anything and won't be able
 to connect, so let's grant it some permissions:
 
