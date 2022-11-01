@@ -41,7 +41,8 @@ discovery_service:
         "teleport": "yes"
       install:
         join_params:
-          nodename: ${SUBSCRIPTION_ID}_${VM_ID}  # default value
+          token_name:  "azure-discovery-token" # default value
+        nodename: ${SUBSCRIPTION_ID}_${VM_ID}  # default value
         script_name: "installer"  # default value
 ```
 
@@ -85,7 +86,7 @@ In order to install the Teleport agent on Azure virtual machines, Teleport will 
 install script at `/webapi/scripts/{installer-resource-name}`. Installer scripts will
 be editable as a resource.
 
-example:
+Example resource script:
 ```yaml
 kind: installer
 metadata:
@@ -108,11 +109,16 @@ generated that is appropriate for the current running version and operating
 system initially supporting DEB and RPM based distros that Teleport already
 provides packages for.
 
-To run commands, the agent's service principal will require the `Microsoft.Compute/virtualMachines/runCommand/action` permission.
+To run commands, the agent's service principal will require the
+`Microsoft.Compute/virtualMachines/runCommand/action` permission.
 
 #### Action vs Managed run commands
 
-Azure virtual machines can run scripts via either [Action Run Commands](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/run-command) or [Managed Run Commands](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/run-command-managed). Managed Run Commands are generally preferred for non-trivial installation. Unfortunately, Managed Run Commands are still in Preview, so Teleport will use Actoin Run Commands. We may consider switching to Managed Run Commands when they are fully released.
+Azure virtual machines can run scripts via either [Action Run Commands](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/run-command)
+or [Managed Run Commands](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/run-command-managed).
+Managed Run Commands are generally preferred for non-trivial installation,
+but they are still in Preview, so Teleport will use Action Run Commands. We
+may consider switching to Managed Run Commands when they are fully released.
 
 ### teleport.yaml generation
 
