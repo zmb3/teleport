@@ -216,7 +216,13 @@ func (a *LocalKeyAgent) LoadKeyForCluster(clusterName string) error {
 // LoadKey adds a key into the Teleport ssh agent as well as the system ssh
 // agent.
 func (a *LocalKeyAgent) LoadKey(key Key) error {
-	// convert keys into a format understood by the ssh agent
+	// remove any keys that the user may already have loaded
+	err := a.UnloadKey()
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	// convert keys into a format understood by the ssh agent.
 	agentKey := key.AsAgentKey()
 
 	// On all OS'es, load the certificate with the private key embedded.
@@ -237,16 +243,17 @@ func (a *LocalKeyAgent) LoadKey(key Key) error {
 		agentKeys = append(agentKeys, agentKey)
 	}
 
+	// Add a per-session MFA agent key. This will only be used when the standard agent
+	// keys above fail, which might occur if the connected node requires the MFA check.
+	agentKeys = append(agentKeys, key.AsAgentKey(agent.ConstraintExtension{
+		ExtensionName:    constraintPerSessionMFA,
+		ExtensionDetails: ssh.Marshal(perSessionMFAConstraintDetails{cluster: key.ClusterName}),
+	}))
+
 	a.log.Infof("Loading SSH key for user %q and cluster %q.", a.username, key.ClusterName)
 	agents := []agent.ExtendedAgent{a.ExtendedAgent}
 	if a.sshAgent != nil {
 		agents = append(agents, a.sshAgent)
-	}
-
-	// remove any keys that the user may already have loaded
-	err := a.UnloadKey()
-	if err != nil {
-		return trace.Wrap(err)
 	}
 
 	// iterate over all teleport and system agent and load key

@@ -402,14 +402,32 @@ func (k *Key) CertRoles() ([]string, error) {
 	return roles, nil
 }
 
-// AsAgentKeys converts client.Key struct to a []*agent.AddedKey. All elements
-// of the []*agent.AddedKey slice need to be loaded into the agent!
-func (k *Key) AsAgentKey() agent.AddedKey {
+// agentKeyComment is used to generate an agent key comment.
+type agentKeyComment struct {
+	user string
+}
+
+func (a *agentKeyComment) String() string {
+	return fmt.Sprintf("teleport:%s", a.user)
+}
+
+// AsAgentKeys converts client.Key struct to an agent.AddedKey. The
+// returned agent key may contain a non-standrad private key, such as
+// a YubiKeyPrivateKey. In this case, the agent key can be added to an
+// in-memory key rings but may fail to be added to a standard SSH Agent.
+func (k *Key) AsAgentKey(constraints ...agent.ConstraintExtension) agent.AddedKey {
 	sshCert, err := k.SSHCert()
 	if err != nil {
 		return agent.AddedKey{}
 	}
-	return k.PrivateKey.AsAgentKey(sshCert)
+
+	comment := agentKeyComment{user: sshCert.KeyId}
+	return agent.AddedKey{
+		PrivateKey:           k.Signer,
+		Certificate:          sshCert,
+		Comment:              comment.String(),
+		ConstraintExtensions: constraints,
+	}
 }
 
 // TeleportTLSCertificate returns the parsed x509 certificate for

@@ -196,7 +196,7 @@ func perSessionMFAExtension(ctx context.Context, tc *TeleportClient) constraintH
 
 		return func(signer ssh.Signer) (ssh.Signer, error) {
 			params := ReissueParams{
-				RouteToCluster: perSessionMFAConstraintDetails.cluster,
+				RouteToCluster: tc.SiteName,
 				MFACheck:       &proto.IsMFARequiredResponse{Required: true},
 			}
 

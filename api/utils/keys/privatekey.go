@@ -24,12 +24,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"os"
 
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/agent"
 
 	"github.com/gravitational/teleport/api/utils/sshutils/ppk"
 )
@@ -132,30 +130,6 @@ func (k *PrivateKey) TLSCertificate(certPEMBlock []byte) (tls.Certificate, error
 	}
 
 	return cert, nil
-}
-
-// agentKeyComment is used to generate an agent key comment.
-type agentKeyComment struct {
-	user string
-}
-
-func (a *agentKeyComment) String() string {
-	return fmt.Sprintf("teleport:%s", a.user)
-}
-
-// AsAgentKey converts PrivateKey to an agent.AddedKey. The returned
-// agent key may contain a non-standrad private key, such as a
-// YubiKeyPrivateKey. In this case, the agent key can be added to an
-// in-memory key rings but may fail to be added to a standard SSH Agent.
-func (k *PrivateKey) AsAgentKey(sshCert *ssh.Certificate) agent.AddedKey {
-	comment := agentKeyComment{user: sshCert.KeyId}
-	return agent.AddedKey{
-		PrivateKey:       k.Signer,
-		Certificate:      sshCert,
-		Comment:          comment.String(),
-		LifetimeSecs:     0,
-		ConfirmBeforeUse: false,
-	}
 }
 
 // PPKFile returns a PuTTY PPK-formatted keypair
