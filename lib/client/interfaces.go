@@ -404,10 +404,10 @@ func (k *Key) CertRoles() ([]string, error) {
 
 // AsAgentKeys converts client.Key struct to a []*agent.AddedKey. All elements
 // of the []*agent.AddedKey slice need to be loaded into the agent!
-func (k *Key) AsAgentKey() (agent.AddedKey, error) {
+func (k *Key) AsAgentKey() agent.AddedKey {
 	sshCert, err := k.SSHCert()
 	if err != nil {
-		return agent.AddedKey{}, trace.Wrap(err)
+		return agent.AddedKey{}
 	}
 	return k.PrivateKey.AsAgentKey(sshCert)
 }

@@ -220,10 +220,7 @@ func (a *LocalKeyAgent) LoadKeyForCluster(clusterName string) error {
 // agent.
 func (a *LocalKeyAgent) LoadKey(key Key) error {
 	// convert keys into a format understood by the ssh agent
-	agentKey, err := key.AsAgentKey()
-	if err != nil {
-		return trace.Wrap(err)
-	}
+	agentKey := key.AsAgentKey()
 
 	// On all OS'es, load the certificate with the private key embedded.
 	agentKeys := []agent.AddedKey{agentKey}
@@ -250,7 +247,7 @@ func (a *LocalKeyAgent) LoadKey(key Key) error {
 	}
 
 	// remove any keys that the user may already have loaded
-	err = a.UnloadKey()
+	err := a.UnloadKey()
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -531,13 +528,6 @@ func (a *LocalKeyAgent) AddKey(key *Key) error {
 
 	// Load key into the teleport agent and system agent.
 	err := a.LoadKey(*key)
-	if trace.IsNotImplemented(err) {
-		// If the key is not supported as an agent key, then log the error and
-		// continue without the agent key. This will only affect Agent forwarding,
-		// so we log this as INFO and continue with a non-agent login session.
-		a.log.WithError(err).Warn("Failed to add key to agent. Some integrations related to agent forwarding will not work with this key agent.")
-		return nil
-	}
 	return trace.Wrap(err)
 }
 

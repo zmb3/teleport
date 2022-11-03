@@ -123,10 +123,7 @@ func CreateAgent(me *user.User, key *client.Key) (*teleagent.AgentServer, string
 	sockDirName := "int-test"
 	sockName := "agent.sock"
 
-	agentKey, err := key.AsAgentKey()
-	if err != nil {
-		return nil, "", "", trace.Wrap(err)
-	}
+	agentKey := key.AsAgentKey()
 
 	// create a (unstarted) agent and add the agent key(s) to it
 	keyring, ok := agent.NewKeyring().(agent.ExtendedAgent)
@@ -143,7 +140,7 @@ func CreateAgent(me *user.User, key *client.Key) (*teleagent.AgentServer, string
 	})
 
 	// start the SSH agent
-	err = teleAgent.ListenUnixSocket(sockDirName, sockName, me)
+	err := teleAgent.ListenUnixSocket(sockDirName, sockName, me)
 	if err != nil {
 		return nil, "", "", trace.Wrap(err)
 	}

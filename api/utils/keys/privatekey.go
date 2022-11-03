@@ -20,8 +20,6 @@ package keys
 import (
 	"bytes"
 	"crypto"
-	"crypto/ecdsa"
-	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
@@ -145,28 +143,18 @@ func (a *agentKeyComment) String() string {
 	return fmt.Sprintf("teleport:%s", a.user)
 }
 
-// AsAgentKey converts PrivateKey to a agent.AddedKey. If the given PrivateKey is not
-// supported as an agent key, a trace.NotImplemented error is returned.
-func (k *PrivateKey) AsAgentKey(sshCert *ssh.Certificate) (agent.AddedKey, error) {
-	switch k.Signer.(type) {
-	case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey:
-		// put a teleport identifier along with the teleport user into the comment field
-		comment := agentKeyComment{user: sshCert.KeyId}
-		return agent.AddedKey{
-			PrivateKey:       k.Signer,
-			Certificate:      sshCert,
-			Comment:          comment.String(),
-			LifetimeSecs:     0,
-			ConfirmBeforeUse: false,
-		}, nil
-	default:
-		// We return a not implemented error because agent.AddedKey only
-		// supports plain RSA, ECDSA, and ED25519 keys. Non-standard private
-		// keys, like hardware-based private keys, will require custom solutions
-		// which may not be included in their initial implementation. This will
-		// only affect functionality related to agent forwarding, so we give the
-		// caller the ability to handle the error gracefully.
-		return agent.AddedKey{}, trace.NotImplemented("cannot create an agent key using private key signer of type %T", k.Signer)
+// AsAgentKey converts PrivateKey to an agent.AddedKey. The returned
+// agent key may contain a non-standrad private key, such as a
+// YubiKeyPrivateKey. In this case, the agent key can be added to an
+// in-memory key rings but may fail to be added to a standard SSH Agent.
+func (k *PrivateKey) AsAgentKey(sshCert *ssh.Certificate) agent.AddedKey {
+	comment := agentKeyComment{user: sshCert.KeyId}
+	return agent.AddedKey{
+		PrivateKey:       k.Signer,
+		Certificate:      sshCert,
+		Comment:          comment.String(),
+		LifetimeSecs:     0,
+		ConfirmBeforeUse: false,
 	}
 }
 
