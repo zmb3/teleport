@@ -136,25 +136,22 @@ func shouldAddKeysToAgent(addKeysToAgent string) bool {
 
 // LocalAgentConfig contains parameters for creating the local keys agent.
 type LocalAgentConfig struct {
-	Keystore   LocalKeyStore
-	Agent      agent.ExtendedAgent
-	ProxyHost  string
-	Username   string
-	KeysOption string
-	Insecure   bool
-	Site       string
-	LoadAllCAs bool
+	Keystore    LocalKeyStore
+	Agent       agent.ExtendedAgent
+	ProxyHost   string
+	Username    string
+	KeysOption  string
+	Insecure    bool
+	Site        string
+	LoadAllCAs  bool
+	KeyringOpts []KeyringOpt
 }
 
 // NewLocalAgent reads all available credentials from the provided LocalKeyStore
 // and loads them into the local and system agent
 func NewLocalAgent(conf LocalAgentConfig) (a *LocalKeyAgent, err error) {
 	if conf.Agent == nil {
-		keyring, ok := agent.NewKeyring().(agent.ExtendedAgent)
-		if !ok {
-			return nil, trace.Errorf("unexpected keyring type: %T, expected agent.ExtendedKeyring", keyring)
-		}
-		conf.Agent = keyring
+		conf.Agent = NewKeyring(conf.KeyringOpts...)
 	}
 	a = &LocalKeyAgent{
 		log: logrus.WithFields(logrus.Fields{

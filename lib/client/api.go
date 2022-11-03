@@ -1449,6 +1449,8 @@ type ShellCreatedCallback func(s *tracessh.Session, c *tracessh.Client, terminal
 
 // NewClient creates a TeleportClient object and fully configures it
 func NewClient(c *Config) (tc *TeleportClient, err error) {
+	ctx := context.TODO()
+
 	if len(c.JumpHosts) > 1 {
 		return nil, trace.BadParameter("only one jump host is supported, got %v", len(c.JumpHosts))
 	}
@@ -1507,6 +1509,10 @@ func NewClient(c *Config) (tc *TeleportClient, err error) {
 		Insecure:   c.InsecureSkipVerify,
 		Site:       tc.SiteName,
 		LoadAllCAs: tc.LoadAllCAs,
+		KeyringOpts: []KeyringOpt{
+			WithConfirmBeforeUseConstraintHandler(ctx, tc.Stdout, tc.Stdin),
+			WithPerSessionMFAConstraintHandler(ctx, tc),
+		},
 	}
 
 	// sometimes we need to use external auth without using local auth
