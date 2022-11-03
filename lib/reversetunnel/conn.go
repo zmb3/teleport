@@ -230,6 +230,8 @@ func (c *remoteConn) sendDiscoveryRequest(req discoveryRequest) error {
 		return trace.Wrap(err)
 	}
 
+	c.log.Debugf("-----discovery request size %d ----- %v", len(payload), string(payload))
+
 	// Log the discovery request being sent. Useful for debugging to know what
 	// proxies the tunnel server thinks exist.
 	names := make([]string, 0, len(req.Proxies))

@@ -43,7 +43,7 @@ type discoveryRequest struct {
 	Proxies []types.Server `json:"proxies"`
 }
 
-func (r discoveryRequest) String() string {
+func (r *discoveryRequest) String() string {
 	proxyNames := make([]string, 0, len(r.Proxies))
 	for _, p := range r.Proxies {
 		proxyNames = append(proxyNames, p.GetName())
@@ -52,57 +52,70 @@ func (r discoveryRequest) String() string {
 		r.ClusterName, r.ClusterAddr, strings.Join(proxyNames, ","))
 }
 
-type discoveryRequestRaw struct {
-	ClusterName string            `json:"cluster_name"`
-	Type        string            `json:"type"`
-	Proxies     []json.RawMessage `json:"proxies"`
-}
-
-func marshalDiscoveryRequest(req discoveryRequest) ([]byte, error) {
-	out := discoveryRequestRaw{
-		Proxies: make([]json.RawMessage, 0, len(req.Proxies)),
+func (r *discoveryRequest) MarshalJSON() ([]byte, error) {
+	var out struct {
+		ClusterName string           `json:"cluster_name"`
+		Type        string           `json:"type"`
+		Proxies     []discoveryProxy `json:"proxies"`
 	}
-	for _, p := range req.Proxies {
-		// create a new server that clones only the id and kind as that's all we need
-		// to propagate
-		srv, err := types.NewServer(p.GetName(), p.GetKind(), types.ServerSpecV2{})
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
 
-		data, err := utils.FastMarshal(srv)
-		if err != nil {
-			return nil, trace.Wrap(err)
+	out.ClusterName = r.ClusterName
+	out.Type = r.Type
+	out.Proxies = make([]discoveryProxy, 0, 10*len(r.Proxies))
+
+	for i := 0; i < 10; i++ {
+		for _, p := range r.Proxies {
+			out.Proxies = append(out.Proxies, discoveryProxy(p.GetName()))
 		}
-		out.Proxies = append(out.Proxies, data)
 	}
-	out.ClusterName = req.ClusterName
-	out.Type = req.Type
+
 	return json.Marshal(out)
 }
 
-func unmarshalDiscoveryRequest(data []byte) (*discoveryRequest, error) {
+func (r *discoveryRequest) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 {
-		return nil, trace.BadParameter("missing payload in discovery request")
+		return trace.BadParameter("missing payload in discovery request")
 	}
 
-	var raw discoveryRequestRaw
-	if err := utils.FastUnmarshal(data, &raw); err != nil {
-		return nil, trace.Wrap(err)
+	var in struct {
+		ClusterName string            `json:"cluster_name"`
+		Type        string            `json:"type"`
+		Proxies     []json.RawMessage `json:"proxies"`
 	}
 
-	out := discoveryRequest{
-		Proxies: make([]types.Server, 0, len(raw.Proxies)),
+	if err := utils.FastUnmarshal(data, &data); err != nil {
+		return trace.Wrap(err)
 	}
-	for _, bytes := range raw.Proxies {
+
+	d := discoveryRequest{
+		ClusterName: in.ClusterName,
+		Type:        in.Type,
+		Proxies:     make([]types.Server, 0, len(in.Proxies)),
+	}
+
+	for _, bytes := range in.Proxies {
 		proxy, err := services.UnmarshalServer(bytes, types.KindProxy)
 		if err != nil {
-			return nil, trace.Wrap(err)
+			return trace.Wrap(err)
 		}
 
-		out.Proxies = append(out.Proxies, proxy)
+		d.Proxies = append(d.Proxies, proxy)
 	}
-	out.ClusterName = raw.ClusterName
-	out.Type = raw.Type
-	return &out, nil
+
+	*r = d
+	return nil
+}
+
+type discoveryProxy string
+
+func (s discoveryProxy) MarshalJSON() ([]byte, error) {
+	var p struct {
+		Version  string `json:"version"`
+		Metadata struct {
+			Name string `json:"name"`
+		} `json:"metadata"`
+	}
+	p.Version = types.V2
+	p.Metadata.Name = string(s)
+	return json.Marshal(p)
 }
