@@ -54,7 +54,7 @@ type touchIDDiagCommand struct {
 
 func newTouchIDDiagCommand(app *kingpin.CmdClause) *touchIDDiagCommand {
 	return &touchIDDiagCommand{
-		CmdClause: app.Command("diag", "Run Touch ID diagnostics").Hidden(),
+		CmdClause: app.Command("diag", "Run Touch ID diagnostics"),
 	}
 }
 
