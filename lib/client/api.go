@@ -3003,17 +3003,18 @@ func (tc *TeleportClient) getProxySSHPrincipal() string {
 		log.Debugf("Setting proxy login to jump host's parameter user %q", tc.JumpHosts[0].Username)
 		proxyPrincipal = tc.JumpHosts[0].Username
 	}
+	// TODO: Fix? Does this need to commented out?
 	// see if we already have a signed key in the cache, we'll use that instead
-	if (!tc.Config.SkipLocalAuth || tc.UseKeyPrincipals) && tc.localAgent != nil {
-		signers, err := tc.localAgent.Signers()
-		if err != nil || len(signers) == 0 {
-			return proxyPrincipal
-		}
-		cert, ok := signers[0].PublicKey().(*ssh.Certificate)
-		if ok && len(cert.ValidPrincipals) > 0 {
-			return cert.ValidPrincipals[0]
-		}
-	}
+	// if (!tc.Config.SkipLocalAuth || tc.UseKeyPrincipals) && tc.localAgent != nil {
+	// 	signers, err := tc.localAgent.Signers()
+	// 	if err != nil || len(signers) == 0 {
+	// 		return proxyPrincipal
+	// 	}
+	// 	cert, ok := signers[0].PublicKey().(*ssh.Certificate)
+	// 	if ok && len(cert.ValidPrincipals) > 0 {
+	// 		return cert.ValidPrincipals[0]
+	// 	}
+	// }
 	return proxyPrincipal
 }
 

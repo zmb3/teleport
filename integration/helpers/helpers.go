@@ -123,7 +123,7 @@ func CreateAgent(me *user.User, key *client.Key) (*teleagent.AgentServer, string
 	sockDirName := "int-test"
 	sockName := "agent.sock"
 
-	agentKey := key.AsAgentKey()
+	agentKey := key.AsAgentKey(true)
 
 	// create a (unstarted) agent and add the agent key(s) to it
 	keyring, ok := agent.NewKeyring().(agent.ExtendedAgent)

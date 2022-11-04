@@ -49,7 +49,6 @@ const (
 // agentKey implements ssh.Signer.
 type agentKey struct {
 	signer      ssh.Signer
-	cert        *ssh.Certificate
 	comment     string
 	expire      *time.Time
 	constraints []constraint
@@ -88,24 +87,51 @@ func newPrivKey(key agent.AddedKey, constraints ...constraint) (*agentKey, error
 
 // PublicKey returns the associated PublicKey.
 func (k *agentKey) PublicKey() ssh.PublicKey {
-	return k.signer.PublicKey()
+	signer, err := k.signerWithContraints()
+	if err != nil {
+		// default to stored public key
+		return k.signer.PublicKey()
+	}
+	return signer.PublicKey()
+}
+
+func (k *agentKey) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
+	return k.SignWithFlags(rand, data, 0)
 }
 
 // Sign returns a signature for the given data. This method will hash the
 // data appropriately first. The signature algorithm is expected to match
 // the key format returned by the PublicKey.Type method (and not to be any
 // alternative algorithm supported by the key format).
-func (k *agentKey) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
-	var err error
-	signer := k.signer
+func (k *agentKey) SignWithFlags(rand io.Reader, data []byte, flags agent.SignatureFlags) (*ssh.Signature, error) {
+	signer, err := k.signerWithContraints()
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
 
-	// Add cert to signer if it exists
-	if k.cert != nil {
-		signer, err = ssh.NewCertSigner(k.cert, signer)
-		if err != nil {
-			return nil, trace.Wrap(err)
+	if flags != 0 {
+		if algorithmSigner, ok := signer.(ssh.AlgorithmSigner); !ok {
+			return nil, fmt.Errorf("agent: signature does not support non-default signature algorithm: %T", k.signer)
+		} else {
+			var algorithm string
+			switch flags {
+			case agent.SignatureFlagRsaSha256:
+				algorithm = ssh.KeyAlgoRSASHA256
+			case agent.SignatureFlagRsaSha512:
+				algorithm = ssh.KeyAlgoRSASHA512
+			default:
+				return nil, fmt.Errorf("agent: unsupported signature flags: %d", flags)
+			}
+			return algorithmSigner.SignWithAlgorithm(rand, data, algorithm)
 		}
 	}
+
+	return signer.Sign(rand, data)
+}
+
+func (k *agentKey) signerWithContraints() (ssh.Signer, error) {
+	var err error
+	signer := k.signer
 
 	// Apply constraints
 	for _, constraint := range k.constraints {
@@ -114,8 +140,7 @@ func (k *agentKey) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 			return nil, trace.Wrap(err)
 		}
 	}
-
-	return k.signer.Sign(rand, data)
+	return signer, nil
 }
 
 type keyring struct {
@@ -134,7 +159,10 @@ var errLocked = errors.New("agent: locked")
 // NewKeyring returns an Agent that holds keys in memory. It is safe
 // for concurrent use by multiple goroutines.
 func NewKeyring(opts ...KeyringOpt) agent.ExtendedAgent {
-	keyring := &keyring{}
+	keyring := &keyring{
+		extensionHandlers:     make(map[string]extensionHandler),
+		keyConstraintHandlers: make(map[string]constraintHandler),
+	}
 	for _, opt := range opts {
 		opt(keyring)
 	}
@@ -178,7 +206,7 @@ func confirmBeforeUseHandler(ctx context.Context, out io.Writer, in io.Reader) c
 }
 
 type perSessionMFAConstraintDetails struct {
-	cluster string
+	Cluster string
 }
 
 func WithPerSessionMFAConstraintHandler(ctx context.Context, tc *TeleportClient) KeyringOpt {
@@ -190,14 +218,16 @@ func WithPerSessionMFAConstraintHandler(ctx context.Context, tc *TeleportClient)
 func perSessionMFAExtension(ctx context.Context, tc *TeleportClient) constraintHandler {
 	return func(details []byte) (constraint, error) {
 		var perSessionMFAConstraintDetails perSessionMFAConstraintDetails
-		if err := ssh.Unmarshal(details, perSessionMFAConstraintDetails); err != nil {
+		if err := ssh.Unmarshal(details, &perSessionMFAConstraintDetails); err != nil {
 			return nil, trace.Wrap(err)
 		}
 
-		return func(signer ssh.Signer) (ssh.Signer, error) {
+		return func(_ ssh.Signer) (ssh.Signer, error) {
 			params := ReissueParams{
 				RouteToCluster: tc.SiteName,
 				MFACheck:       &proto.IsMFARequiredResponse{Required: true},
+				// TODO: provide actual node name, or enable reissue without specifying node name (default to mfa)
+				NodeName: "server01",
 			}
 
 			key, err := tc.IssueUserCertsWithMFA(ctx, params, nil /* applyOpts */)
@@ -205,12 +235,7 @@ func perSessionMFAExtension(ctx context.Context, tc *TeleportClient) constraintH
 				return nil, trace.Wrap(err)
 			}
 
-			sshCert, err := key.SSHCert()
-			if err != nil {
-				return nil, trace.Wrap(err)
-			}
-
-			signer, err = ssh.NewCertSigner(sshCert, signer)
+			signer, err := key.SSHSigner()
 			if err != nil {
 				return nil, trace.Wrap(err)
 			}
@@ -316,7 +341,7 @@ func (r *keyring) List() ([]*agent.Key, error) {
 	r.expireKeysLocked()
 	var ids []*agent.Key
 	for _, k := range r.keys {
-		pub := k.signer.PublicKey()
+		pub := k.PublicKey()
 		ids = append(ids, &agent.Key{
 			Format:  pub.Type(),
 			Blob:    pub.Marshal(),
@@ -385,24 +410,7 @@ func (r *keyring) SignWithFlags(key ssh.PublicKey, data []byte, flags agent.Sign
 	wanted := key.Marshal()
 	for _, k := range r.keys {
 		if bytes.Equal(k.PublicKey().Marshal(), wanted) {
-			if flags == 0 {
-				return k.Sign(rand.Reader, data)
-			} else {
-				if algorithmSigner, ok := k.signer.(ssh.AlgorithmSigner); !ok {
-					return nil, fmt.Errorf("agent: signature does not support non-default signature algorithm: %T", k.signer)
-				} else {
-					var algorithm string
-					switch flags {
-					case agent.SignatureFlagRsaSha256:
-						algorithm = ssh.KeyAlgoRSASHA256
-					case agent.SignatureFlagRsaSha512:
-						algorithm = ssh.KeyAlgoRSASHA512
-					default:
-						return nil, fmt.Errorf("agent: unsupported signature flags: %d", flags)
-					}
-					return algorithmSigner.SignWithAlgorithm(rand.Reader, data, algorithm)
-				}
-			}
+			return k.SignWithFlags(rand.Reader, data, flags)
 		}
 	}
 	return nil, errors.New("not found")

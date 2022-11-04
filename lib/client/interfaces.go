@@ -415,19 +415,25 @@ func (a *agentKeyComment) String() string {
 // returned agent key may contain a non-standrad private key, such as
 // a YubiKeyPrivateKey. In this case, the agent key can be added to an
 // in-memory key rings but may fail to be added to a standard SSH Agent.
-func (k *Key) AsAgentKey(constraints ...agent.ConstraintExtension) agent.AddedKey {
+func (k *Key) AsAgentKey(withCert bool, constraints ...agent.ConstraintExtension) agent.AddedKey {
 	sshCert, err := k.SSHCert()
 	if err != nil {
 		return agent.AddedKey{}
 	}
 
+	// TODO: update comment to differentiate constrained keys.
 	comment := agentKeyComment{user: sshCert.KeyId}
-	return agent.AddedKey{
+	agentKey := agent.AddedKey{
 		PrivateKey:           k.Signer,
-		Certificate:          sshCert,
 		Comment:              comment.String(),
 		ConstraintExtensions: constraints,
 	}
+
+	if withCert {
+		agentKey.Certificate = sshCert
+	}
+
+	return agentKey
 }
 
 // TeleportTLSCertificate returns the parsed x509 certificate for

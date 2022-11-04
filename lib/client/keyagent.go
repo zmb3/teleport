@@ -223,32 +223,29 @@ func (a *LocalKeyAgent) LoadKey(key Key) error {
 	}
 
 	// convert keys into a format understood by the ssh agent.
-	agentKey := key.AsAgentKey()
-
-	// On all OS'es, load the certificate with the private key embedded.
-	agentKeys := []agent.AddedKey{agentKey}
-	if runtime.GOOS != constants.WindowsOS {
-		// On Unix, also load a lone private key.
-		//
-		// (2016-08-01) have a bug in how they use certificates that have been lo
-		// This is done because OpenSSH clients older than OpenSSH 7.3/7.3p1aded
-		// in an agent. Specifically when you add a certificate to an agent, you can't
-		// just embed the private key within the certificate, you have to add the
-		// certificate and private key to the agent separately. Teleport works around
-		// this behavior to ensure OpenSSH interoperability.
-		//
-		// For more details see the following: https://bugzilla.mindrot.org/show_bug.cgi?id=2550
-		// WARNING: callers expect the returned slice to be __exactly as it is__
-		agentKey.Certificate = nil
-		agentKeys = append(agentKeys, agentKey)
+	agentKeys := []agent.AddedKey{
+		// On all OS'es, load the agent key with the certificate embedded. When needed, this
+		// key will retrieve a per-session MFA verified agent key in place of the once stored.
+		key.AsAgentKey(true, agent.ConstraintExtension{
+			ExtensionName:    constraintPerSessionMFA,
+			ExtensionDetails: ssh.Marshal(&perSessionMFAConstraintDetails{Cluster: key.ClusterName}),
+		}),
 	}
 
-	// Add a per-session MFA agent key. This will only be used when the standard agent
-	// keys above fail, which might occur if the connected node requires the MFA check.
-	agentKeys = append(agentKeys, key.AsAgentKey(agent.ConstraintExtension{
-		ExtensionName:    constraintPerSessionMFA,
-		ExtensionDetails: ssh.Marshal(perSessionMFAConstraintDetails{cluster: key.ClusterName}),
-	}))
+	// On Unix, also load a lone private key.
+	//
+	// (2016-08-01) have a bug in how they use certificates that have been lo
+	// This is done because OpenSSH clients older than OpenSSH 7.3/7.3p1aded
+	// in an agent. Specifically when you add a certificate to an agent, you can't
+	// just embed the private key within the certificate, you have to add the
+	// certificate and private key to the agent separately. Teleport works around
+	// this behavior to ensure OpenSSH interoperability.
+	//
+	// For more details see the following: https://bugzilla.mindrot.org/show_bug.cgi?id=2550
+	// WARNING: callers expect the returned slice to be __exactly as it is__
+	if runtime.GOOS != constants.WindowsOS {
+		agentKeys = append(agentKeys, key.AsAgentKey(false))
+	}
 
 	a.log.Infof("Loading SSH key for user %q and cluster %q.", a.username, key.ClusterName)
 	agents := []agent.ExtendedAgent{a.ExtendedAgent}
