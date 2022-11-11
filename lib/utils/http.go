@@ -18,8 +18,6 @@ package utils
 
 import (
 	"net/http"
-
-	"golang.org/x/exp/slices"
 )
 
 // CanonicalMIMEHeaderKeys returns the canonical format of the
@@ -33,8 +31,12 @@ type HeaderKeys []string
 
 // Contains checks if the slice contains the provided header key.
 func (s HeaderKeys) Contains(header string) bool {
-	// Assume s is in canonical format already.
-	return slices.Contains(s, http.CanonicalHeaderKey(header))
+	for _, h := range s {
+		if CompareHeaderKey(h, header) {
+			return true
+		}
+	}
+	return false
 }
 
 // CompareHeaderKey returns true if provided headers keys are the same.
