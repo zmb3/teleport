@@ -63,7 +63,7 @@ type SigV4 struct {
 	Region string
 	// Service is an AWS Service.
 	Service string
-	// SignedHeaders is a  list of request headers that you used to compute Signature.
+	// SignedHeaders is a list of request header keys that you used to compute Signature.
 	SignedHeaders []string
 	// Signature is the 256-bit Signature of the request.
 	Signature string
@@ -115,6 +115,12 @@ func ParseSigV4(header string) (*SigV4, error) {
 		// https://github.com/aws/aws-sdk-go/blob/main/aws/signer/v4/v4.go#L631
 		SignedHeaders: signedHeaders,
 	}, nil
+}
+
+// ParseRequestSigV4 parses AWS SigV4 header of the provided request.
+func ParseRequestSigV4(r *http.Request) (*SigV4, error) {
+	sigHeader, err := ParseSigV4(r.Header.Get(AuthorizationHeader))
+	return sigHeader, trace.Wrap(err)
 }
 
 // IsSignedByAWSSigV4 checks is the request was signed by AWS Signature Version 4 algorithm.

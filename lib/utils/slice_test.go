@@ -15,6 +15,7 @@
 package utils
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -36,4 +37,10 @@ func TestSlice(t *testing.T) {
 		copy(slice, []byte("just something to fill with"))
 		pool.Put(slice)
 	}
+}
+
+func TestSliceMapElements(t *testing.T) {
+	require.Nil(t, SliceMapElements([]float64(nil), math.Abs))
+	require.Equal(t, []float64{}, SliceMapElements([]float64{}, math.Abs))
+	require.Equal(t, []float64{1, 3, 5}, SliceMapElements([]float64{1, -3, 5}, math.Abs))
 }

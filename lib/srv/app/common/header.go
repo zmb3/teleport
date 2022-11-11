@@ -17,11 +17,10 @@ limitations under the License.
 package common
 
 import (
-	"net/http"
-
 	"github.com/gravitational/oxy/forward"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/lib/utils"
 )
 
 const (
@@ -31,20 +30,15 @@ const (
 )
 
 // ReservedHeaders is a list of headers injected by Teleport.
-var ReservedHeaders = append([]string{teleport.AppJWTHeader,
+var ReservedHeaders = utils.CanonicalMIMEHeaderKeys(append([]string{teleport.AppJWTHeader,
 	teleport.AppCFHeader,
 	XForwardedSSL,
 },
 	forward.XHeaders...,
-)
+))
 
 // IsReservedHeader returns true if the provided header is one of headers
 // injected by Teleport.
 func IsReservedHeader(header string) bool {
-	for _, h := range ReservedHeaders {
-		if http.CanonicalHeaderKey(header) == http.CanonicalHeaderKey(h) {
-			return true
-		}
-	}
-	return false
+	return ReservedHeaders.Contains(header)
 }

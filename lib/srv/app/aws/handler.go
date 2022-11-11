@@ -38,6 +38,7 @@ import (
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/events"
 	"github.com/gravitational/teleport/lib/srv/app/common"
+	libutils "github.com/gravitational/teleport/lib/utils"
 	awsutils "github.com/gravitational/teleport/lib/utils/aws"
 )
 
@@ -141,11 +142,11 @@ func (s *SigningService) RoundTrip(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	resolvedEndpoint, err := resolveEndpoint(req)
+	resolvedEndpoint, awsAuthHeader, err := resolveEndpoint(req)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	signedReq, err := s.prepareSignedRequest(req, resolvedEndpoint, sessionCtx)
+	signedReq, err := s.prepareSignedRequest(req, resolvedEndpoint, sessionCtx, awsAuthHeader)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -201,7 +202,7 @@ func (s *SigningService) formatForwardResponseError(rw http.ResponseWriter, r *h
 
 // prepareSignedRequest creates a new HTTP request and rewrites the header from the original request and returns a new
 // HTTP request signed by STS AWS API.
-func (s *SigningService) prepareSignedRequest(r *http.Request, re *endpoints.ResolvedEndpoint, sessionCtx *common.SessionContext) (*http.Request, error) {
+func (s *SigningService) prepareSignedRequest(r *http.Request, re *endpoints.ResolvedEndpoint, sessionCtx *common.SessionContext, awsAuthHeader *awsutils.SigV4) (*http.Request, error) {
 	payload, err := awsutils.GetAndReplaceReqBody(r)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -211,27 +212,50 @@ func (s *SigningService) prepareSignedRequest(r *http.Request, re *endpoints.Res
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	rewriteHeaders(r, reqCopy)
+
+	// Figure out which header keys to sign and which keys to add later.
+	headersForSigning, headersPostSigning := getHeaderKeysToCopy(r, awsAuthHeader)
+
 	// Sign the copy of the request.
+	copyHeaders(r, reqCopy, headersForSigning)
 	signer := awsutils.NewSigner(s.getSigningCredentials(s.Session, sessionCtx), re.SigningName)
 	_, err = signer.Sign(reqCopy, bytes.NewReader(payload), re.SigningName, re.SigningRegion, s.Clock.Now())
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
+
+	copyHeaders(r, reqCopy, headersPostSigning)
 	return reqCopy, nil
 }
 
-func rewriteHeaders(r *http.Request, reqCopy *http.Request) {
-	for key, values := range r.Header {
-		// Remove Teleport app headers.
+func getHeaderKeysToCopy(r *http.Request, awsAuthHeader *awsutils.SigV4) (forSigning, postSigning []string) {
+	signedHeaders := libutils.CanonicalMIMEHeaderKeys(awsAuthHeader.SignedHeaders)
+
+	for key := range r.Header {
+		// Skip Teleport app headers.
 		if common.IsReservedHeader(key) {
 			continue
 		}
-		for _, v := range values {
+		// Skip "Content-Length".
+		if libutils.CompareHeaderKey(key, "Content-Length") {
+			continue
+		}
+
+		if signedHeaders.Contains(key) {
+			forSigning = append(forSigning, key)
+		} else {
+			postSigning = append(postSigning, key)
+		}
+	}
+	return
+}
+
+func copyHeaders(r *http.Request, reqCopy *http.Request, headerKeys []string) {
+	for _, key := range headerKeys {
+		for _, v := range r.Header.Values(key) {
 			reqCopy.Header.Add(key, v)
 		}
 	}
-	reqCopy.Header.Del("Content-Length")
 }
 
 type getSigningCredentialsFunc func(c client.ConfigProvider, sessionCtx *common.SessionContext) *credentials.Credentials

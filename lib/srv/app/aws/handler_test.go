@@ -123,7 +123,7 @@ func TestAWSSignerHandler(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			handler := func(writer http.ResponseWriter, request *http.Request) {
 				require.Equal(t, tc.wantHost, request.Host)
-				awsAuthHeader, err := awsutils.ParseSigV4(request.Header.Get(awsutils.AuthorizationHeader))
+				awsAuthHeader, err := awsutils.ParseRequestSigV4(request)
 				require.NoError(t, err)
 				require.Equal(t, tc.wantAuthCredRegion, awsAuthHeader.Region)
 				require.Equal(t, tc.wantAuthCredKeyID, awsAuthHeader.KeyID)

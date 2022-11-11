@@ -122,3 +122,19 @@ func (b *BufferSyncPool) Get() *bytes.Buffer {
 func (b *BufferSyncPool) Size() int64 {
 	return b.size
 }
+
+// SliceMapElements returns a slice where each element is transformed with
+// provided function.
+func SliceMapElements[E any](s []E, fn func(E) E) []E {
+	// Return nil slice if input is nil.
+	// For slices of 0 length (not nil), fall through and return the same.
+	if s == nil {
+		return nil
+	}
+
+	mapped := make([]E, 0, len(s))
+	for _, e := range s {
+		mapped = append(mapped, fn(e))
+	}
+	return mapped
+}

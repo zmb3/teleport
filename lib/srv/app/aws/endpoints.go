@@ -59,10 +59,10 @@ import (
 // resolveEndpoint extracts the aws-service on and aws-region from the request
 // authorization header and resolves the aws-service and aws-region to AWS
 // endpoint.
-func resolveEndpoint(r *http.Request) (*endpoints.ResolvedEndpoint, error) {
-	awsAuthHeader, err := awsutils.ParseSigV4(r.Header.Get(awsutils.AuthorizationHeader))
+func resolveEndpoint(r *http.Request) (*endpoints.ResolvedEndpoint, *awsutils.SigV4, error) {
+	awsAuthHeader, err := awsutils.ParseRequestSigV4(r)
 	if err != nil {
-		return nil, trace.Wrap(err)
+		return nil, nil, trace.Wrap(err)
 	}
 
 	// Use X-Forwarded-Host header if it is a valid AWS endpoint.
@@ -72,7 +72,7 @@ func resolveEndpoint(r *http.Request) (*endpoints.ResolvedEndpoint, error) {
 			URL:           "https://" + forwardedHost,
 			SigningRegion: awsAuthHeader.Region,
 			SigningName:   awsAuthHeader.Service,
-		}, nil
+		}, nil, nil
 	}
 
 	// aws-sdk-go maintains a mapping of service endpoints which can be looked
@@ -99,13 +99,13 @@ func resolveEndpoint(r *http.Request) (*endpoints.ResolvedEndpoint, error) {
 
 	resolvedEndpoint, err := endpoints.DefaultResolver().EndpointFor(endpointsID, awsAuthHeader.Region, opts)
 	if err != nil {
-		return nil, trace.Wrap(err)
+		return nil, nil, trace.Wrap(err)
 	}
 
 	// SigningName can be derived from the endpoint ID which may not be the
 	// correct signing name. Set it back to what is received from the header.
 	resolvedEndpoint.SigningName = awsAuthHeader.Service
-	return &resolvedEndpoint, nil
+	return &resolvedEndpoint, awsAuthHeader, nil
 }
 
 // endpointsIDFromSigningName returns the endpoints ID used for endpoint
