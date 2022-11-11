@@ -33,6 +33,7 @@ import (
 type OIDCConnector interface {
 	// ResourceWithSecrets provides common methods for objects
 	ResourceWithSecrets
+	ResourceWithOrigin
 	// Issuer URL is the endpoint of the provider, e.g. https://accounts.google.com
 	GetIssuerURL() string
 	// ClientID is id for authentication client (in our case it's our Auth server)
@@ -204,6 +205,16 @@ func (o *OIDCConnectorV3) SetDisplay(display string) {
 // GetMetadata returns object metadata
 func (o *OIDCConnectorV3) GetMetadata() Metadata {
 	return o.Metadata
+}
+
+// Origin returns the origin value of the resource.
+func (o *OIDCConnectorV3) Origin() string {
+	return o.Metadata.Origin()
+}
+
+// SetOrigin sets the origin value of the resource.
+func (o *OIDCConnectorV3) SetOrigin(origin string) {
+	o.Metadata.SetOrigin(origin)
 }
 
 // SetExpiry sets expiry time for the object
@@ -385,9 +396,6 @@ func (o *OIDCConnectorV3) CheckAndSetDefaults() error {
 		return trace.BadParameter("bad IssuerURL '%v', err: %v", o.GetIssuerURL(), err)
 	}
 
-	// DELETE IN 11.0.0
-	o.CheckSetRedirectURL()
-
 	if len(o.GetRedirectURLs()) == 0 {
 		return trace.BadParameter("RedirectURL: missing redirect_url")
 	}
@@ -421,16 +429,6 @@ func (o *OIDCConnectorV3) CheckAndSetDefaults() error {
 	}
 
 	return nil
-}
-
-// RedirectURL must be checked/set when communicating with an old server or client.
-// DELETE IN 11.0.0
-func (o *OIDCConnectorV3) CheckSetRedirectURL() {
-	if o.Spec.RedirectURL == "" && len(o.Spec.RedirectURLs) != 0 {
-		o.Spec.RedirectURL = o.Spec.RedirectURLs[0]
-	} else if len(o.Spec.RedirectURLs) == 0 && o.Spec.RedirectURL != "" {
-		o.Spec.RedirectURLs = []string{o.Spec.RedirectURL}
-	}
 }
 
 // GetAllowUnverifiedEmail returns true if unverified emails should be allowed in received users.
