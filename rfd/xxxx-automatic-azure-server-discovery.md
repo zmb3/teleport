@@ -192,3 +192,10 @@ The discovery node's service principal should have permission to list virtual ma
   ]
 }
 ```
+
+## Security considerations
+
+Automatic EC2 joining uses SSM to separate permission to create/update commands
+from permission to call them. Azure does not have an SSM-like service, so the
+discovery service will require permission to both create and execute commands.
+Azure roles also have no way to filter which scripts are allowed to be executed.
