@@ -50,8 +50,8 @@ type LocalKeyAgent struct {
 	// keyStore is the storage backend for certificates and keys
 	keyStore LocalKeyStore
 
-	// sshAgent is the system ssh agent
-	sshAgent agent.ExtendedAgent
+	// systemAgent is the system ssh agent
+	systemAgent agent.ExtendedAgent
 
 	// noHosts is a in-memory map used in tests to track which hosts a user has
 	// manually (via keyboard input) refused connecting to.
@@ -171,7 +171,7 @@ func NewLocalAgent(conf LocalAgentConfig) (a *LocalKeyAgent, err error) {
 	}
 
 	if shouldAddKeysToAgent(conf.KeysOption) {
-		a.sshAgent = connectToSSHAgent()
+		a.systemAgent = connectToSSHAgent()
 	} else {
 		log.Debug("Skipping connection to the local ssh-agent.")
 
@@ -221,10 +221,25 @@ func (a *LocalKeyAgent) LoadKeyForCluster(clusterName string) error {
 // for a YubiKeyPrivateKey. Any failures to add the key will be aggregated
 // into the returned error to be handled by the caller if necessary.
 func (a *LocalKeyAgent) LoadKey(key Key) error {
-	// convert keys into a format understood by the ssh agent
+	// convert key into a format understood by x/crypto/ssh/agent
 	agentKey, err := key.AsAgentKey()
 	if err != nil {
 		return trace.Wrap(err)
+	}
+
+	// remove any keys that the user may already have loaded
+	if err = a.UnloadKey(key.KeyIndex); err != nil {
+		return trace.Wrap(err)
+	}
+
+	a.log.Infof("Loading SSH key for user %q and cluster %q.", a.username, key.ClusterName)
+	agents := []agent.ExtendedAgent{a.ExtendedAgent}
+	if a.systemAgent != nil {
+		if canAddToSystemAgent(agentKey) {
+			agents = append(agents, a.systemAgent)
+		} else {
+			a.log.Infof("Skipping adding key to SSH system agent for non-standard key type %T", agentKey.PrivateKey)
+		}
 	}
 
 	// On all OS'es, load the certificate with the private key embedded.
@@ -245,22 +260,6 @@ func (a *LocalKeyAgent) LoadKey(key Key) error {
 		agentKeys = append(agentKeys, agentKey)
 	}
 
-	a.log.Infof("Loading SSH key for user %q and cluster %q.", a.username, key.ClusterName)
-	agents := []agent.ExtendedAgent{a.ExtendedAgent}
-	if a.sshAgent != nil {
-		if key.SupportsSSHSystemAgent() {
-			agents = append(agents, a.sshAgent)
-		} else {
-			a.log.Infof("Skipping adding key to SSH system agent for non-standard key type %T", key.PrivateKey.Signer)
-		}
-	}
-
-	// remove any keys that the user may already have loaded
-	err = a.UnloadKey(key.KeyIndex)
-	if err != nil {
-		return trace.Wrap(err)
-	}
-
 	// iterate over all teleport and system agent and load key
 	var errs []error
 	for _, agent := range agents {
@@ -278,8 +277,8 @@ func (a *LocalKeyAgent) LoadKey(key Key) error {
 // the teleport ssh agent and the system agent.
 func (a *LocalKeyAgent) UnloadKey(key KeyIndex) error {
 	agents := []agent.Agent{a.ExtendedAgent}
-	if a.sshAgent != nil {
-		agents = append(agents, a.sshAgent)
+	if a.systemAgent != nil {
+		agents = append(agents, a.systemAgent)
 	}
 
 	// iterate over all agents we have and unload keys matching the given key
@@ -307,8 +306,8 @@ func (a *LocalKeyAgent) UnloadKey(key KeyIndex) error {
 // the system agent.
 func (a *LocalKeyAgent) UnloadKeys() error {
 	agents := []agent.ExtendedAgent{a.ExtendedAgent}
-	if a.sshAgent != nil {
-		agents = append(agents, a.sshAgent)
+	if a.systemAgent != nil {
+		agents = append(agents, a.systemAgent)
 	}
 
 	// iterate over all agents we have and unload keys

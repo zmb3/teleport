@@ -452,10 +452,10 @@ func isTeleportAgentKey(key *agent.Key) bool {
 	return strings.HasPrefix(key.Comment, agentKeyCommentPrefix+agentKeyCommentSeparator)
 }
 
-// AsAgentKeys converts client.Key struct to an agent.AddedKey. The
-// returned agent key may contain a non-standrad private key, such as
-// a YubiKeyPrivateKey. In this case, the agent key can be added to an
-// in-memory key rings but may fail to be added to a standard SSH Agent.
+// AsAgentKeys converts client.Key struct to an agent.AddedKey. Any agent.AddedKey
+// can be added to a local agent (keyring), nut non-standard keys cannot be added
+// to an SSH system agent through the ssh agent protocol. Check canAddToSystemAgent
+// before adding this key to an SSH system agent.
 func (k *Key) AsAgentKey() (agent.AddedKey, error) {
 	sshCert, err := k.SSHCert()
 	if err != nil {
@@ -471,11 +471,10 @@ func (k *Key) AsAgentKey() (agent.AddedKey, error) {
 	}, nil
 }
 
-// SupportsSSHAgent returns whether this key should be supported
-// by an SSH system agent. All keys should be supported by the
-// Teleport local agent.
-func (k *Key) SupportsSSHSystemAgent() bool {
-	switch k.PrivateKey.Signer.(type) {
+// canAddToSystemAgent returns whether this agent key can be added to an SSH system agent.
+// Non-standard private keys will return false.
+func canAddToSystemAgent(agentKey agent.AddedKey) bool {
+	switch agentKey.PrivateKey.(type) {
 	case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey:
 		return true
 	default:
