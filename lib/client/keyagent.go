@@ -216,8 +216,10 @@ func (a *LocalKeyAgent) LoadKeyForCluster(clusterName string) error {
 	return a.LoadKey(*key)
 }
 
-// LoadKey adds a key into the Teleport ssh agent as well as the system ssh
-// agent.
+// LoadKey adds a key into the local agent as well as the system agent.
+// Some agent keys are only supported by the local agent, such as those
+// for a YubiKeyPrivateKey. Any failures to add the key will be aggregated
+// into the returned error to be handled by the caller if necessary.
 func (a *LocalKeyAgent) LoadKey(key Key) error {
 	// convert keys into a format understood by the ssh agent
 	agentKey, err := key.AsAgentKey()
@@ -246,7 +248,11 @@ func (a *LocalKeyAgent) LoadKey(key Key) error {
 	a.log.Infof("Loading SSH key for user %q and cluster %q.", a.username, key.ClusterName)
 	agents := []agent.ExtendedAgent{a.ExtendedAgent}
 	if a.sshAgent != nil {
-		agents = append(agents, a.sshAgent)
+		if key.SupportsSSHSystemAgent() {
+			agents = append(agents, a.sshAgent)
+		} else {
+			a.log.Infof("Skipping adding key to SSH system agent for non-standard key type %T", key.PrivateKey.Signer)
+		}
 	}
 
 	// remove any keys that the user may already have loaded
@@ -259,14 +265,13 @@ func (a *LocalKeyAgent) LoadKey(key Key) error {
 	var errs []error
 	for _, agent := range agents {
 		for _, agentKey := range agentKeys {
-			err = agent.Add(agentKey)
-			if err != nil {
-				errs = append(errs, trace.Wrap(err, "Failed to add key to agent"))
+			if err = agent.Add(agentKey); err != nil {
+				errs = append(errs, trace.Wrap(err))
 			}
 		}
 	}
 
-	return trace.NewAggregate(errs...)
+	return trace.Wrap(trace.NewAggregate(errs...), "failed to add one or more keys to the agent.")
 }
 
 // UnloadKey will unload keys matching the given KeyIndex from
@@ -527,10 +532,7 @@ func (a *LocalKeyAgent) AddKey(key *Key) error {
 	}
 	// Load key into the teleport agent and system agent.
 	if err := a.LoadKey(*key); err != nil {
-		// Log any agent errors, but proceed as long as the key could be
-		// added to the key store. Some keys, like YubiKeyPrivateKeys, are
-		// only supported by the local key agent.
-		a.log.WithError(err).Warn("Failed to add key to agent(s)")
+		return trace.Wrap(err)
 	}
 	return nil
 }

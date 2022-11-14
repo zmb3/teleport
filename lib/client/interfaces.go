@@ -18,6 +18,9 @@ package client
 
 import (
 	"bytes"
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/rsa"
 	"crypto/subtle"
 	"crypto/tls"
 	"crypto/x509"
@@ -466,6 +469,18 @@ func (k *Key) AsAgentKey() (agent.AddedKey, error) {
 		LifetimeSecs:     0,
 		ConfirmBeforeUse: false,
 	}, nil
+}
+
+// SupportsSSHAgent returns whether this key should be supported
+// by an SSH system agent. All keys should be supported by the
+// Teleport local agent.
+func (k *Key) SupportsSSHSystemAgent() bool {
+	switch k.PrivateKey.Signer.(type) {
+	case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey:
+		return true
+	default:
+		return false
+	}
 }
 
 // TeleportTLSCertificate returns the parsed x509 certificate for
