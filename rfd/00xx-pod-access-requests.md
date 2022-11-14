@@ -216,9 +216,10 @@ to the pods mentioned in the field `kubernetes_pods`.
 
 A similar approach can be used to extend the user's Pod access while maintaining
 the current access level. To do it, Teleport would need to make several requests -
-one for each Role that restricts access to Pods + one for every other Role that
+one for roles that restrict access to Pods + one for every other Role that
 defines `kubernetes_groups` - and merge each response before returning the
-response. This option is feasible if the number of requests is low,
+response. Teleport only needs to do multi-requests for endpoints where the Pod's name
+is not available. This option is feasible if the number of requests is low,
 however, it is not possible to know in advance how users will take advantage of
 this feature.
 
@@ -307,19 +308,20 @@ it's the Kubernetes RBAC layer that applies them.
 
 ### Limitations
 
-1. Difficult to extend to other resources such as namespaces, deployments...
+1. Difficult to extend to other resources such as namespaces, deployments... It's 
+difficult to extend them because it would require special handlers for each
+resource type (unmarshal logic + filtering).
 
-    It's difficult to extend them because it would require special handlers for each
-resource type.
+2. Teleport must hijack every request that is targeted to endpoints without Pod names.
+Methods to list Pods or delete Pods from a certain namespace must be tampered 
+with to filter out Pods that the user should not access.
 
-2. Teleport must hijack every request that is targeted to endpoints without Pod names
+3. Might cause incompatibilities concerns while dealing with different Pod objects.
 
-Methods to list Pods or Delete more than one Pod must be tampered with to extract
-Pods that the user should not access.
 
-3. Might cause incompatibilities concerns while dealing with different Pod objects
+4. If in the future Pod endpoints are moved to `v2`, Teleport needs to upgrade them accordingly
 
-4. If Pods endpoints are upgraded to `v2`, Teleport needs to upgrade them accordingly
+5. Difficult to support `kubectl delete pods --namespace {namespace}` requests.
 
 ## Option 2: Teleport will delegate access control to Kubernetes RBAC
 
@@ -451,9 +453,7 @@ of Teleport Kubernetes Service.
 ### Limitations
 
 1. Teleport Kubernetes Service - agentless or not - must have permission to create
-`Role` and `RoleBindings` on the cluster.
-
-This might become a security concern
+`Role` and `RoleBindings` on the cluster. This might become a security concern.
 
 2. Teleport must have watchers to constantly monitor the cluster's Pods and update 
 the `Role` object with every pod that matches the pattern.
