@@ -227,7 +227,7 @@ this feature.
 Given a set of roles that include at least one role that includes one or more Pod
 names to limit access to, Teleport will restrict the Pods the user can list and
 to the intersection of the set of Pods granted by the Kubernetes RBAC principals and
-the list of Pod names in the role - $ {Pods\ from\ RBAC}\ \cap {kubernetes\_pods}$.
+the list of Pod names in the role - ${Pods\ from\ RBAC}\ \cap {kubernetes\_pods}$.
 
 To achieve it without relying on Kubernetes RBAC, Teleport needs to intercept
 user requests and manipulate them. Depending on the endpoint accessed, Teleport
@@ -295,7 +295,7 @@ Another option is to prevent this type of request in Teleport. This means that
 if you try to delete every Pod in the namespace while your role limits the Pods
 you have access to, Teleport will reject the request and inform the user that
 he is not allowed to do it. This option will restrict one of the `kubectl`
-functionality.
+functionalities.
 
 ##### Creating Pods
 
