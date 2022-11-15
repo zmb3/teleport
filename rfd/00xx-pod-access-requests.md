@@ -23,23 +23,34 @@ limit the access that a particular user has to certain Pods.
 
 ## Why
 
-Teleport does not manage Kubernetes RBAC rules assigned to users or roles.
+Teleport does not manage individual Kubernetes RBAC rules assigned to users or roles.
 Instead, Teleport allows users to impersonate a defined set of Kubernetes RBAC
-groups or users existing in the target cluster. Each user request will include
-the associated principals as impersonation headers, and Kubernetes RBAC will
-use them to control whether the request can be allowed.
+principals - groups or users - existing in the target cluster. Each user request
+will include the associated principals as impersonation headers, and Kubernetes
+RBAC will use them to control whether the request can be allowed.
 
-To change the user's permissions, you must create or edit an RBAC role in the
-Kubernetes cluster and associate it with an RBAC user/group. Afterward, you
-append it into the Teleport user properties.
+To change the user's permissions, you must create or edit a Kubernetes RBAC role
+in the Kubernetes cluster and associate it with an RBAC principal. Afterward, you
+append it into the Teleport user properties and the user can impersonate it.
+Currently, Teleport appends the RBAC principals to Teleport Roles or to the user
+itself. It means that if a user wants temporary access to a single Kubernetes POD,
+the cluster administrator has to create a Kubernetes RBAC Role, assign it to a
+Kubernetes RBAC principal and create a role with the principal. After that, the user
+has to request access to the temporary role. Once someone approves the role access
+request, the user can impersonate it.
 
-Limiting access to pods using Kubernetes RBAC has limitations because Kubernetes
-RBAC does not support controlling access resources using pattern matching.
+In addition to the complex process, limiting access to pods using Kubernetes RBAC
+has limitations because Kubernetes RBAC does not support controlling access resources
+using pattern matching.
 The RBAC Role must include the resource name to grant access, but it requires
 knowing the Pod name in advance. In many cases, it is impossible to know them
 because Pods generated from Kubernetes objects like Deployments include random
 strings in their names and change each time the Pod is deleted or relocated from
 one node to the other.
+
+This RFD proposes an extension to Teleport RBAC where it will support
+requesting access to Pods - including Pods names following a pattern - without
+relying on requesting access to Teleport Roles.
 
 ## Role definition
 
@@ -98,7 +109,7 @@ available but is not included in the allowed list, Teleport will reject the
 request and will not forward it to the Kubernetes API.
 
 If the request is destined to a Pod endpoint that does not have Pod names associated -
-`kubectl get pods`, `kubectl get pods --all-namespaces`, `kubectl delete pods --all -n {namespace}`,
+`kubectl get pods`, `kubectl get pods --all-namespaces`,
 Teleport will forward the request to the cluster and will modify the received
 response. Once it receives a response from the Kubernetes API server, Teleport
 will filter out any pod the user should not have access.
@@ -125,12 +136,28 @@ RBAC `Role` and `RoleBinding` objects.
 
 ## UX: Request Flow
 
-Extending [RFD 59](https://github.com/gravitational/teleport/blob/master/rfd/0059-search-based-access-requests.md), Teleport will consider Kubernetes Pods as native resources.
+Extending [RFD 59](https://github.com/gravitational/teleport/blob/master/rfd/0059-search-based-access-requests.md),
+Teleport will consider Kubernetes Pods as native resources.
 This allows users to search Pods that normally they do not
 have access to and request access to them. Besides requesting access to
 specific Pods - using the Pod full name, Teleport allows users to request
 access to Pods that follow a pattern like Pods automatically created from a
 Deployment - `deploymentname-*-*`.
+
+```bash
+$ tsh request search --kind pod --search pod
+
+Found 3 items:
+name kind     id
+pod-1 pod     pod:pod-1
+dep-1 pod     node:dep-1
+dep-2 pod     node:dep-2
+
+$ tsh request create --resources "pod:pod1,pod:dep-*"
+Waiting for request to be approved...
+Approved!
+$ kubectl get pods 
+```
 
 Similarly to Resource Based Access Requests, Pod Access requests will leverage
 `search_as_roles` to control which Pods the user can view while searching.
