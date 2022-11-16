@@ -566,7 +566,7 @@ func maybeStartLocalProxy(ctx context.Context, cf *CLIConf, tc *client.TeleportC
 
 	// Some protocols (Snowflake, Elasticsearch) only works in the local tunnel mode.
 	localProxyTunnel := cf.LocalProxyTunnel
-	if db.Protocol == defaults.ProtocolSnowflake || db.Protocol == defaults.ProtocolElasticsearch {
+	if db.Protocol == defaults.ProtocolSnowflake || db.Protocol == defaults.ProtocolElasticsearch || db.Protocol == defaults.ProtocolDynamoDB {
 		localProxyTunnel = true
 	}
 

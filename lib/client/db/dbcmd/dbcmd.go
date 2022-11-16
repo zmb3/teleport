@@ -185,6 +185,9 @@ func (c *CLICommandBuilder) GetConnectCommand() (*exec.Cmd, error) {
 
 	case defaults.ProtocolElasticsearch:
 		return c.getElasticsearchCommand()
+
+	case defaults.ProtocolDynamoDB:
+		return c.getDynamoDBCommand()
 	}
 
 	return nil, trace.BadParameter("unsupported database protocol: %v", c.db)
@@ -569,6 +572,15 @@ func (c *CLICommandBuilder) getElasticsearchCommand() (*exec.Cmd, error) {
 		return c.options.exe.Command(elasticsearchSQLBin, fmt.Sprintf("http://%v:%v/", c.host, c.port)), nil
 	}
 	return nil, trace.BadParameter("%v interactive command is only supported in --tunnel mode.", elasticsearchSQLBin)
+}
+
+func (c *CLICommandBuilder) getDynamoDBCommand() (*exec.Cmd, error) {
+	return c.options.exe.Command(elasticsearchSQLBin, fmt.Sprintf("http://%v:%v/", c.host, c.port)), nil
+	// return nil, trace.BadParameter("interactive command is not supported for protocol %v", defaults.ProtocolDynamoDB)
+	// if c.options.noTLS {
+	// 	return c.options.exe.Command(elasticsearchSQLBin, fmt.Sprintf("http://%v:%v/", c.host, c.port)), nil
+	// }
+	// return nil, trace.BadParameter("%v interactive command is only supported in --tunnel mode.", elasticsearchSQLBin)
 }
 
 func (c *CLICommandBuilder) getElasticsearchAlternativeCommands() []CommandAlternative {

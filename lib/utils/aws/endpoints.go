@@ -53,14 +53,13 @@ import (
 	"github.com/gravitational/trace"
 
 	awsapiutils "github.com/gravitational/teleport/api/utils/aws"
-	awsutils "github.com/gravitational/teleport/lib/utils/aws"
 )
 
-// resolveEndpoint extracts the aws-service on and aws-region from the request
+// ResolveEndpoint extracts the aws-service on and aws-region from the request
 // authorization header and resolves the aws-service and aws-region to AWS
 // endpoint.
-func resolveEndpoint(r *http.Request) (*endpoints.ResolvedEndpoint, error) {
-	awsAuthHeader, err := awsutils.ParseSigV4(r.Header.Get(awsutils.AuthorizationHeader))
+func ResolveEndpoint(r *http.Request) (*endpoints.ResolvedEndpoint, error) {
+	awsAuthHeader, err := ParseSigV4(r.Header.Get(AuthorizationHeader))
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -124,7 +123,8 @@ func endpointsIDFromSigningName(signingName string) string {
 	return signingName
 }
 
-func isDynamoDBEndpoint(re *endpoints.ResolvedEndpoint) bool {
+// IsDynamoDBResolvedEndpoint determines if the resolved endpoint is for an AWS DynamoDB API.
+func IsDynamoDBResolvedEndpoint(re *endpoints.ResolvedEndpoint) bool {
 	// Some clients may sign some services with upper case letters. We use all
 	// lower cases in our mapping.
 	signingName := strings.ToLower(re.SigningName)

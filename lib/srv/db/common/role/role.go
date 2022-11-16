@@ -60,6 +60,10 @@ func DatabaseRoleMatchers(dbProtocol string, user, database string) services.Rol
 		return services.RoleMatchers{
 			&services.DatabaseUserMatcher{User: user},
 		}
+	case defaults.ProtocolDynamoDB:
+		return services.RoleMatchers{
+			&services.DatabaseUserMatcher{User: user},
+		}
 	default:
 		return services.RoleMatchers{
 			&services.DatabaseUserMatcher{User: user},

@@ -483,6 +483,8 @@ const (
 	ProtocolCassandra = "cassandra"
 	// ProtocolElasticsearch is the Elasticsearch database protocol.
 	ProtocolElasticsearch = "elasticsearch"
+	// ProtocolDynamoDB is the DynamoDB database protocol.
+	ProtocolDynamoDB = "dynamodb"
 )
 
 // DatabaseProtocols is a list of all supported database protocols.
@@ -496,6 +498,7 @@ var DatabaseProtocols = []string{
 	ProtocolSQLServer,
 	ProtocolCassandra,
 	ProtocolElasticsearch,
+	ProtocolDynamoDB,
 }
 
 // ReadableDatabaseProtocol returns a more human readable string of the
@@ -520,6 +523,8 @@ func ReadableDatabaseProtocol(p string) string {
 		return "Microsoft SQL Server"
 	case ProtocolCassandra:
 		return "Cassandra"
+	case ProtocolDynamoDB:
+		return "DynamoDB"
 	default:
 		// Unknown protocol. Return original string.
 		return p

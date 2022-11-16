@@ -309,6 +309,7 @@ func SetUpSuiteWithConfig(t *testing.T, config suiteConfig) *Suite {
 		DataDir:          s.dataDir,
 		AccessPoint:      s.authClient,
 		AuthClient:       s.authClient,
+		Emitter:          s.authClient,
 		TLSConfig:        tlsConfig,
 		CipherSuites:     utils.DefaultCipherSuites(),
 		HostID:           s.hostUUID,

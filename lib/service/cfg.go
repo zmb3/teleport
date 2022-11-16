@@ -991,8 +991,9 @@ func (d *Database) CheckAndSetDefaults() error {
 		if !strings.Contains(d.URI, defaults.SnowflakeURL) {
 			return trace.BadParameter("Snowflake address should contain " + defaults.SnowflakeURL)
 		}
-	} else if d.Protocol == defaults.ProtocolCassandra && d.AWS.Region != "" && d.AWS.AccountID != "" {
-		// In case of cloud hosted Cassandra doesn't require URI validation.
+	} else if (d.Protocol == defaults.ProtocolCassandra || d.Protocol == defaults.ProtocolDynamoDB) &&
+		d.AWS.Region != "" && d.AWS.AccountID != "" {
+		// In the cloud hosted case, Cassandra and DynamoDB don't require URI validation.
 	} else if _, _, err := net.SplitHostPort(d.URI); err != nil {
 		return trace.BadParameter("invalid database %q address %q: %v",
 			d.Name, d.URI, err)

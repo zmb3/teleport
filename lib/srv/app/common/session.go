@@ -17,9 +17,6 @@ limitations under the License.
 package common
 
 import (
-	"context"
-	"net/http"
-
 	"github.com/gravitational/trace"
 
 	"github.com/gravitational/teleport/api/types"
@@ -38,28 +35,19 @@ type SessionContext struct {
 	Audit Audit
 }
 
-// WithSessionContext adds session context to provided request.
-func WithSessionContext(r *http.Request, sessionCtx *SessionContext) *http.Request {
-	return r.WithContext(context.WithValue(
-		r.Context(),
-		contextSessionKey,
-		sessionCtx,
-	))
-}
-
-// GetSessionContext retrieves the session context from a request.
-func GetSessionContext(r *http.Request) (*SessionContext, error) {
-	sessionCtxValue := r.Context().Value(contextSessionKey)
-	sessionCtx, ok := sessionCtxValue.(*SessionContext)
-	if !ok {
-		return nil, trace.BadParameter("failed to get session context")
+// Check validates the SessionContext.
+func (sc *SessionContext) Check() error {
+	if sc.Identity == nil {
+		return trace.BadParameter("missing Identity")
 	}
-	return sessionCtx, nil
+	if sc.App == nil {
+		return trace.BadParameter("missing App")
+	}
+	if sc.ChunkID == "" {
+		return trace.BadParameter("missing ChunkID")
+	}
+	if sc.Audit == nil {
+		return trace.BadParameter("missing Audit")
+	}
+	return nil
 }
-
-type contextKey string
-
-const (
-	// contextSessionKey is the context key for the session context.
-	contextSessionKey contextKey = "app-session-context"
-)

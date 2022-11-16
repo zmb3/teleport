@@ -23,6 +23,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/dax"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 	"github.com/gravitational/trace"
 )
 
@@ -587,16 +590,94 @@ func CassandraEndpointURLForRegion(region string) string {
 // where endpoint looks like cassandra.us-east-2.amazonaws.com
 // https://docs.aws.amazon.com/keyspaces/latest/devguide/programmatic.endpoints.html
 func CassandraEndpointRegion(endpoint string) (string, error) {
-	endpoint, err := removeSchemaAndPort(endpoint)
+	parts, err := extractAWSEndpointParts(endpoint)
 	if err != nil {
 		return "", trace.Wrap(err)
 	}
-
-	endpoint = strings.TrimSuffix(endpoint, AWSCNEndpointSuffix)
-	endpoint = strings.TrimSuffix(endpoint, AWSEndpointSuffix)
-	parts := strings.Split(endpoint, ".")
 	if len(parts) != 2 {
 		return "", trace.BadParameter("invalid Cassandra endpoint")
 	}
 	return parts[1], nil
+}
+
+// DynamoDBEndpointRegion returns an AWS region from a DynamoDB endpoint:
+// where endpoint looks like one of dynamodb.us-east-2.amazonaws.com,
+// dax.us-east-2.amazonaws.com, or streams.dynamodb.us-east-2.amazonaws.com
+// https://docs.aws.amazon.com/general/latest/gr/ddb.html
+func DynamoDBEndpointRegion(endpoint string) (string, error) {
+	parts, err := extractAWSEndpointParts(endpoint)
+	if err != nil {
+		return "", trace.Wrap(err)
+	}
+	switch len(parts) {
+	case 2:
+		// dynamodb.region or dax.region
+		return parts[1], nil
+	case 3:
+		// streams.dynamodb.region
+		return parts[2], nil
+	default:
+		return "", trace.BadParameter("invalid DynamoDB endpoint %q", endpoint)
+	}
+}
+
+// DynamoDBEndpointFromRegionAndService constructs a DynamoDB endpoint based on the region and service.
+func DynamoDBEndpointFromRegionAndService(region, service string) (string, error) {
+	var suffix string
+	switch strings.ToLower(region) {
+	case "cn-north-1", "cn-northwest-1":
+		suffix = fmt.Sprintf(".%s%s:443", region, AWSCNEndpointSuffix)
+	default:
+		suffix = fmt.Sprintf(".%s%s:443", region, AWSEndpointSuffix)
+	}
+	switch service {
+	case dynamodb.ServiceID:
+		return dynamodb.ServiceName + suffix, nil
+	case dynamodbstreams.ServiceID:
+		return dynamodbstreams.ServiceName + suffix, nil
+	case dax.ServiceID:
+		return dax.ServiceName + suffix, nil
+	default:
+		return "", trace.BadParameter("unrecognized DynamoDB service %q", service)
+	}
+}
+
+// ParseDynamoDBServiceFromTarget parses the DynamoDB service ID from X-Amz-Target header.
+func ParseDynamoDBServiceFromTarget(target string) (string, error) {
+	t := strings.ToLower(target)
+	switch {
+	case strings.HasPrefix(t, "dynamodbstreams"):
+		return dynamodbstreams.ServiceID, nil
+	case strings.HasPrefix(t, "dynamodb"):
+		return dynamodb.ServiceID, nil
+	case strings.Contains(t, "amazondax"):
+		return dax.ServiceID, nil
+	default:
+		return "", trace.BadParameter("x-amz-target %q service is not recognized", target)
+	}
+}
+
+// DynamoDBServiceToSigningName converts a DynamoDB service ID to the appropriate signing name.
+func DynamoDBServiceToSigningName(service string) (string, error) {
+	switch service {
+	case dynamodb.ServiceID, dynamodbstreams.ServiceID:
+		return "dynamodb", nil
+	case dax.ServiceID:
+		return "dax", nil
+	default:
+		return "", trace.BadParameter("service %q is not recognized", service)
+	}
+}
+
+// extractAWSEndpointParts strips the schema, port, and AWS suffix,
+// then splits the string by subdomain separator (".") and returns the parts.
+func extractAWSEndpointParts(endpoint string) ([]string, error) {
+	endpoint, err := removeSchemaAndPort(endpoint)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	endpoint = strings.TrimSuffix(endpoint, AWSCNEndpointSuffix)
+	endpoint = strings.TrimSuffix(endpoint, AWSEndpointSuffix)
+	parts := strings.Split(endpoint, ".")
+	return parts, nil
 }

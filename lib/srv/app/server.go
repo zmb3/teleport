@@ -45,7 +45,6 @@ import (
 	"github.com/gravitational/teleport/lib/reversetunnel"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/srv"
-	appaws "github.com/gravitational/teleport/lib/srv/app/aws"
 	"github.com/gravitational/teleport/lib/srv/app/common"
 	"github.com/gravitational/teleport/lib/tlsca"
 	"github.com/gravitational/teleport/lib/utils"
@@ -210,7 +209,7 @@ type Server struct {
 
 	cache *sessionChunkCache
 
-	awsSigner *appaws.SigningService
+	awsSigner *aws.SigningService
 
 	// watcher monitors changes to application resources.
 	watcher *services.AppWatcher
@@ -252,7 +251,7 @@ func New(ctx context.Context, c *Config) (*Server, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	awsSigner, err := appaws.NewSigningService(appaws.SigningServiceConfig{})
+	awsSigner, err := aws.NewSigningService(aws.SigningServiceConfig{})
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -785,7 +784,7 @@ func (s *Server) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 		//  services that support it (All services expect Amazon SimpleDB but
 		//  this AWS service has been deprecated)
 		if aws.IsSignedByAWSSigV4(r) {
-			return s.serveSession(w, r, &identity, app, s.withAWSForwarder)
+			return s.serveSession(w, r, &identity, app, s.withAWSSigner)
 		}
 
 		// Request for AWS console access originated from Teleport Proxy WebUI
@@ -828,7 +827,7 @@ func (s *Server) serveSession(w http.ResponseWriter, r *http.Request, identity *
 	defer session.release()
 
 	// Forward request to the target application.
-	session.fwd.ServeHTTP(w, common.WithSessionContext(r, session.sessionCtx))
+	session.handler.ServeHTTP(w, r)
 	return nil
 }
 

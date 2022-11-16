@@ -383,6 +383,10 @@ func (d *DatabaseV3) IsAWSKeyspaces() bool {
 	return d.GetType() == DatabaseTypeAWSKeyspaces
 }
 
+func (d *DatabaseV3) IsDynamoDB() bool {
+	return d.GetType() == DatabaseTypeDynamoDB
+}
+
 // IsAWSHosted returns true if database is hosted by AWS.
 func (d *DatabaseV3) IsAWSHosted() bool {
 	_, ok := d.getAWSType()
@@ -398,8 +402,13 @@ func (d *DatabaseV3) IsCloudHosted() bool {
 // getAWSType returns the database type.
 func (d *DatabaseV3) getAWSType() (string, bool) {
 	aws := d.GetAWS()
-	if aws.AccountID != "" && d.Spec.Protocol == DatabaseTypeCassandra {
-		return DatabaseTypeAWSKeyspaces, true
+	if aws.AccountID != "" {
+		switch d.Spec.Protocol {
+		case DatabaseTypeCassandra:
+			return DatabaseTypeAWSKeyspaces, true
+		case DatabaseTypeDynamoDB:
+			return DatabaseTypeDynamoDB, true
+		}
 	}
 	if aws.Redshift.ClusterID != "" {
 		return DatabaseTypeRedshift, true
@@ -487,6 +496,14 @@ func (d *DatabaseV3) CheckAndSetDefaults() error {
 			// In case of AWS Hosted Cassandra allow to omit URI.
 			// The URL will be constructed from the database resource based on the region and account ID.
 			d.Spec.URI = awsutils.CassandraEndpointURLForRegion(d.Spec.AWS.Region)
+		case d.IsDynamoDB():
+			if d.GetAWS().Region == "" {
+				return trace.BadParameter("database %q URI and AWS region are both empty", d.GetName())
+			}
+			// DynamoDB allows URI to be omitted.
+			// The URI can be constructed from the region depending on the incoming request,
+			// as [dynamodb|streams.dynamodb|dax].<region>.<partition>.
+			// If the URI is specified, then actions are restricted to just the API calls supported by that endpoint.
 		default:
 			return trace.BadParameter("database %q URI is empty", d.GetName())
 		}
@@ -576,9 +593,21 @@ func (d *DatabaseV3) CheckAndSetDefaults() error {
 			return trace.BadParameter("database %q AWS account ID is empty", d.GetName())
 		}
 		if d.Spec.AWS.Region == "" {
-			region, err := awsutils.CassandraEndpointRegion(d.Spec.URI)
-			if err != nil {
-				return trace.Wrap(err)
+			var region string
+			var err error
+			switch {
+			case d.IsAWSKeyspaces():
+				region, err = awsutils.CassandraEndpointRegion(d.Spec.URI)
+				if err != nil {
+					return trace.Wrap(err)
+				}
+			case d.IsDynamoDB():
+				region, err = awsutils.DynamoDBEndpointRegion(d.Spec.URI)
+				if err != nil {
+					return trace.Wrap(err)
+				}
+			default:
+				return trace.BadParameter("database %q AWS region is empty", d.GetName())
 			}
 			d.Spec.AWS.Region = region
 		}
@@ -644,6 +673,7 @@ const (
 	DatabaseTypeAWSKeyspaces = "keyspace"
 	// DatabaseTypeCassandra is AWS-hosted Keyspace database.
 	DatabaseTypeCassandra = "cassandra"
+	DatabaseTypeDynamoDB  = "dynamodb"
 )
 
 // GetServerName returns the GCP database project and instance as "<project-id>:<instance-id>".

@@ -42,21 +42,24 @@ import (
 	"github.com/gravitational/teleport/lib/reversetunnel"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/srv"
-	// Import to register Cassandra engine.
-	_ "github.com/gravitational/teleport/lib/srv/db/cassandra"
 	"github.com/gravitational/teleport/lib/srv/db/cloud"
 	"github.com/gravitational/teleport/lib/srv/db/cloud/users"
 	"github.com/gravitational/teleport/lib/srv/db/common"
+	"github.com/gravitational/teleport/lib/srv/db/mysql"
+	"github.com/gravitational/teleport/lib/utils"
+
+	// Import to register Cassandra engine.
+	_ "github.com/gravitational/teleport/lib/srv/db/cassandra"
 	// Import to register Elasticsearch engine.
 	_ "github.com/gravitational/teleport/lib/srv/db/elasticsearch"
 	// Import to register MongoDB engine.
 	_ "github.com/gravitational/teleport/lib/srv/db/mongodb"
-	"github.com/gravitational/teleport/lib/srv/db/mysql"
 	// Import to register Postgres engine.
 	_ "github.com/gravitational/teleport/lib/srv/db/postgres"
 	// Import to register Snowflake engine.
 	_ "github.com/gravitational/teleport/lib/srv/db/snowflake"
-	"github.com/gravitational/teleport/lib/utils"
+	// Import to register DynamoDB engine.
+	_ "github.com/gravitational/teleport/lib/srv/db/dynamodb"
 )
 
 // Config is the configuration for a database proxy server.

@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -295,7 +296,7 @@ func mustNewRequest(t *testing.T, method, url string, body io.Reader) *http.Requ
 	return r
 }
 
-func staticAWSCredentials(client.ConfigProvider, *common.SessionContext) *credentials.Credentials {
+func staticAWSCredentials(client.ConfigProvider, time.Time, string, string, string) *credentials.Credentials {
 	return credentials.NewStaticCredentials("AKIDl", "SECRET", "SESSION")
 }
 
@@ -310,14 +311,31 @@ func createSuite(t *testing.T, handler http.HandlerFunc, app types.Application) 
 	emitter := eventstest.NewChannelEmitter(1)
 	user := auth.LocalUser{Username: "user"}
 
-	awsAPIMock := httptest.NewUnstartedServer(handler)
+	awsAPIMock := httptest.NewUnstartedServer(mockAWS)
 	awsAPIMock.StartTLS()
 	t.Cleanup(func() {
 		awsAPIMock.Close()
 	})
 
-	svc, err := NewSigningService(SigningServiceConfig{
-		getSigningCredentials: staticAWSCredentials,
+	svc, err := awsutils.NewSigningService(awsutils.SigningServiceConfig{
+		GetSigningCredentials: staticAWSCredentials,
+		Clock:                 clockwork.NewFakeClock(),
+	})
+	require.NoError(t, err)
+
+	audit, err := common.NewAudit(common.AuditConfig{
+		Emitter: emitter,
+	})
+	require.NoError(t, err)
+	sessionCtx := &common.SessionContext{
+		Identity: &user.Identity,
+		App:      app,
+		Audit:    audit,
+		ChunkID:  "123abc",
+	}
+	signerHandler, err := NewAWSSignerHandler(SignerHandlerConfig{
+		SigningService: svc,
+		SessionContext: sessionCtx,
 		RoundTripper: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
@@ -326,25 +344,10 @@ func createSuite(t *testing.T, handler http.HandlerFunc, app types.Application) 
 				return net.Dial(awsAPIMock.Listener.Addr().Network(), awsAPIMock.Listener.Addr().String())
 			},
 		},
-		Clock: clockwork.NewFakeClock(),
 	})
 	require.NoError(t, err)
-
-	audit, err := common.NewAudit(common.AuditConfig{
-		Emitter: emitter,
-	})
-	require.NoError(t, err)
-
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		request = common.WithSessionContext(request, &common.SessionContext{
-			Identity: &user.Identity,
-			App:      app,
-			Audit:    audit,
-		})
-
-		svc.ServeHTTP(writer, request)
-	})
+	mux.Handle("/", signerHandler)
 
 	server := httptest.NewServer(mux)
 	t.Cleanup(func() {
