@@ -116,7 +116,14 @@ To run commands, the agent's service principal will require the
 
 Azure virtual machines can run scripts via either [Action Run Commands](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/run-command)
 or [Managed Run Commands](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/run-command-managed).
-Managed Run Commands are generally preferred for non-trivial installation,
+Managed Run Commands have a few advantages over Action Run Commands, including:
+
+- Cancelable scripts
+- Finer control over timeouts
+- Progress reporting
+- Custom command IDs (this could make run commands more like SSM in AWS)
+
+Azure recommends Managed Run Commands for non-trivial installation,
 but they are still in Preview, so Teleport will use Action Run Commands. We
 may consider switching to Managed Run Commands when they are fully released.
 
