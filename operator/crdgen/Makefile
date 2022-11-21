@@ -7,8 +7,10 @@ test: build
 # so we retrieve the file path for the cached proto files with go mod tools.
 	$(eval PROTOBUF_MOD_PATH := $(shell go mod download --json github.com/gogo/protobuf | awk -F: '/"Dir"/ { print $$2 }' | tr -d ' ",'))
 	$(eval CUSTOM_IMPORTS_TMP_DIR := $(shell mktemp -d))
-	mkdir -p $(CUSTOM_IMPORTS_TMP_DIR)/github.com/gravitational/teleport/api/types/wrappers
-	cp testdata/protofiles/wrappers.proto $(CUSTOM_IMPORTS_TMP_DIR)/github.com/gravitational/teleport/api/types/wrappers
+	mkdir -p $(CUSTOM_IMPORTS_TMP_DIR)/teleport/legacy/types/wrappers/
+	mkdir -p $(CUSTOM_IMPORTS_TMP_DIR)/teleport/attestation/v1/
+	cp testdata/protofiles/wrappers.proto $(CUSTOM_IMPORTS_TMP_DIR)/teleport/legacy/types/wrappers/wrappers.proto
+	cp testdata/protofiles/attestation.proto $(CUSTOM_IMPORTS_TMP_DIR)/teleport/attestation/v1/attestation.proto
 	$(eval CRD_OUT_PATH := $(shell mktemp -d))
 	protoc \
 		-I=testdata/protofiles \
@@ -27,8 +29,10 @@ test: build
 update-snapshot: build
 	$(eval PROTOBUF_MOD_PATH := $(shell go mod download --json github.com/gogo/protobuf | awk -F: '/"Dir"/ { print $$2 }' | tr -d ' ",'))
 	$(eval CUSTOM_IMPORTS_TMP_DIR := $(shell mktemp -d))
-	mkdir -p $(CUSTOM_IMPORTS_TMP_DIR)/github.com/gravitational/teleport/api/types/wrappers
-	cp testdata/protofiles/wrappers.proto $(CUSTOM_IMPORTS_TMP_DIR)/github.com/gravitational/teleport/api/types/wrappers
+	mkdir -p $(CUSTOM_IMPORTS_TMP_DIR)/teleport/legacy/types/wrappers/
+	mkdir -p $(CUSTOM_IMPORTS_TMP_DIR)/teleport/attestation/v1/
+	cp testdata/protofiles/wrappers.proto $(CUSTOM_IMPORTS_TMP_DIR)/teleport/legacy/types/wrappers/wrappers.proto
+	cp testdata/protofiles/attestation.proto $(CUSTOM_IMPORTS_TMP_DIR)/teleport/attestation/v1/attestation.proto
 	$(eval CRD_OUT_PATH := $(shell mktemp -d))
 	protoc \
 		-I=testdata/protofiles \

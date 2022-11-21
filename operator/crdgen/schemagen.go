@@ -158,9 +158,15 @@ func (generator *SchemaGenerator) traverseInner(message *Message) (*Schema, erro
 			prop.Items = &apiextv1.JSONSchemaPropsOrArray{
 				Schema: &apiextv1.JSONSchemaProps{},
 			}
-			generator.singularProp(field, prop.Items.Schema)
+			err := generator.singularProp(field, prop.Items.Schema)
+			if err != nil {
+				return schema, err
+			}
 		} else {
-			generator.singularProp(field, &prop)
+			err := generator.singularProp(field, &prop)
+			if err != nil {
+				return schema, err
+			}
 		}
 
 		if field.IsNullable() && (prop.Type == "array" || prop.Type == "object") {

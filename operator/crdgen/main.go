@@ -103,6 +103,9 @@ func generateSchema(file *File, groupName string, resp *gogoplugin.CodeGenerator
 	if err := generator.addResource(file, "GithubConnectorV3"); err != nil {
 		return trace.Wrap(err)
 	}
+	if err := generator.addResource(file, "ProvisionTokenV2"); err != nil {
+		return trace.Wrap(err)
+	}
 
 	for _, root := range generator.roots {
 		crd := root.CustomResourceDefinition()
