@@ -46,8 +46,11 @@ type sftpSubsys struct {
 	log     *logrus.Entry
 }
 
-func newSFTPSubsys() (*sftpSubsys, error) {
-	// TODO: add prometheus collectors?
+func newSFTPSubsys(scx *srv.ServerContext) (*sftpSubsys, error) {
+	if err := scx.CheckSFTPAllowed(); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
 	return &sftpSubsys{
 		log: logrus.WithFields(logrus.Fields{
 			trace.Component: teleport.ComponentSubsystemSFTP,

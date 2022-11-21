@@ -66,11 +66,9 @@ import (
 
 const sftpSubsystem = "sftp"
 
-var (
-	log = logrus.WithFields(logrus.Fields{
-		trace.Component: teleport.ComponentNode,
-	})
-)
+var log = logrus.WithFields(logrus.Fields{
+	trace.Component: teleport.ComponentNode,
+})
 
 // Server implements SSH server that uses configuration backend and
 // certificate-based authentication
@@ -1997,11 +1995,7 @@ func (s *Server) parseSubsystemRequest(req *ssh.Request, ch ssh.Channel, ctx *sr
 	case r.Name == teleport.GetHomeDirSubsystem:
 		return newHomeDirSubsys(), nil
 	case r.Name == sftpSubsystem:
-		if err := ctx.CheckSFTPAllowed(); err != nil {
-			return nil, trace.Wrap(err)
-		}
-
-		return newSFTPSubsys()
+		return newSFTPSubsys(ctx)
 	default:
 		return nil, trace.BadParameter("unrecognized subsystem: %v", r.Name)
 	}
