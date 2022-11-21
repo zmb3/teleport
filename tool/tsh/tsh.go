@@ -2867,7 +2867,6 @@ func onSCP(cf *CLIConf) error {
 	if err == nil || (err != nil && errors.Is(err, context.Canceled)) {
 		return nil
 	}
-	fmt.Fprintln(os.Stderr, utils.UserMessageFromError(err))
 
 	return trace.Wrap(err)
 }
