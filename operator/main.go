@@ -176,6 +176,12 @@ func main() {
 		setupLog.Info("SAML connectors are only available in Teleport Enterprise edition. TeleportSAMLConnector resources won't be reconciled")
 	}
 
+	if err = resourcescontrollers.NewProvisionTokenReconciler(mgr.GetClient(), bot.GetClient).
+		SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "TeleportProvisionToken")
+		os.Exit(1)
+	}
+
 	//+kubebuilder:scaffold:builder
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")

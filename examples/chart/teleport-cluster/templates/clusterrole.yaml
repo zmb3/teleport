@@ -38,6 +38,8 @@ rules:
   - teleportoidcconnectors/status
   - teleportsamlconnectors
   - teleportsamlconnectors/status
+  - teleportprovisiontokens
+  - teleportprovisiontokens/status
   verbs:
   - get
   - list
