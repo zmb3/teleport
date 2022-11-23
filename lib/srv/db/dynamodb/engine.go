@@ -42,7 +42,10 @@ func init() {
 
 // newEngine create new DynamoDB engine.
 func newEngine(ec common.EngineConfig) common.Engine {
-	return &Engine{EngineConfig: ec}
+	return &Engine{
+		EngineConfig:  ec,
+		roundTrippers: make(map[string]http.RoundTripper),
+	}
 }
 
 // Engine handles connections from DynamoDB clients coming from Teleport
@@ -55,6 +58,9 @@ type Engine struct {
 	clientConn net.Conn
 	// sessionCtx is current session context.
 	sessionCtx *common.Session
+	// roundTrippers is a cache of RoundTrippers, mapped by service endpoint.
+	// It is not guarded by a mutex, since requests are processed serially.
+	roundTrippers map[string]http.RoundTripper
 }
 
 var _ common.Engine = (*Engine)(nil)
@@ -147,13 +153,13 @@ func (e *Engine) process(ctx context.Context, req *http.Request) error {
 		return trace.Wrap(err)
 	}
 
-	client, err := e.makeClient(ctx, uri)
+	rt, err := e.getRoundTripper(ctx, uri)
 	if err != nil {
 		return trace.Wrap(err)
 	}
 
 	// Send the request to DynamoDB API.
-	resp, err := client.Do(signedReq)
+	resp, err := rt.RoundTrip(signedReq)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -230,8 +236,11 @@ func (e *Engine) checkAccess(ctx context.Context, sessionCtx *common.Session) er
 	return nil
 }
 
-// makeClient makes an HTTP client with TLS config based on the given URI host.
-func (e *Engine) makeClient(ctx context.Context, uri string) (*http.Client, error) {
+// getRoundTripper makes an HTTP client with TLS config based on the given URI host.
+func (e *Engine) getRoundTripper(ctx context.Context, uri string) (http.RoundTripper, error) {
+	if rt, ok := e.roundTrippers[uri]; ok {
+		return rt, nil
+	}
 	tlsConfig, err := e.Auth.GetTLSConfig(ctx, e.sessionCtx)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -248,9 +257,8 @@ func (e *Engine) makeClient(ctx context.Context, uri string) (*http.Client, erro
 		return nil, trace.Wrap(err)
 	}
 	transport.TLSClientConfig = tlsConfig
-	return &http.Client{
-		Transport: transport,
-	}, nil
+	e.roundTrippers[uri] = transport
+	return transport, nil
 }
 
 // getService extracts the service ID from the request header X-Amz-Target.
