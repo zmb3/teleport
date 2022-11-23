@@ -160,7 +160,7 @@ func (e *Engine) process(ctx context.Context, req *http.Request) error {
 	defer resp.Body.Close()
 
 	// set the signed request body again for further processing, since ServeHTTP should have closed it.
-	e.emitAuditEvent(reqCopy, resp.StatusCode)
+	e.emitAuditEvent(reqCopy, uri, resp.StatusCode)
 	return trace.Wrap(e.sendResponse(resp))
 }
 
@@ -170,7 +170,7 @@ func (e *Engine) sendResponse(resp *http.Response) error {
 }
 
 // emitAuditEvent writes the request and response status code to the audit stream.
-func (e *Engine) emitAuditEvent(req *http.Request, statusCode int) {
+func (e *Engine) emitAuditEvent(req *http.Request, uri string, statusCode int) {
 	// Try to read the body and JSON unmarshal it.
 	// If this fails, we still want to emit the rest of the event info; the request event Body is nullable, so it's ok if body is left nil here.
 	body, err := libaws.UnmarshalRequestBody(req)
@@ -185,15 +185,21 @@ func (e *Engine) emitAuditEvent(req *http.Request, statusCode int) {
 			Type: events.DatabaseSessionDynamoDBRequestEvent,
 			Code: events.DynamoDBRequestCode,
 		},
-		UserMetadata:     e.sessionCtx.Identity.GetUserMetadata(),
-		SessionMetadata:  common.MakeSessionMetadata(e.sessionCtx),
-		DatabaseMetadata: common.MakeDatabaseMetadata(e.sessionCtx),
-		StatusCode:       uint32(statusCode),
-		Path:             req.URL.Path,
-		RawQuery:         req.URL.RawQuery,
-		Method:           req.Method,
-		Target:           target,
-		Body:             body,
+		UserMetadata:    e.sessionCtx.Identity.GetUserMetadata(),
+		SessionMetadata: common.MakeSessionMetadata(e.sessionCtx),
+		DatabaseMetadata: apievents.DatabaseMetadata{
+			DatabaseService:  e.sessionCtx.Database.GetName(),
+			DatabaseProtocol: e.sessionCtx.Database.GetProtocol(),
+			DatabaseURI:      uri,
+			DatabaseName:     e.sessionCtx.DatabaseName,
+			DatabaseUser:     e.sessionCtx.DatabaseUser,
+		},
+		StatusCode: uint32(statusCode),
+		Path:       req.URL.Path,
+		RawQuery:   req.URL.RawQuery,
+		Method:     req.Method,
+		Target:     target,
+		Body:       body,
 	}
 	e.Audit.EmitEvent(e.Context, event)
 }
