@@ -106,31 +106,31 @@ type SigningCtx struct {
 //	    Not that for endpoint resolving the https://github.com/aws/aws-sdk-go/aws/endpoints/endpoints.go
 //	    package is used and when Amazon releases a new API the dependency update is needed.
 //	 5. Sign HTTP request.
-func (s *SigningService) SignRequest(req *http.Request, signCtx SigningCtx) (*http.Request, []byte, error) {
+func (s *SigningService) SignRequest(req *http.Request, signCtx SigningCtx) (*http.Request, error) {
 	payload, err := GetAndReplaceReqBody(req)
 	if err != nil {
-		return nil, nil, trace.Wrap(err)
+		return nil, trace.Wrap(err)
 	}
 	reqCopy, err := http.NewRequest(req.Method, req.URL.String(), bytes.NewReader(payload))
 	if err != nil {
-		return nil, nil, trace.Wrap(err)
+		return nil, trace.Wrap(err)
 	}
 	reqCopy.Header = req.Header.Clone()
 
 	unsignedHeaders, err := removeUnsignedHeaders(reqCopy)
 	if err != nil {
-		return nil, nil, trace.Wrap(err)
+		return nil, trace.Wrap(err)
 	}
 	credentials := s.GetSigningCredentials(s.Session, signCtx.Expiry, signCtx.SessionName, signCtx.AWSRoleArn, signCtx.AWSExternalID)
 	signer := NewSigner(credentials, signCtx.SigningName)
 	_, err = signer.Sign(reqCopy, bytes.NewReader(payload), signCtx.SigningName, signCtx.SigningRegion, s.Clock.Now())
 	if err != nil {
-		return nil, nil, trace.Wrap(err)
+		return nil, trace.Wrap(err)
 	}
 
 	// copy removed headers back to the request after signing it, but don't copy the old Authorization header.
 	copyHeaders(reqCopy, req, utils.RemoveFromSlice(unsignedHeaders, "Authorization"))
-	return reqCopy, payload, nil
+	return reqCopy, nil
 }
 
 type getSigningCredentialsFunc func(provider client.ConfigProvider, expiry time.Time, sessName, roleARN, externalID string) *credentials.Credentials

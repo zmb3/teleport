@@ -135,7 +135,7 @@ func (e *Engine) process(ctx context.Context, req *http.Request) error {
 
 	region := e.sessionCtx.Database.GetAWS().Region
 	accountID := e.sessionCtx.Database.GetAWS().AccountID
-	signedReq, _, err := e.SigningService.SignRequest(reqCopy,
+	signedReq, err := e.SigningService.SignRequest(reqCopy,
 		libaws.SigningCtx{
 			SigningName:   signingName,
 			SigningRegion: region,

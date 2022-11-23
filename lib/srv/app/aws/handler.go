@@ -17,8 +17,6 @@ limitations under the License.
 package aws
 
 import (
-	"bytes"
-	"io"
 	"net/http"
 	"net/url"
 
@@ -122,7 +120,7 @@ func (s *signerHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	signedReq, payload, err := s.SignRequest(reqCopy,
+	signedReq, err := s.SignRequest(reqCopy,
 		awsutils.SigningCtx{
 			SigningName:   re.SigningName,
 			SigningRegion: re.SigningRegion,
@@ -137,8 +135,7 @@ func (s *signerHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	recorder := httplib.NewResponseStatusRecorder(w)
 	s.fwd.ServeHTTP(recorder, signedReq)
-	// set the signed request body again for further processing, since ServeHTTP should have closed it.
-	reqCopy.Body = io.NopCloser(bytes.NewReader(payload))
+
 	if awsutils.IsDynamoDBResolvedEndpoint(re) {
 		err = s.Audit.OnDynamoDBRequest(reqCopy.Context(), s.SessionContext, signedReq, recorder.Status(), re)
 	} else {
