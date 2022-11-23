@@ -261,13 +261,8 @@ func (e *Engine) getService(req *http.Request) (string, error) {
 	return service, trace.Wrap(err)
 }
 
-// getTargetURI returns the target URI either by using the configured static URI, if it is present,
-// or by constructing the URI from the configured region and a given service.
+// getTargetURI returns the target URI constructed from configured region and a given service.
 func (e *Engine) getTargetURI(req *http.Request, service string) (string, error) {
-	// get the URI to forward this request to.
-	if uri := e.sessionCtx.Database.GetURI(); uri != "" {
-		return uri, nil
-	}
 	endpoint, err := apiaws.DynamoDBEndpointFromRegionAndService(e.sessionCtx.Database.GetAWS().Region, service)
 	if err != nil {
 		return "", trace.Wrap(err)
@@ -281,7 +276,7 @@ func rewriteRequest(r *http.Request, uri string) *http.Request {
 	*reqCopy = *r
 	reqCopy.Header = r.Header.Clone()
 
-	// set url to match the configured database uri.
+	// set url to match the database uri.
 	u := *r.URL
 	u.Host = uri
 	u.Scheme = "https"

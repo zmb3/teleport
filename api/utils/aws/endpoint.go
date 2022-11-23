@@ -600,27 +600,6 @@ func CassandraEndpointRegion(endpoint string) (string, error) {
 	return parts[1], nil
 }
 
-// DynamoDBEndpointRegion returns an AWS region from a DynamoDB endpoint:
-// where endpoint looks like one of dynamodb.us-east-2.amazonaws.com,
-// dax.us-east-2.amazonaws.com, or streams.dynamodb.us-east-2.amazonaws.com
-// https://docs.aws.amazon.com/general/latest/gr/ddb.html
-func DynamoDBEndpointRegion(endpoint string) (string, error) {
-	parts, err := extractAWSEndpointParts(endpoint)
-	if err != nil {
-		return "", trace.Wrap(err)
-	}
-	switch len(parts) {
-	case 2:
-		// dynamodb.region or dax.region
-		return parts[1], nil
-	case 3:
-		// streams.dynamodb.region
-		return parts[2], nil
-	default:
-		return "", trace.BadParameter("invalid DynamoDB endpoint %q", endpoint)
-	}
-}
-
 // DynamoDBEndpointFromRegionAndService constructs a DynamoDB endpoint based on the region and service.
 func DynamoDBEndpointFromRegionAndService(region, service string) (string, error) {
 	var suffix string

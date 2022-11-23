@@ -497,16 +497,16 @@ func (d *DatabaseV3) CheckAndSetDefaults() error {
 			// The URL will be constructed from the database resource based on the region and account ID.
 			d.Spec.URI = awsutils.CassandraEndpointURLForRegion(d.Spec.AWS.Region)
 		case d.IsDynamoDB():
-			if d.GetAWS().Region == "" {
-				return trace.BadParameter("database %q URI and AWS region are both empty", d.GetName())
-			}
-			// DynamoDB allows URI to be omitted.
-			// The URI can be constructed from the region depending on the incoming request,
+			// DynamoDB requires URI to be omitted.
+			// The URI will be constructed from the region depending on the incoming request,
 			// as [dynamodb|streams.dynamodb|dax].<region>.<partition>.
-			// If the URI is specified, then actions are restricted to just the API calls supported by that endpoint.
 		default:
 			return trace.BadParameter("database %q URI is empty", d.GetName())
 		}
+	} else if d.IsDynamoDB() {
+		return trace.BadParameter("DynamoDB database %q URI is %q but it should be empty "+
+			"since it will be constructed from the configured AWS region",
+			d.GetName(), d.Spec.URI)
 	}
 	if d.Spec.MySQL.ServerVersion != "" && d.Spec.Protocol != "mysql" {
 		return trace.BadParameter("MySQL ServerVersion can be only set for MySQL database")
@@ -598,11 +598,6 @@ func (d *DatabaseV3) CheckAndSetDefaults() error {
 			switch {
 			case d.IsAWSKeyspaces():
 				region, err = awsutils.CassandraEndpointRegion(d.Spec.URI)
-				if err != nil {
-					return trace.Wrap(err)
-				}
-			case d.IsDynamoDB():
-				region, err = awsutils.DynamoDBEndpointRegion(d.Spec.URI)
 				if err != nil {
 					return trace.Wrap(err)
 				}
