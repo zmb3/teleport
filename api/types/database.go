@@ -668,7 +668,8 @@ const (
 	DatabaseTypeAWSKeyspaces = "keyspace"
 	// DatabaseTypeCassandra is AWS-hosted Keyspace database.
 	DatabaseTypeCassandra = "cassandra"
-	DatabaseTypeDynamoDB  = "dynamodb"
+	// DatabaseTypeDynamoDB is a DynamoDB database.
+	DatabaseTypeDynamoDB = "dynamodb"
 )
 
 // GetServerName returns the GCP database project and instance as "<project-id>:<instance-id>".
