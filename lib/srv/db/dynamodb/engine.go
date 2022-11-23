@@ -83,11 +83,10 @@ func (e *Engine) SendError(err error) {
 	}
 	e.Log.Debugf("DynamoDB connection error: %v.", err)
 
-	statusCode := trace.ErrorToCode(err)
 	response := &http.Response{
 		ProtoMajor: 1,
 		ProtoMinor: 1,
-		StatusCode: statusCode,
+		StatusCode: trace.ErrorToCode(err),
 	}
 
 	if err := response.Write(e.clientConn); err != nil {
