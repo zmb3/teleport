@@ -33,13 +33,13 @@ import (
 	"unicode"
 
 	"github.com/gravitational/kingpin"
+	"github.com/gravitational/trace"
+	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/trace"
-
-	"github.com/sirupsen/logrus"
-	log "github.com/sirupsen/logrus"
 )
 
 type LoggingPurpose int
@@ -367,7 +367,7 @@ func SplitIdentifiers(s string) []string {
 // EscapeControl escapes all ANSI escape sequences from string and returns a
 // string that is safe to print on the CLI. This is to ensure that malicious
 // servers can not hide output. For more details, see:
-//   * https://sintonen.fi/advisories/scp-client-multiple-vulnerabilities.txt
+//   - https://sintonen.fi/advisories/scp-client-multiple-vulnerabilities.txt
 func EscapeControl(s string) string {
 	if needsQuoting(s) {
 		return fmt.Sprintf("%q", s)
@@ -378,7 +378,7 @@ func EscapeControl(s string) string {
 // AllowNewlines escapes all ANSI escape sequences except newlines from string and returns a
 // string that is safe to print on the CLI. This is to ensure that malicious
 // servers can not hide output. For more details, see:
-//   * https://sintonen.fi/advisories/scp-client-multiple-vulnerabilities.txt
+//   - https://sintonen.fi/advisories/scp-client-multiple-vulnerabilities.txt
 func AllowNewlines(s string) string {
 	if !strings.Contains(s, "\n") {
 		return EscapeControl(s)

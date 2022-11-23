@@ -21,14 +21,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/require"
+	"gopkg.in/check.v1"
+
 	apidefaults "github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/fixtures"
 	"github.com/gravitational/teleport/lib/utils"
-
-	"github.com/google/go-cmp/cmp"
-	"github.com/stretchr/testify/require"
-	"gopkg.in/check.v1"
 )
 
 func TestMain(m *testing.M) {

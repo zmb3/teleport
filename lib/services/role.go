@@ -24,6 +24,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/gravitational/configure/cstrings"
+	"github.com/gravitational/trace"
+	log "github.com/sirupsen/logrus"
+	"github.com/vulcand/predicate"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
@@ -35,13 +40,6 @@ import (
 	"github.com/gravitational/teleport/lib/tlsca"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/utils/parse"
-
-	"github.com/gravitational/configure/cstrings"
-	"github.com/gravitational/trace"
-
-	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
-	"github.com/vulcand/predicate"
 )
 
 // DefaultImplicitRules provides access to the default set of implicit rules
@@ -413,15 +411,16 @@ func applyValueTraitsSlice(inputs []string, traits map[string][]string, fieldNam
 // and traits from identity provider. For example:
 //
 // cluster_labels:
-//   env: ['{{external.groups}}']
+//
+//	env: ['{{external.groups}}']
 //
 // and groups: ['admins', 'devs']
 //
 // will be interpolated to:
 //
 // cluster_labels:
-//   env: ['admins', 'devs']
 //
+//	env: ['admins', 'devs']
 func applyLabelsTraits(inLabels types.Labels, traits map[string][]string) types.Labels {
 	outLabels := make(types.Labels, len(inLabels))
 	// every key will be mapped to the first value
@@ -557,7 +556,6 @@ func MakeRuleSet(rules []types.Rule) RuleSet {
 // Specifying order solves the problem on having multiple rules, e.g. one wildcard
 // rule can override more specific rules with 'where' sections that can have
 // 'actions' lists with side effects that will not be triggered otherwise.
-//
 func (set RuleSet) Match(whereParser predicate.Parser, actionsParser predicate.Parser, resource string, verb string) (bool, error) {
 	// empty set matches nothing
 	if len(set) == 0 {

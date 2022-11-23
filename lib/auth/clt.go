@@ -28,6 +28,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gravitational/roundtrip"
+	"github.com/gravitational/trace"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/breaker"
 	"github.com/gravitational/teleport/api/client"
@@ -43,10 +47,6 @@ import (
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/session"
 	"github.com/gravitational/teleport/lib/utils"
-
-	"github.com/gravitational/roundtrip"
-	"github.com/gravitational/trace"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 const (
@@ -932,7 +932,7 @@ func (c *Client) DeleteWebSession(ctx context.Context, user string, sid string) 
 	return trace.Wrap(err)
 }
 
-// GenerateHostCert takes the public key in the Open SSH ``authorized_keys``
+// GenerateHostCert takes the public key in the Open SSH “authorized_keys“
 // plain text format, signs it using Host Certificate Authority private key and returns the
 // resulting certificate.
 func (c *Client) GenerateHostCert(

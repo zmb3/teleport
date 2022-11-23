@@ -25,10 +25,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/trace"
-
 	"github.com/jonboulle/clockwork"
+
+	"github.com/gravitational/teleport/api/types"
 )
 
 // Forever means that object TTL will not expire unless deleted
@@ -122,7 +122,6 @@ type Batch interface {
 // lease.Expires = time.Now().Add(time.Second)
 // Item TTL is extended
 // err = backend.KeepAlive(lease)
-//
 type Lease struct {
 	// Key is an object representing lease
 	Key []byte

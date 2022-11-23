@@ -35,10 +35,9 @@ import (
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
+	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
 	"github.com/sirupsen/logrus"
-
-	"github.com/gravitational/trace"
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/client/proto"
@@ -1105,18 +1104,21 @@ func (s *WindowsService) updateCA(ctx context.Context) error {
 // private key archival.
 //
 // This function is equivalent to running:
-//     certutil –dspublish –f <PathToCertFile.cer> NTAuthCA
+//
+//	certutil –dspublish –f <PathToCertFile.cer> NTAuthCA
 //
 // You can confirm the cert is present by running:
-//     certutil -viewstore "ldap:///CN=NTAuthCertificates,CN=Public Key Services,CN=Services,CN=Configuration,DC=example,DC=com>?caCertificate"
+//
+//	certutil -viewstore "ldap:///CN=NTAuthCertificates,CN=Public Key Services,CN=Services,CN=Configuration,DC=example,DC=com>?caCertificate"
 //
 // Once the CA is published to LDAP, it should eventually sync and be present in the
 // machine's enterprise NTAuth store. You can check that with:
-//     certutil -viewstore -enterprise NTAuth
+//
+//	certutil -viewstore -enterprise NTAuth
 //
 // You can expedite the synchronization by running:
-//     certutil -pulse
 //
+//	certutil -pulse
 func (s *WindowsService) updateCAInNTAuthStore(ctx context.Context, caDER []byte) error {
 	// Check if our CA is already in the store. The LDAP entry for NTAuth store
 	// is constant and it should always exist.

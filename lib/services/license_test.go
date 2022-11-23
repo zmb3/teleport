@@ -17,12 +17,11 @@ limitations under the License.
 package services
 
 import (
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/fixtures"
-
+	"github.com/gravitational/trace"
 	"gopkg.in/check.v1"
 
-	"github.com/gravitational/trace"
+	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/lib/fixtures"
 )
 
 type LicenseSuite struct {

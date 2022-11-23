@@ -25,6 +25,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gravitational/trace"
+	"github.com/jonboulle/clockwork"
+	"github.com/julienschmidt/httprouter"
+
 	"github.com/gravitational/teleport/api/client/proto"
 	apidefaults "github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
@@ -36,10 +40,6 @@ import (
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/session"
 	"github.com/gravitational/teleport/lib/utils"
-
-	"github.com/gravitational/trace"
-	"github.com/jonboulle/clockwork"
-	"github.com/julienschmidt/httprouter"
 )
 
 type APIConfig struct {
@@ -1140,11 +1140,12 @@ type githubAuthRawResponse struct {
 	HostSigners []json.RawMessage `json:"host_signers"`
 }
 
-/* validateGithubAuthRequest validates Github auth callback redirect
+/*
+validateGithubAuthRequest validates Github auth callback redirect
 
-   POST /:version/github/requests/validate
+	POST /:version/github/requests/validate
 
-   Success response: githubAuthRawResponse
+	Success response: githubAuthRawResponse
 */
 func (s *APIServer) validateGithubAuthCallback(auth ClientI, w http.ResponseWriter, r *http.Request, p httprouter.Params, version string) (interface{}, error) {
 	var req validateGithubAuthCallbackReq
@@ -1185,9 +1186,10 @@ func (s *APIServer) validateGithubAuthCallback(auth ClientI, w http.ResponseWrit
 // HTTP GET /:version/events?query
 //
 // Query fields:
-//	'from'  : time filter in RFC3339 format
-//	'to'    : time filter in RFC3339 format
-//  ...     : other fields are passed directly to the audit backend
+//
+//		'from'  : time filter in RFC3339 format
+//		'to'    : time filter in RFC3339 format
+//	 ...     : other fields are passed directly to the audit backend
 func (s *APIServer) searchEvents(auth ClientI, w http.ResponseWriter, r *http.Request, p httprouter.Params, version string) (interface{}, error) {
 	var err error
 	to := time.Now().In(time.UTC)
@@ -1268,8 +1270,9 @@ func (s *APIServer) searchSessionEvents(auth ClientI, w http.ResponseWriter, r *
 
 // HTTP GET /:version/sessions/:id/stream?offset=x&bytes=y
 // Query parameters:
-//   "offset"   : bytes from the beginning
-//   "bytes"    : number of bytes to read (it won't return more than 512Kb)
+//
+//	"offset"   : bytes from the beginning
+//	"bytes"    : number of bytes to read (it won't return more than 512Kb)
 func (s *APIServer) getSessionChunk(auth ClientI, w http.ResponseWriter, r *http.Request, p httprouter.Params, version string) (interface{}, error) {
 	sid, err := session.ParseID(p.ByName("id"))
 	if err != nil {
@@ -1306,7 +1309,8 @@ func (s *APIServer) getSessionChunk(auth ClientI, w http.ResponseWriter, r *http
 
 // HTTP GET /:version/sessions/:id/events?maxage=n
 // Query:
-//    'after' : cursor value to return events newer than N. Defaults to 0, (return all)
+//
+//	'after' : cursor value to return events newer than N. Defaults to 0, (return all)
 func (s *APIServer) getSessionEvents(auth ClientI, w http.ResponseWriter, r *http.Request, p httprouter.Params, version string) (interface{}, error) {
 	sid, err := session.ParseID(p.ByName("id"))
 	if err != nil {

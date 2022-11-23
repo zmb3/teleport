@@ -22,11 +22,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gravitational/trace"
+	"github.com/sirupsen/logrus"
+
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/utils"
 	libUtils "github.com/gravitational/teleport/lib/utils"
-	"github.com/gravitational/trace"
-	"github.com/sirupsen/logrus"
 )
 
 // See https://github.com/gravitational/teleport/blob/1aa38f4bc56997ba13b26a1ef1b4da7a3a078930/lib/auth/rotate.go#L135

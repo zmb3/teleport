@@ -21,14 +21,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/fixtures"
-
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/check.v1"
 	kyaml "k8s.io/apimachinery/pkg/util/yaml"
+
+	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/lib/defaults"
+	"github.com/gravitational/teleport/lib/fixtures"
 )
 
 type SAMLSuite struct{}

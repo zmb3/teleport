@@ -26,10 +26,14 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/gravitational/teleport/api/breaker"
+	"github.com/gravitational/kingpin"
+	"github.com/gravitational/trace"
+	"github.com/jonboulle/clockwork"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/gravitational/teleport"
+	"github.com/gravitational/teleport/api/breaker"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/utils/sshutils"
 	"github.com/gravitational/teleport/lib/auth"
@@ -39,12 +43,7 @@ import (
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/service"
 	"github.com/gravitational/teleport/lib/utils"
-
-	"github.com/gravitational/kingpin"
 	"github.com/gravitational/teleport/tool/common"
-	"github.com/gravitational/trace"
-	"github.com/jonboulle/clockwork"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -75,7 +74,6 @@ type GlobalCLIFlags struct {
 // This allows OSS and Enterprise Teleport editions to plug their own
 // implementations of different CLI commands into the common execution
 // framework
-//
 type CLICommand interface {
 	// Initialize allows a caller-defined command to plug itself into CLI
 	// argument parsing

@@ -19,17 +19,17 @@ package utils
 import (
 	"runtime"
 
-	"github.com/gravitational/teleport"
 	"github.com/gravitational/trace"
 	om "github.com/grpc-ecosystem/go-grpc-middleware/providers/openmetrics/v2"
-
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/gravitational/teleport"
 )
 
 // RegisterPrometheusCollectors is a wrapper around prometheus.Register that
-// - ignores equal or re-registered collectors
-// - returns an error if a collector does not fulfill the consistency and
-//   uniqueness criteria
+//   - ignores equal or re-registered collectors
+//   - returns an error if a collector does not fulfill the consistency and
+//     uniqueness criteria
 func RegisterPrometheusCollectors(collectors ...prometheus.Collector) error {
 	var errs []error
 	for _, c := range collectors {

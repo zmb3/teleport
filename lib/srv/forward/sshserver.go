@@ -23,6 +23,12 @@ import (
 	"net"
 	"sync"
 
+	"github.com/google/uuid"
+	"github.com/gravitational/trace"
+	"github.com/jonboulle/clockwork"
+	"github.com/sirupsen/logrus"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 
@@ -44,13 +50,6 @@ import (
 	"github.com/gravitational/teleport/lib/sshutils/x11"
 	"github.com/gravitational/teleport/lib/teleagent"
 	"github.com/gravitational/teleport/lib/utils"
-
-	"github.com/google/uuid"
-	"github.com/gravitational/trace"
-	"github.com/jonboulle/clockwork"
-	"github.com/sirupsen/logrus"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
-	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 // Server is a forwarding server. Server is used to create a single in-memory
@@ -60,19 +59,19 @@ import (
 //
 // To create a forwarding server and serve a single SSH connection on it:
 //
-//   serverConfig := forward.ServerConfig{
-//      ...
-//   }
-//   remoteServer, err := forward.New(serverConfig)
-//   if err != nil {
-//   	return nil, trace.Wrap(err)
-//   }
-//   go remoteServer.Serve()
+//	serverConfig := forward.ServerConfig{
+//	   ...
+//	}
+//	remoteServer, err := forward.New(serverConfig)
+//	if err != nil {
+//		return nil, trace.Wrap(err)
+//	}
+//	go remoteServer.Serve()
 //
-//   conn, err := remoteServer.Dial()
-//   if err != nil {
-//   	return nil, trace.Wrap(err)
-//   }
+//	conn, err := remoteServer.Dial()
+//	if err != nil {
+//		return nil, trace.Wrap(err)
+//	}
 type Server struct {
 	log *logrus.Entry
 

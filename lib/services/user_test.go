@@ -20,13 +20,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-
 	"github.com/coreos/go-oidc/jose"
 	saml2 "github.com/russellhaering/gosaml2"
 	samltypes "github.com/russellhaering/gosaml2/types"
 	"gopkg.in/check.v1"
 
+	apidefaults "github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
 )
 

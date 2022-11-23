@@ -17,8 +17,9 @@ limitations under the License.
 package services
 
 import (
-	"github.com/gravitational/teleport/api/types"
 	check "gopkg.in/check.v1"
+
+	"github.com/gravitational/teleport/api/types"
 )
 
 type GithubSuite struct{}

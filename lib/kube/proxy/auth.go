@@ -22,17 +22,12 @@ import (
 	"net/http"
 	"net/url"
 
-	kubeutils "github.com/gravitational/teleport/lib/kube/utils"
 	"github.com/gravitational/trace"
-
 	"github.com/sirupsen/logrus"
 	authzapi "k8s.io/api/authorization/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	authztypes "k8s.io/client-go/kubernetes/typed/authorization/v1"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/transport"
-
 	// Load kubeconfig auth plugins for gcp and azure.
 	// Without this, users can't provide a kubeconfig using those.
 	//
@@ -40,6 +35,10 @@ import (
 	// support for popular hosting providers and minimizing attack surface.
 	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/transport"
+
+	kubeutils "github.com/gravitational/teleport/lib/kube/utils"
 )
 
 // kubeCreds contain authentication-related fields from kubeconfig.
@@ -66,10 +65,10 @@ type ImpersonationPermissionsChecker func(ctx context.Context, clusterName strin
 // getKubeCreds fetches the kubernetes API credentials.
 //
 // There are 2 possible sources of credentials:
-// - pod service account credentials: files in hardcoded paths when running
-//   inside of a k8s pod; this is used when kubeClusterName is set
-// - kubeconfig: a file with a set of k8s endpoints and credentials mapped to
-//   them this is used when kubeconfigPath is set
+//   - pod service account credentials: files in hardcoded paths when running
+//     inside of a k8s pod; this is used when kubeClusterName is set
+//   - kubeconfig: a file with a set of k8s endpoints and credentials mapped to
+//     them this is used when kubeconfigPath is set
 //
 // serviceType changes the loading behavior:
 // - LegacyProxyService:
@@ -77,8 +76,10 @@ type ImpersonationPermissionsChecker func(ctx context.Context, clusterName strin
 //     returned map key matches tpClusterName
 //   - if no credentials are loaded, no error is returned
 //   - permission self-test failures are only logged
+//
 // - ProxyService:
 //   - no credentials are loaded and no error is returned
+//
 // - KubeService:
 //   - if loading from kubeconfig, all contexts are returned
 //   - if no credentials are loaded, returns an error

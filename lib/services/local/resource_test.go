@@ -22,7 +22,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jonboulle/clockwork"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/check.v1"
 
 	apidefaults "github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
@@ -30,9 +32,6 @@ import (
 	"github.com/gravitational/teleport/lib/backend/memory"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/services/suite"
-
-	"github.com/jonboulle/clockwork"
-	"gopkg.in/check.v1"
 )
 
 func Test(t *testing.T) { check.TestingT(t) }
