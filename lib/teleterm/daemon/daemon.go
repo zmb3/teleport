@@ -16,6 +16,8 @@ package daemon
 
 import (
 	"context"
+	prehogapi "github.com/gravitational/teleport/lib/prehog/gen/prehog/v1alpha"
+	"github.com/gravitational/teleport/lib/services/local"
 	"sync"
 
 	"github.com/gravitational/trace"
@@ -36,11 +38,19 @@ func New(cfg Config) (*Service, error) {
 
 	closeContext, cancel := context.WithCancel(context.Background())
 
+	usageReporter, err := NewConnectUsageReporter(closeContext)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	go usageReporter.Run()
+
 	return &Service{
-		cfg:          &cfg,
-		closeContext: closeContext,
-		cancel:       cancel,
-		gateways:     make(map[string]*gateway.Gateway),
+		cfg:           &cfg,
+		closeContext:  closeContext,
+		cancel:        cancel,
+		gateways:      make(map[string]*gateway.Gateway),
+		usageReporter: usageReporter,
 	}, nil
 }
 
@@ -130,6 +140,12 @@ func (s *Service) GetCluster(ctx context.Context, uri string) (*clusters.Cluster
 
 	cluster.Features = features
 
+	anonymizer, err := cluster.GetClusterAnonymizer(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	cluster.Anonymizer = anonymizer
 	return cluster, nil
 }
 
@@ -601,6 +617,7 @@ type Service struct {
 	// gets called. This lets other methods in Service assume that tshdEventsClient is available from
 	// the start, without having to perform nil checks.
 	tshdEventsClient api.TshdEventsServiceClient
+	usageReporter    *local.UsageReporter[prehogapi.ConnectSubmitEventRequest]
 }
 
 type CreateGatewayParams struct {

@@ -18,6 +18,7 @@ package clusters
 
 import (
 	"context"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
@@ -54,6 +55,8 @@ type Cluster struct {
 	// only present where the auth client can be queried
 	// and set with GetClusterFeatures
 	Features *proto.Features
+	//
+	Anonymizer utils.Anonymizer
 }
 
 // Connected indicates if connection to the cluster can be established
@@ -80,6 +83,31 @@ func (c *Cluster) GetClusterFeatures(ctx context.Context) (*proto.Features, erro
 	}
 
 	return authPingResponse.ServerFeatures, nil
+}
+
+func (c *Cluster) GetClusterAnonymizer(ctx context.Context) (utils.Anonymizer, error) {
+	var anonymizer utils.Anonymizer
+
+	err := addMetadataToRetryableError(ctx, func() error {
+		proxyClient, err := c.clusterClient.ConnectToProxy(ctx)
+		if err != nil {
+			return trace.Wrap(err)
+		}
+		defer proxyClient.Close()
+
+		clusterName, err := proxyClient.CurrentCluster().GetClusterName()
+		if err != nil {
+			return trace.Wrap(err)
+		}
+
+		anonymizer, err = utils.NewHMACAnonymizer(clusterName.GetClusterID())
+		return trace.Wrap(err)
+	})
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return anonymizer, nil
 }
 
 // GetRoles returns currently logged-in user roles

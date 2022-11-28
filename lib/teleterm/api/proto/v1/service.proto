@@ -124,6 +124,39 @@ service TerminalService {
   rpc Logout(LogoutRequest) returns (EmptyResponse);
   // TransferFile sends a request to download/upload a file
   rpc TransferFile(FileTransferRequest) returns (stream FileTransferProgress);
+  // dsf
+  rpc ReportEvent(ReportEventRequest) returns (EventReportedResponse);
+}
+
+message ReportEventRequest {
+  string distinct_id = 1;
+  ConnectUsageEventOneOf event = 2;
+}
+
+message EventReportedResponse {}
+
+message LoginEvent {
+  string cluster_uri = 1;
+  string cluster_name = 2;
+  string user_name = 3;
+  string os = 4;
+  string arch = 5;
+  string os_version = 6;
+  string connect_version = 7;
+}
+
+message ConnectToProtocolEvent {
+  string cluster_uri = 1;
+  string cluster_name = 2;
+  string user_name = 3;
+  string protocol = 4;
+}
+
+message ConnectUsageEventOneOf {
+  oneof event {
+    LoginEvent login_event = 1;
+    ConnectToProtocolEvent connect_to_protocol_event = 2;
+  }
 }
 
 message EmptyResponse {}
