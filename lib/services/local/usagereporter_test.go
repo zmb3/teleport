@@ -172,7 +172,7 @@ func TestUsageReporterTimeSubmit(t *testing.T) {
 
 	// Create a few events, bot not enough to exceed minBatchSize.
 	events := createDummyEvents(0, 2)
-	require.NoError(t, reporter.SubmitAnonymizedUsageEvents(events...))
+	require.NoError(t, reporter.AddEventToQueue(events...))
 
 	// Advance a bit, but not enough to trigger a time-based submission.
 	fakeClock.Advance(usageReporterSubmitDelay / 2)
@@ -208,7 +208,7 @@ func TestUsageReporterBatchSubmit(t *testing.T) {
 
 	// Create enough events to fill a batch and then some.
 	events := createDummyEvents(0, 10)
-	require.NoError(t, reporter.SubmitAnonymizedUsageEvents(events...))
+	require.NoError(t, reporter.AddEventToQueue(events...))
 
 	// Receive the first batch.
 	select {
@@ -221,7 +221,7 @@ func TestUsageReporterBatchSubmit(t *testing.T) {
 
 	// Submit an extra event to trigger an early send
 	extra := createDummyEvents(9, 1)
-	require.NoError(t, reporter.SubmitAnonymizedUsageEvents(extra...))
+	require.NoError(t, reporter.AddEventToQueue(extra...))
 	events = append(events, extra...)
 
 	// Make sure the minimum delay is enforced for the subsequent batch.
@@ -274,7 +274,7 @@ func TestUsageReporterDiscard(t *testing.T) {
 
 	// Create enough events to fill the buffer and then some.
 	events := createDummyEvents(0, 12)
-	require.NoError(t, reporter.SubmitAnonymizedUsageEvents(events...))
+	require.NoError(t, reporter.AddEventToQueue(events...))
 
 	// Receive the first batch.
 	select {
@@ -320,7 +320,7 @@ func TestUsageReporterErrorReenqueue(t *testing.T) {
 
 	// Create enough events to fill the buffer and then some.
 	events := createDummyEvents(0, 10)
-	require.NoError(t, reporter.SubmitAnonymizedUsageEvents(events...))
+	require.NoError(t, reporter.AddEventToQueue(events...))
 
 	// Receive the first batch.
 	select {

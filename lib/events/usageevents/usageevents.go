@@ -18,7 +18,6 @@ package usageevents
 
 import (
 	"context"
-
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
@@ -39,7 +38,7 @@ type UsageLogger struct {
 	inner events.IAuditLog
 
 	// reporter is a usage reporter, where filtered audit events will be sent
-	reporter services.UsageReporter
+	reporter *services.TeleportUsageReporter
 }
 
 // report submits a usage event, but silently ignores events if no reporter is
@@ -107,7 +106,7 @@ func (u *UsageLogger) EmitAuditEvent(ctx context.Context, event apievents.AuditE
 // New creates a new usage event IAuditLog impl, which wraps another IAuditLog
 // impl and forwards a subset of audit log events to the cluster UsageReporter
 // service.
-func New(reporter services.UsageReporter, inner events.IAuditLog) (*UsageLogger, error) {
+func New(reporter *services.TeleportUsageReporter, inner events.IAuditLog) (*UsageLogger, error) {
 	l := log.WithFields(log.Fields{
 		trace.Component: teleport.Component(teleport.ComponentUsageReporting),
 	})
