@@ -283,6 +283,9 @@ const (
 	// KindHostCert, this kind is not backed by a real resource.
 	KindUsageEvent = "usage_event"
 
+	// V6 is the sixth version of resources.
+	V6 = "v6"
+
 	// V5 is the fifth version of resources.
 	V5 = "v5"
 

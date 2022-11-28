@@ -22,6 +22,7 @@ import (
 
 	"github.com/gravitational/trace"
 	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -30,6 +31,7 @@ import (
 
 	"github.com/gravitational/teleport/api/types"
 	resourcesv5 "github.com/gravitational/teleport/operator/apis/resources/v5"
+	resourcesv6 "github.com/gravitational/teleport/operator/apis/resources/v6"
 	"github.com/gravitational/teleport/operator/sidecar"
 )
 
@@ -39,9 +41,15 @@ const teleportRoleKind = "TeleportRole"
 // This means we'll have to move back to a statically typed client.
 // This will require removing the crdgen hack, fixing TeleportRole JSON serialization
 
-var teleportRoleGVK = schema.GroupVersionKind{
+var teleportRoleGVKV5 = schema.GroupVersionKind{
 	Group:   resourcesv5.GroupVersion.Group,
 	Version: resourcesv5.GroupVersion.Version,
+	Kind:    teleportRoleKind,
+}
+
+var teleportRoleGVKV6 = schema.GroupVersionKind{
+	Group:   resourcesv6.GroupVersion.Group,
+	Version: resourcesv6.GroupVersion.Version,
 	Kind:    teleportRoleKind,
 }
 
@@ -67,7 +75,8 @@ func (r *RoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// To handle this more gracefully we unmarshall first in an unstructured object.
 	// The unstructured object will be converted later to a typed one, in r.UpsertExternal.
 	// See `/operator/crdgen/schemagen.go` and https://github.com/gravitational/teleport/issues/15204 for context.
-	obj := getUnstructuredObjectFromGVK(teleportRoleGVK)
+	// TODO: (Check how to handle multiple versions)
+	obj := getUnstructuredObjectFromGVK(teleportRoleGVKV5)
 	return ResourceBaseReconciler{
 		Client:         r.Client,
 		DeleteExternal: r.Delete,
@@ -82,7 +91,8 @@ func (r *RoleReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	// To handle this more gracefully we unmarshall first in an unstructured object.
 	// The unstructured object will be converted later to a typed one, in r.UpsertExternal.
 	// See `/operator/crdgen/schemagen.go` and https://github.com/gravitational/teleport/issues/15204 for context
-	obj := getUnstructuredObjectFromGVK(teleportRoleGVK)
+	// TODO: (Check how to handle multiple versions)
+	obj := getUnstructuredObjectFromGVK(teleportRoleGVKV5)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(obj).
 		Complete(r)
@@ -102,7 +112,17 @@ func (r *RoleReconciler) Upsert(ctx context.Context, obj kclient.Object) error {
 	if !ok {
 		return fmt.Errorf("failed to convert Object into resource object: %T", obj)
 	}
-	k8sResource := &resourcesv5.TeleportRole{}
+	var k8sResource roleResource
+	switch u.GetAPIVersion() {
+	case getAPIVersion(teleportRoleGVKV5):
+		k8sResource = &resourcesv5.TeleportRole{}
+	case getAPIVersion(teleportRoleGVKV6):
+		k8sResource = &resourcesv6.TeleportRole{}
+	default:
+		return fmt.Errorf("unknown API version: %s", u.GetAPIVersion())
+	}
+
+	fmt.Println(u.GetAPIVersion())
 
 	// If an error happens we want to put it in status.conditions before returning.
 	err := runtime.DefaultUnstructuredConverter.FromUnstructuredWithValidation(
@@ -110,7 +130,7 @@ func (r *RoleReconciler) Upsert(ctx context.Context, obj kclient.Object) error {
 		k8sResource, true, /* returnUnknownFields */
 	)
 	newStructureCondition := getStructureConditionFromError(err)
-	meta.SetStatusCondition(&k8sResource.Status.Conditions, newStructureCondition)
+	meta.SetStatusCondition(k8sResource.StatusConditions(), newStructureCondition)
 	if err != nil {
 		silentUpdateStatus(ctx, r.Client, k8sResource)
 		return trace.Wrap(err)
@@ -131,7 +151,7 @@ func (r *RoleReconciler) Upsert(ctx context.Context, obj kclient.Object) error {
 	}
 
 	newOwnershipCondition, isOwned := checkOwnership(existingResource)
-	meta.SetStatusCondition(&k8sResource.Status.Conditions, newOwnershipCondition)
+	meta.SetStatusCondition(k8sResource.StatusConditions(), newOwnershipCondition)
 	if !isOwned {
 		silentUpdateStatus(ctx, r.Client, k8sResource)
 		return trace.AlreadyExists("unowned resource '%s' already exists", existingResource.GetName())
@@ -142,7 +162,7 @@ func (r *RoleReconciler) Upsert(ctx context.Context, obj kclient.Object) error {
 	// If an error happens we want to put it in status.conditions before returning.
 	err = teleportClient.UpsertRole(ctx, teleportResource)
 	newReconciliationCondition := getReconciliationConditionFromError(err)
-	meta.SetStatusCondition(&k8sResource.Status.Conditions, newReconciliationCondition)
+	meta.SetStatusCondition(k8sResource.StatusConditions(), newReconciliationCondition)
 	if err != nil {
 		silentUpdateStatus(ctx, r.Client, k8sResource)
 		return trace.Wrap(err)
@@ -165,4 +185,15 @@ func getUnstructuredObjectFromGVK(gvk schema.GroupVersionKind) *unstructured.Uns
 	obj := unstructured.Unstructured{}
 	obj.SetGroupVersionKind(gvk)
 	return &obj
+}
+
+func getAPIVersion(schema schema.GroupVersionKind) string {
+	apiVersion, _ := schema.ToAPIVersionAndKind()
+	return apiVersion
+}
+
+type roleResource interface {
+	kclient.Object
+	ToTeleport() types.Role
+	StatusConditions() *[]metav1.Condition
 }

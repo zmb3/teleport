@@ -1011,7 +1011,7 @@ func TestSAMLConnectorCRUDEventsEmitted(t *testing.T) {
 	require.NoError(t, err)
 
 	// SAML connector validation requires the roles in mappings exist.
-	role, err := types.NewRole("dummy", types.RoleSpecV5{})
+	role, err := types.NewRole("dummy", types.RoleSpecV6{})
 	require.NoError(t, err)
 	err = s.a.CreateRole(ctx, role)
 	require.NoError(t, err)
@@ -2082,5 +2082,4 @@ func TestInstallerCRUD(t *testing.T) {
 	_, err = s.a.GetInstaller(ctx, installers.InstallerScriptName)
 	require.Error(t, err)
 	require.True(t, trace.IsNotFound(err))
-
 }

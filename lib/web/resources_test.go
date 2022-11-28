@@ -121,6 +121,8 @@ spec:
       '*': '*'
     kubernetes_labels:
       '*': '*'
+    kubernetes_pods:
+    - '*/*'
     logins:
     - test
     node_labels:
@@ -144,15 +146,15 @@ spec:
     ssh_file_copy: true
 version: v3
 `
-	role, err := types.NewRoleV3("roleName", types.RoleSpecV5{
+	role, err := types.NewRoleV3("roleName", types.RoleSpecV6{
 		Allow: types.RoleConditions{
 			Logins: []string{"test"},
 		},
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	item, err := ui.NewResourceItem(role)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, &ui.ResourceItem{
 		ID:      "role:roleName",
 		Kind:    types.KindRole,
@@ -189,7 +191,7 @@ func TestGetRoles(t *testing.T) {
 	m := &mockedResourceAPIGetter{}
 
 	m.mockGetRoles = func(ctx context.Context) ([]types.Role, error) {
-		role, err := types.NewRoleV3("test", types.RoleSpecV5{
+		role, err := types.NewRoleV3("test", types.RoleSpecV6{
 			Allow: types.RoleConditions{
 				Logins: []string{"test"},
 			},
