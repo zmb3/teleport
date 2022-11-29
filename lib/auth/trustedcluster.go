@@ -305,11 +305,9 @@ func (a *Server) addCertAuthorities(trustedCluster types.TrustedCluster, remoteC
 		remoteCertAuthority.SetName(trustedCluster.GetName())
 
 		// wipe out roles sent from the remote cluster and set roles from the trusted cluster
+		// TODO(zmb3) double check this
 		remoteCertAuthority.SetRoles(nil)
 		if remoteCertAuthority.GetType() == types.UserCA {
-			for _, r := range trustedCluster.GetRoles() {
-				remoteCertAuthority.AddRole(r)
-			}
 			remoteCertAuthority.SetRoleMap(trustedCluster.GetRoleMap())
 		}
 

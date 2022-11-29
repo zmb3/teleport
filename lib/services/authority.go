@@ -83,6 +83,7 @@ func checkUserOrHostCA(cai types.CertAuthority) error {
 		return trace.Wrap(err)
 	}
 	// This is to force users to migrate
+	// TODO(zmb3): double check this
 	if len(ca.GetRoles()) != 0 && len(ca.GetRoleMap()) != 0 {
 		return trace.BadParameter("should set either 'roles' or 'role_map', not both")
 	}

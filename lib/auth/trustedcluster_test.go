@@ -178,7 +178,14 @@ func TestValidateTrustedCluster(t *testing.T) {
 
 	t.Run("wrong remote CA name", func(t *testing.T) {
 		trustedCluster, err := types.NewTrustedCluster("trustedcluster",
-			types.TrustedClusterSpecV2{Roles: []string{"nonempty"}})
+			types.TrustedClusterSpecV2{
+				RoleMap: []types.RoleMapping{
+					{
+						Remote: types.Wildcard,
+						Local:  []string{"admin"},
+					},
+				},
+			})
 		require.NoError(t, err)
 		// use the UpsertTrustedCluster in Uncached as we just want the resource
 		// in the backend, we don't want to actually connect
@@ -313,8 +320,16 @@ func TestRemoteDBCAMigration(t *testing.T) {
 	require.NoError(t, err)
 	a := testAuth.AuthServer
 
-	trustedCluster, err := types.NewTrustedCluster(remoteClusterName,
-		types.TrustedClusterSpecV2{Roles: []string{"nonempty"}})
+	trustedCluster, err := types.NewTrustedCluster(
+		remoteClusterName,
+		types.TrustedClusterSpecV2{
+			RoleMap: []types.RoleMapping{
+				{
+					Remote: types.Wildcard,
+					Local:  []string{"admin"},
+				},
+			},
+		})
 	require.NoError(t, err)
 	// use the UpsertTrustedCluster in Uncached as we just want the resource in
 	// the backend, we don't want to actually connect

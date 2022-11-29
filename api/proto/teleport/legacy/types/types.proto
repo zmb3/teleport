@@ -3803,8 +3803,9 @@ message TrustedClusterSpecV2 {
   // Setting Enabled to false has a side effect of deleting the user and host certificate
   // authority (CA).
   bool Enabled = 1 [(gogoproto.jsontag) = "enabled"];
-  // Roles is a list of roles that users will be assuming when connecting to this cluster.
-  repeated string Roles = 2 [(gogoproto.jsontag) = "roles,omitempty"];
+
+  reserved 2; // repeated string Roles - deprecated in favor of RoleMap
+
   // Token is the authorization token provided by another cluster needed by this cluster to join.
   string Token = 3 [(gogoproto.jsontag) = "token"];
   // ProxyAddress is the address of the web proxy server of the cluster to join. If not set,

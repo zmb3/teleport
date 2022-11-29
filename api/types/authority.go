@@ -52,9 +52,6 @@ type CertAuthority interface {
 	GetTrustedTLSKeyPairs() []*TLSKeyPair
 	GetTrustedJWTKeyPairs() []*JWTKeyPair
 
-	// CombinedMapping is used to specify combined mapping from legacy property Roles
-	// and new property RoleMap
-	CombinedMapping() RoleMap
 	// GetRoleMap returns role map property
 	GetRoleMap() RoleMap
 	// SetRoleMap sets role map
@@ -222,15 +219,6 @@ func (ca *CertAuthorityV2) GetRoles() []string {
 // SetRoles sets assigned roles for this certificate authority
 func (ca *CertAuthorityV2) SetRoles(roles []string) {
 	ca.Spec.Roles = roles
-}
-
-// CombinedMapping is used to specify combined mapping from legacy property Roles
-// and new property RoleMap
-func (ca *CertAuthorityV2) CombinedMapping() RoleMap {
-	if len(ca.Spec.Roles) != 0 {
-		return RoleMap([]RoleMapping{{Remote: Wildcard, Local: ca.Spec.Roles}})
-	}
-	return RoleMap(ca.Spec.RoleMap)
 }
 
 // GetRoleMap returns role map property
