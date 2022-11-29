@@ -112,6 +112,13 @@ provides packages for.
 To run commands, the agent's service principal will require the
 `Microsoft.Compute/virtualMachines/runCommand/action` permission.
 
+#### Join method
+
+Teleport does not currenty have an Azure equivalent of EC2/IAM node join, so
+agent installation will use the `token` join method. This means that the
+discovery service will require permission to create tokens. Once Azure join is
+implemented, Azure auto-joining should be updated to use it.
+
 #### Action vs Managed run commands
 
 Azure virtual machines can run scripts via either [Action Run Commands](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/run-command)
