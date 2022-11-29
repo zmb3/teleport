@@ -142,7 +142,12 @@ new /etc/teleport.yaml file:
 teleport node configure
     --auth-server=auth-server.example.com [auth server that is being connected to]
     --token="$1" # passed via parameter from run-command
-    --labels="teleport.dev/subscriptionId=${SUBSCRIPTION},teleport.dev/resource-group=${RESOURCE_GROUP},teleport.dev/region=${REGION}" # sourced from instance metadata
+    --labels="teleport.dev/subscriptionId=${SUBSCRIPTION},\
+    teleport.dev/resource-group=${RESOURCE_GROUP},\
+    teleport.dev/region=${REGION},\
+    teleport.dev/discovered-node=yes,\
+    teleport.dev/discovered-by=$2,\
+    teleport.dev/origin=cloud" # sourced from instance metadata
 ```
 
 This will generate a file with the following contents:
