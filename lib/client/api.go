@@ -952,6 +952,12 @@ func NewClient(c *Config) (tc *TeleportClient, err error) {
 		Insecure:   c.InsecureSkipVerify,
 		Site:       tc.SiteName,
 		LoadAllCAs: tc.LoadAllCAs,
+		KeyringOpts: []KeyringOpt{
+			WithSignExtension(),
+			WithListProfilesExtension(c.KeyStore),
+			WithListKeysExtension(c.KeyStore),
+			WithAddMFAExtension(context.TODO(), tc),
+		},
 	}
 
 	if c.KeyStore == nil {

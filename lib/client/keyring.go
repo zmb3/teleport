@@ -6,10 +6,12 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/subtle"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -19,6 +21,27 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
+
+	"github.com/gravitational/teleport/api/client/proto"
+	"github.com/gravitational/teleport/api/profile"
+	"github.com/gravitational/teleport/lib/auth"
+)
+
+const (
+	agentExtensionSign = "sign@goteleport.com"
+	// list-profiles@goteleport.com extension returns a list of active
+	// Teleport client profiles available to the Teleport key agent.
+	agentExtensionListProfiles = "list-profiles@goteleport.com"
+	// list-keys@goteleport.com extension returns a list of Teleport client
+	// keys for each Teleport agent key loaded into the current agent.
+	agentExtensionListKeys = "list-keys@goteleport.com"
+	// add-mfa-key@goteleport.com extension adds a new agent key with a
+	// mfa verified ssh certificate.
+	agentExtensionAddMFAKey = "add-mfa-key@goteleport.com"
+
+	// Used to indicate that the salt length will be set during signing to the largest
+	// value possible. This salt length can then be auto-detected during verification.
+	saltLengthAuto = "auto"
 )
 
 type privKey struct {
@@ -34,6 +57,8 @@ type keyring struct {
 
 	locked     bool
 	passphrase []byte
+
+	extensionHandlers map[string]extensionHandler
 }
 
 var (
@@ -43,9 +68,25 @@ var (
 
 // NewKeyring returns an Agent that holds keys in memory.  It is safe
 // for concurrent use by multiple goroutines.
-func NewKeyring() agent.Agent {
-	return &keyring{}
+func NewKeyring(opts ...KeyringOpt) (agent.ExtendedAgent, error) {
+	if len(opts) == 0 {
+		// If no extensions were requested, return the standard agent keyring.
+		keyring, ok := agent.NewKeyring().(agent.ExtendedAgent)
+		if !ok {
+			return nil, trace.Errorf("unexpected keyring type: %T, expected agent.ExtendedKeyring", keyring)
+		}
+		return keyring, nil
+	}
+	keyring := &keyring{
+		extensionHandlers: make(map[string]extensionHandler),
+	}
+	for _, opt := range opts {
+		opt(keyring)
+	}
+	return keyring, nil
 }
+
+type KeyringOpt func(r *keyring)
 
 // RemoveAll removes all identities.
 func (r *keyring) RemoveAll() error {
@@ -250,27 +291,42 @@ func (r *keyring) Signers() ([]ssh.Signer, error) {
 	return s, nil
 }
 
-// Sign returns a signature for the digest.
-func (r *keyring) SignExtension(key ssh.PublicKey, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if r.locked {
-		return nil, errLocked
+// The keyring may support extensions provided through KeyringOpts on creation.
+func (r *keyring) Extension(extensionType string, contents []byte) ([]byte, error) {
+	if handler, ok := r.extensionHandlers[extensionType]; ok {
+		return handler(contents)
 	}
-
-	r.expireKeysLocked()
-	wanted := key.Marshal()
-	for _, k := range r.keys {
-		if bytes.Equal(k.signer.PublicKey().Marshal(), wanted) {
-			return k.cryptoSigner.Sign(rand.Reader, digest, opts)
-		}
-	}
-	return nil, errNotFound
+	return nil, agent.ErrExtensionUnsupported
 }
 
-func (r *keyring) Extension(extensionType string, contents []byte) ([]byte, error) {
-	switch extensionType {
-	case agentExtensionSign:
+type extensionHandler func(contents []byte) ([]byte, error)
+
+func WithSignExtension() KeyringOpt {
+	return func(r *keyring) {
+		r.extensionHandlers[agentExtensionSign] = signExtensionHandler(r)
+	}
+}
+
+func WithListProfilesExtension(s KeyStore) KeyringOpt {
+	return func(r *keyring) {
+		r.extensionHandlers[agentExtensionListProfiles] = listProfilesExtensionHandler(s)
+	}
+}
+
+func WithListKeysExtension(s KeyStore) KeyringOpt {
+	return func(r *keyring) {
+		r.extensionHandlers[agentExtensionListKeys] = listKeysExtensionHandler(s, r)
+	}
+}
+
+func WithAddMFAExtension(ctx context.Context, tc *TeleportClient) KeyringOpt {
+	return func(r *keyring) {
+		r.extensionHandlers[agentExtensionAddMFAKey] = addMFAKeyExtensionHandler(ctx, tc, r)
+	}
+}
+
+func signExtensionHandler(r *keyring) extensionHandler {
+	return func(contents []byte) ([]byte, error) {
 		var req signExtensionRequest
 		if err := ssh.Unmarshal(contents, &req); err != nil {
 			return nil, trace.Wrap(err)
@@ -296,7 +352,7 @@ func (r *keyring) Extension(extensionType string, contents []byte) ([]byte, erro
 			signerOpts = pssOpts
 		}
 
-		signature, err := r.SignExtension(sshPub, req.Digest, signerOpts)
+		signature, err := r.signExtension(sshPub, req.Digest, signerOpts)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
@@ -305,18 +361,167 @@ func (r *keyring) Extension(extensionType string, contents []byte) ([]byte, erro
 			Format: sshPub.Type(),
 			Blob:   signature,
 		}), nil
-	default:
-		return nil, agent.ErrExtensionUnsupported
 	}
 }
 
-const agentExtensionSign = "sign@goteleport.com"
+func (r *keyring) signExtension(key ssh.PublicKey, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.locked {
+		return nil, errLocked
+	}
+
+	r.expireKeysLocked()
+	wanted := key.Marshal()
+	for _, k := range r.keys {
+		if bytes.Equal(k.signer.PublicKey().Marshal(), wanted) {
+			return k.cryptoSigner.Sign(rand.Reader, digest, opts)
+		}
+	}
+	return nil, errNotFound
+}
 
 type signExtensionRequest struct {
 	KeyBlob    []byte
 	Digest     []byte
 	HashName   string
 	SaltLength string
+}
+
+type listProfilesResponse struct {
+	CurrentProfileName string
+	ProfilesBlob       []byte
+}
+
+func listProfilesExtensionHandler(s KeyStore) extensionHandler {
+	return func(contents []byte) ([]byte, error) {
+		current, err := s.CurrentProfile()
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		profileNames, err := s.ListProfiles()
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		var profiles []*profile.Profile
+		for _, profileName := range profileNames {
+			profile, err := s.GetProfile(profileName)
+			if err != nil {
+				return nil, trace.Wrap(err)
+			}
+			profiles = append(profiles, profile)
+		}
+
+		profilesBlob, err := json.Marshal(profiles)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		return ssh.Marshal(listProfilesResponse{
+			CurrentProfileName: current,
+			ProfilesBlob:       profilesBlob,
+		}), nil
+	}
+}
+
+type listKeysRequest struct {
+	KeyIndex KeyIndex
+}
+
+type listKeysResponse struct {
+	KnownHosts []byte
+	KeysBlob   []byte
+}
+
+type forwardedKey struct {
+	KeyIndex
+	SSHCertificate []byte
+	TLSCertificate []byte
+	// TODO: Just get TLS certs?
+	TrustedCerts []auth.TrustedCerts
+}
+
+func listKeysExtensionHandler(s KeyStore, r *keyring) extensionHandler {
+	return func(contents []byte) ([]byte, error) {
+		// var req listKeysRequest
+		// if err := ssh.Unmarshal(contents, &req); err != nil {
+		// 	return nil, trace.Wrap(err)
+		// }
+
+		agentKeys, err := GetTeleportAgentKeys(r, KeyIndex{})
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		var keys []forwardedKey
+		for _, agentKey := range agentKeys {
+			idx, _ := parseTeleportAgentKeyComment(agentKey.Comment)
+			key, err := s.GetKey(idx, WithSSHCerts{})
+			if trace.IsNotFound(err) {
+				// the key is for a different proxy/user and cannot
+				// be loaded with the current local agent.
+				// TODO: allow the key agent to load other keys?
+				continue
+			} else if err != nil {
+				return nil, trace.Wrap(err)
+			}
+
+			keys = append(keys, forwardedKey{
+				KeyIndex:       key.KeyIndex,
+				SSHCertificate: key.Cert,
+				TLSCertificate: key.TLSCert,
+				TrustedCerts:   key.TrustedCA,
+			})
+		}
+
+		knownHosts, err := s.GetKnownHostsFile()
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		keysBlob, err := json.Marshal(keys)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		return ssh.Marshal(listKeysResponse{
+			KnownHosts: knownHosts,
+			KeysBlob:   keysBlob,
+		}), nil
+	}
+}
+
+type addMFAKeyRequest struct {
+	Cluster  string
+	NodeName string
+}
+
+func addMFAKeyExtensionHandler(ctx context.Context, tc *TeleportClient, r *keyring) extensionHandler {
+	return func(contents []byte) ([]byte, error) {
+		var req addMFAKeyRequest
+		if err := ssh.Unmarshal(contents, &req); err != nil {
+			return nil, trace.Wrap(err)
+		}
+		params := ReissueParams{
+			RouteToCluster: req.Cluster,
+			NodeName:       req.NodeName,
+			MFACheck:       &proto.IsMFARequiredResponse{Required: true},
+		}
+		key, err := tc.IssueUserCertsWithMFA(ctx, params, nil)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		agentKey, err := key.AsAgentKey()
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		// Discard the MFA key after 1 minute.
+		agentKey.LifetimeSecs = 60
+		err = r.Add(agentKey)
+		return nil, trace.Wrap(err)
+	}
 }
 
 func SignExtension(agent agent.ExtendedAgent, pub ssh.PublicKey, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
@@ -346,9 +551,44 @@ func SignExtension(agent agent.ExtendedAgent, pub ssh.PublicKey, digest []byte, 
 	return resp.Blob, nil
 }
 
-// Used to indicate that the salt length will be set during signing to the largest
-// value possible. This salt length can then be auto-detected during verification.
-const saltLengthAuto = "auto"
+func ListProfilesExtension(agent agent.ExtendedAgent) (currentProfile string, profiles []*profile.Profile, err error) {
+	respBlob, err := agent.Extension(agentExtensionListProfiles, nil)
+	if err != nil {
+		return "", nil, trace.Wrap(err)
+	}
+	var resp listProfilesResponse
+	if err := ssh.Unmarshal(respBlob, &resp); err != nil {
+		return "", nil, trace.Wrap(err)
+	}
+	if err := json.Unmarshal(resp.ProfilesBlob, &profiles); err != nil {
+		return "", nil, trace.Wrap(err)
+	}
+	return resp.CurrentProfileName, profiles, nil
+}
+
+func ListKeysExtension(agent agent.ExtendedAgent) (knownHosts []byte, keys []forwardedKey, err error) {
+	respBlob, err := agent.Extension(agentExtensionListKeys, nil)
+	if err != nil {
+		return nil, nil, trace.Wrap(err)
+	}
+	var resp listKeysResponse
+	if err := ssh.Unmarshal(respBlob, &resp); err != nil {
+		return nil, nil, trace.Wrap(err)
+	}
+	if err := json.Unmarshal(resp.KeysBlob, &keys); err != nil {
+		return nil, nil, trace.Wrap(err)
+	}
+	return resp.KnownHosts, keys, nil
+}
+
+func AddMFAKeyExtension(agent agent.ExtendedAgent, cluster, nodeName string) error {
+	req := addMFAKeyRequest{
+		Cluster:  cluster,
+		NodeName: nodeName,
+	}
+	_, err := agent.Extension(agentExtensionAddMFAKey, ssh.Marshal(req))
+	return trace.Wrap(err)
+}
 
 // Returns the crypto.Hash for the given hash name, matching the
 // value returned by the hash's String method. Unknown hashes will
