@@ -956,7 +956,7 @@ func NewClient(c *Config) (tc *TeleportClient, err error) {
 			WithSignExtension(),
 			WithListProfilesExtension(c.KeyStore),
 			WithListKeysExtension(c.KeyStore),
-			WithAddMFAExtension(context.TODO(), tc),
+			WithPromptMFAChallengeExtension(tc),
 		},
 	}
 

@@ -110,6 +110,10 @@ func (tc *TeleportClient) PromptMFAChallenge(ctx context.Context, proxyAddr stri
 		applyOpts(opts)
 	}
 
+	if _, ok := tc.localAgent.keyStore.(*AgentRemoteKeyStore); ok {
+		return PromptMFAChallengeExtension(tc.localAgent.sshAgent, proxyAddr, c, applyOpts)
+	}
+
 	return promptMFAStandalone(ctx, c, addr, opts)
 }
 
