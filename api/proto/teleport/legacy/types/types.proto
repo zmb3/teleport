@@ -250,7 +250,30 @@ message DatabaseServerSpecV3 {
   repeated string ProxyIDs = 13 [(gogoproto.jsontag) = "proxy_ids,omitempty"];
 }
 
-// DatabaseV3List represents a list of databases.
+// DatabaseServiceV1 is the representation of a running Database Service (agent).
+// When a Database Service starts it will heartbeat itself to the cluster, which creates a DatabaseService entry.
+message DatabaseServiceV1 {
+  ResourceHeader Header = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "",
+    (gogoproto.embed) = true
+  ];
+  // Spec is the resource spec.
+  DatabaseServiceSpecV1 Spec = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "spec"
+  ];
+}
+
+// DatabaseServiceSpecV1 is the DatabaseService Spec.
+message DatabaseServiceSpecV1 {
+  // ResourceMatchers is the configured match for Database resources.
+  repeated wrappers.LabelValues ResourceMatchers = 1 [
+    (gogoproto.jsontag) = "resources",
+    (gogoproto.customtype) = "Labels"
+  ];
+}
+
 message DatabaseV3List {
   // Databases is a list of database resources.
   repeated DatabaseV3 Databases = 1;

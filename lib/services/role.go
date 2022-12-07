@@ -150,6 +150,7 @@ func RoleForUser(u types.User) types.Role {
 				types.NewRule(types.KindSessionRecordingConfig, RW()),
 				types.NewRule(types.KindApp, RW()),
 				types.NewRule(types.KindDatabase, RW()),
+				types.NewRule(types.KindDatabaseService, RO()),
 				types.NewRule(types.KindLock, RW()),
 				types.NewRule(types.KindToken, RW()),
 				types.NewRule(types.KindConnectionDiagnostic, RW()),
@@ -2007,6 +2008,7 @@ func (set RoleSet) checkAccess(r AccessCheckable, mfa AccessMFAParams, matchers 
 	additionalDeniedMessage := ""
 
 	var getRoleLabels func(types.Role, types.RoleConditionType) types.Labels
+
 	switch r.GetKind() {
 	case types.KindDatabase:
 		getRoleLabels = types.Role.GetDatabaseLabels
@@ -2024,6 +2026,8 @@ func (set RoleSet) checkAccess(r AccessCheckable, mfa AccessMFAParams, matchers 
 		additionalDeniedMessage = "Confirm Windows user."
 	case types.KindWindowsDesktopService:
 		getRoleLabels = types.Role.GetWindowsDesktopLabels
+	case types.KindDatabaseService:
+		getRoleLabels = types.Role.GetDatabaseLabels
 	default:
 		return trace.BadParameter("cannot match labels for kind %v", r.GetKind())
 	}

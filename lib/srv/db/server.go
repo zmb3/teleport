@@ -42,16 +42,19 @@ import (
 	"github.com/gravitational/teleport/lib/reversetunnel"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/srv"
+
 	// Import to register Cassandra engine.
 	_ "github.com/gravitational/teleport/lib/srv/db/cassandra"
 	"github.com/gravitational/teleport/lib/srv/db/cloud"
 	"github.com/gravitational/teleport/lib/srv/db/cloud/users"
 	"github.com/gravitational/teleport/lib/srv/db/common"
+
 	// Import to register Elasticsearch engine.
 	_ "github.com/gravitational/teleport/lib/srv/db/elasticsearch"
 	// Import to register MongoDB engine.
 	_ "github.com/gravitational/teleport/lib/srv/db/mongodb"
 	"github.com/gravitational/teleport/lib/srv/db/mysql"
+
 	// Import to register Postgres engine.
 	_ "github.com/gravitational/teleport/lib/srv/db/postgres"
 	// Import to register Snowflake engine.
@@ -252,6 +255,8 @@ type Server struct {
 	mu sync.RWMutex
 	// log is used for logging.
 	log *logrus.Entry
+	// serviceHearbeat is the DatabaseService's hearbeat
+	serviceHeartbeat *srv.Heartbeat
 }
 
 // monitoredDatabases is a collection of databases from different sources
@@ -638,11 +643,57 @@ func (s *Server) Start(ctx context.Context) (err error) {
 		return trace.Wrap(err)
 	}
 
+	// Start hearbeating the Database Service itself.
+	if err := s.heartbeatDatabaseService(); err != nil {
+		return trace.Wrap(err)
+	}
+
 	// If the agent doesn’t have any static databases configured, send a
 	// heartbeat without error to make the component “ready”.
 	if len(s.cfg.Databases) == 0 && s.cfg.OnHeartbeat != nil {
 		s.cfg.OnHeartbeat(nil)
 	}
+
+	return nil
+}
+
+func (s *Server) heartbeatDatabaseService() error {
+	getDatabaseServiceServerInfo := func() (types.Resource, error) {
+		resource, err := types.NewDatabaseServiceV1(types.Metadata{
+			Name:      s.cfg.HostID,
+			Namespace: apidefaults.Namespace,
+		}, types.DatabaseServiceSpecV1{
+			ResourceMatchers: services.ResourceMatchersToTypes(s.cfg.ResourceMatchers),
+		})
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		//fmt.Printf("callback to get server info\nresource='%q'\n\n", resource)
+
+		return resource, nil
+	}
+
+	heartbeat, err := srv.NewHeartbeat(srv.HeartbeatConfig{
+		Context:         s.closeContext,
+		Component:       teleport.ComponentDatabase,
+		Mode:            srv.HeartbeatModeDatabaseService,
+		Announcer:       s.cfg.AccessPoint,
+		GetServerInfo:   getDatabaseServiceServerInfo,
+		KeepAlivePeriod: apidefaults.ServerKeepAliveTTL(),
+		AnnouncePeriod:  apidefaults.ServerAnnounceTTL/2 + utils.RandomDuration(apidefaults.ServerAnnounceTTL/10),
+		CheckPeriod:     defaults.HeartbeatCheckPeriod,
+		ServerTTL:       apidefaults.ServerAnnounceTTL,
+		OnHeartbeat:     s.cfg.OnHeartbeat,
+	})
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	go heartbeat.Run()
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.serviceHeartbeat = heartbeat
 
 	return nil
 }

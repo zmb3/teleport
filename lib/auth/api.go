@@ -63,6 +63,9 @@ type Announcer interface {
 	// UpsertDatabaseServer registers a database proxy server.
 	UpsertDatabaseServer(context.Context, types.DatabaseServer) (*types.KeepAlive, error)
 
+	// UpsertDatabaseServer registers a database service.
+	UpsertDatabaseService(context.Context, types.DatabaseService) (*types.KeepAlive, error)
+
 	// UpsertWindowsDesktopService registers a Windows desktop service.
 	UpsertWindowsDesktopService(context.Context, types.WindowsDesktopService) (*types.KeepAlive, error)
 

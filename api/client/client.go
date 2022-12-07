@@ -1401,6 +1401,21 @@ func (c *Client) DeleteAllDatabaseServers(ctx context.Context, namespace string)
 	return nil
 }
 
+// UpsertDatabaseService creates or updates a new database service / agent.
+func (c *Client) UpsertDatabaseService(ctx context.Context, dbService types.DatabaseService) (*types.KeepAlive, error) {
+	s, ok := dbService.(*types.DatabaseServiceV1)
+	if !ok {
+		return nil, trace.BadParameter("invalid type %T", dbService)
+	}
+	keepAlive, err := c.grpc.UpsertDatabaseService(ctx, &proto.UpsertDatabaseServiceRequest{
+		Service: s,
+	}, c.callOpts...)
+	if err != nil {
+		return nil, trail.FromGRPC(err)
+	}
+	return keepAlive, nil
+}
+
 // SignDatabaseCSR generates a client certificate used by proxy when talking
 // to a remote database service.
 func (c *Client) SignDatabaseCSR(ctx context.Context, req *proto.DatabaseCSRRequest) (*proto.DatabaseCSRResponse, error) {
@@ -2673,6 +2688,8 @@ func (c *Client) ListResources(ctx context.Context, req proto.ListResourcesReque
 			resources[i] = respResource.GetKubeCluster()
 		case types.KindKubeServer:
 			resources[i] = respResource.GetKubernetesServer()
+		case types.KindDatabaseService:
+			resources[i] = respResource.GetDatabaseService()
 		default:
 			return nil, trace.NotImplemented("resource type %s does not support pagination", req.ResourceType)
 		}

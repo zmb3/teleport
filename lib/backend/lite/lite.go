@@ -22,11 +22,13 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
 	"runtime/debug"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -740,6 +742,15 @@ func (l *Backend) GetRange(ctx context.Context, startKey []byte, endKey []byte, 
 		}
 		defer q.Close()
 
+		if strings.Contains(string(startKey), "database") {
+			fmt.Printf("QUERY %q\nwith %s %s %v %v\n\n",
+				"SELECT key, value, expires, modified FROM kv WHERE (key >= ? and key <= ?) AND (expires is NULL or expires > ?) ORDER BY key LIMIT ?",
+				string(startKey),
+				string(endKey),
+				now,
+				limit,
+			)
+		}
 		rows, err := q.QueryContext(ctx, string(startKey), string(endKey), now, limit)
 		if err != nil {
 			return trace.Wrap(err)

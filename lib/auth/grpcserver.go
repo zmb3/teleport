@@ -1135,6 +1135,19 @@ func (g *GRPCServer) DeleteAllDatabaseServers(ctx context.Context, req *proto.De
 	return &emptypb.Empty{}, nil
 }
 
+// UpsertDatabaseService registers a new database service.
+func (g *GRPCServer) UpsertDatabaseService(ctx context.Context, req *proto.UpsertDatabaseServiceRequest) (*types.KeepAlive, error) {
+	auth, err := g.authenticate(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	keepAlive, err := auth.UpsertDatabaseService(ctx, req.GetService())
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	return keepAlive, nil
+}
+
 // SignDatabaseCSR generates a client certificate used by proxy when talking
 // to a remote database service.
 func (g *GRPCServer) SignDatabaseCSR(ctx context.Context, req *proto.DatabaseCSRRequest) (*proto.DatabaseCSRResponse, error) {
@@ -3801,6 +3814,13 @@ func (g *GRPCServer) ListResources(ctx context.Context, req *proto.ListResources
 			}
 
 			protoResource = &proto.PaginatedResource{Resource: &proto.PaginatedResource_DatabaseServer{DatabaseServer: database}}
+		case types.KindDatabaseService:
+			dbService, ok := resource.(*types.DatabaseServiceV1)
+			if !ok {
+				return nil, trace.BadParameter("database service has invalid type %T", resource)
+			}
+
+			protoResource = &proto.PaginatedResource{Resource: &proto.PaginatedResource_DatabaseService{DatabaseService: dbService}}
 		case types.KindAppServer:
 			app, ok := resource.(*types.AppServerV3)
 			if !ok {

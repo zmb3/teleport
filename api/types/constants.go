@@ -125,6 +125,9 @@ const (
 	// KindDatabase is a database resource.
 	KindDatabase = "db"
 
+	// KindDatabaseService is a database service resource.
+	KindDatabaseService = "db_service"
+
 	// KindKubeServer is an kubernetes server resource.
 	KindKubeServer = "kube_server"
 

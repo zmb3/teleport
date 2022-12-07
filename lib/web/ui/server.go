@@ -228,6 +228,33 @@ func MakeDatabases(databases []types.Database) []Database {
 	return uiServers
 }
 
+// DatabaseService describes a Database Service.
+type DatabaseService struct {
+	// Name is the name of the database.
+	Name string `json:"name"`
+	// ResourceMatchers is a list of resource matchers of the DatabaseService.
+	ResourceMatchers []types.Labels `json:"resource_matchers"`
+}
+
+// MakeDatabaseService creates Database Service object.
+func MakeDatabaseService(databaseService types.DatabaseService) DatabaseService {
+	return DatabaseService{
+		Name:             databaseService.GetName(),
+		ResourceMatchers: databaseService.GetResourceMatchers(),
+	}
+}
+
+// MakeDatabaseServices creates database service objects.
+func MakeDatabaseServices(databaseServices []types.DatabaseService) []DatabaseService {
+	dbServices := make([]DatabaseService, 0, len(databaseServices))
+	for _, database := range databaseServices {
+		db := MakeDatabaseService(database)
+		dbServices = append(dbServices, db)
+	}
+
+	return dbServices
+}
+
 // Desktop describes a desktop to pass to the ui.
 type Desktop struct {
 	// OS is the os of this desktop. Should be one of constants.WindowsOS, constants.LinuxOS, or constants.DarwinOS.

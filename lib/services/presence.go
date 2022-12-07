@@ -193,6 +193,9 @@ type Presence interface {
 	// DeleteAllDatabaseServers removes all database proxy servers.
 	DeleteAllDatabaseServers(context.Context, string) error
 
+	// UpsertDatabaseService creates or updates a new database service / agent.
+	UpsertDatabaseService(context.Context, types.DatabaseService) (*types.KeepAlive, error)
+
 	// KeepAliveServer updates TTL of the server resource in the backend.
 	KeepAliveServer(ctx context.Context, h types.KeepAlive) error
 

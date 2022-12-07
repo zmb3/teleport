@@ -86,7 +86,7 @@ type HeartbeatMode int
 // CheckAndSetDefaults checks values and sets defaults
 func (h HeartbeatMode) CheckAndSetDefaults() error {
 	switch h {
-	case HeartbeatModeNode, HeartbeatModeProxy, HeartbeatModeAuth, HeartbeatModeKube, HeartbeatModeApp, HeartbeatModeDB, HeartbeatModeWindowsDesktopService, HeartbeatModeWindowsDesktop:
+	case HeartbeatModeNode, HeartbeatModeProxy, HeartbeatModeAuth, HeartbeatModeKube, HeartbeatModeApp, HeartbeatModeDB, HeartbeatModeDatabaseService, HeartbeatModeWindowsDesktopService, HeartbeatModeWindowsDesktop:
 		return nil
 	default:
 		return trace.BadParameter("unrecognized mode")
@@ -108,6 +108,8 @@ func (h HeartbeatMode) String() string {
 		return "App"
 	case HeartbeatModeDB:
 		return "Database"
+	case HeartbeatModeDatabaseService:
+		return "DatabaseService"
 	case HeartbeatModeWindowsDesktopService:
 		return "WindowsDesktopService"
 	case HeartbeatModeWindowsDesktop:
@@ -133,6 +135,8 @@ const (
 	HeartbeatModeApp
 	// HeartbeatModeDB sets heatbeat to db
 	HeartbeatModeDB
+	// HeartbeatModeDatabaseService sets heatbeat mode to Database service.
+	HeartbeatModeDatabaseService
 	// HeartbeatModeWindowsDesktopService sets heatbeat mode to windows desktop
 	// service.
 	HeartbeatModeWindowsDesktopService
@@ -551,6 +555,21 @@ func (h *Heartbeat) announce() error {
 			if trace.IsAlreadyExists(err) {
 				err = h.Announcer.UpdateWindowsDesktop(h.cancelCtx, desktop)
 			}
+			if err != nil {
+				h.nextAnnounce = h.Clock.Now().UTC().Add(h.KeepAlivePeriod)
+				h.setState(HeartbeatStateAnnounceWait)
+				return trace.Wrap(err)
+			}
+			h.nextAnnounce = h.Clock.Now().UTC().Add(h.AnnouncePeriod)
+			h.notifySend()
+			h.setState(HeartbeatStateAnnounceWait)
+			return nil
+		case HeartbeatModeDatabaseService:
+			dbService, ok := h.current.(types.DatabaseService)
+			if !ok {
+				return trace.BadParameter("expected types.DatabaseService, got %#v", h.current)
+			}
+			_, err := h.Announcer.UpsertDatabaseService(h.cancelCtx, dbService)
 			if err != nil {
 				h.nextAnnounce = h.Clock.Now().UTC().Add(h.KeepAlivePeriod)
 				h.setState(HeartbeatStateAnnounceWait)

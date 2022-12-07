@@ -1255,6 +1255,36 @@ func (s *PresenceService) DeleteAllDatabaseServers(ctx context.Context, namespac
 	return s.DeleteRange(ctx, startKey, backend.RangeEnd(startKey))
 }
 
+// UpsertDatabaseService registers new database service.
+func (s *PresenceService) UpsertDatabaseService(ctx context.Context, service types.DatabaseService) (*types.KeepAlive, error) {
+	if err := service.CheckAndSetDefaults(); err != nil {
+		return nil, trace.Wrap(err)
+	}
+	value, err := services.MarshalDatabaseService(service)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	lease, err := s.Put(ctx, backend.Item{
+		Key:     backend.Key(dbServicesPrefix, service.GetName()),
+		Value:   value,
+		Expires: service.Expiry(),
+		ID:      service.GetResourceID(),
+	})
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	if service.Expiry().IsZero() {
+		return &types.KeepAlive{}, nil
+	}
+	return &types.KeepAlive{
+		Type:    types.KeepAlive_DATABASE,
+		LeaseID: lease.ID,
+		Name:    service.GetName(),
+		Expires: service.Expiry(),
+	}, nil
+}
+
 // GetApplicationServers returns all registered application servers.
 func (s *PresenceService) GetApplicationServers(ctx context.Context, namespace string) ([]types.AppServer, error) {
 	if namespace == "" {
@@ -1508,6 +1538,9 @@ func (s *PresenceService) listResources(ctx context.Context, req proto.ListResou
 	case types.KindDatabaseServer:
 		keyPrefix = []string{dbServersPrefix, req.Namespace}
 		unmarshalItemFunc = backendItemToDatabaseServer
+	case types.KindDatabaseService:
+		keyPrefix = []string{dbServicesPrefix}
+		unmarshalItemFunc = backendItemToDatabaseService
 	case types.KindAppServer:
 		keyPrefix = []string{appServersPrefix, req.Namespace}
 		unmarshalItemFunc = backendItemToApplicationServer
@@ -1727,6 +1760,16 @@ func backendItemToDatabaseServer(item backend.Item) (types.ResourceWithLabels, e
 	)
 }
 
+// backendItemToDatabaseService unmarshals `backend.Item` into a
+// `types.DatabaseService`, returning it as a `types.ResourceWithLabels`.
+func backendItemToDatabaseService(item backend.Item) (types.ResourceWithLabels, error) {
+	return services.UnmarshalDatabaseService(
+		item.Value,
+		services.WithResourceID(item.ID),
+		services.WithExpires(item.Expires),
+	)
+}
+
 // backendItemToApplicationServer unmarshals `backend.Item` into a
 // `types.AppServer`, returning it as a `types.ResourceWithLabels`.
 func backendItemToApplicationServer(item backend.Item) (types.ResourceWithLabels, error) {
@@ -1780,6 +1823,7 @@ const (
 	snowflakePrefix              = "snowflake"
 	serversPrefix                = "servers"
 	dbServersPrefix              = "databaseServers"
+	dbServicesPrefix             = "databaseServices"
 	appServersPrefix             = "appServers"
 	kubeServersPrefix            = "kubeServers"
 	namespacesPrefix             = "namespaces"
