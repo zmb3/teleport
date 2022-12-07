@@ -46,6 +46,54 @@ import (
 	"github.com/gravitational/teleport/lib/utils"
 )
 
+func TestAuthPOST(t *testing.T) {
+	const (
+		cookieValue = "5588e2be54a2834b4f152c56bafcd789f53b15477129d2ab4044e9a3c1bf0f3b"
+	)
+
+	fakeClock := clockwork.NewFakeClockAt(time.Date(2017, 05, 10, 18, 53, 0, 0, time.UTC))
+	tests := []struct {
+		desc          string
+		headers       map[string]string
+		outStatusCode int
+		cookieValue   string
+	}{
+		{
+			desc:          "success",
+			headers:       map[string]string{"Origin": "https://proxy.teleport.com", "X-Cookie-Value": cookieValue},
+			outStatusCode: http.StatusOK,
+			cookieValue:   cookieValue,
+		},
+		{
+			desc:          "wrong origin",
+			headers:       map[string]string{"Origin": "https://incorrect-origin.com", "X-Cookie-Value": cookieValue},
+			outStatusCode: http.StatusForbidden,
+			cookieValue:   "",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			proxyAddrs := []utils.NetAddr{
+				*utils.MustParseAddr("proxy.teleport.com:443"),
+			}
+			p := setup(t, fakeClock, mockAuthClient{}, nil, proxyAddrs)
+
+			res := p.makeRequestWithHeaders(t, "/x-teleport-auth", test.headers)
+			require.Equal(t, test.outStatusCode, res.StatusCode)
+
+			var cookieValue string
+			for _, cookie := range res.Cookies() {
+				if cookie.Name == "__Host-grv_app_session" {
+					cookieValue = cookie.Value
+				}
+			}
+
+			require.Equal(t, cookieValue, test.cookieValue)
+		})
+	}
+}
+
 func TestHasName(t *testing.T) {
 	for _, test := range []struct {
 		desc        string
@@ -156,7 +204,7 @@ func TestMatchApplicationServers(t *testing.T) {
 		server.Close()
 	})
 
-	p := setup(t, fakeClock, authClient, tunnel)
+	p := setup(t, fakeClock, authClient, tunnel, nil)
 	status, content := p.makeRequest(t, "GET", "/", CookieName, "abc", []byte{})
 	require.Equal(t, http.StatusOK, status)
 	// Remote site should receive only 4 connection requests: 3 from the
@@ -170,13 +218,14 @@ type testServer struct {
 	serverURL *url.URL
 }
 
-func setup(t *testing.T, clock clockwork.FakeClock, authClient auth.ClientI, proxyClient reversetunnel.Tunnel) *testServer {
+func setup(t *testing.T, clock clockwork.FakeClock, authClient auth.ClientI, proxyClient reversetunnel.Tunnel, proxyPublicAddrs []utils.NetAddr) *testServer {
 	appHandler, err := NewHandler(context.Background(), &HandlerConfig{
-		Clock:        clock,
-		AuthClient:   authClient,
-		AccessPoint:  authClient,
-		ProxyClient:  proxyClient,
-		CipherSuites: utils.DefaultCipherSuites(),
+		Clock:            clock,
+		AuthClient:       authClient,
+		AccessPoint:      authClient,
+		ProxyClient:      proxyClient,
+		CipherSuites:     utils.DefaultCipherSuites(),
+		ProxyPublicAddrs: proxyPublicAddrs,
 	})
 	require.NoError(t, err)
 
@@ -226,6 +275,38 @@ func (p *testServer) makeRequest(t *testing.T, method, endpoint, cookieName, coo
 
 	require.NoError(t, resp.Body.Close())
 	return resp.StatusCode, string(content)
+}
+
+func (p *testServer) makeRequestWithHeaders(t *testing.T, endpoint string, headers map[string]string) *http.Response {
+	u := url.URL{
+		Scheme: p.serverURL.Scheme,
+		Host:   p.serverURL.Host,
+		Path:   endpoint,
+	}
+	req, err := http.NewRequest(http.MethodPost, u.String(), nil)
+	require.NoError(t, err)
+
+	for key, value := range headers {
+		req.Header.Add(key, value)
+	}
+
+	// Issue request.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	require.NoError(t, resp.Body.Close())
+
+	return resp
 }
 
 type mockAuthClient struct {
