@@ -27,9 +27,8 @@ import (
 )
 
 // handleAuth handles authentication for an app
-// When a `POST` request comes in, it'll check the request's cookies for one matching the name of the value of
-// the `X-Cookie-Name` header. This cookie is set by the proxy and then passed on via the web UI setting the header,
-// If these match, it'll create the proper session cookie on the app's subdomain.
+// When a `POST` request comes in from a trusted proxy address, it'll set the value from the
+// `X-Cookie-Value` header to the `__Host-grv_app_session` cookie.
 func (h *Handler) handleAuth(w http.ResponseWriter, r *http.Request, p httprouter.Params) error {
 	httplib.SetNoCacheHeaders(w.Header())
 
