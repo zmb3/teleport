@@ -99,7 +99,7 @@ spec:
     echo "deb [signed-by=... stable main" | tee ... > /dev/null
     apt-get update
     apt-get install teleport
-    teleport node configure --auth-agent=...
+    teleport node configure --auth-agent=... --join-method=azure --token-name=azure-token
   # Any resource in Teleport can automatically expire.
   expires: 0001-01-01T00:00:00Z
 ```
@@ -114,10 +114,8 @@ To run commands, the agent's service principal will require the
 
 #### Join method
 
-Teleport does not currenty have an Azure equivalent of EC2/IAM node join, so
-agent installation will use the `token` join method. This means that the
-discovery service will require permission to create tokens. Once Azure join is
-implemented, Azure auto-joining should be updated to use it.
+Azure auto discovery will use the [Azure join method](https://github.com/gravitational/teleport/pull/19172)
+once it's implemented.
 
 #### Action vs Managed run commands
 
