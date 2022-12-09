@@ -2,13 +2,22 @@ name: Build on Windows
 run-name: Build on Windows
 
 on:
-  pull_request:
   push:
-  
+    branches:
+      - master
+  pull_request:
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '**.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+
 jobs:
   build:
     name: Build tsh tool on Windows
-    runs-on: windows-latest
+    runs-on: windows-2022-16core
 
     permissions:
       contents: read

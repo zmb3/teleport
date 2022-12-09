@@ -2,9 +2,18 @@ name: Build on Mac OS
 run-name: Build on Mac OS
 
 on:
-  pull_request:
   push:
-  
+    branches:
+      - master
+  pull_request:
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '**.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+
 jobs:
   build:
     name: Build all tools on Mac OS
