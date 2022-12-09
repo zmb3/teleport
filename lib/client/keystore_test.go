@@ -626,8 +626,9 @@ func TestMemLocalKeyStore(t *testing.T) {
 
 	// create keystore
 	dir := t.TempDir()
-	keystore, err := NewMemLocalKeyStore(dir)
+	fsLocalKeyStore, err := NewFSLocalKeyStore(dir)
 	require.NoError(t, err)
+	keystore := NewMemLocalKeyStore(fsLocalKeyStore)
 
 	// create a test key
 	idx := KeyIndex{"test.com", "test", "root"}
@@ -733,7 +734,7 @@ func TestAgentRemoteKeyStore(t *testing.T) {
 	}()
 
 	// Create a new agent remote key store
-	agentKeystore, err := NewAgentRemoteKeyStore(agentListenAddr)
+	agentKeystore, err := NewMemLocalKeyStoreFromAgent(agentListenAddr)
 	require.NoError(t, err)
 
 	// check that the local key exists in the remote store

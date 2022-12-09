@@ -954,8 +954,7 @@ func NewClient(c *Config) (tc *TeleportClient, err error) {
 		LoadAllCAs: tc.LoadAllCAs,
 		KeyringOpts: []KeyringOpt{
 			WithSignExtension(),
-			WithListProfilesExtension(c.KeyStore),
-			WithListKeysExtension(c.KeyStore),
+			WithKeyExtension(c.KeyStore),
 			WithPromptMFAChallengeExtension(tc),
 		},
 	}
@@ -968,15 +967,16 @@ func NewClient(c *Config) (tc *TeleportClient, err error) {
 				return nil, trace.BadParameter("SkipLocalAuth is true but no AuthMethods provided")
 			}
 			localAgentCfg.Keystore = noLocalKeyStore{}
-		} else if c.AddKeysToAgent == AddKeysToAgentOnly {
-			localAgentCfg.Keystore, err = NewMemLocalKeyStore(c.KeysDir)
+		} else {
+			fsLocalKeyStore, err := NewFSLocalKeyStore(c.KeysDir)
 			if err != nil {
 				return nil, trace.Wrap(err)
 			}
-		} else {
-			localAgentCfg.Keystore, err = NewFSLocalKeyStore(c.KeysDir)
-			if err != nil {
-				return nil, trace.Wrap(err)
+
+			if c.AddKeysToAgent == AddKeysToAgentOnly {
+				localAgentCfg.Keystore = NewMemLocalKeyStore(fsLocalKeyStore)
+			} else {
+				localAgentCfg.Keystore = fsLocalKeyStore
 			}
 		}
 	}

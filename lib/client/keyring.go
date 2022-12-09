@@ -24,7 +24,6 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 
 	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/profile"
 	"github.com/gravitational/teleport/lib/auth"
 )
 
@@ -303,14 +302,9 @@ func (r *keyring) Extension(extensionType string, contents []byte) ([]byte, erro
 }
 
 const (
-	agentExtensionSign = "sign@goteleport.com"
-	// list-profiles@goteleport.com extension returns a list of active
-	// Teleport client profiles available to the Teleport key agent.
-	agentExtensionListProfiles = "list-profiles@goteleport.com"
-	// list-keys@goteleport.com extension returns a list of Teleport client
-	// keys for each Teleport agent key loaded into the current agent.
-	agentExtensionListKeys           = "list-keys@goteleport.com"
-	agentExtensionPromptMFAChallenge = "prompt-mfa-challenge@goteleport.com"
+	keyAgentExtension                = "key@goteleport.com"
+	signAgentExtension               = "sign@goteleport.com"
+	promptMFAChallengeAgentExtension = "prompt-mfa-challenge@goteleport.com"
 
 	// Used to indicate that the salt length will be set during signing to the largest
 	// value possible. This salt length can then be auto-detected during verification.
@@ -319,25 +313,19 @@ const (
 
 func WithSignExtension() KeyringOpt {
 	return func(r *keyring) {
-		r.extensionHandlers[agentExtensionSign] = signExtensionHandler(r)
+		r.extensionHandlers[signAgentExtension] = signExtensionHandler(r)
 	}
 }
 
-func WithListProfilesExtension(s KeyStore) KeyringOpt {
+func WithKeyExtension(s KeyStore) KeyringOpt {
 	return func(r *keyring) {
-		r.extensionHandlers[agentExtensionListProfiles] = listProfilesExtensionHandler(s)
-	}
-}
-
-func WithListKeysExtension(s KeyStore) KeyringOpt {
-	return func(r *keyring) {
-		r.extensionHandlers[agentExtensionListKeys] = listKeysExtensionHandler(s, r)
+		r.extensionHandlers[keyAgentExtension] = keyExtensionHandler(s)
 	}
 }
 
 func WithPromptMFAChallengeExtension(tc *TeleportClient) KeyringOpt {
 	return func(r *keyring) {
-		r.extensionHandlers[agentExtensionPromptMFAChallenge] = promptMFAChallengeExtensionHandler(tc, r)
+		r.extensionHandlers[promptMFAChallengeAgentExtension] = promptMFAChallengeExtensionHandler(tc, r)
 	}
 }
 
@@ -403,7 +391,7 @@ func SignExtension(agent agent.ExtendedAgent, pub ssh.PublicKey, digest []byte, 
 			req.SaltLength = strconv.Itoa(pssOpts.SaltLength)
 		}
 	}
-	respBlob, err := agent.Extension(agentExtensionSign, ssh.Marshal(req))
+	respBlob, err := agent.Extension(signAgentExtension, ssh.Marshal(req))
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -414,107 +402,58 @@ func SignExtension(agent agent.ExtendedAgent, pub ssh.PublicKey, digest []byte, 
 	return resp.Blob, nil
 }
 
-type listProfilesResponse struct {
-	CurrentProfileName string
-	ProfilesBlob       []byte
-}
-
-func listProfilesExtensionHandler(s KeyStore) extensionHandler {
-	return func(contents []byte) ([]byte, error) {
-		current, err := s.CurrentProfile()
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-
-		profileNames, err := s.ListProfiles()
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-
-		var profiles []*profile.Profile
-		for _, profileName := range profileNames {
-			profile, err := s.GetProfile(profileName)
-			if err != nil {
-				return nil, trace.Wrap(err)
-			}
-			profiles = append(profiles, profile)
-		}
-
-		profilesBlob, err := json.Marshal(profiles)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-
-		return ssh.Marshal(listProfilesResponse{
-			CurrentProfileName: current,
-			ProfilesBlob:       profilesBlob,
-		}), nil
-	}
-}
-
-func ListProfilesExtension(agent agent.ExtendedAgent) (currentProfile string, profiles []*profile.Profile, err error) {
-	respBlob, err := agent.Extension(agentExtensionListProfiles, nil)
-	if err != nil {
-		return "", nil, trace.Wrap(err)
-	}
-	var resp listProfilesResponse
-	if err := ssh.Unmarshal(respBlob, &resp); err != nil {
-		return "", nil, trace.Wrap(err)
-	}
-	if err := json.Unmarshal(resp.ProfilesBlob, &profiles); err != nil {
-		return "", nil, trace.Wrap(err)
-	}
-	return resp.CurrentProfileName, profiles, nil
-}
-
-type listKeysRequest struct {
-	KeyIndex KeyIndex
-}
-
-type listKeysResponse struct {
-	KnownHosts []byte
-	KeysBlob   []byte
+type keyExtensionResponse struct {
+	ProfileBlob      []byte
+	ForwardedKeyBlob []byte
+	KnownHosts       []byte
 }
 
 type forwardedKey struct {
 	KeyIndex
 	SSHCertificate []byte
 	TLSCertificate []byte
-	// TODO: Just get TLS certs?
-	TrustedCerts []auth.TrustedCerts
+	TrustedCerts   []auth.TrustedCerts
 }
 
-func listKeysExtensionHandler(s KeyStore, r *keyring) extensionHandler {
+func keyExtensionHandler(s KeyStore) extensionHandler {
 	return func(contents []byte) ([]byte, error) {
-		// var req listKeysRequest
-		// if err := ssh.Unmarshal(contents, &req); err != nil {
-		// 	return nil, trace.Wrap(err)
-		// }
-
-		agentKeys, err := GetTeleportAgentKeys(r, KeyIndex{})
+		profileName, err := s.CurrentProfile()
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 
-		var keys []forwardedKey
-		for _, agentKey := range agentKeys {
-			idx, _ := parseTeleportAgentKeyComment(agentKey.Comment)
-			key, err := s.GetKey(idx, WithSSHCerts{})
-			if trace.IsNotFound(err) {
-				// the key is for a different proxy/user and cannot
-				// be loaded with the current local agent.
-				// TODO: allow the key agent to load other keys?
-				continue
-			} else if err != nil {
-				return nil, trace.Wrap(err)
-			}
+		profile, err := s.GetProfile(profileName)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
 
-			keys = append(keys, forwardedKey{
-				KeyIndex:       key.KeyIndex,
-				SSHCertificate: key.Cert,
-				TLSCertificate: key.TLSCert,
-				TrustedCerts:   key.TrustedCA,
-			})
+		profileBlob, err := json.Marshal(profile)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		idx := KeyIndex{
+			ProxyHost:   profileName,
+			ClusterName: profile.SiteName,
+			Username:    profile.Username,
+		}
+
+		key, err := s.GetKey(idx, WithAllCerts...)
+		if err != nil {
+			fmt.Println(err)
+			return nil, trace.Wrap(err)
+		}
+
+		forwardedKey := forwardedKey{
+			KeyIndex:       key.KeyIndex,
+			SSHCertificate: key.Cert,
+			TLSCertificate: key.TLSCert,
+			TrustedCerts:   key.TrustedCA,
+		}
+
+		forwardedKeyBlob, err := json.Marshal(forwardedKey)
+		if err != nil {
+			return nil, trace.Wrap(err)
 		}
 
 		knownHosts, err := s.GetKnownHostsFile()
@@ -522,31 +461,26 @@ func listKeysExtensionHandler(s KeyStore, r *keyring) extensionHandler {
 			return nil, trace.Wrap(err)
 		}
 
-		keysBlob, err := json.Marshal(keys)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-
-		return ssh.Marshal(listKeysResponse{
-			KnownHosts: knownHosts,
-			KeysBlob:   keysBlob,
+		return ssh.Marshal(keyExtensionResponse{
+			ProfileBlob:      profileBlob,
+			ForwardedKeyBlob: forwardedKeyBlob,
+			KnownHosts:       knownHosts,
 		}), nil
 	}
 }
 
-func ListKeysExtension(agent agent.ExtendedAgent) (knownHosts []byte, keys []forwardedKey, err error) {
-	respBlob, err := agent.Extension(agentExtensionListKeys, nil)
+func KeyExtension(agent agent.ExtendedAgent) (*keyExtensionResponse, error) {
+	respBlob, err := agent.Extension(keyAgentExtension, nil)
 	if err != nil {
-		return nil, nil, trace.Wrap(err)
+		return nil, trace.Wrap(err)
 	}
-	var resp listKeysResponse
+
+	var resp keyExtensionResponse
 	if err := ssh.Unmarshal(respBlob, &resp); err != nil {
-		return nil, nil, trace.Wrap(err)
+		return nil, trace.Wrap(err)
 	}
-	if err := json.Unmarshal(resp.KeysBlob, &keys); err != nil {
-		return nil, nil, trace.Wrap(err)
-	}
-	return resp.KnownHosts, keys, nil
+
+	return &resp, nil
 }
 
 type promptMFAChallengeRequest struct {
@@ -597,7 +531,7 @@ func PromptMFAChallengeExtension(agent agent.ExtendedAgent, proxyAddr string, c 
 		MFAChallengeBlob: challengeBlob,
 	}
 
-	respBlob, err := agent.Extension(agentExtensionPromptMFAChallenge, ssh.Marshal(req))
+	respBlob, err := agent.Extension(promptMFAChallengeAgentExtension, ssh.Marshal(req))
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

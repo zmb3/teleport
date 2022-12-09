@@ -26,10 +26,14 @@ import (
 	"github.com/gravitational/trace"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
+	"golang.org/x/crypto/ssh/agent"
+
+	"github.com/gravitational/teleport"
 
 	"github.com/gravitational/teleport/api/client/proto"
 	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
 	wancli "github.com/gravitational/teleport/lib/auth/webauthncli"
+	"github.com/gravitational/teleport/lib/utils/agentconn"
 	"github.com/gravitational/teleport/lib/utils/prompt"
 )
 
@@ -110,8 +114,14 @@ func (tc *TeleportClient) PromptMFAChallenge(ctx context.Context, proxyAddr stri
 		applyOpts(opts)
 	}
 
-	if _, ok := tc.localAgent.keyStore.(*AgentRemoteKeyStore); ok {
-		return PromptMFAChallengeExtension(tc.localAgent.sshAgent, proxyAddr, c, applyOpts)
+	socketPath := os.Getenv(teleport.SSHAuthSock)
+	conn, err := agentconn.Dial(socketPath)
+	if err == nil {
+		defer conn.Close()
+		agentclient := agent.NewClient(conn)
+		if resp, err := PromptMFAChallengeExtension(agentclient, proxyAddr, c, applyOpts); err == nil {
+			return resp, nil
+		}
 	}
 
 	return promptMFAStandalone(ctx, c, addr, opts)

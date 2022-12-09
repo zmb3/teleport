@@ -3240,35 +3240,32 @@ func makeClientForProxy(cf *CLIConf, proxy string, useProfileLogin bool) (*clien
 
 func initKeyStore(cf *CLIConf, proxy string) (client.KeyStore, error) {
 	if cf.IdentityFileIn != "" {
-		// TODO: initiate mem keystore with identityfile key store underneath
-		keyStore, err := client.NewIdentityFileKeyStore(cf.IdentityFileIn, proxy, cf.SiteName)
+		keyStore, err := client.NewMemLocalKeyStoreFromIdentityFile(cf.IdentityFileIn, proxy, cf.SiteName)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		return keyStore, nil
 	}
 
-	var keyStore client.KeyStore
-	var err error
-	if cf.AddKeysToAgent == client.AddKeysToAgentOnly {
-		keyStore, err = client.NewMemLocalKeyStore(cf.HomePath)
-	} else {
-		keyStore, err = client.NewFSLocalKeyStore(cf.HomePath)
-	}
+	fsKeyStore, err := client.NewFSLocalKeyStore(cf.HomePath)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	// If the keystore has no current profile, check for a forwarded
+	// If the fs keystore has no current profile, check for a forwarded
 	// Teleport agent key store with an active profile.
-	if _, err := keyStore.CurrentProfile(); err != nil {
-		agentKeyStore, err := client.NewAgentRemoteKeyStore(os.Getenv(teleport.SSHAuthSock))
-		if err == nil {
-			keyStore = agentKeyStore
+	if _, err := fsKeyStore.CurrentProfile(); trace.IsNotFound(err) {
+		sshAuthSock := os.Getenv(teleport.SSHAuthSock)
+		if keyStoreFromAgent, err := client.NewMemLocalKeyStoreFromAgent(sshAuthSock); err == nil {
+			return keyStoreFromAgent, nil
 		}
 	}
 
-	return keyStore, nil
+	if cf.AddKeysToAgent == client.AddKeysToAgentOnly {
+		return client.NewMemLocalKeyStore(fsKeyStore), nil
+	}
+
+	return fsKeyStore, nil
 }
 
 func (cf *CLIConf) ProfileStatus() (*client.ProfileStatus, error) {

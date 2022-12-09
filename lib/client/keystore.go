@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"context"
 	"crypto"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io"
@@ -67,7 +68,7 @@ const (
 // The _only_ filesystem-based implementation of KeyStore is declared
 // below (FSLocalKeyStore)
 type KeyStore interface {
-	ProfileStore
+	NonSessionKeyStore
 
 	// AddKey adds the given key to the store.
 	AddKey(key *Key) error
@@ -85,12 +86,20 @@ type KeyStore interface {
 	// DeleteKeys removes all session keys.
 	DeleteKeys() error
 
-	// AddKnownHostKeys adds the public key to the list of known hosts for
-	// a hostname.
-	AddKnownHostKeys(hostname, proxyHost string, keys []ssh.PublicKey) error
+	// GetSSHCertificates gets all certificates signed for the given user and proxy,
+	// including certificates for trusted clusters.
+	GetSSHCertificates(proxyHost, username string) ([]*ssh.Certificate, error)
+}
+
+type NonSessionKeyStore interface {
+	ProfileStore
 
 	// GetKnownHostsFile returns a known hosts file.
 	GetKnownHostsFile() ([]byte, error)
+
+	// AddKnownHostKeys adds the public key to the list of known hosts for
+	// a hostname.
+	AddKnownHostKeys(hostname, proxyHost string, keys []ssh.PublicKey) error
 
 	// GetKnownHostKeys returns all known public host keys for the given host name.
 	GetKnownHostKeys(hostname string) ([]ssh.PublicKey, error)
@@ -101,10 +110,6 @@ type KeyStore interface {
 	// GetTrustedCertsPEM gets trusted TLS certificates of certificate authorities.
 	// Each returned byte slice contains an individual PEM block.
 	GetTrustedCertsPEM(proxyHost string) ([][]byte, error)
-
-	// GetSSHCertificates gets all certificates signed for the given user and proxy,
-	// including certificates for trusted clusters.
-	GetSSHCertificates(proxyHost, username string) ([]*ssh.Certificate, error)
 }
 
 // FSLocalKeyStore implements LocalKeyStore interface using the filesystem.
@@ -163,6 +168,26 @@ func (fs *FSLocalKeyStore) GetProfile(profileName string) (*profile.Profile, err
 		return nil, trace.Wrap(err)
 	}
 	return profile, nil
+}
+
+// userKeyPath returns the private key path for the given KeyIndex.
+func (fs *FSLocalKeyStore) userKeyPath(idx KeyIndex) string {
+	return keypaths.UserKeyPath(fs.KeyDir, idx.ProxyHost, idx.Username)
+}
+
+// publicKeyPath returns the public key path for the given KeyIndex.
+func (fs *FSLocalKeyStore) publicKeyPath(idx KeyIndex) string {
+	return keypaths.PublicKeyPath(fs.KeyDir, idx.ProxyHost, idx.Username)
+}
+
+// tlsCertPath returns the TLS certificate path given KeyIndex.
+func (fs *FSLocalKeyStore) tlsCertPath(idx KeyIndex) string {
+	return keypaths.TLSCertPath(fs.KeyDir, idx.ProxyHost, idx.Username)
+}
+
+// ppkFilePath returns the PPK (PuTTY-formatted) keypair path for the given KeyIndex.
+func (fs *FSLocalKeyStore) ppkFilePath(idx KeyIndex) string {
+	return keypaths.PPKFilePath(fs.KeyDir, idx.ProxyHost, idx.Username)
 }
 
 // sshDir returns the SSH certificate path for the given KeyIndex.
@@ -609,29 +634,9 @@ func (fs *fsLocalNonSessionKeyStore) knownHostsPath() string {
 	return keypaths.KnownHostsPath(fs.KeyDir)
 }
 
-// userKeyPath returns the private key path for the given KeyIndex.
-func (fs *fsLocalNonSessionKeyStore) userKeyPath(idx KeyIndex) string {
-	return keypaths.UserKeyPath(fs.KeyDir, idx.ProxyHost, idx.Username)
-}
-
-// tlsCertPath returns the TLS certificate path given KeyIndex.
-func (fs *fsLocalNonSessionKeyStore) tlsCertPath(idx KeyIndex) string {
-	return keypaths.TLSCertPath(fs.KeyDir, idx.ProxyHost, idx.Username)
-}
-
 // tlsCAsPath returns the TLS CA certificates path for the given KeyIndex.
 func (fs *fsLocalNonSessionKeyStore) tlsCAsPath(proxy string) string {
 	return keypaths.TLSCAsPath(fs.KeyDir, proxy)
-}
-
-// ppkFilePath returns the PPK (PuTTY-formatted) keypair path for the given KeyIndex.
-func (fs *fsLocalNonSessionKeyStore) ppkFilePath(idx KeyIndex) string {
-	return keypaths.PPKFilePath(fs.KeyDir, idx.ProxyHost, idx.Username)
-}
-
-// publicKeyPath returns the public key path for the given KeyIndex.
-func (fs *fsLocalNonSessionKeyStore) publicKeyPath(idx KeyIndex) string {
-	return keypaths.PublicKeyPath(fs.KeyDir, idx.ProxyHost, idx.Username)
 }
 
 // AddKnownHostKeys adds a new entry to `known_hosts` file.
@@ -914,8 +919,9 @@ func (noLocalKeyStore) GetProfile(profileName string) (*profile.Profile, error) 
 
 // MemLocalKeyStore is an in-memory session keystore implementation.
 type MemLocalKeyStore struct {
-	fsLocalNonSessionKeyStore
-	inMem memLocalKeyStoreMap
+	log *logrus.Entry
+	NonSessionKeyStore
+	keyCache memLocalKeyStoreMap
 }
 
 // memLocalKeyStoreMap is a three-dimensional map indexed by [proxyHost][username][clusterName]
@@ -924,18 +930,12 @@ type memLocalKeyStoreMap = map[string]map[string]map[string]*Key
 // NewMemLocalKeyStore initializes a MemLocalKeyStore.
 // The key directory here is only used for storing CA certificates and known
 // host fingerprints.
-func NewMemLocalKeyStore(dirPath string) (*MemLocalKeyStore, error) {
-	dirPath, err := initKeysDir(dirPath)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
+func NewMemLocalKeyStore(s NonSessionKeyStore) KeyStore {
 	return &MemLocalKeyStore{
-		fsLocalNonSessionKeyStore{
-			log:    logrus.WithField(trace.Component, teleport.ComponentKeyStore),
-			KeyDir: dirPath,
-		},
-		memLocalKeyStoreMap{},
-	}, nil
+		log:                logrus.WithField(trace.Component, teleport.ComponentKeyStore),
+		NonSessionKeyStore: s,
+		keyCache:           memLocalKeyStoreMap{},
+	}
 }
 
 // AddKey writes a key to the underlying key store.
@@ -943,15 +943,15 @@ func (s *MemLocalKeyStore) AddKey(key *Key) error {
 	if err := key.KeyIndex.Check(); err != nil {
 		return trace.Wrap(err)
 	}
-	_, ok := s.inMem[key.ProxyHost]
+	_, ok := s.keyCache[key.ProxyHost]
 	if !ok {
-		s.inMem[key.ProxyHost] = map[string]map[string]*Key{}
+		s.keyCache[key.ProxyHost] = map[string]map[string]*Key{}
 	}
-	_, ok = s.inMem[key.ProxyHost][key.Username]
+	_, ok = s.keyCache[key.ProxyHost][key.Username]
 	if !ok {
-		s.inMem[key.ProxyHost][key.Username] = map[string]*Key{}
+		s.keyCache[key.ProxyHost][key.Username] = map[string]*Key{}
 	}
-	s.inMem[key.ProxyHost][key.Username][key.ClusterName] = key
+	s.keyCache[key.ProxyHost][key.Username][key.ClusterName] = key
 	return nil
 }
 
@@ -962,12 +962,12 @@ func (s *MemLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error
 		// If clusterName is not specified then the cluster-dependent fields
 		// are not considered relevant and we may simply return any key
 		// associated with any cluster name whatsoever.
-		for _, found := range s.inMem[idx.ProxyHost][idx.Username] {
+		for _, found := range s.keyCache[idx.ProxyHost][idx.Username] {
 			key = found
 			break
 		}
 	} else {
-		key = s.inMem[idx.ProxyHost][idx.Username][idx.ClusterName]
+		key = s.keyCache[idx.ProxyHost][idx.Username][idx.ClusterName]
 	}
 	if key == nil {
 		return nil, trace.NotFound("key for %+v not found", idx)
@@ -994,13 +994,13 @@ func (s *MemLocalKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error
 
 // DeleteKey deletes the user's key with all its certs.
 func (s *MemLocalKeyStore) DeleteKey(idx KeyIndex) error {
-	delete(s.inMem[idx.ProxyHost], idx.Username)
+	delete(s.keyCache[idx.ProxyHost], idx.Username)
 	return nil
 }
 
 // DeleteKeys removes all session keys.
 func (s *MemLocalKeyStore) DeleteKeys() error {
-	s.inMem = memLocalKeyStoreMap{}
+	s.keyCache = memLocalKeyStoreMap{}
 	return nil
 }
 
@@ -1013,14 +1013,14 @@ func (s *MemLocalKeyStore) DeleteKeys() error {
 func (s *MemLocalKeyStore) DeleteUserCerts(idx KeyIndex, opts ...CertOption) error {
 	var keys []*Key
 	if idx.ClusterName != "" {
-		key, ok := s.inMem[idx.ProxyHost][idx.Username][idx.ClusterName]
+		key, ok := s.keyCache[idx.ProxyHost][idx.Username][idx.ClusterName]
 		if !ok {
 			return nil
 		}
 		keys = []*Key{key}
 	} else {
-		keys = make([]*Key, 0, len(s.inMem[idx.ProxyHost][idx.Username]))
-		for _, key := range s.inMem[idx.ProxyHost][idx.Username] {
+		keys = make([]*Key, 0, len(s.keyCache[idx.ProxyHost][idx.Username]))
+		for _, key := range s.keyCache[idx.ProxyHost][idx.Username] {
 			keys = append(keys, key)
 		}
 	}
@@ -1036,7 +1036,7 @@ func (s *MemLocalKeyStore) DeleteUserCerts(idx KeyIndex, opts ...CertOption) err
 // GetSSHCertificates gets all certificates signed for the given user and proxy.
 func (s *MemLocalKeyStore) GetSSHCertificates(proxyHost, username string) ([]*ssh.Certificate, error) {
 	var sshCerts []*ssh.Certificate
-	for _, key := range s.inMem[proxyHost][username] {
+	for _, key := range s.keyCache[proxyHost][username] {
 		sshCert, err := key.SSHCert()
 		if err != nil {
 			return nil, trace.Wrap(err)
@@ -1047,128 +1047,49 @@ func (s *MemLocalKeyStore) GetSSHCertificates(proxyHost, username string) ([]*ss
 	return sshCerts, nil
 }
 
-func (s *MemLocalKeyStore) CurrentProfile() (string, error) {
-	return "", errNoLocalKeyStore
-}
-func (s *MemLocalKeyStore) ListProfiles() ([]string, error) {
-	return nil, errNoLocalKeyStore
-}
-func (s *MemLocalKeyStore) GetProfile(profileName string) (*profile.Profile, error) {
-	return nil, errNoLocalKeyStore
+type memLocalNonSessionKeyStore struct {
+	profile    *profile.Profile
+	KnownHosts []byte
+	TrustedCAs []auth.TrustedCerts
 }
 
-type AgentRemoteKeyStore struct {
-	noLocalKeyStore
-	agent agent.ExtendedAgent
+// CurrentProfile returns the current active profile.
+func (ms *memLocalNonSessionKeyStore) CurrentProfile() (string, error) {
+	return ms.profile.Name(), nil
 }
 
-// NewAgentRemoteKeyStore
-func NewAgentRemoteKeyStore(sshAuthSocket string) (s *AgentRemoteKeyStore, err error) {
-	conn, err := agentconn.Dial(sshAuthSocket)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	clt := agent.NewClient(conn)
-
-	// List profiles to check that the agent is a Teleport key agent.
-	if _, _, err := ListProfilesExtension(clt); trace.Unwrap(err) == agent.ErrExtensionUnsupported {
-		return nil, trace.Wrap(err)
-	}
-
-	return &AgentRemoteKeyStore{
-		noLocalKeyStore: noLocalKeyStore{},
-		agent:           clt,
-	}, nil
+// ListProfiles returns a list of all active profiles.
+func (ms *memLocalNonSessionKeyStore) ListProfiles() ([]string, error) {
+	return []string{ms.profile.Name()}, nil
 }
 
-func (s *AgentRemoteKeyStore) CurrentProfile() (string, error) {
-	currentProfile, _, err := ListProfilesExtension(s.agent)
-	if err != nil {
-		return "", trace.Wrap(err)
-	}
-	return currentProfile, nil
-}
-
-func (s *AgentRemoteKeyStore) ListProfiles() ([]string, error) {
-	_, profiles, err := ListProfilesExtension(s.agent)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	var profileNames []string
-	for _, profile := range profiles {
-		profileNames = append(profileNames, profile.Name())
-	}
-	return profileNames, nil
-}
-
-func (s *AgentRemoteKeyStore) GetProfile(profileName string) (*profile.Profile, error) {
-	_, profiles, err := ListProfilesExtension(s.agent)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	for _, profile := range profiles {
-		if profile.Name() == profileName {
-			return profile, nil
-		}
-	}
-	return nil, trace.NotFound("profile not found")
-}
-
-func (s *AgentRemoteKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error) {
-	// TODO: cache response for future/other calls
-	_, forwardedKeys, err := ListKeysExtension(s.agent)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	for _, teleportKey := range forwardedKeys {
-		teleportKeyIdx := KeyIndex{
-			ProxyHost:   teleportKey.ProxyHost,
-			ClusterName: teleportKey.ClusterName,
-			Username:    teleportKey.Username,
-		}
-
-		if teleportKeyIdx.Match(idx) {
-			sshCert, err := apisshutils.ParseCertificate(teleportKey.SSHCertificate)
-			if err != nil {
-				return nil, trace.Wrap(err)
-			}
-
-			signer := NewAgentSigner(s.agent, sshCert)
-			priv, err := keys.NewPrivateKey(signer, nil)
-			if err != nil {
-				return nil, trace.Wrap(err)
-			}
-
-			key := NewKey(priv)
-			key.KeyIndex = teleportKey.KeyIndex
-			key.Cert = teleportKey.SSHCertificate
-			key.TLSCert = teleportKey.TLSCertificate
-			key.TrustedCA = teleportKey.TrustedCerts
-			return key, nil
-		}
-	}
-
-	return nil, trace.NotFound("key not found")
+// GetProfile returns the requested profile.
+func (ms *memLocalNonSessionKeyStore) GetProfile(profileName string) (*profile.Profile, error) {
+	return ms.profile, nil
 }
 
 // GetKnownHostsFile returns a known hosts file.
-func (s *AgentRemoteKeyStore) GetKnownHostsFile() ([]byte, error) {
-	// TODO: cache response for future/other calls
-	knownHosts, _, err := ListKeysExtension(s.agent)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
+func (ms *memLocalNonSessionKeyStore) GetKnownHostsFile() ([]byte, error) {
+	return ms.KnownHosts, nil
+}
 
-	return knownHosts, nil
+// AddKnownHostKeys adds a new entry to `known_hosts` file.
+func (ms *memLocalNonSessionKeyStore) AddKnownHostKeys(hostname, proxyHost string, hostKeys []ssh.PublicKey) error {
+	return nil
 }
 
 // GetKnownHostKeys returns all known public host keys for the given host name.
-func (s *AgentRemoteKeyStore) GetKnownHostKeys(hostname string) ([]ssh.PublicKey, error) {
-	knownHosts, err := s.GetKnownHostsFile()
+func (ms *memLocalNonSessionKeyStore) GetKnownHostKeys(hostname string) ([]ssh.PublicKey, error) {
+	// var sshHostKeys []ssh.PublicKey
+	// for _, ca := range ms.TrustedCAs {
+	// 	hostKeys, err := ca.SSHCertPublicKeys()
+	// 	if err != nil {
+	// 		return nil, trace.Wrap(err)
+	// 	}
+	// 	sshHostKeys = append(sshHostKeys, hostKeys...)
+	// }
+
+	knownHosts, err := ms.GetKnownHostsFile()
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -1176,90 +1097,84 @@ func (s *AgentRemoteKeyStore) GetKnownHostKeys(hostname string) ([]ssh.PublicKey
 	return apisshutils.ParseKnownHosts([][]byte{knownHosts}, hostname)
 }
 
+// SaveTrustedCerts saves trusted TLS certificates of certificate authorities.
+func (ms *memLocalNonSessionKeyStore) SaveTrustedCerts(_ string, cas []auth.TrustedCerts) error {
+	ms.TrustedCAs = append(ms.TrustedCAs, cas...)
+	return nil
+}
+
 // GetTrustedCertsPEM gets trusted TLS certificates of certificate authorities.
 // Each returned byte slice contains an individual PEM block.
-func (s *AgentRemoteKeyStore) GetTrustedCertsPEM(proxyHost string) ([][]byte, error) {
-	// TODO: cache response for future/other calls
-	_, forwardKeys, err := ListKeysExtension(s.agent)
+func (ms *memLocalNonSessionKeyStore) GetTrustedCertsPEM(proxyHost string) ([][]byte, error) {
+	var tlsHostCerts [][]byte
+	for _, ca := range ms.TrustedCAs {
+		tlsHostCerts = append(tlsHostCerts, ca.TLSCertificates...)
+	}
+	return tlsHostCerts, nil
+}
+
+func NewMemLocalKeyStoreFromAgent(sshAuthSocket string) (KeyStore, error) {
+	conn, err := agentconn.Dial(sshAuthSocket)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	defer conn.Close()
+
+	agentClient := agent.NewClient(conn)
+	keyExtensionResp, err := KeyExtension(agentClient)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	if len(forwardKeys) == 0 || len(forwardKeys[0].TrustedCerts) == 0 {
-		return nil, trace.NotFound("trusted certs not found")
+	var profile profile.Profile
+	if err := json.Unmarshal(keyExtensionResp.ProfileBlob, &profile); err != nil {
+		return nil, trace.Wrap(err)
 	}
 
-	return forwardKeys[0].TrustedCerts[0].TLSCertificates, nil
-}
-
-// GetSSHCertificates gets all certificates signed for the given user and proxy,
-// including certificates for trusted clusters.
-func (s *AgentRemoteKeyStore) GetSSHCertificates(proxyHost, username string) ([]*ssh.Certificate, error) {
-	matchKeyIdx := KeyIndex{
-		ProxyHost: proxyHost,
-		Username:  username,
+	var forwardedKey forwardedKey
+	if err := json.Unmarshal(keyExtensionResp.ForwardedKeyBlob, &forwardedKey); err != nil {
+		return nil, trace.Wrap(err)
 	}
 
-	agentKeys, err := GetTeleportAgentKeys(s.agent, matchKeyIdx)
+	sshCert, err := apisshutils.ParseCertificate(forwardedKey.SSHCertificate)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	var sshCerts []*ssh.Certificate
-	for _, k := range agentKeys {
-		sshPub, err := ssh.ParsePublicKey(k.Blob)
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		if sshCert, ok := sshPub.(*ssh.Certificate); ok {
-			sshCerts = append(sshCerts, sshCert)
-		}
+	priv, err := keys.NewPrivateKey(newAgentSigner(sshAuthSocket, sshCert), nil)
+	if err != nil {
+		return nil, trace.Wrap(err)
 	}
 
-	return sshCerts, nil
-}
+	keyStore := NewMemLocalKeyStore(&memLocalNonSessionKeyStore{
+		profile:    &profile,
+		KnownHosts: keyExtensionResp.KnownHosts,
+		TrustedCAs: forwardedKey.TrustedCerts,
+	})
 
-// AddKey adds the given key to the store.
-func (s *AgentRemoteKeyStore) AddKey(key *Key) error {
-	return errNoLocalKeyStore
-}
+	key := NewKey(priv)
+	key.KeyIndex = forwardedKey.KeyIndex
+	key.Cert = forwardedKey.SSHCertificate
+	key.TLSCert = forwardedKey.TLSCertificate
+	key.TrustedCA = forwardedKey.TrustedCerts
 
-// DeleteKey deletes the user's key with all its certs.
-func (s *AgentRemoteKeyStore) DeleteKey(idx KeyIndex) error {
-	return errNoLocalKeyStore
-}
+	// Preload the client key from the agent.
+	if err := keyStore.AddKey(key); err != nil {
+		return nil, trace.Wrap(err)
+	}
 
-// DeleteUserCerts deletes only the specified certs of the user's key,
-// keeping the private key intact.
-func (s *AgentRemoteKeyStore) DeleteUserCerts(idx KeyIndex, opts ...CertOption) error {
-	return errNoLocalKeyStore
-}
-
-// DeleteKeys removes all session keys.
-func (s *AgentRemoteKeyStore) DeleteKeys() error {
-	return errNoLocalKeyStore
-}
-
-// AddKnownHostKeys adds the public key to the list of known hosts for
-// a hostname.
-func (s *AgentRemoteKeyStore) AddKnownHostKeys(hostname, proxyHost string, keys []ssh.PublicKey) error {
-	return errNoLocalKeyStore
-}
-
-// SaveTrustedCerts saves trusted TLS certificates of certificate authorities.
-func (s *AgentRemoteKeyStore) SaveTrustedCerts(proxyHost string, cas []auth.TrustedCerts) error {
-	return errNoLocalKeyStore
+	return keyStore, nil
 }
 
 type agentSigner struct {
-	sshCert *ssh.Certificate
-	agent   agent.ExtendedAgent
+	sshAuthSock string
+	sshCert     *ssh.Certificate
 }
 
-func NewAgentSigner(agent agent.ExtendedAgent, sshCert *ssh.Certificate) crypto.Signer {
+func newAgentSigner(sshAuthSock string, sshCert *ssh.Certificate) crypto.Signer {
 	return &agentSigner{
-		sshCert: sshCert,
-		agent:   agent,
+		sshAuthSock: sshAuthSock,
+		sshCert:     sshCert,
 	}
 }
 
@@ -1271,17 +1186,17 @@ func (as *agentSigner) Public() crypto.PublicKey {
 }
 
 func (as *agentSigner) Sign(_ io.Reader, digest []byte, opts crypto.SignerOpts) ([]byte, error) {
-	return SignExtension(as.agent, as.sshCert, digest, opts)
+	conn, err := agentconn.Dial(as.sshAuthSock)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	defer conn.Close()
+
+	agentClient := agent.NewClient(conn)
+	return SignExtension(agentClient, as.sshCert, digest, opts)
 }
 
-type IdentityFileKeyStore struct {
-	noLocalKeyStore
-	profile *profile.Profile
-	key     *Key
-}
-
-// NewIdentityFileKeyStore
-func NewIdentityFileKeyStore(identityFile string, proxyAddr string, clusterName string) (s *IdentityFileKeyStore, err error) {
+func NewMemLocalKeyStoreFromIdentityFile(identityFile string, proxyAddr string, clusterName string) (KeyStore, error) {
 	key, err := KeyFromIdentityFile(identityFile)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -1311,60 +1226,19 @@ func NewIdentityFileKeyStore(identityFile string, proxyAddr string, clusterName 
 		Username:    certUsername,
 	}
 
-	profile := &profile.Profile{
-		WebProxyAddr: proxyAddr,
-		SiteName:     clusterName,
-		Username:     certUsername,
+	keyStore := NewMemLocalKeyStore(&memLocalNonSessionKeyStore{
+		TrustedCAs: key.TrustedCA,
+		profile: &profile.Profile{
+			WebProxyAddr: proxyAddr,
+			SiteName:     clusterName,
+			Username:     certUsername,
+		},
+	})
+
+	// Preload the client key from the agent.
+	if err := keyStore.AddKey(key); err != nil {
+		return nil, trace.Wrap(err)
 	}
 
-	return &IdentityFileKeyStore{
-		noLocalKeyStore: noLocalKeyStore{},
-		profile:         profile,
-		key:             key,
-	}, nil
-}
-
-func (s *IdentityFileKeyStore) CurrentProfile() (string, error) {
-	return s.profile.Name(), nil
-}
-
-func (s *IdentityFileKeyStore) ListProfiles() ([]string, error) {
-	return []string{s.profile.Name()}, nil
-}
-
-func (s *IdentityFileKeyStore) GetProfile(profileName string) (*profile.Profile, error) {
-	if profileName == s.profile.Name() {
-		return s.profile, nil
-	}
-	return nil, trace.NotFound("profile not found")
-}
-
-func (s *IdentityFileKeyStore) GetKey(idx KeyIndex, opts ...CertOption) (*Key, error) {
-	if s.key.Match(idx) {
-		return s.key, nil
-	}
-
-	return nil, trace.NotFound("key not found")
-}
-
-// GetKnownHostsFile returns a known hosts file.
-func (s *IdentityFileKeyStore) GetKnownHostsFile() ([]byte, error) {
-	return nil, errNoLocalKeyStore
-}
-
-// GetKnownHostKeys returns all known public host keys for the given host name.
-func (s *IdentityFileKeyStore) GetKnownHostKeys(hostname string) ([]ssh.PublicKey, error) {
-	return nil, errNoLocalKeyStore
-}
-
-// GetTrustedCertsPEM gets trusted TLS certificates of certificate authorities.
-// Each returned byte slice contains an individual PEM block.
-func (s *IdentityFileKeyStore) GetTrustedCertsPEM(proxyHost string) ([][]byte, error) {
-	return nil, errNoLocalKeyStore
-}
-
-// GetSSHCertificates gets all certificates signed for the given user and proxy,
-// including certificates for trusted clusters.
-func (s *IdentityFileKeyStore) GetSSHCertificates(proxyHost, username string) ([]*ssh.Certificate, error) {
-	return nil, errNoLocalKeyStore
+	return keyStore, nil
 }
