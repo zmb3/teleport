@@ -276,6 +276,15 @@ const (
 	// IterationsEnvVar sets tests iterations to run
 	IterationsEnvVar = "ITERATIONS"
 
+	// HelmPreviousAuthService points to the previous auth service domain name
+	HelmPreviousAuthService = "TELEPORT_HELM_PREVIOUS_AUTH_SERVICE"
+
+	// HelmPreviousAuthPeriod allows to configure the period lookup of the wait-helm-auth-update command
+	HelmPreviousAuthPeriod = "TELEPORT_HELM_PREVIOUS_AUTH_PERIOD"
+
+	// HelmPreviousAuthTimeout configures the wait-helm-auth-update timeout.
+	HelmPreviousAuthTimeout = "TELEPORT_HELM_PREVIOUS_AUTH_TIMEOUT"
+
 	// DefaultTerminalWidth defines the default width of a server-side allocated
 	// pseudo TTY
 	DefaultTerminalWidth = 80
@@ -500,6 +509,9 @@ const (
 	// HomeDirNotFound is returned when a the "teleport checkhomedir" command cannot
 	// find the user's home directory.
 	HomeDirNotFound = 254
+	// PreviousAuthStillRunning is returned when there are still auth servers running
+	// the previous major version
+	PreviousAuthStillRunning = 253
 )
 
 // MaxEnvironmentFileLines is the maximum number of lines in a environment file.
@@ -743,6 +755,10 @@ const (
 	// SFTPSubCommand is the sub-command Teleport uses to re-exec itself to
 	// handle SFTP connections.
 	SFTPSubCommand = "sftp"
+
+	// WaitHelmAuthUpdateSubCommand is the sub-command Teleport uses to wait for the Helm
+	// auth rollout to finish before rolling out the proxies.
+	WaitHelmAuthUpdateSubCommand = "wait-helm-auth-update"
 )
 
 const (

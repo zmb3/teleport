@@ -37,6 +37,7 @@ import (
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/api/utils/retryutils"
 	"github.com/gravitational/teleport/lib/auditd"
 	"github.com/gravitational/teleport/lib/pam"
 	"github.com/gravitational/teleport/lib/shell"
@@ -44,6 +45,7 @@ import (
 	"github.com/gravitational/teleport/lib/sshutils"
 	"github.com/gravitational/teleport/lib/sshutils/x11"
 	"github.com/gravitational/teleport/lib/utils"
+	"github.com/gravitational/teleport/lib/utils/interval"
 )
 
 // FileFD is a file descriptor passed down from a parent process when
@@ -608,6 +610,84 @@ func runPark() (errw io.Writer, code int, err error) {
 	}
 }
 
+const (
+	waitHelmAuthDefaultPeriod  = 10 * time.Second
+	waitHelmAuthDefaultTimeout = 10 * time.Minute
+)
+
+func waitHelmAuth() (io.Writer, int, error) {
+	// We get parameters from environment variables
+	utils.InitLogger(utils.LoggingForCLI, log.DebugLevel)
+
+	serviceName := os.Getenv(teleport.HelmPreviousAuthService)
+	if serviceName == "" {
+		return io.Discard, teleport.PreviousAuthStillRunning,
+			fmt.Errorf("environment variable %s not set", teleport.HelmPreviousAuthService)
+	}
+
+	var err error
+	period := waitHelmAuthDefaultPeriod
+	periodEnv := os.Getenv(teleport.HelmPreviousAuthPeriod)
+	if periodEnv != "" {
+		period, err = time.ParseDuration(periodEnv)
+	}
+
+	if err != nil {
+		return io.Discard, teleport.PreviousAuthStillRunning, err
+	}
+	timeout := waitHelmAuthDefaultTimeout
+	timeoutEnv := os.Getenv(teleport.HelmPreviousAuthTimeout)
+	if timeoutEnv != "" {
+		timeout, err = time.ParseDuration(timeoutEnv)
+	}
+	if err != nil {
+		return io.Discard, teleport.PreviousAuthStillRunning, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	// We resolve the previous auth service until there's no IP returned.
+	// This means all pods got rollout and we don't risk connecting to an auth pod running the previous version
+	periodic := interval.New(interval.Config{
+		Duration:      period,
+		FirstDuration: time.Millisecond,
+		Jitter:        retryutils.NewSeventhJitter(),
+	})
+	defer periodic.Stop()
+
+	exit := false
+	for !exit {
+		select {
+		case <-ctx.Done():
+			log.Errorf(
+				"timeout (%s) reached, but auth endpoints running the previous major version are still resolved",
+				timeout,
+			)
+			return io.Discard, teleport.PreviousAuthStillRunning, nil
+
+		case <-periodic.Next():
+			endpoints, err := countEndpoints(serviceName)
+			if err != nil {
+				log.Errorf("error when resolving service %s : %s", serviceName, err)
+				continue
+			}
+			log.Infof("%d endpoints found when resolving service %s", endpoints, serviceName)
+			exit = endpoints == 0
+		}
+	}
+	log.Info("no endpoints found, exiting with success code")
+	return io.Discard, teleport.RemoteCommandSuccess, nil
+}
+
+func countEndpoints(serviceName string) (int, error) {
+	ips, err := net.LookupIP(serviceName)
+	if err != nil {
+		return 0, err
+	}
+	return len(ips), nil
+}
+
 // RunAndExit will run the requested command and then exit. This wrapper
 // allows Run{Command,Forward} to use defers and makes sure error messages
 // are consistent across both.
@@ -625,6 +705,8 @@ func RunAndExit(commandType string) {
 		w, code, err = runCheckHomeDir()
 	case teleport.ParkSubCommand:
 		w, code, err = runPark()
+	case teleport.WaitHelmAuthUpdateSubCommand:
+		w, code, err = waitHelmAuth()
 	default:
 		w, code, err = os.Stderr, teleport.RemoteCommandFailure, fmt.Errorf("unknown command type: %v", commandType)
 	}

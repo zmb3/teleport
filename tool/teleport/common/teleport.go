@@ -89,6 +89,7 @@ func Run(options Options) (app *kingpin.Application, executedCommand string, con
 	forward := app.Command(teleport.ForwardSubCommand, "Used internally by Teleport to re-exec itself to port forward.").Hidden()
 	checkHomeDir := app.Command(teleport.CheckHomeDirSubCommand, "Used internally by Teleport to re-exec itself to check access to a directory.").Hidden()
 	park := app.Command(teleport.ParkSubCommand, "Used internally by Teleport to re-exec itself to do nothing.").Hidden()
+	waitHelmAuth := app.Command(teleport.WaitHelmAuthUpdateSubCommand, "Used internally by Teleport to wait for the auth pod update in the Helm chart.").Hidden()
 	app.HelpFlag.Short('h')
 
 	// define start flags:
@@ -425,6 +426,8 @@ func Run(options Options) (app *kingpin.Application, executedCommand string, con
 		srv.RunAndExit(teleport.CheckHomeDirSubCommand)
 	case park.FullCommand():
 		srv.RunAndExit(teleport.ParkSubCommand)
+	case waitHelmAuth.FullCommand():
+		srv.RunAndExit(teleport.WaitHelmAuthUpdateSubCommand)
 	case ver.FullCommand():
 		utils.PrintVersion()
 	case dbConfigureCreate.FullCommand():
