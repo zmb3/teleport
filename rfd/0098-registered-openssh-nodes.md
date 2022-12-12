@@ -37,44 +37,17 @@ spec:
 version: v2
 ```
 
-`tctl create` will auto-generate `metadata.name` if it is not already set so users don't have to generate GUIDs themselves. 
+`tctl create` will auto-generate `metadata.name` if it is not already set so users don't have to generate GUIDs themselves.
 
 ### RBAC
 
-When OpenSSH nodes are registered RBAC does not work as expected. Even when `auth_service.session_recording` is set to `proxy` in an Auth Server's config file, checking RBAC rules is not done correctly. RBAC logic will have to be updated to correctly handle OpenSSH nodes. Currently RBAC checks are done on Teleport agent nodes, unless the Proxy is in `proxy` session recording mode, then the Proxy handles all RBAC checks. To avoid overloading the Proxy when many nodes are registered, Teleport agent nodes should continue to handle RBAC checks whenever possible. The Proxy will still have to handle RBAC checks for registered OpenSSH nodes, so the question is how will registered OpenSSH nodes be identified vs. Teleport agent nodes?
+When OpenSSH nodes are registered currently, RBAC checks for those nodes are not preformed. Even setting `auth_service.session_recording` to `proxy` in an Auth Server's config file does not help. RBAC logic will have to be updated so RBAC checks for registered OpenSSH nodes are preformed.
+
+Currently RBAC checks are done on Teleport agent nodes, unless the Proxy is in `proxy` session recording mode, then the Proxy handles all RBAC checks. To avoid overloading the Proxy when many nodes are registered, Teleport agent nodes handle RBAC checks whenever possible. The Proxy should always handle RBAC checks for registered OpenSSH nodes, so the question is how will registered OpenSSH nodes be identified vs. Teleport agent nodes?
 
 #### Detecting OpenSSH nodes
 
-##### Option 1 - add information to SSH host certs
-
-When SSH host certificates are created for OpenSSH nodes, we set add an extension `x-teleport-role` that specifies what Teleport component the certificate is for. We could add another role type for OpenSSH nodes, so that when a Proxy connects to an OpenSSH node and reviews it's certificate, it could see from the `x-teleport-role` extension that the node is a registered OpenSSH node and preform the RBAC check appropriately.
-
-This would require adding a new `api/types.SystemRole` constant which would be backwards compatible.
-
-Pros:
-
-- Potentially easier implementation, setting and checking an SSH certificate extension is very easy.
-- Certificate fields couldn't be spoofed without access to a cluster's CAs, so the Proxy/Auth servers could be reasonably sure what type of node is what so RBAC checks wouldn't be skipped.
-
-Cons:
-
-- Old Teleport components may reject certificates with an unknown value for the `x-teleport-role` extension. `(api/types.SystemRoles).Check` will return with an error if it does not recognize the `api/type.SystemRole` constant.
-
-##### Option 2 - add a `node` resource sub-kind
-
 A new sub-kind to the `node` resource would be introduced. The name isn't important, but for now let's call this sub-kind `openssh`. When OpenSSH nodes are registered, this `openssh` sub-kind would have to be present in the resource. Then when a Proxy connects to a registered OpenSSH node it could lookup the sub-kind of the node, preforming the RBAC check appropriately. The absence of a `node` resource sub-kind would imply that the node is a Teleport agent node, making this change backwards compatible.
-
-Pros:
-
-- Node certificate generation doesn't need to be changed at all, so this change won't affect any files on remote nodes.
-
-Cons:
-
-- `lib/srv.Authhandlers` might need to be given access to the backend database in order to lookup the sub-kind of `node` resources so it can decide if the RBAC check can be done on the node or not.
-
-##### Option choice: 1
-
-I believe Option 1 is the better option, as it should be easier to implement and won't involve certificate validation code needing to access the backend database. Option 2 is certainly viable though, I honestly had a hard time deciding which option was the better one.
 
 ### Session recording
 
@@ -88,3 +61,17 @@ If session recording is in `node` or `node-sync` mode:
 If session recording is in `proxy` or `proxy-sync` mode, behavior would be unaffected. The Proxy would terminate, record and upload the session. This mode will still be required if users of a cluster wish to connect to unregistered OpenSSH nodes.
 
 I propose that `proxy` or `proxy-sync` session recording modes continue to be required when connecting to any OpenSSH node through Teleport, *at first*. When registering OpenSSH nodes and preforming RBAC checks on them is completed and possibly released, then work could be done to streamline session recording with registered OpenSSH nodes.
+
+### Security
+
+Both RBAC checks and session recording for registered OpenSSH nodes require that users connect through a Proxy. But if users are able to connect to registered OpenSSH nodes directly, that is a security issue. Teleport already tackles this issue through the use of certificates and CAs. Users are issued certificates by the cluster's User CA that are used for authentication with a Teleport cluster. OpenSSH nodes are configured to only accept certificates signed by Teleport's Host CA, which users do not have access to. In order for users to directly connect to an OpenSSH node, they would have to extract the cluster's Host CA and use it to create and sign a certificate to authenticate with.
+
+### UX
+
+The following Teleport node features won't work with registered OpenSSH nodes:
+
+- Enhanced session recording and restricted networking
+- Host user provisioning
+- Session recording without SSH session termination
+- Dynamic labels
+- Outbound persistent tunnels to Proxies
