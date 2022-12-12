@@ -17,13 +17,13 @@ Allow OpenSSH nodes to be registered in a Teleport cluster.
 
 ## Why
 
-[Agentless EC2 discovery mode](https://github.com/gravitational/teleport/issues/17865) will discover and configure OpenSSH nodes so they can authenticate with a cluster. But those OpenSSH nodes aren't registered as `node` resources in the backend. We need a way to register agentless OpenSSH nodes as `node` resources so they can be viewed and managed by users.
+[Agentless EC2 discovery mode](https://github.com/gravitational/teleport/issues/17865) will discover and configure OpenSSH nodes so they can authenticate with a cluster. But those OpenSSH nodes aren't registered as `node` resources in the backend. We need a way to register agentless OpenSSH nodes as `node` resources so they can be viewed and managed by users. RBAC and session recording should function correctly with registered OpenSSH nodes as well.
 
 ## Details
 
-### Registering nodes
+### Manually registering nodes
 
-OpenSSH nodes can already be registered using `tctl create -f /path/to/node.yml`, though some changes should be made to make the process more straightforward for users. Currently nodes cannot be created with `tctl`, only upserted. This limitation should be removed so users can create nodes without having to pass `-f` to `tctl create`.
+OpenSSH nodes can already be manually registered using `tctl create --force /path/to/node.yml`, though some changes should be made to make the process more straightforward for users. Agentless EC2 discovery mode will registered discovered OpenSSH nodes without needing user intervention, but if automatically registering an OpenSSH node fails a user may want to register a node manually. Currently nodes cannot be created with `tctl`, only upserted. This limitation should be removed so users can create nodes without having to pass `--force` to `tctl create`.
 
 Furthermore, `tctl` should not require as many fields to be set when creating nodes. This is an example `node` resource that will work with `tctl create` today:
 
@@ -37,7 +37,7 @@ spec:
 version: v2
 ```
 
-`metadata.name` should be auto-generated if it is not already set so user's don't have to generate GUIDs themselves.
+`tctl create` will auto-generate `metadata.name` if it is not already set so users don't have to generate GUIDs themselves. 
 
 ### RBAC
 
