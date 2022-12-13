@@ -164,11 +164,18 @@ spec:
                       used for RBAC.
                     type: object
                   kubernetes_pods:
-                    description: KubePods is a list of kubernetes Pods the role grants
+                    description: KubePods is the Kubernetes Pods this role grants
                       access to.
                     items:
-                      type: string
-                    nullable: true
+                      properties:
+                        name:
+                          description: Name is the resource name. It supports wildcards.
+                          type: string
+                        namespace:
+                          description: Namespace is the resource namespace. It supports
+                            wildcards.
+                          type: string
+                      type: object
                     type: array
                   kubernetes_users:
                     description: KubeUsers is an optional kubernetes users to impersonate
@@ -536,11 +543,18 @@ spec:
                       used for RBAC.
                     type: object
                   kubernetes_pods:
-                    description: KubePods is a list of kubernetes Pods the role grants
+                    description: KubePods is the Kubernetes Pods this role grants
                       access to.
                     items:
-                      type: string
-                    nullable: true
+                      properties:
+                        name:
+                          description: Name is the resource name. It supports wildcards.
+                          type: string
+                        namespace:
+                          description: Namespace is the resource namespace. It supports
+                            wildcards.
+                          type: string
+                      type: object
                     type: array
                   kubernetes_users:
                     description: KubeUsers is an optional kubernetes users to impersonate
@@ -1149,11 +1163,18 @@ spec:
                       used for RBAC.
                     type: object
                   kubernetes_pods:
-                    description: KubePods is a list of kubernetes Pods the role grants
+                    description: KubePods is the Kubernetes Pods this role grants
                       access to.
                     items:
-                      type: string
-                    nullable: true
+                      properties:
+                        name:
+                          description: Name is the resource name. It supports wildcards.
+                          type: string
+                        namespace:
+                          description: Namespace is the resource namespace. It supports
+                            wildcards.
+                          type: string
+                      type: object
                     type: array
                   kubernetes_users:
                     description: KubeUsers is an optional kubernetes users to impersonate
@@ -1521,11 +1542,18 @@ spec:
                       used for RBAC.
                     type: object
                   kubernetes_pods:
-                    description: KubePods is a list of kubernetes Pods the role grants
+                    description: KubePods is the Kubernetes Pods this role grants
                       access to.
                     items:
-                      type: string
-                    nullable: true
+                      properties:
+                        name:
+                          description: Name is the resource name. It supports wildcards.
+                          type: string
+                        namespace:
+                          description: Namespace is the resource namespace. It supports
+                            wildcards.
+                          type: string
+                      type: object
                     type: array
                   kubernetes_users:
                     description: KubeUsers is an optional kubernetes users to impersonate
