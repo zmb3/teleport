@@ -443,6 +443,8 @@ func (rc *ResourceCommand) createAuthPreference(ctx context.Context, client auth
 		return trace.Wrap(err)
 	}
 
+	// TODO: this validation could be done on the auth server for better performance
+	// (avoiding two round trips)
 	storedAuthPref, err := client.GetAuthPreference(ctx)
 	if err != nil {
 		return trace.Wrap(err)
@@ -465,6 +467,8 @@ func (rc *ResourceCommand) createClusterNetworkingConfig(ctx context.Context, cl
 		return trace.Wrap(err)
 	}
 
+	// TODO: this validation could be done on the auth server for better performance
+	// (avoiding two round trips)
 	storedNetConfig, err := client.GetClusterNetworkingConfig(ctx)
 	if err != nil {
 		return trace.Wrap(err)
@@ -487,6 +491,8 @@ func (rc *ResourceCommand) createSessionRecordingConfig(ctx context.Context, cli
 		return trace.Wrap(err)
 	}
 
+	// TODO: this validation could be done on the auth server for better performance
+	// (avoiding two round trips)
 	storedRecConfig, err := client.GetSessionRecordingConfig(ctx)
 	if err != nil {
 		return trace.Wrap(err)
