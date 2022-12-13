@@ -29,8 +29,8 @@ import (
 	"github.com/duo-labs/webauthn/protocol/webauthncose"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
+	"github.com/zmb3/teleport/api/client/proto"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
 )
 
 // LoginOpts groups non-mandatory options for Login.

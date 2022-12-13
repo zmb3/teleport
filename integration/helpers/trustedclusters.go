@@ -23,11 +23,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils/retryutils"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/reversetunnel"
+	"github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils/retryutils"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/reversetunnel"
 )
 
 // WaitForTunnelConnections waits for remote tunnels connections

@@ -25,7 +25,7 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport/api/constants"
+	"github.com/zmb3/teleport/api/constants"
 )
 
 type Conn interface {

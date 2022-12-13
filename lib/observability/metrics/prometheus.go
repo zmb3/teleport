@@ -23,7 +23,7 @@ import (
 	om "github.com/grpc-ecosystem/go-grpc-middleware/providers/openmetrics/v2"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/gravitational/teleport"
+	"github.com/zmb3/teleport"
 )
 
 // RegisterPrometheusCollectors is a wrapper around prometheus.Register that

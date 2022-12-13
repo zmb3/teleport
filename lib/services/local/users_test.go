@@ -29,11 +29,11 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	wantypes "github.com/gravitational/teleport/api/types/webauthn"
-	"github.com/gravitational/teleport/lib/backend"
-	"github.com/gravitational/teleport/lib/backend/memory"
-	"github.com/gravitational/teleport/lib/services/local"
+	"github.com/zmb3/teleport/api/types"
+	wantypes "github.com/zmb3/teleport/api/types/webauthn"
+	"github.com/zmb3/teleport/lib/backend"
+	"github.com/zmb3/teleport/lib/backend/memory"
+	"github.com/zmb3/teleport/lib/services/local"
 )
 
 func newIdentityService(t *testing.T, clock clockwork.Clock) *local.IdentityService {

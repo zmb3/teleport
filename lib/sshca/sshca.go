@@ -18,7 +18,7 @@ limitations under the License.
 package sshca
 
 import (
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 // Authority implements minimal key-management facility for generating OpenSSH

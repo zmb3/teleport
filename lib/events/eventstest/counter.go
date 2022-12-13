@@ -20,7 +20,7 @@ import (
 	"context"
 	"sync/atomic"
 
-	"github.com/gravitational/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/types/events"
 )
 
 // NewCountingEmitter returns an emitter that counts the number

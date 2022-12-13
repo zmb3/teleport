@@ -19,8 +19,8 @@ import (
 	"encoding/base64"
 	"errors"
 
-	"github.com/gravitational/teleport/api/types"
-	wantypes "github.com/gravitational/teleport/api/types/webauthn"
+	"github.com/zmb3/teleport/api/types"
+	wantypes "github.com/zmb3/teleport/api/types/webauthn"
 )
 
 // PasswordlessIdentity represents the subset of Identity methods used by

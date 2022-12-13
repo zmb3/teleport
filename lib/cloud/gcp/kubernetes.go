@@ -30,7 +30,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"k8s.io/client-go/rest"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 const (

@@ -22,9 +22,9 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/types/events"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types/events"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // FromEventFields converts from the typed dynamic representation

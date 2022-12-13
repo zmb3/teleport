@@ -31,7 +31,7 @@ import (
 	"golang.org/x/oauth2"
 	"k8s.io/client-go/rest"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 func Test_gcpGKEClient_ListClusters(t *testing.T) {

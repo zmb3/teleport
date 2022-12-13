@@ -21,9 +21,9 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/tlsca"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // LockInForceAccessDenied is an AccessDenied error returned when a lock

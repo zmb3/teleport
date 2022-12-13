@@ -27,11 +27,11 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
-	wantypes "github.com/gravitational/teleport/api/types/webauthn"
-	"github.com/gravitational/teleport/api/utils/keys"
-	"github.com/gravitational/teleport/lib/defaults"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
+	wantypes "github.com/zmb3/teleport/api/types/webauthn"
+	"github.com/zmb3/teleport/api/utils/keys"
+	"github.com/zmb3/teleport/lib/defaults"
 )
 
 // UserGetter is responsible for getting users

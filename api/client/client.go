@@ -40,16 +40,16 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/gravitational/teleport/api/breaker"
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/metadata"
-	"github.com/gravitational/teleport/api/observability/tracing"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/api/types/wrappers"
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/zmb3/teleport/api/breaker"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/metadata"
+	"github.com/zmb3/teleport/api/observability/tracing"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/types/wrappers"
+	"github.com/zmb3/teleport/api/utils"
 )
 
 func init() {

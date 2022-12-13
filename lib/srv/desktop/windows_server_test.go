@@ -27,12 +27,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/auth"
-	libevents "github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/events/eventstest"
-	"github.com/gravitational/teleport/lib/srv/desktop/tdp"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/auth"
+	libevents "github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/events/eventstest"
+	"github.com/zmb3/teleport/lib/srv/desktop/tdp"
 )
 
 func TestConfigWildcardBaseDN(t *testing.T) {

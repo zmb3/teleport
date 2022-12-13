@@ -26,9 +26,9 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/modules"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/modules"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 func TestProcessKubeCSR(t *testing.T) {

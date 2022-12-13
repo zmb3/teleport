@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gravitational/teleport/api/utils/keys"
+	"github.com/zmb3/teleport/api/utils/keys"
 )
 
 // TestModules implements the Modules interface for testing.

@@ -26,9 +26,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/sshutils"
+	"github.com/zmb3/teleport"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/sshutils"
 )
 
 // TestEmitExecAuditEvent make sure the full command and exit code for a

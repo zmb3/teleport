@@ -34,9 +34,9 @@ import (
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/packages"
 
-	"github.com/gravitational/teleport/api"
-	"github.com/gravitational/teleport/build.assets/gomod"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api"
+	"github.com/zmb3/teleport/build.assets/gomod"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func init() {

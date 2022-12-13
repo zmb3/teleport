@@ -21,8 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/gravitational/teleport/lib/observability/metrics"
-	"github.com/gravitational/teleport/tool/teleport/common"
+	"github.com/zmb3/teleport/lib/observability/metrics"
+	"github.com/zmb3/teleport/tool/teleport/common"
 )
 
 func init() {

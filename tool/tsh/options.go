@@ -24,8 +24,8 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // supportedOptions is a listing of all known OpenSSH options

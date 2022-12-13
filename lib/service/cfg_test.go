@@ -24,11 +24,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/backend/lite"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/fixtures"
-	"github.com/gravitational/teleport/lib/srv/app/common"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/backend/lite"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/fixtures"
+	"github.com/zmb3/teleport/lib/srv/app/common"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func TestDefaultConfig(t *testing.T) {

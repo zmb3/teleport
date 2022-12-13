@@ -21,9 +21,9 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	awsutils "github.com/gravitational/teleport/api/utils/aws"
-	awslib "github.com/gravitational/teleport/lib/cloud/aws"
+	"github.com/zmb3/teleport/api/types"
+	awsutils "github.com/zmb3/teleport/api/utils/aws"
+	awslib "github.com/zmb3/teleport/lib/cloud/aws"
 )
 
 // GetAWSPolicyDocument returns the AWS IAM policy document for provided

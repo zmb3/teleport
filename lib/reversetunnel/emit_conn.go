@@ -22,9 +22,9 @@ import (
 	"net"
 	"sync"
 
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/api/utils/sshutils"
-	"github.com/gravitational/teleport/lib/events"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/utils/sshutils"
+	"github.com/zmb3/teleport/lib/events"
 )
 
 func min(a, b int) int {

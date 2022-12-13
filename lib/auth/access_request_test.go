@@ -28,16 +28,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils/sshutils"
-	"github.com/gravitational/teleport/lib/auth/testauthority"
-	"github.com/gravitational/teleport/lib/modules"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils/sshutils"
+	"github.com/zmb3/teleport/lib/auth/testauthority"
+	"github.com/zmb3/teleport/lib/modules"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 type accessRequestTestPack struct {

@@ -27,10 +27,10 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
-	wancli "github.com/gravitational/teleport/lib/auth/webauthncli"
-	"github.com/gravitational/teleport/lib/utils/prompt"
+	"github.com/zmb3/teleport/api/client/proto"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
+	wancli "github.com/zmb3/teleport/lib/auth/webauthncli"
+	"github.com/zmb3/teleport/lib/utils/prompt"
 )
 
 // promptWebauthn provides indirection for tests.

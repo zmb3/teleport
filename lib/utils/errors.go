@@ -24,7 +24,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/constants"
+	"github.com/zmb3/teleport/api/constants"
 )
 
 // IsUseOfClosedNetworkError returns true if the specified error

@@ -34,14 +34,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	api "github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/bpf"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/events/eventstest"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/utils"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	api "github.com/zmb3/teleport/api/types"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/bpf"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/events/eventstest"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 type blockAction int

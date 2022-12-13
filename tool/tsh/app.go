@@ -29,14 +29,14 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils/keys"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/tlsca"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils/keys"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // onAppLogin implements "tsh app login" command.

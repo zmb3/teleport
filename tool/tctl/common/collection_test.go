@@ -23,8 +23,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/asciitable"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/asciitable"
 )
 
 var (

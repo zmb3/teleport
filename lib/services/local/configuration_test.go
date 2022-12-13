@@ -25,11 +25,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/backend"
-	"github.com/gravitational/teleport/lib/backend/memory"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/services/suite"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/backend"
+	"github.com/zmb3/teleport/lib/backend/memory"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/services/suite"
 )
 
 type configContext struct {

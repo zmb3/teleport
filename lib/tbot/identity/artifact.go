@@ -19,7 +19,7 @@ package identity
 import (
 	"bytes"
 
-	"github.com/gravitational/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/client/proto"
 )
 
 // Artifact is a component of a serialized identity.

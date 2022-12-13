@@ -23,13 +23,13 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/config"
-	"github.com/gravitational/teleport/lib/configurators"
-	awsconfigurators "github.com/gravitational/teleport/lib/configurators/aws"
-	"github.com/gravitational/teleport/lib/configurators/configuratorbuilder"
-	"github.com/gravitational/teleport/lib/utils/prompt"
+	"github.com/zmb3/teleport/api/types"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/config"
+	"github.com/zmb3/teleport/lib/configurators"
+	awsconfigurators "github.com/zmb3/teleport/lib/configurators/aws"
+	"github.com/zmb3/teleport/lib/configurators/configuratorbuilder"
+	"github.com/zmb3/teleport/lib/utils/prompt"
 )
 
 // awsDatabaseTypes list of databases supported on the configurator.

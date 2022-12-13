@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
 )
 
 func TestCredentialAssertionResponse_json(t *testing.T) {

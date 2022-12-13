@@ -22,8 +22,8 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/artifacts"
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/customflag"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/artifacts"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/customflag"
 )
 
 type commandlineArgs struct {

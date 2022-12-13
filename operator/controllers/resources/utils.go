@@ -24,7 +24,7 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 const (

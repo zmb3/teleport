@@ -24,9 +24,9 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/backend/memory"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/backend/memory"
 )
 
 func TestSystemRoleAssertions(t *testing.T) {

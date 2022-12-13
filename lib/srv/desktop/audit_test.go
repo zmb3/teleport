@@ -30,12 +30,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/types/events"
-	libevents "github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/events/eventstest"
-	"github.com/gravitational/teleport/lib/srv/desktop/tdp"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/types/events"
+	libevents "github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/events/eventstest"
+	"github.com/zmb3/teleport/lib/srv/desktop/tdp"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 func setup() (*WindowsService, *tlsca.Identity, *eventstest.MockEmitter) {

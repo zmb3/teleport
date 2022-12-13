@@ -31,8 +31,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/httpstream"
 	spdystream "k8s.io/apimachinery/pkg/util/httpstream/spdy"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/events"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/events"
 )
 
 // portForwardRequest is a request that specifies port forwarding

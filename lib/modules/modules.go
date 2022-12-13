@@ -30,11 +30,11 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils/keys"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils/keys"
 )
 
 // Features provides supported and unsupported features

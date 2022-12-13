@@ -24,7 +24,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api"
+	"github.com/zmb3/teleport/api"
 )
 
 // DatabaseServer represents a database access server.

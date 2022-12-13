@@ -34,11 +34,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/api/utils/retryutils"
-	"github.com/gravitational/teleport/lib/backend"
-	"github.com/gravitational/teleport/lib/defaults"
+	"github.com/zmb3/teleport/api/types"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/api/utils/retryutils"
+	"github.com/zmb3/teleport/lib/backend"
+	"github.com/zmb3/teleport/lib/defaults"
 )
 
 // Config structure represents Firestore configuration as appears in `storage` section of Teleport YAML

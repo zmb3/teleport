@@ -28,13 +28,13 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/breaker"
-	"github.com/gravitational/teleport/integration/helpers"
-	"github.com/gravitational/teleport/lib"
-	"github.com/gravitational/teleport/lib/auth/testauthority"
-	"github.com/gravitational/teleport/lib/service"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/breaker"
+	"github.com/zmb3/teleport/integration/helpers"
+	"github.com/zmb3/teleport/lib"
+	"github.com/zmb3/teleport/lib/auth/testauthority"
+	"github.com/zmb3/teleport/lib/service"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 type AppTestOptions struct {

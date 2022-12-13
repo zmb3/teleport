@@ -34,10 +34,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/observability/tracing"
-	"github.com/gravitational/teleport/lib/httplib/csrf"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/observability/tracing"
+	"github.com/zmb3/teleport/lib/httplib/csrf"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // timeoutMessage is a generic "timeout" error message that is displayed as a more user-friendly alternative to

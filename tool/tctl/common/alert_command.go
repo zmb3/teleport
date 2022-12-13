@@ -26,11 +26,11 @@ import (
 	"github.com/gravitational/kingpin"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/asciitable"
-	"github.com/gravitational/teleport/lib/auth"
-	libclient "github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/service"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/asciitable"
+	"github.com/zmb3/teleport/lib/auth"
+	libclient "github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/service"
 )
 
 // AlertCommand implements the `tctl alerts` family of commands.

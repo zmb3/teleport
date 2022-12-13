@@ -24,11 +24,11 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/sirupsen/logrus"
 
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/backend"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/services"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/backend"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 // EventsService implements service to watch for events

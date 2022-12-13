@@ -27,8 +27,8 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/types"
 )
 
 var pkcs11Prefix = []byte("pkcs11:")

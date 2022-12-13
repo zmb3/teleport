@@ -39,8 +39,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/defaults"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/defaults"
 )
 
 var log = logrus.WithFields(logrus.Fields{

@@ -29,9 +29,9 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/gravitational/teleport/api/types/events"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	libevents "github.com/gravitational/teleport/lib/events"
+	"github.com/zmb3/teleport/api/types/events"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	libevents "github.com/zmb3/teleport/lib/events"
 )
 
 // SSMInstallerConfig represents configuration for an SSM install

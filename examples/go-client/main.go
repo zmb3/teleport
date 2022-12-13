@@ -23,8 +23,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/client"
+	"github.com/zmb3/teleport/api/types"
 )
 
 func main() {

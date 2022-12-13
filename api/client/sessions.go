@@ -23,7 +23,7 @@ import (
 	"github.com/gravitational/trace/trail"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // GetWebSession returns the web session for the specified request.

@@ -27,12 +27,12 @@ import (
 	"github.com/jonboulle/clockwork"
 	logrus "github.com/sirupsen/logrus"
 
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/api/utils/retryutils"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/session"
-	"github.com/gravitational/teleport/lib/utils"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/utils/retryutils"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/session"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // NewAuditWriter returns a new instance of session writer

@@ -32,9 +32,9 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/moby/term"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/backend"
-	"github.com/gravitational/teleport/lib/defaults"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/backend"
+	"github.com/zmb3/teleport/lib/defaults"
 )
 
 // ID is a unique session ID.

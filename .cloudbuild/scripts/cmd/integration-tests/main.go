@@ -29,11 +29,11 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/artifacts"
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/changes"
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/etcd"
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/git"
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/secrets"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/artifacts"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/changes"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/etcd"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/git"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/secrets"
 )
 
 const (

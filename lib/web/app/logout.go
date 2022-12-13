@@ -24,7 +24,7 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/julienschmidt/httprouter"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 func (h *Handler) handleLogout(w http.ResponseWriter, r *http.Request, p httprouter.Params, session *session) error {

@@ -20,8 +20,8 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	wantypes "github.com/gravitational/teleport/api/types/webauthn"
+	"github.com/zmb3/teleport/api/types"
+	wantypes "github.com/zmb3/teleport/api/types/webauthn"
 )
 
 // LoginIdentity represents the subset of Identity methods used by LoginFlow.

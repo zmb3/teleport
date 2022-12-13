@@ -32,16 +32,16 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh/agent"
 
-	"github.com/gravitational/teleport/api/constants"
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/api/utils/retryutils"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/client"
-	libclient "github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/client/identityfile"
-	"github.com/gravitational/teleport/lib/teleagent"
+	"github.com/zmb3/teleport/api/constants"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/utils/retryutils"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/client"
+	libclient "github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/client/identityfile"
+	"github.com/zmb3/teleport/lib/teleagent"
 )
 
 // CommandOptions controls how the SSH command is built.

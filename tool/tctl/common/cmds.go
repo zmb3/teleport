@@ -15,8 +15,8 @@
 package common
 
 import (
-	"github.com/gravitational/teleport/tool/tctl/sso/configure"
-	"github.com/gravitational/teleport/tool/tctl/sso/tester"
+	"github.com/zmb3/teleport/tool/tctl/sso/configure"
+	"github.com/zmb3/teleport/tool/tctl/sso/tester"
 )
 
 // Commands returns the set of commands that are to oss and ent

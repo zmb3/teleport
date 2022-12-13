@@ -22,8 +22,8 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/cloud/gcp"
-	"github.com/gravitational/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/lib/cloud/gcp"
+	"github.com/zmb3/teleport/lib/srv/db/common"
 )
 
 // GetGCPRequireSSL requests settings for the project/instance in session from GCP

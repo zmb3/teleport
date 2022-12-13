@@ -17,8 +17,8 @@ package client
 import (
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // EventToGRPC converts types.Event to proto.Event

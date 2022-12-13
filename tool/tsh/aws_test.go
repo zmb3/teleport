@@ -26,13 +26,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/breaker"
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib"
-	"github.com/gravitational/teleport/lib/service"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/breaker"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/types"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib"
+	"github.com/zmb3/teleport/lib/service"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func TestAWS(t *testing.T) {

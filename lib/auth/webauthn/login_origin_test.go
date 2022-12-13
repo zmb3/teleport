@@ -19,7 +19,7 @@ package webauthn_test
 import (
 	"testing"
 
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
 )
 
 func TestValidateOrigin(t *testing.T) {

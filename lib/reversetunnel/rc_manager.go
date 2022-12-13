@@ -26,11 +26,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	apitypes "github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	apitypes "github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // RemoteClusterTunnelManager manages AgentPools for trusted (remote) clusters. It

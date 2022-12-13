@@ -24,15 +24,15 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/api/utils/keys"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/types"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/utils/keys"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // AuthenticateUserRequest is a request to authenticate interactive user

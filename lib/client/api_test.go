@@ -32,13 +32,13 @@ import (
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 
-	"github.com/gravitational/teleport/api/client/webclient"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/observability/tracing"
-	"github.com/gravitational/teleport/lib/session"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/client/webclient"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/observability/tracing"
+	"github.com/zmb3/teleport/lib/session"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func TestMain(m *testing.M) {

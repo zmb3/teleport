@@ -25,8 +25,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func TestMain(m *testing.M) {

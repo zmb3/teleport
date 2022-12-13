@@ -24,10 +24,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/types/events"
-	libevents "github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/srv/db/redis"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/types/events"
+	libevents "github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/srv/db/redis"
 )
 
 // TestAuditPostgres verifies proper audit events are emitted for Postgres

@@ -28,11 +28,11 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/cloud"
-	"github.com/gravitational/teleport/lib/cloud/azure"
-	"github.com/gravitational/teleport/lib/cloud/gcp"
-	"github.com/gravitational/teleport/lib/labels"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/cloud"
+	"github.com/zmb3/teleport/lib/cloud/azure"
+	"github.com/zmb3/teleport/lib/cloud/gcp"
+	"github.com/zmb3/teleport/lib/labels"
 )
 
 // kubeDetails contain the cluster-related details including authentication.

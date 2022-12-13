@@ -34,17 +34,17 @@ import (
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 
-	"github.com/gravitational/teleport"
-	tracessh "github.com/gravitational/teleport/api/observability/tracing/ssh"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/client/escape"
-	"github.com/gravitational/teleport/lib/client/terminal"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/session"
-	"github.com/gravitational/teleport/lib/sshutils"
-	"github.com/gravitational/teleport/lib/sshutils/x11"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	tracessh "github.com/zmb3/teleport/api/observability/tracing/ssh"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/client/escape"
+	"github.com/zmb3/teleport/lib/client/terminal"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/session"
+	"github.com/zmb3/teleport/lib/sshutils"
+	"github.com/zmb3/teleport/lib/sshutils/x11"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 const (

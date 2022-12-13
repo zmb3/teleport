@@ -29,14 +29,14 @@ import (
 	"github.com/jackc/pgproto3/v2"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/multiplexer"
-	"github.com/gravitational/teleport/lib/srv/db/common"
-	"github.com/gravitational/teleport/lib/srv/db/mysql"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/multiplexer"
+	"github.com/zmb3/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/lib/srv/db/mysql"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // TestProxyProtocolPostgres ensures that clients can successfully connect to a

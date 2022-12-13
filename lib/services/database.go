@@ -40,15 +40,15 @@ import (
 	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/util/validation"
 
-	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	awsutils "github.com/gravitational/teleport/api/utils/aws"
-	azureutils "github.com/gravitational/teleport/api/utils/azure"
-	"github.com/gravitational/teleport/lib/cloud/azure"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/srv/db/redis/connection"
-	"github.com/gravitational/teleport/lib/tlsca"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	awsutils "github.com/zmb3/teleport/api/utils/aws"
+	azureutils "github.com/zmb3/teleport/api/utils/azure"
+	"github.com/zmb3/teleport/lib/cloud/azure"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/srv/db/redis/connection"
+	"github.com/zmb3/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // DatabaseGetter defines interface for fetching database resources.

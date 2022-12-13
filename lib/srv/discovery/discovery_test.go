@@ -40,16 +40,16 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/cloud"
-	"github.com/gravitational/teleport/lib/cloud/azure"
-	"github.com/gravitational/teleport/lib/cloud/gcp"
-	libevents "github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/cloud"
+	"github.com/zmb3/teleport/lib/cloud/azure"
+	"github.com/zmb3/teleport/lib/cloud/gcp"
+	libevents "github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 type mockSSMClient struct {

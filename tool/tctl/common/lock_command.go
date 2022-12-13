@@ -25,9 +25,9 @@ import (
 	"github.com/gravitational/kingpin"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/service"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/service"
 )
 
 // LockCommand implements `tctl lock` group of commands.

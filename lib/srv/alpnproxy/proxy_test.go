@@ -31,10 +31,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/lib/srv/alpnproxy/common"
-	"github.com/gravitational/teleport/lib/srv/db/dbutils"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/lib/srv/alpnproxy/common"
+	"github.com/zmb3/teleport/lib/srv/db/dbutils"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // TestProxySSHHandler tests the ALPN routing. Connection with ALPN 'teleport-proxy-ssh' value should

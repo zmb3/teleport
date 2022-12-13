@@ -20,7 +20,7 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 func FormatString(description string, msg string) string {

@@ -26,8 +26,8 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/events/test"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/events/test"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func TestMain(m *testing.M) {

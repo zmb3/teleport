@@ -31,7 +31,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // TestMain will re-execute Teleport to run a command if "exec" is passed to

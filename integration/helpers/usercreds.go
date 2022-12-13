@@ -21,12 +21,12 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth/testauthority"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/service"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth/testauthority"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/service"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 // UserCreds holds user client credentials

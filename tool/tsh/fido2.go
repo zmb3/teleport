@@ -20,7 +20,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	wancli "github.com/gravitational/teleport/lib/auth/webauthncli"
+	wancli "github.com/zmb3/teleport/lib/auth/webauthncli"
 )
 
 func onFIDO2Diag(cf *CLIConf) error {

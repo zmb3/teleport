@@ -33,15 +33,15 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/profile"
-	"github.com/gravitational/teleport/api/utils/keypaths"
-	"github.com/gravitational/teleport/api/utils/keys"
-	apisshutils "github.com/gravitational/teleport/api/utils/sshutils"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/sshutils"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/profile"
+	"github.com/zmb3/teleport/api/utils/keypaths"
+	"github.com/zmb3/teleport/api/utils/keys"
+	apisshutils "github.com/zmb3/teleport/api/utils/sshutils"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/sshutils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 const (

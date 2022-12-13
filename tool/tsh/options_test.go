@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/client"
 )
 
 func TestOptions(t *testing.T) {

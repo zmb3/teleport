@@ -27,11 +27,11 @@ import (
 	"github.com/vulcand/predicate"
 	"github.com/vulcand/predicate/builder"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/api/types/wrappers"
-	"github.com/gravitational/teleport/lib/session"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/types/wrappers"
+	"github.com/zmb3/teleport/lib/session"
 )
 
 // RuleContext specifies context passed to the

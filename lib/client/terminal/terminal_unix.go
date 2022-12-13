@@ -31,7 +31,7 @@ import (
 	"github.com/moby/term"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // Terminal is used to configure raw input and output modes for an attached

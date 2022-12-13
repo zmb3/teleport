@@ -26,14 +26,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/api/types/wrappers"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/types/wrappers"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // BotResourceName returns the default name for resources associated with the

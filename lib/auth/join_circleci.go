@@ -21,9 +21,9 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/circleci"
+	"github.com/zmb3/teleport/api/types"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/circleci"
 )
 
 func (a *Server) checkCircleCIJoinRequest(ctx context.Context, req *types.RegisterUsingTokenRequest) error {

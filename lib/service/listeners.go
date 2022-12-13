@@ -19,8 +19,8 @@ package service
 import (
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // ListenerType identifies different registered listeners in

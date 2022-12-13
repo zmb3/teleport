@@ -23,10 +23,10 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/utils"
-	"github.com/gravitational/teleport/lib/utils/parse"
+	"github.com/zmb3/teleport/api/types"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/utils/parse"
 )
 
 // maxMismatchedTraitValuesLogged indicates the maximum number of trait values (that do not match a

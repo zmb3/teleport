@@ -20,7 +20,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/gravitational/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/types/events"
 )
 
 // NewSlowEmitter creates an emitter that introduces an artificial

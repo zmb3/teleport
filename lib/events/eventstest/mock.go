@@ -20,8 +20,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/session"
+	"github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/session"
 )
 
 // MockEmitter is an emitter that stores all emitted events.

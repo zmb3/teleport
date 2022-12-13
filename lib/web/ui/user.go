@@ -19,7 +19,7 @@ package ui
 import (
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 type UserListEntry struct {

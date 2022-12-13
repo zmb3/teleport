@@ -23,7 +23,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/auth"
 )
 
 // FakeServer is a fake reversetunnel.Server implementation used in tests.

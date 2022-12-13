@@ -24,10 +24,10 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/session"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/session"
 )
 
 func TestAPIServer_activeSessions_whereConditions(t *testing.T) {

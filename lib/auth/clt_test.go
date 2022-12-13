@@ -28,11 +28,11 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/breaker"
-	apiclient "github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth/testauthority"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/breaker"
+	apiclient "github.com/zmb3/teleport/api/client"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth/testauthority"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 func TestClient_DialTimeout(t *testing.T) {

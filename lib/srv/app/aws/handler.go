@@ -34,11 +34,11 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/sirupsen/logrus"
 
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/srv/app/common"
-	awsutils "github.com/gravitational/teleport/lib/utils/aws"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/srv/app/common"
+	awsutils "github.com/zmb3/teleport/lib/utils/aws"
 )
 
 // NewSigningService creates a new instance of SigningService.

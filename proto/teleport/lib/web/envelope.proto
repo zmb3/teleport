@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package teleport.lib.web;
 
-option go_package = "github.com/gravitational/teleport/lib/web";
+option go_package = "github.com/zmb3/teleport/lib/web";
 
 // Envelope is used to wrap and transend and receive messages between the
 // web client and proxy.

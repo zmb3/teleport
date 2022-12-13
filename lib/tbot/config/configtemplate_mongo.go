@@ -21,10 +21,10 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/client/identityfile"
-	"github.com/gravitational/teleport/lib/tbot/bot"
-	"github.com/gravitational/teleport/lib/tbot/identity"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/client/identityfile"
+	"github.com/zmb3/teleport/lib/tbot/bot"
+	"github.com/zmb3/teleport/lib/tbot/identity"
 )
 
 // defaultMongoPrefix is the default prefix in generated MongoDB certs.

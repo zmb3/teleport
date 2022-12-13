@@ -28,10 +28,10 @@ import (
 
 	"github.com/gravitational/trace"
 
-	apiclient "github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/client/proto"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
-	libclient "github.com/gravitational/teleport/lib/client"
+	apiclient "github.com/zmb3/teleport/api/client"
+	"github.com/zmb3/teleport/api/client/proto"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
+	libclient "github.com/zmb3/teleport/lib/client"
 )
 
 //go:embed index.html

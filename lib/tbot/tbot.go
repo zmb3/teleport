@@ -29,13 +29,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/client/webclient"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/tbot/config"
-	"github.com/gravitational/teleport/lib/tbot/identity"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/client/webclient"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/tbot/config"
+	"github.com/zmb3/teleport/lib/tbot/identity"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 type Bot struct {

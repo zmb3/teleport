@@ -25,7 +25,7 @@ import (
 	"github.com/gravitational/trace"
 	"gopkg.in/ini.v1"
 
-	"github.com/gravitational/teleport/lib/client/db/profile"
+	"github.com/zmb3/teleport/lib/client/db/profile"
 )
 
 // OptionFile represents MySQL option file.

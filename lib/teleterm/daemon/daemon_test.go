@@ -26,12 +26,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/teleterm/api/uri"
-	"github.com/gravitational/teleport/lib/teleterm/clusters"
-	"github.com/gravitational/teleport/lib/teleterm/gateway"
-	"github.com/gravitational/teleport/lib/teleterm/gatewaytest"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/teleterm/api/uri"
+	"github.com/zmb3/teleport/lib/teleterm/clusters"
+	"github.com/zmb3/teleport/lib/teleterm/gateway"
+	"github.com/zmb3/teleport/lib/teleterm/gatewaytest"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 type mockGatewayCreator struct {

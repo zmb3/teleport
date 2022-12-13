@@ -29,10 +29,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/tbot"
-	"github.com/gravitational/teleport/lib/tbot/config"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/tbot"
+	"github.com/zmb3/teleport/lib/tbot/config"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 var log = logrus.WithFields(logrus.Fields{

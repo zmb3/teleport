@@ -24,8 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/srv/db/postgres"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/srv/db/postgres"
 )
 
 // TestLocalProxyPostgres verifies connecting to a Postgres database

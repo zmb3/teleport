@@ -34,13 +34,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/utils/retryutils"
-	resourcesv2 "github.com/gravitational/teleport/operator/apis/resources/v2"
-	resourcesv3 "github.com/gravitational/teleport/operator/apis/resources/v3"
-	resourcesv5 "github.com/gravitational/teleport/operator/apis/resources/v5"
-	resourcescontrollers "github.com/gravitational/teleport/operator/controllers/resources"
-	"github.com/gravitational/teleport/operator/sidecar"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/utils/retryutils"
+	resourcesv2 "github.com/zmb3/teleport/operator/apis/resources/v2"
+	resourcesv3 "github.com/zmb3/teleport/operator/apis/resources/v3"
+	resourcesv5 "github.com/zmb3/teleport/operator/apis/resources/v5"
+	resourcescontrollers "github.com/zmb3/teleport/operator/controllers/resources"
+	"github.com/zmb3/teleport/operator/sidecar"
 	//+kubebuilder:scaffold:imports
 )
 

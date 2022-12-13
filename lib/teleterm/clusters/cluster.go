@@ -25,12 +25,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/client"
-	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
-	"github.com/gravitational/teleport/lib/teleterm/api/uri"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/client"
+	api "github.com/zmb3/teleport/lib/teleterm/api/protogen/golang/v1"
+	"github.com/zmb3/teleport/lib/teleterm/api/uri"
 )
 
 // Cluster describes user settings and access to various resources.

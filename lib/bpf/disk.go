@@ -26,8 +26,8 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/observability/metrics"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/observability/metrics"
 )
 
 var (

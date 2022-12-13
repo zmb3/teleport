@@ -21,7 +21,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/srv"
+	"github.com/zmb3/teleport/lib/srv"
 )
 
 func FuzzParseProxySubsys(f *testing.F) {

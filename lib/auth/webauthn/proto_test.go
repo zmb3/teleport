@@ -19,8 +19,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	wantypes "github.com/gravitational/teleport/api/types/webauthn"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
+	wantypes "github.com/zmb3/teleport/api/types/webauthn"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
 )
 
 func TestConversionFromProto_nils(t *testing.T) {

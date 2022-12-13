@@ -22,9 +22,9 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types/events"
-	libevents "github.com/gravitational/teleport/lib/events"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types/events"
+	libevents "github.com/zmb3/teleport/lib/events"
 )
 
 // Audit defines an interface for database access audit events logger.

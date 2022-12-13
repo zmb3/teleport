@@ -23,9 +23,9 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 type ghExtraFlags struct {
@@ -70,7 +70,7 @@ Examples:
   The values for --secret and --id are provided by GitHub.
 
   > tctl sso configure gh ... | tctl sso test
-  
+
   Generate the configuration and immediately test it using "tctl sso test" command.`)
 
 	preset := &AuthKindCommand{

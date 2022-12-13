@@ -27,8 +27,8 @@ import (
 	"github.com/denisenkom/go-mssqldb/msdsn"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/srv/db/common"
-	"github.com/gravitational/teleport/lib/srv/db/sqlserver/protocol"
+	"github.com/zmb3/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/lib/srv/db/sqlserver/protocol"
 )
 
 // Connector defines an interface for connecting to a SQL Server so it can be

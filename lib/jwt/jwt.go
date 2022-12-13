@@ -34,9 +34,9 @@ import (
 	"gopkg.in/square/go-jose.v2/cryptosigner"
 	"gopkg.in/square/go-jose.v2/jwt"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/types/wrappers"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/types/wrappers"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // Config defines the clock and PEM encoded bytes of a public and private

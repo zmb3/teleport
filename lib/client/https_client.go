@@ -28,12 +28,12 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"golang.org/x/net/http/httpproxy"
 
-	"github.com/gravitational/teleport"
-	apiproxy "github.com/gravitational/teleport/api/client/proxy"
-	"github.com/gravitational/teleport/api/observability/tracing"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/httplib"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	apiproxy "github.com/zmb3/teleport/api/client/proxy"
+	"github.com/zmb3/teleport/api/observability/tracing"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/httplib"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func NewInsecureWebClient() *http.Client {

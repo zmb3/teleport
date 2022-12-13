@@ -28,13 +28,13 @@ import (
 	"github.com/datastax/go-cassandra-native-protocol/message"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/defaults"
-	libevents "github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/srv/db/cassandra/protocol"
-	"github.com/gravitational/teleport/lib/srv/db/common"
-	"github.com/gravitational/teleport/lib/srv/db/common/role"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/defaults"
+	libevents "github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/srv/db/cassandra/protocol"
+	"github.com/zmb3/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/lib/srv/db/common/role"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func init() {

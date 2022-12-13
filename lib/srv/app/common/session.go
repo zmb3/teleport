@@ -22,9 +22,9 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // SessionContext contains common context parameters for an App session.

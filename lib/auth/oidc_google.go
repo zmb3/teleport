@@ -27,8 +27,8 @@ import (
 	"google.golang.org/api/cloudidentity/v1"
 	"google.golang.org/api/option"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils"
 )
 
 const (

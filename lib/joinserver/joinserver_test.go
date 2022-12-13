@@ -31,9 +31,9 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 
-	"github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/client"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 type mockJoinServiceClient struct {

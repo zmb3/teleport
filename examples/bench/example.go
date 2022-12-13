@@ -21,7 +21,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/gravitational/teleport/lib/benchmark"
+	"github.com/zmb3/teleport/lib/benchmark"
 )
 
 func main() {

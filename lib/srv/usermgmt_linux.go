@@ -25,7 +25,7 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/lib/utils/host"
+	"github.com/zmb3/teleport/lib/utils/host"
 )
 
 // HostUsersProvisioningBackend is used to implement HostUsersBackend

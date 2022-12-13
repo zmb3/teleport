@@ -19,9 +19,9 @@ package services
 import (
 	"github.com/gravitational/trace"
 
-	usageevents "github.com/gravitational/teleport/api/gen/proto/go/usageevents/v1"
-	prehogv1 "github.com/gravitational/teleport/lib/prehog/gen/prehog/v1alpha"
-	"github.com/gravitational/teleport/lib/utils"
+	usageevents "github.com/zmb3/teleport/api/gen/proto/go/usageevents/v1"
+	prehogv1 "github.com/zmb3/teleport/lib/prehog/gen/prehog/v1alpha"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // UsageAnonymizable is an event that can be anonymized.

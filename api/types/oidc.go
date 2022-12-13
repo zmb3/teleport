@@ -23,9 +23,9 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/utils"
 )
 
 // OIDCConnector specifies configuration for Open ID Connect compatible external

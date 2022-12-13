@@ -20,13 +20,13 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/services"
-	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
-	"github.com/gravitational/teleport/lib/teleterm/api/uri"
+	"github.com/zmb3/teleport/api/types"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/services"
+	api "github.com/zmb3/teleport/lib/teleterm/api/protogen/golang/v1"
+	"github.com/zmb3/teleport/lib/teleterm/api/uri"
 )
 
 type AccessRequest struct {

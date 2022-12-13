@@ -28,8 +28,8 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/events/test"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/events/test"
 )
 
 func TestUploadFromPath(t *testing.T) {

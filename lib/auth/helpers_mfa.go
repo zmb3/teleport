@@ -25,10 +25,10 @@ import (
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth/mocku2f"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth/mocku2f"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
 )
 
 // TestDevice is a test MFA device.

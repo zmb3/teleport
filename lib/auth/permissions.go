@@ -25,12 +25,12 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/vulcand/predicate/builder"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/types"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // NewAdminContext returns new admin auth context

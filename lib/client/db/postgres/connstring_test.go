@@ -21,7 +21,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/client/db/profile"
+	"github.com/zmb3/teleport/lib/client/db/profile"
 )
 
 // TestConnString verifies creating Postgres connection string from profile.

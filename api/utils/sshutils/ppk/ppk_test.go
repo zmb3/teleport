@@ -23,8 +23,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/utils/keys"
-	"github.com/gravitational/teleport/api/utils/sshutils/ppk"
+	"github.com/zmb3/teleport/api/utils/keys"
+	"github.com/zmb3/teleport/api/utils/sshutils/ppk"
 )
 
 func TestConvertToPPK(t *testing.T) {

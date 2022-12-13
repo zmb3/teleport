@@ -30,14 +30,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/types/events"
-	libevents "github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/srv/db/common"
-	"github.com/gravitational/teleport/lib/srv/db/sqlserver/protocol"
-	"github.com/gravitational/teleport/lib/srv/db/sqlserver/protocol/fixtures"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/types/events"
+	libevents "github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/lib/srv/db/sqlserver/protocol"
+	"github.com/zmb3/teleport/lib/srv/db/sqlserver/protocol/fixtures"
 )
 
 // TestHandleConnectionAuditEvents checks audit events emitted during HandleConnection execution.

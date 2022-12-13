@@ -25,8 +25,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/gravitational/teleport/api/types"
-	resourcesv2 "github.com/gravitational/teleport/operator/apis/resources/v2"
+	"github.com/zmb3/teleport/api/types"
+	resourcesv2 "github.com/zmb3/teleport/operator/apis/resources/v2"
 )
 
 var samlSpec = &types.SAMLConnectorSpecV2{

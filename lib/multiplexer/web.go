@@ -27,9 +27,9 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/lib/defaults"
-	dbcommon "github.com/gravitational/teleport/lib/srv/db/dbutils"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/defaults"
+	dbcommon "github.com/zmb3/teleport/lib/srv/db/dbutils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // WebListenerConfig is the web listener configuration.

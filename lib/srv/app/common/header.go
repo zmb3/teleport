@@ -21,7 +21,7 @@ import (
 
 	"github.com/gravitational/oxy/forward"
 
-	"github.com/gravitational/teleport"
+	"github.com/zmb3/teleport"
 )
 
 const (

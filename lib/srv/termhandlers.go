@@ -23,8 +23,8 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
 
-	rsession "github.com/gravitational/teleport/lib/session"
-	"github.com/gravitational/teleport/lib/sshutils"
+	rsession "github.com/zmb3/teleport/lib/session"
+	"github.com/zmb3/teleport/lib/sshutils"
 )
 
 // TermHandlers are common terminal handling functions used by both the

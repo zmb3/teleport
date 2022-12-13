@@ -22,12 +22,12 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/integration/helpers"
-	"github.com/gravitational/teleport/lib/auth/native"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/tlsca"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/integration/helpers"
+	"github.com/zmb3/teleport/lib/auth/native"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // For this test suite to work, the target Kubernetes cluster must have the

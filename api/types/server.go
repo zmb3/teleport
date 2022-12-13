@@ -26,8 +26,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/utils"
 )
 
 // Server represents a Node, Proxy or Auth server in a Teleport cluster

@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 
-	apisshutils "github.com/gravitational/teleport/api/utils/sshutils"
+	apisshutils "github.com/zmb3/teleport/api/utils/sshutils"
 )
 
 func TestSignersWithSHA1Fallback(t *testing.T) {

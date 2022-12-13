@@ -23,11 +23,11 @@ import (
 	"net"
 	"time"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/proxy/peer"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/teleagent"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/proxy/peer"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/teleagent"
 )
 
 // DialParams is a list of parameters used to Dial to a node within a cluster.

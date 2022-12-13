@@ -20,9 +20,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gravitational/teleport/lib/srv"
-	"github.com/gravitational/teleport/lib/utils"
-	"github.com/gravitational/teleport/tool/teleport/common"
+	"github.com/zmb3/teleport/lib/srv"
+	"github.com/zmb3/teleport/lib/utils"
+	"github.com/zmb3/teleport/tool/teleport/common"
 )
 
 // TestMainImplementation will re-execute Teleport to run a command if "exec" is passed to

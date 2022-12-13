@@ -33,11 +33,11 @@ import (
 	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/tools/remotecommand"
 
-	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/events"
-	testingkubemock "github.com/gravitational/teleport/lib/kube/proxy/testing/kube_server"
-	"github.com/gravitational/teleport/lib/modules"
+	"github.com/zmb3/teleport/api/types"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/events"
+	testingkubemock "github.com/zmb3/teleport/lib/kube/proxy/testing/kube_server"
+	"github.com/zmb3/teleport/lib/modules"
 )
 
 func TestModeratedSessions(t *testing.T) {

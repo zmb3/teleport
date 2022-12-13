@@ -29,7 +29,7 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
+	"github.com/zmb3/teleport"
 )
 
 // ErrUnsuccessfulLockTry designates an error when we temporarily couldn't acquire lock

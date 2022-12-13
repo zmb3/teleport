@@ -26,11 +26,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport/api/breaker"
-	apiclient "github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/reversetunnel"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/breaker"
+	apiclient "github.com/zmb3/teleport/api/client"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/reversetunnel"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // Config holds configuration parameters for connecting to the auth service.

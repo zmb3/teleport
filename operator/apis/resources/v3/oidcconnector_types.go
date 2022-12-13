@@ -21,8 +21,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/operator/apis/resources"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/operator/apis/resources"
 )
 
 func init() {

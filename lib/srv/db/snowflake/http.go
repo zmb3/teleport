@@ -28,7 +28,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport"
+	"github.com/zmb3/teleport"
 )
 
 func writeResponse(resp *http.Response, newResp []byte) (*bytes.Buffer, error) {

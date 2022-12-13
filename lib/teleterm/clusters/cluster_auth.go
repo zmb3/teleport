@@ -24,15 +24,15 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/client/webclient"
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/utils/keys"
-	"github.com/gravitational/teleport/lib/auth"
-	wancli "github.com/gravitational/teleport/lib/auth/webauthncli"
-	"github.com/gravitational/teleport/lib/client"
-	dbprofile "github.com/gravitational/teleport/lib/client/db"
-	"github.com/gravitational/teleport/lib/kube/kubeconfig"
-	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
+	"github.com/zmb3/teleport/api/client/webclient"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/utils/keys"
+	"github.com/zmb3/teleport/lib/auth"
+	wancli "github.com/zmb3/teleport/lib/auth/webauthncli"
+	"github.com/zmb3/teleport/lib/client"
+	dbprofile "github.com/zmb3/teleport/lib/client/db"
+	"github.com/zmb3/teleport/lib/kube/kubeconfig"
+	api "github.com/zmb3/teleport/lib/teleterm/api/protogen/golang/v1"
 )
 
 // SyncAuthPreference fetches Teleport auth preferences and stores it in the cluster profile

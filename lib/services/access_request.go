@@ -28,12 +28,12 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/vulcand/predicate"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/utils"
-	"github.com/gravitational/teleport/lib/utils/parse"
+	"github.com/zmb3/teleport/api/client/proto"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/utils/parse"
 )
 
 const maxAccessRequestReasonSize = 4096

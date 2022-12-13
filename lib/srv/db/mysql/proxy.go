@@ -27,14 +27,14 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/limiter"
-	"github.com/gravitational/teleport/lib/multiplexer"
-	"github.com/gravitational/teleport/lib/srv/db/common"
-	"github.com/gravitational/teleport/lib/srv/db/dbutils"
-	"github.com/gravitational/teleport/lib/srv/db/mysql/protocol"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/limiter"
+	"github.com/zmb3/teleport/lib/multiplexer"
+	"github.com/zmb3/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/lib/srv/db/dbutils"
+	"github.com/zmb3/teleport/lib/srv/db/mysql/protocol"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // Proxy proxies connections from MySQL clients to database services

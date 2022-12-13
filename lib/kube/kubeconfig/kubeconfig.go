@@ -27,9 +27,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 var log = logrus.WithFields(logrus.Fields{

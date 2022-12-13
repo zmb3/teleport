@@ -21,10 +21,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types/wrappers"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/jwt"
-	"github.com/gravitational/teleport/lib/web"
+	"github.com/zmb3/teleport/api/types/wrappers"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/jwt"
+	"github.com/zmb3/teleport/lib/web"
 )
 
 func verifyJWT(t *testing.T, pack *Pack, token, appURI string) {

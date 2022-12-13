@@ -28,8 +28,8 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/types"
-	wantypes "github.com/gravitational/teleport/api/types/webauthn"
+	"github.com/zmb3/teleport/api/types"
+	wantypes "github.com/zmb3/teleport/api/types/webauthn"
 )
 
 // RegistrationIdentity represents the subset of Identity methods used by

@@ -23,7 +23,7 @@ import (
 	"github.com/jcmturner/gokrb5/v8/keytab"
 	"github.com/jcmturner/gokrb5/v8/spnego"
 
-	"github.com/gravitational/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/lib/srv/db/common"
 )
 
 // getAuth returns Kerberos authenticator used by SQL Server driver.

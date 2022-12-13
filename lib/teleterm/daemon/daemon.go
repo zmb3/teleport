@@ -22,11 +22,11 @@ import (
 	"github.com/gravitational/trace"
 	"google.golang.org/grpc"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/client/db/dbcmd"
-	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
-	"github.com/gravitational/teleport/lib/teleterm/clusters"
-	"github.com/gravitational/teleport/lib/teleterm/gateway"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/client/db/dbcmd"
+	api "github.com/zmb3/teleport/lib/teleterm/api/protogen/golang/v1"
+	"github.com/zmb3/teleport/lib/teleterm/clusters"
+	"github.com/zmb3/teleport/lib/teleterm/gateway"
 )
 
 const (

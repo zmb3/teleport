@@ -29,11 +29,11 @@ import (
 	"github.com/jonboulle/clockwork"
 	"gopkg.in/square/go-jose.v2"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/defaults"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/limiter"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/defaults"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/limiter"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // Default port numbers used by all teleport tools

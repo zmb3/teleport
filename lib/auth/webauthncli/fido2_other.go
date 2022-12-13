@@ -21,8 +21,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
+	"github.com/zmb3/teleport/api/client/proto"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
 )
 
 var errFIDO2Unavailable = errors.New("FIDO2 unavailable in current build")

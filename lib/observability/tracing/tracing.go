@@ -32,8 +32,8 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/observability/tracing"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/observability/tracing"
 )
 
 const (

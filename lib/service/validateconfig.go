@@ -22,10 +22,10 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 func validateConfig(cfg *Config) error {

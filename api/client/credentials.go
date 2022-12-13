@@ -25,10 +25,10 @@ import (
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/http2"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/identityfile"
-	"github.com/gravitational/teleport/api/profile"
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/identityfile"
+	"github.com/zmb3/teleport/api/profile"
+	"github.com/zmb3/teleport/api/utils"
 )
 
 // Credentials are used to authenticate the API auth client. Some Credentials

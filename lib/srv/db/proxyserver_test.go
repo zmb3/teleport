@@ -23,9 +23,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/limiter"
-	"github.com/gravitational/teleport/lib/srv/db/mysql"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/limiter"
+	"github.com/zmb3/teleport/lib/srv/db/mysql"
 )
 
 func TestProxyConnectionLimiting(t *testing.T) {

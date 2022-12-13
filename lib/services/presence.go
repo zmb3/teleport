@@ -19,8 +19,8 @@ package services
 import (
 	"context"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // ProxyGetter is a service that gets proxies.

@@ -29,10 +29,10 @@ import (
 	"k8s.io/client-go/pkg/apis/clientauthentication"
 	clientauthv1beta1 "k8s.io/client-go/pkg/apis/clientauthentication/v1beta1"
 
-	"github.com/gravitational/teleport/api/identityfile"
-	"github.com/gravitational/teleport/lib/tbot/config"
-	"github.com/gravitational/teleport/lib/tbot/tshwrap"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/identityfile"
+	"github.com/zmb3/teleport/lib/tbot/config"
+	"github.com/zmb3/teleport/lib/tbot/tshwrap"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 func getCredentialData(idFile *identityfile.IdentityFile) ([]byte, error) {

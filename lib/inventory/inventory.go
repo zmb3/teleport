@@ -24,11 +24,11 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils/retryutils"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/client"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils/retryutils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // DownstreamCreateFunc is a function that creates a downstream inventory control stream.

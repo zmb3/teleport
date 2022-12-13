@@ -29,9 +29,9 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/lib/fixtures"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/lib/fixtures"
 )
 
 // TestPrincipals makes sure that SAN extension of generated x509 cert gets

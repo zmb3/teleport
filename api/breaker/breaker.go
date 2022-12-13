@@ -26,8 +26,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/utils/retryutils"
+	"github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/utils/retryutils"
 )
 
 // Metrics tallies success and failure counts

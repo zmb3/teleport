@@ -23,11 +23,11 @@ import (
 	proto "github.com/gogo/protobuf/proto"
 	"github.com/gravitational/trace"
 
-	authproto "github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/srv/desktop/tdp"
-	"github.com/gravitational/teleport/lib/web/mfajson"
+	authproto "github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/srv/desktop/tdp"
+	"github.com/zmb3/teleport/lib/web/mfajson"
 )
 
 // mfaCodec converts MFA challenges/responses between their native types and a format

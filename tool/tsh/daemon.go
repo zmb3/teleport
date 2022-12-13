@@ -22,9 +22,9 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/profile"
-	"github.com/gravitational/teleport/lib/teleterm"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/profile"
+	"github.com/zmb3/teleport/lib/teleterm"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // onDaemonStart implements "tsh daemon start" command.

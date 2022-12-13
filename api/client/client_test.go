@@ -35,9 +35,9 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // mockServer mocks an Auth Server.

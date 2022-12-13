@@ -37,13 +37,13 @@ import (
 	"github.com/coreos/go-semver/semver"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	cloudaws "github.com/gravitational/teleport/lib/cloud/aws"
-	"github.com/gravitational/teleport/lib/utils/aws"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/client"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	cloudaws "github.com/zmb3/teleport/lib/cloud/aws"
+	"github.com/zmb3/teleport/lib/utils/aws"
 )
 
 const (

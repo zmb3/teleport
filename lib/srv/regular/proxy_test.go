@@ -21,8 +21,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/lib/srv"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/lib/srv"
 )
 
 func TestParseProxyRequest(t *testing.T) {

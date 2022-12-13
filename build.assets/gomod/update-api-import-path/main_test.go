@@ -24,7 +24,7 @@ import (
 	"github.com/coreos/go-semver/semver"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/build.assets/gomod"
+	"github.com/zmb3/teleport/build.assets/gomod"
 )
 
 func TestUpdateGoPkgs(t *testing.T) {

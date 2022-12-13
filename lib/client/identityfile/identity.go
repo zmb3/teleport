@@ -32,13 +32,13 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/pavlo-v-chernykh/keystore-go/v4"
 
-	"github.com/gravitational/teleport/api/identityfile"
-	"github.com/gravitational/teleport/api/utils/keypaths"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/kube/kubeconfig"
-	"github.com/gravitational/teleport/lib/sshutils"
-	"github.com/gravitational/teleport/lib/utils"
-	"github.com/gravitational/teleport/lib/utils/prompt"
+	"github.com/zmb3/teleport/api/identityfile"
+	"github.com/zmb3/teleport/api/utils/keypaths"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/kube/kubeconfig"
+	"github.com/zmb3/teleport/lib/sshutils"
+	"github.com/zmb3/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/utils/prompt"
 )
 
 // Format describes possible file formats how a user identity can be stored.

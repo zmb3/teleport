@@ -30,9 +30,9 @@ import (
 	"github.com/gocql/gocql"
 	"github.com/gravitational/trace"
 
-	awsutils "github.com/gravitational/teleport/api/utils/aws"
-	"github.com/gravitational/teleport/lib/srv/db/cassandra/protocol"
-	"github.com/gravitational/teleport/lib/srv/db/common"
+	awsutils "github.com/zmb3/teleport/api/utils/aws"
+	"github.com/zmb3/teleport/lib/srv/db/cassandra/protocol"
+	"github.com/zmb3/teleport/lib/srv/db/common"
 )
 
 const (

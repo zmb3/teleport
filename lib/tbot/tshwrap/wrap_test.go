@@ -25,10 +25,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/tbot/config"
-	"github.com/gravitational/teleport/lib/tbot/identity"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/tbot/config"
+	"github.com/zmb3/teleport/lib/tbot/identity"
 )
 
 // TestTSHSupported ensures that the tsh version check works as expected (and,

@@ -30,13 +30,13 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils"
-	awslib "github.com/gravitational/teleport/lib/cloud/aws"
-	"github.com/gravitational/teleport/lib/config"
-	"github.com/gravitational/teleport/lib/configurators"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils"
+	awslib "github.com/zmb3/teleport/lib/cloud/aws"
+	"github.com/zmb3/teleport/lib/config"
+	"github.com/zmb3/teleport/lib/configurators"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 func TestAWSIAMDocuments(t *testing.T) {

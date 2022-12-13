@@ -19,8 +19,8 @@ package services
 import (
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // UnmarshalRemoteCluster unmarshals the RemoteCluster resource from JSON.

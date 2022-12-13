@@ -28,10 +28,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/cloud/azure"
-	"github.com/gravitational/teleport/lib/cloud/gcp"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/cloud/azure"
+	"github.com/zmb3/teleport/lib/cloud/gcp"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // KubernetesGetter defines interface for fetching kubernetes cluster resources.

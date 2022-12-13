@@ -22,11 +22,11 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/types"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 // UsageLogger is a trivial audit log sink that forwards an anonymized subset of

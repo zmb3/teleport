@@ -28,12 +28,12 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils/sshutils"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/client"
-	libsshutils "github.com/gravitational/teleport/lib/sshutils"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils/sshutils"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/client"
+	libsshutils "github.com/zmb3/teleport/lib/sshutils"
 )
 
 // SSHConnectionTesterConfig has the necessary fields to create a new SSHConnectionTester.

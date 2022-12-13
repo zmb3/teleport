@@ -31,17 +31,17 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	apisshutils "github.com/gravitational/teleport/api/utils/sshutils"
-	"github.com/gravitational/teleport/lib/auditd"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/observability/metrics"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/sshutils"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/types"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	apisshutils "github.com/zmb3/teleport/api/utils/sshutils"
+	"github.com/zmb3/teleport/lib/auditd"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/observability/metrics"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/sshutils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 var (

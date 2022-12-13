@@ -29,12 +29,12 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	clients "github.com/gravitational/teleport/lib/cloud"
-	libaws "github.com/gravitational/teleport/lib/cloud/aws"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/srv/db/cloud"
-	libsecrets "github.com/gravitational/teleport/lib/srv/db/secrets"
+	"github.com/zmb3/teleport/api/types"
+	clients "github.com/zmb3/teleport/lib/cloud"
+	libaws "github.com/zmb3/teleport/lib/cloud/aws"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/srv/db/cloud"
+	libsecrets "github.com/zmb3/teleport/lib/srv/db/secrets"
 )
 
 var managedTags = map[string]string{

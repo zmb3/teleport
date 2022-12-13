@@ -6,8 +6,8 @@ package v1
 import (
 	fmt "fmt"
 	proto "github.com/gogo/protobuf/proto"
-	types "github.com/gravitational/teleport/api/types"
-	wrappers "github.com/gravitational/teleport/api/types/wrappers"
+	types "github.com/zmb3/teleport/api/types"
+	wrappers "github.com/zmb3/teleport/api/types/wrappers"
 	io "io"
 	math "math"
 	math_bits "math/bits"

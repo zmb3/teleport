@@ -33,12 +33,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	tracessh "github.com/gravitational/teleport/api/observability/tracing/ssh"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport"
+	tracessh "github.com/zmb3/teleport/api/observability/tracing/ssh"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 const (

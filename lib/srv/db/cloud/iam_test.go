@@ -32,12 +32,12 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	clients "github.com/gravitational/teleport/lib/cloud"
-	awslib "github.com/gravitational/teleport/lib/cloud/aws"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	clients "github.com/zmb3/teleport/lib/cloud"
+	awslib "github.com/zmb3/teleport/lib/cloud/aws"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 // TestAWSIAM tests RDS, Aurora and Redshift IAM auto-configuration.

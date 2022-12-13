@@ -19,10 +19,10 @@ package service
 import (
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/cloud"
-	"github.com/gravitational/teleport/lib/srv/discovery"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/cloud"
+	"github.com/zmb3/teleport/lib/srv/discovery"
 )
 
 func (process *TeleportProcess) shouldInitDiscovery() bool {

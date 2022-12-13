@@ -19,7 +19,7 @@ package services
 import (
 	"context"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // Status defines an interface for managing cluster status info.

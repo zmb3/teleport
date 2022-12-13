@@ -19,7 +19,7 @@ package utils
 import (
 	"time"
 
-	"github.com/gravitational/teleport/api/utils/retryutils"
+	"github.com/zmb3/teleport/api/utils/retryutils"
 )
 
 // HalfJitter is a global jitter instance used for one-off jitters.

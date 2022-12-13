@@ -25,16 +25,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/auth/authclient"
-	"github.com/gravitational/teleport/lib/config"
-	"github.com/gravitational/teleport/lib/service"
-	botconfig "github.com/gravitational/teleport/lib/tbot/config"
-	"github.com/gravitational/teleport/lib/tbot/identity"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/auth/authclient"
+	"github.com/zmb3/teleport/lib/config"
+	"github.com/zmb3/teleport/lib/service"
+	botconfig "github.com/zmb3/teleport/lib/tbot/config"
+	"github.com/zmb3/teleport/lib/tbot/identity"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // from lib/service/listeners.go

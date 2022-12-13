@@ -35,13 +35,13 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	awsutils "github.com/gravitational/teleport/api/utils/aws"
-	azureutils "github.com/gravitational/teleport/api/utils/azure"
-	"github.com/gravitational/teleport/lib/cloud/azure"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/fixtures"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	awsutils "github.com/zmb3/teleport/api/utils/aws"
+	azureutils "github.com/zmb3/teleport/api/utils/azure"
+	"github.com/zmb3/teleport/lib/cloud/azure"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/fixtures"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // TestDatabaseUnmarshal verifies a database resource can be unmarshaled.

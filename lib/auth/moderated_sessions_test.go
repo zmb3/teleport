@@ -23,10 +23,10 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/backend/memory"
-	"github.com/gravitational/teleport/lib/modules"
-	"github.com/gravitational/teleport/lib/services/local"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/backend/memory"
+	"github.com/zmb3/teleport/lib/modules"
+	"github.com/zmb3/teleport/lib/services/local"
 )
 
 // TestUnmoderatedSessionsAllowed tests that we allow creating unmoderated sessions even if the

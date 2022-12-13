@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/gravitational/teleport/api"
+	"github.com/zmb3/teleport/api"
 )
 
 const (

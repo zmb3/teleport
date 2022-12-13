@@ -26,11 +26,11 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
-	"github.com/gravitational/teleport/lib/teleterm/api/uri"
-	"github.com/gravitational/teleport/lib/teleterm/clusters"
-	"github.com/gravitational/teleport/lib/teleterm/gateway"
-	"github.com/gravitational/teleport/lib/tlsca"
+	api "github.com/zmb3/teleport/lib/teleterm/api/protogen/golang/v1"
+	"github.com/zmb3/teleport/lib/teleterm/api/uri"
+	"github.com/zmb3/teleport/lib/teleterm/clusters"
+	"github.com/zmb3/teleport/lib/teleterm/gateway"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 var log = logrus.WithField(trace.Component, "reissuer")

@@ -28,8 +28,8 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/httplib"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/httplib"
 )
 
 const (

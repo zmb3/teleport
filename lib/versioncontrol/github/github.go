@@ -28,8 +28,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/mod/semver"
 
-	"github.com/gravitational/teleport"
-	vc "github.com/gravitational/teleport/lib/versioncontrol"
+	"github.com/zmb3/teleport"
+	vc "github.com/zmb3/teleport/lib/versioncontrol"
 )
 
 // NOTE: when making modifications to package, make sure to run tests with

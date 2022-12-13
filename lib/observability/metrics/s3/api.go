@@ -23,7 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/observability/metrics"
+	"github.com/zmb3/teleport/lib/observability/metrics"
 )
 
 type APIMetrics struct {

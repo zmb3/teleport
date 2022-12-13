@@ -17,8 +17,8 @@ limitations under the License.
 package role
 
 import (
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 // DatabaseRoleMatchers returns role matchers based on the database protocol.

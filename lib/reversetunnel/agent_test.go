@@ -30,11 +30,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	tracessh "github.com/gravitational/teleport/api/observability/tracing/ssh"
-	"github.com/gravitational/teleport/api/utils/sshutils"
-	"github.com/gravitational/teleport/lib/reversetunnel/track"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	tracessh "github.com/zmb3/teleport/api/observability/tracing/ssh"
+	"github.com/zmb3/teleport/api/utils/sshutils"
+	"github.com/zmb3/teleport/lib/reversetunnel/track"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 type mockSSHClient struct {

@@ -35,15 +35,15 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auditd"
-	"github.com/gravitational/teleport/lib/pam"
-	"github.com/gravitational/teleport/lib/shell"
-	"github.com/gravitational/teleport/lib/srv/uacc"
-	"github.com/gravitational/teleport/lib/sshutils"
-	"github.com/gravitational/teleport/lib/sshutils/x11"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auditd"
+	"github.com/zmb3/teleport/lib/pam"
+	"github.com/zmb3/teleport/lib/shell"
+	"github.com/zmb3/teleport/lib/srv/uacc"
+	"github.com/zmb3/teleport/lib/sshutils"
+	"github.com/zmb3/teleport/lib/sshutils/x11"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // FileFD is a file descriptor passed down from a parent process when

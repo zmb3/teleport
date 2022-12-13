@@ -40,10 +40,10 @@ import (
 	"github.com/jonboulle/clockwork"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/backend"
-	"github.com/gravitational/teleport/lib/defaults"
-	dynamometrics "github.com/gravitational/teleport/lib/observability/metrics/dynamo"
+	"github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/backend"
+	"github.com/zmb3/teleport/lib/defaults"
+	dynamometrics "github.com/zmb3/teleport/lib/observability/metrics/dynamo"
 )
 
 // Config structure represents DynamoDB configuration as appears in `storage` section

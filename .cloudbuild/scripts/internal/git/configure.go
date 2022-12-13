@@ -10,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/github"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/github"
 )
 
 // Config represents a git repository that has been configured to use a

@@ -21,8 +21,8 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils"
 )
 
 // Fields represents a generic string-keyed map.

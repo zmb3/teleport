@@ -22,7 +22,7 @@ import (
 	yaml "github.com/ghodss/yaml"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // ResourceItem is UI representation of a resource (roles, trusted clusters, auth connectors).

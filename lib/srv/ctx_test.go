@@ -21,8 +21,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 func TestCheckSFTPAllowed(t *testing.T) {

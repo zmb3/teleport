@@ -24,7 +24,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/zmb3/teleport/api/utils"
 )
 
 // Lock configures locking out of a particular access vector.

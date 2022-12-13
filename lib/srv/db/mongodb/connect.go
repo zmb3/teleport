@@ -32,7 +32,7 @@ import (
 	"go.mongodb.org/mongo-driver/x/mongo/driver/ocsp"
 	"go.mongodb.org/mongo-driver/x/mongo/driver/topology"
 
-	"github.com/gravitational/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/lib/srv/db/common"
 )
 
 // connect returns connection to a MongoDB server.

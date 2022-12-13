@@ -38,7 +38,7 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
 )
 
 var (

@@ -31,9 +31,9 @@ import (
 	"golang.org/x/crypto/ssh"
 	"gopkg.in/yaml.v2"
 
-	"github.com/gravitational/teleport/api/utils/keypaths"
-	"github.com/gravitational/teleport/api/utils/keys"
-	"github.com/gravitational/teleport/api/utils/sshutils"
+	"github.com/zmb3/teleport/api/utils/keypaths"
+	"github.com/zmb3/teleport/api/utils/keys"
+	"github.com/zmb3/teleport/api/utils/sshutils"
 )
 
 const (

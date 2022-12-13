@@ -27,7 +27,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
 
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func TestMain(m *testing.M) {

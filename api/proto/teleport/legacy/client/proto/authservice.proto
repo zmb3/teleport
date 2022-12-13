@@ -26,7 +26,7 @@ import "teleport/legacy/types/webauthn/webauthn.proto";
 import "teleport/legacy/types/wrappers/wrappers.proto";
 import "teleport/usageevents/v1/usageevents.proto";
 
-option go_package = "github.com/gravitational/teleport/api/client/proto";
+option go_package = "github.com/zmb3/teleport/api/client/proto";
 option (gogoproto.goproto_getters_all) = true;
 option (gogoproto.marshaler_all) = true;
 option (gogoproto.unmarshaler_all) = true;
@@ -155,7 +155,7 @@ message HostCertsRequest {
   // Role is a system role assigned to the host.
   string Role = 3 [
     (gogoproto.jsontag) = "role",
-    (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
+    (gogoproto.casttype) = "github.com/zmb3/teleport/api/types.SystemRole"
   ];
   // AdditionalPrincipals is a list of additional principals
   // to include in OpenSSH and X509 certificates
@@ -183,7 +183,7 @@ message HostCertsRequest {
   // the instance.
   repeated string SystemRoles = 11 [
     (gogoproto.jsontag) = "system_roles,omitempty",
-    (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
+    (gogoproto.casttype) = "github.com/zmb3/teleport/api/types.SystemRole"
   ];
   // UnstableSystemRoleAssertionID is not a stable part of the public API. Used by
   // older instances to requisition a multi-role cert by individually proving which
@@ -366,7 +366,7 @@ message RequestStateSetter {
   wrappers.LabelValues Annotations = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "annotations,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
   // Roles, if present, overrides the existing set of roles associated
   // with the access request.
@@ -431,7 +431,7 @@ message CreateBotRequest {
   wrappers.LabelValues Traits = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "traits,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 }
 
@@ -452,7 +452,7 @@ message CreateBotResponse {
   // JoinMethod is the join method the bot must use to join the cluster.
   string JoinMethod = 5 [
     (gogoproto.jsontag) = "join_method",
-    (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.JoinMethod"
+    (gogoproto.casttype) = "github.com/zmb3/teleport/api/types.JoinMethod"
   ];
 }
 
@@ -1332,7 +1332,7 @@ message WindowsDesktopCertResponse {
 // CertAuthorityRequest is a request that identifies a Teleport CA.
 message CertAuthorityRequest {
   // Type is either user or host certificate authority.
-  string Type = 1 [(gogoproto.casttype) = "github.com/gravitational/teleport/api/types.CertAuthType"];
+  string Type = 1 [(gogoproto.casttype) = "github.com/zmb3/teleport/api/types.CertAuthType"];
 }
 
 // CRL is the X.509 Certificate Revocation List.
@@ -1710,7 +1710,7 @@ message GenerateTokenRequest {
   // Roles is a list of roles this token authenticates as.
   repeated string Roles = 2 [
     (gogoproto.jsontag) = "roles",
-    (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
+    (gogoproto.casttype) = "github.com/zmb3/teleport/api/types.SystemRole"
   ];
   // TTL specifies how long the generated token will be valid for.
   // Defaults to 30 minutes if not set.
@@ -1762,7 +1762,7 @@ message UnstableSystemRoleAssertion {
   string AssertionID = 2 [(gogoproto.jsontag) = "assertion_id,omitempty"];
   string SystemRole = 3 [
     (gogoproto.jsontag) = "system_role,omitempty",
-    (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
+    (gogoproto.casttype) = "github.com/zmb3/teleport/api/types.SystemRole"
   ];
 }
 
@@ -1774,7 +1774,7 @@ message UnstableSystemRoleAssertionSet {
   string AssertionID = 2 [(gogoproto.jsontag) = "assertion_id,omitempty"];
   repeated string SystemRoles = 3 [
     (gogoproto.jsontag) = "system_roles,omitempty",
-    (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
+    (gogoproto.casttype) = "github.com/zmb3/teleport/api/types.SystemRole"
   ];
 }
 
@@ -1825,7 +1825,7 @@ message UpstreamInventoryHello {
   // hold a system role that is not currently in use if it was granted that role by
   // its auth token. i.e. Services is the subset of SystemRoles that are currently
   // active.
-  repeated string Services = 3 [(gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"];
+  repeated string Services = 3 [(gogoproto.casttype) = "github.com/zmb3/teleport/api/types.SystemRole"];
 
   // TODO(fspmarshall): look into what other info can safely be stated here once, instead of
   // being repeatedly announced (e.g. addrs, static labels, etc). may be able to achieve a

@@ -23,9 +23,9 @@ import (
 	"github.com/duo-labs/webauthn/protocol/webauthncose"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
-	wancli "github.com/gravitational/teleport/lib/auth/webauthncli"
+	"github.com/zmb3/teleport/api/types"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
+	wancli "github.com/zmb3/teleport/lib/auth/webauthncli"
 )
 
 func TestRegister(t *testing.T) {

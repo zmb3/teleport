@@ -32,13 +32,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/backend"
-	"github.com/gravitational/teleport/lib/backend/lite"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/services/local"
-	"github.com/gravitational/teleport/lib/srv"
-	"github.com/gravitational/teleport/lib/utils/host"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/backend"
+	"github.com/zmb3/teleport/lib/backend/lite"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/services/local"
+	"github.com/zmb3/teleport/lib/srv"
+	"github.com/zmb3/teleport/lib/utils/host"
 )
 
 const testuser = "teleport-testuser"

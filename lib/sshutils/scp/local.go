@@ -24,7 +24,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // localFileSystem provides API for accessing the files on

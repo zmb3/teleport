@@ -38,16 +38,16 @@ import (
 	"google.golang.org/api/cloudidentity/v1"
 	"google.golang.org/api/option"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth/keystore"
-	authority "github.com/gravitational/teleport/lib/auth/testauthority"
-	"github.com/gravitational/teleport/lib/backend"
-	"github.com/gravitational/teleport/lib/backend/memory"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/fixtures"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth/keystore"
+	authority "github.com/zmb3/teleport/lib/auth/testauthority"
+	"github.com/zmb3/teleport/lib/backend"
+	"github.com/zmb3/teleport/lib/backend/memory"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/fixtures"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 type OIDCSuite struct {

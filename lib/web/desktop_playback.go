@@ -23,8 +23,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/net/websocket"
 
-	"github.com/gravitational/teleport/lib/reversetunnel"
-	"github.com/gravitational/teleport/lib/web/desktop"
+	"github.com/zmb3/teleport/lib/reversetunnel"
+	"github.com/zmb3/teleport/lib/web/desktop"
 )
 
 func (h *Handler) desktopPlaybackHandle(

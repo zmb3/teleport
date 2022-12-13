@@ -31,14 +31,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/asciitable"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/srv/alpnproxy"
-	alpncommon "github.com/gravitational/teleport/lib/srv/alpnproxy/common"
-	"github.com/gravitational/teleport/lib/tlsca"
-	"github.com/gravitational/teleport/lib/utils"
-	awsutils "github.com/gravitational/teleport/lib/utils/aws"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/asciitable"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/srv/alpnproxy"
+	alpncommon "github.com/zmb3/teleport/lib/srv/alpnproxy/common"
+	"github.com/zmb3/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/lib/utils"
+	awsutils "github.com/zmb3/teleport/lib/utils/aws"
 )
 
 const (

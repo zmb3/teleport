@@ -33,9 +33,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/observability/metrics"
-	"github.com/gravitational/teleport/lib/session"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/observability/metrics"
+	"github.com/zmb3/teleport/lib/session"
 )
 
 var (

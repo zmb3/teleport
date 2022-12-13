@@ -27,8 +27,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/tools/remotecommand"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // metaMessage is a control message containing one or more payloads.

@@ -28,8 +28,8 @@ import (
 	"github.com/fxamacker/cbor/v2"
 	"github.com/gravitational/trace"
 
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
-	wancli "github.com/gravitational/teleport/lib/auth/webauthncli"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
+	wancli "github.com/zmb3/teleport/lib/auth/webauthncli"
 )
 
 // SignAssertion signs a WebAuthn assertion following the

@@ -38,14 +38,14 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/observability/tracing"
-	tracessh "github.com/gravitational/teleport/api/observability/tracing/ssh"
-	"github.com/gravitational/teleport/api/utils/sshutils"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/limiter"
-	"github.com/gravitational/teleport/lib/observability/metrics"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/observability/tracing"
+	tracessh "github.com/zmb3/teleport/api/observability/tracing/ssh"
+	"github.com/zmb3/teleport/api/utils/sshutils"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/limiter"
+	"github.com/zmb3/teleport/lib/observability/metrics"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 var proxyConnectionLimitHitCount = prometheus.NewCounter(

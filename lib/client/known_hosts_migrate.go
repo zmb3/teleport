@@ -23,7 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
+	"github.com/zmb3/teleport"
 )
 
 // knownHostEntry is a parsed entry from a Teleport/OpenSSH known_hosts file,

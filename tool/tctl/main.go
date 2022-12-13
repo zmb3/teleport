@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/gravitational/teleport/tool/tctl/common"
+	"github.com/zmb3/teleport/tool/tctl/common"
 )
 
 func main() {

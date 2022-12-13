@@ -26,7 +26,7 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	libsecrets "github.com/gravitational/teleport/lib/srv/db/secrets"
+	libsecrets "github.com/zmb3/teleport/lib/srv/db/secrets"
 )
 
 func TestBaseUser(t *testing.T) {

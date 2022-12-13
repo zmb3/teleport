@@ -21,7 +21,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gravitational/teleport/lib/httplib"
+	"github.com/zmb3/teleport/lib/httplib"
 )
 
 func SetRedirectPageHeaders(h http.Header, nonce string) {

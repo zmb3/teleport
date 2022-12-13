@@ -23,7 +23,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/constants"
+	"github.com/zmb3/teleport/api/constants"
 )
 
 // Duration is a wrapper around duration to set up custom marshal/unmarshal

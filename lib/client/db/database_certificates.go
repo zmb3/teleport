@@ -23,11 +23,11 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/client/identityfile"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/client/identityfile"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // GenerateDatabaseCertificatesRequest contains the required fields used to generate database certificates

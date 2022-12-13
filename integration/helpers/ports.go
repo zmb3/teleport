@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/service"
+	"github.com/zmb3/teleport/lib/service"
 )
 
 // InstanceListeners represents the listener configuration for a test cluster.

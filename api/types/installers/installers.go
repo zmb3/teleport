@@ -19,7 +19,7 @@ package installers
 import (
 	_ "embed"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 //go:embed installer.sh.tmpl

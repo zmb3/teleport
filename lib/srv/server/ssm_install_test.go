@@ -28,8 +28,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types/events"
-	libevent "github.com/gravitational/teleport/lib/events"
+	"github.com/zmb3/teleport/api/types/events"
+	libevent "github.com/zmb3/teleport/lib/events"
 )
 
 type mockSSMClient struct {

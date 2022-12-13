@@ -23,7 +23,7 @@ import "google/protobuf/wrappers.proto";
 import "teleport/legacy/types/types.proto";
 import "teleport/legacy/types/wrappers/wrappers.proto";
 
-option go_package = "github.com/gravitational/teleport/api/types/events";
+option go_package = "github.com/zmb3/teleport/api/types/events";
 option (gogoproto.goproto_getters_all) = false;
 option (gogoproto.marshaler_all) = true;
 option (gogoproto.unmarshaler_all) = true;
@@ -3177,7 +3177,7 @@ message Identity {
   wrappers.LabelValues Traits = 11 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "traits,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
   // RouteToApp holds routing information for applications. Routing metadata
   // allows Teleport web proxy to route HTTP requests to the appropriate
@@ -3829,7 +3829,7 @@ message ElasticsearchRequest {
   wrappers.LabelValues Headers = 9 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "headers,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 
   // Category represents the category if API being accessed in a given request.

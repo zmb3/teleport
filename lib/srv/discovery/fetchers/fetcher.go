@@ -19,7 +19,7 @@ package fetchers
 import (
 	"context"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // Fetcher defines the common methods across all fetchers.

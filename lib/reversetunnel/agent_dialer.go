@@ -23,14 +23,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	tracessh "github.com/gravitational/teleport/api/observability/tracing/ssh"
-	"github.com/gravitational/teleport/api/types"
-	apisshutils "github.com/gravitational/teleport/api/utils/sshutils"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/sshutils"
-	"github.com/gravitational/teleport/lib/utils"
-	"github.com/gravitational/teleport/lib/utils/proxy"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	tracessh "github.com/zmb3/teleport/api/observability/tracing/ssh"
+	"github.com/zmb3/teleport/api/types"
+	apisshutils "github.com/zmb3/teleport/api/utils/sshutils"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/sshutils"
+	"github.com/zmb3/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/utils/proxy"
 )
 
 // agentDialer dials an ssh server on behalf of an agent.

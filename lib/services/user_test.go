@@ -27,8 +27,8 @@ import (
 	samltypes "github.com/russellhaering/gosaml2/types"
 	"github.com/stretchr/testify/require"
 
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
 )
 
 func TestTraits(t *testing.T) {

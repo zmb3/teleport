@@ -21,17 +21,17 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/client"
-	dbprofile "github.com/gravitational/teleport/lib/client/db"
-	libdefaults "github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/services"
-	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
-	"github.com/gravitational/teleport/lib/teleterm/api/uri"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/client"
+	dbprofile "github.com/zmb3/teleport/lib/client/db"
+	libdefaults "github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/services"
+	api "github.com/zmb3/teleport/lib/teleterm/api/protogen/golang/v1"
+	"github.com/zmb3/teleport/lib/teleterm/api/uri"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // Database describes database

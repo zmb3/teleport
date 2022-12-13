@@ -24,11 +24,11 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types/wrappers"
-	"github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/api/utils/keys"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types/wrappers"
+	"github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/api/utils/keys"
 )
 
 const (

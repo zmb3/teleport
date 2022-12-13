@@ -19,9 +19,9 @@ import (
 
 	"github.com/gravitational/trace"
 
-	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
-	"github.com/gravitational/teleport/lib/teleterm/daemon"
-	"github.com/gravitational/teleport/lib/teleterm/gateway"
+	api "github.com/zmb3/teleport/lib/teleterm/api/protogen/golang/v1"
+	"github.com/zmb3/teleport/lib/teleterm/daemon"
+	"github.com/zmb3/teleport/lib/teleterm/gateway"
 )
 
 // CreateGateway creates a gateway

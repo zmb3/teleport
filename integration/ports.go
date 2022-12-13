@@ -17,7 +17,7 @@ package integration
 import (
 	"fmt"
 
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // ports contains tcp ports allocated for all integration tests.

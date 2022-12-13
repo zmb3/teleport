@@ -27,14 +27,14 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/identityfile"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/tbot/config"
-	"github.com/gravitational/teleport/lib/tbot/identity"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/identityfile"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/tbot/config"
+	"github.com/zmb3/teleport/lib/tbot/identity"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 const (

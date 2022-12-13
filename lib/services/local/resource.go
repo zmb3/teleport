@@ -23,9 +23,9 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/backend"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/backend"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 // CreateResources attempts to dynamically create the supplied resources.

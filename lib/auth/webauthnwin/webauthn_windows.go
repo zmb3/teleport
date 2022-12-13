@@ -26,7 +26,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/windows"
 
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
 )
 
 var (

@@ -36,8 +36,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/sshutils/scp"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/sshutils/scp"
 )
 
 // Options control aspects of a file transfer

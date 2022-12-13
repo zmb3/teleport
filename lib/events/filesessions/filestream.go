@@ -30,10 +30,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/session"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/session"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 var (

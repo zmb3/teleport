@@ -24,7 +24,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	apiclient "github.com/gravitational/teleport/api/client"
+	apiclient "github.com/zmb3/teleport/api/client"
 )
 
 // ContextDialer represents network dialer interface that uses context

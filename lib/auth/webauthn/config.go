@@ -20,8 +20,8 @@ import (
 	"github.com/duo-labs/webauthn/protocol"
 	wan "github.com/duo-labs/webauthn/webauthn"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/defaults"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/defaults"
 )
 
 const (

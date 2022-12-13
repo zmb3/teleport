@@ -21,9 +21,9 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/cloud/aws"
-	"github.com/gravitational/teleport/lib/cloud/azure"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/cloud/aws"
+	"github.com/zmb3/teleport/lib/cloud/azure"
 )
 
 const (

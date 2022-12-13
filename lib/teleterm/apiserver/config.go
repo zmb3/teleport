@@ -19,8 +19,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	"github.com/gravitational/teleport/lib/teleterm/daemon"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/teleterm/daemon"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // Config is the APIServer configuration

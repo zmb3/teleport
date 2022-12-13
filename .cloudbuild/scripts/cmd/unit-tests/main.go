@@ -32,12 +32,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/artifacts"
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/changes"
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/customflag"
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/etcd"
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/git"
-	"github.com/gravitational/teleport/.cloudbuild/scripts/internal/secrets"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/artifacts"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/changes"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/customflag"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/etcd"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/git"
+	"github.com/zmb3/teleport/.cloudbuild/scripts/internal/secrets"
 )
 
 // debugFsPath is the path where debugfs should be mounted.

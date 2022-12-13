@@ -26,8 +26,8 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/moby/term"
 
-	"github.com/gravitational/teleport/lib/client/tncon"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/client/tncon"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // initTerminal configures the terminal for raw, VT compatible output and

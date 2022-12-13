@@ -22,9 +22,9 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/service"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/service"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 // databaseConfigTemplateFunc list of template functions used on the database

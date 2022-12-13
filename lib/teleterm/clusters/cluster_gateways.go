@@ -21,8 +21,8 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/teleterm/gateway"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/lib/teleterm/gateway"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 type CreateGatewayParams struct {

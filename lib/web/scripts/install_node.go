@@ -26,9 +26,9 @@ import (
 	"github.com/gravitational/trace"
 	"gopkg.in/yaml.v3"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/httplib"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/httplib"
 )
 
 // SetScriptHeaders sets response headers to plain text.

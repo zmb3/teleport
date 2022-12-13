@@ -30,15 +30,15 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/observability/tracing"
-	apisshutils "github.com/gravitational/teleport/api/utils/sshutils"
-	"github.com/gravitational/teleport/lib/observability/metrics"
-	"github.com/gravitational/teleport/lib/proxy"
-	"github.com/gravitational/teleport/lib/srv"
-	"github.com/gravitational/teleport/lib/sshutils"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/observability/tracing"
+	apisshutils "github.com/zmb3/teleport/api/utils/sshutils"
+	"github.com/zmb3/teleport/lib/observability/metrics"
+	"github.com/zmb3/teleport/lib/proxy"
+	"github.com/zmb3/teleport/lib/srv"
+	"github.com/zmb3/teleport/lib/sshutils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 var ( // failedConnectingToNode counts failed attempts to connect to a node

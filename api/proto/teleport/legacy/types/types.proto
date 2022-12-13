@@ -21,7 +21,7 @@ import "google/protobuf/timestamp.proto";
 import "teleport/attestation/v1/attestation.proto";
 import "teleport/legacy/types/wrappers/wrappers.proto";
 
-option go_package = "github.com/gravitational/teleport/api/types";
+option go_package = "github.com/zmb3/teleport/api/types";
 option (gogoproto.goproto_getters_all) = false;
 option (gogoproto.marshaler_all) = true;
 option (gogoproto.unmarshaler_all) = true;
@@ -1151,7 +1151,7 @@ message ClusterAuditConfigSpecV2 {
   wrappers.StringValues AuditEventsURI = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "audit_events_uri,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Strings"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Strings"
   ];
 
   // EnableContinuousBackups is used to enable (or disable) PITR (Point-In-Time Recovery).
@@ -1369,7 +1369,7 @@ message AuthPreferenceSpecV2 {
   // SecondFactor is the type of second factor.
   string SecondFactor = 2 [
     (gogoproto.jsontag) = "second_factor,omitempty",
-    (gogoproto.casttype) = "github.com/gravitational/teleport/api/constants.SecondFactorType"
+    (gogoproto.casttype) = "github.com/zmb3/teleport/api/constants.SecondFactorType"
   ];
 
   // ConnectorName is the name of the OIDC or SAML connector. If this value is
@@ -1408,7 +1408,7 @@ message AuthPreferenceSpecV2 {
   // LockingMode is the cluster-wide locking mode default.
   string LockingMode = 9 [
     (gogoproto.jsontag) = "locking_mode,omitempty",
-    (gogoproto.casttype) = "github.com/gravitational/teleport/api/constants.LockingMode"
+    (gogoproto.casttype) = "github.com/zmb3/teleport/api/constants.LockingMode"
   ];
 
   // Webauthn are the settings for server-side Web Authentication support.
@@ -1646,7 +1646,7 @@ message AccessReview {
   wrappers.LabelValues Annotations = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "annotations,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 
   // ThresholdIndexes stores the indexes of thresholds which this review matches
@@ -1736,7 +1736,7 @@ message AccessRequestSpecV3 {
   wrappers.LabelValues ResolveAnnotations = 8 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "resolve_annotations,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 
   // SystemAnnotations is a set of programmatically generated annotations attached
@@ -1747,7 +1747,7 @@ message AccessRequestSpecV3 {
   wrappers.LabelValues SystemAnnotations = 9 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "system_annotations,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 
   // Thresholds is a list of review thresholds relevant to this request.  Order must be
@@ -2037,7 +2037,7 @@ message RoleOptions {
   // the role.
   string Lock = 14 [
     (gogoproto.jsontag) = "lock,omitempty",
-    (gogoproto.casttype) = "github.com/gravitational/teleport/api/constants.LockingMode"
+    (gogoproto.casttype) = "github.com/zmb3/teleport/api/constants.LockingMode"
   ];
 
   // RecordDesktopSession indicates whether desktop access sessions should be recorded.
@@ -2106,13 +2106,13 @@ message RecordSession {
   // Default indicates the default value for the services.
   string Default = 2 [
     (gogoproto.jsontag) = "default,omitempty",
-    (gogoproto.casttype) = "github.com/gravitational/teleport/api/constants.SessionRecordingMode"
+    (gogoproto.casttype) = "github.com/zmb3/teleport/api/constants.SessionRecordingMode"
   ];
 
   // SSH indicates the session mode used on SSH sessions.
   string SSH = 3 [
     (gogoproto.jsontag) = "ssh,omitempty",
-    (gogoproto.casttype) = "github.com/gravitational/teleport/api/constants.SessionRecordingMode"
+    (gogoproto.casttype) = "github.com/zmb3/teleport/api/constants.SessionRecordingMode"
   ];
 }
 
@@ -2302,7 +2302,7 @@ message AccessRequestConditions {
   wrappers.LabelValues Annotations = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "annotations,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 
   // Thresholds is a list of thresholds, one of which must be met in order for reviews
@@ -2452,7 +2452,7 @@ message UserSpecV2 {
   wrappers.LabelValues Traits = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "traits,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 
   // Status is a login status of the user
@@ -3253,7 +3253,7 @@ message OIDCConnectorSpecV3 {
   wrappers.StringValues RedirectURLs = 14 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "redirect_url",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Strings"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Strings"
   ];
   // AllowUnverifiedEmail tells the connector to accept OIDC users with unverified emails.
   bool AllowUnverifiedEmail = 15 [(gogoproto.jsontag) = "allow_unverified_email,omitempty"];
@@ -3604,7 +3604,7 @@ message CreateUserParams {
   wrappers.LabelValues Traits = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "traits,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 
   // SessionTTL determines the TTL.
@@ -3643,7 +3643,7 @@ message SSODiagnosticInfo {
   wrappers.LabelValues SAMLAttributeStatements = 12 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "saml_attribute_statements,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 
   // SAMLAssertionInfo represents raw SAML assertion info as returned by IdP during SAML flow.
@@ -3656,7 +3656,7 @@ message SSODiagnosticInfo {
   wrappers.LabelValues SAMLTraitsFromAssertions = 14 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "saml_traits_from_assertions,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 
   // SAMLConnectorTraitMapping represents connector-specific trait mapping.
@@ -3692,7 +3692,7 @@ message SSODiagnosticInfo {
   wrappers.LabelValues OIDCTraitsFromClaims = 24 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "oidc_traits_from_claims,omitempty",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 
   // OIDCConnectorTraitMapping represents connector-specific trait mapping.
@@ -3737,7 +3737,7 @@ message GithubClaims {
   wrappers.LabelValues OrganizationToTeams = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "organization_to_teams",
-    (gogoproto.customtype) = "github.com/gravitational/teleport/api/types/wrappers.Traits"
+    (gogoproto.customtype) = "github.com/zmb3/teleport/api/types/wrappers.Traits"
   ];
 
   // Teams is the users team membership

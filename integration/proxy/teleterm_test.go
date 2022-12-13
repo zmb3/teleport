@@ -27,14 +27,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	dbhelpers "github.com/gravitational/teleport/integration/db"
-	"github.com/gravitational/teleport/integration/helpers"
-	libclient "github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/srv/db/mysql"
-	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
-	"github.com/gravitational/teleport/lib/teleterm/api/uri"
-	"github.com/gravitational/teleport/lib/teleterm/clusters"
-	"github.com/gravitational/teleport/lib/teleterm/daemon"
+	dbhelpers "github.com/zmb3/teleport/integration/db"
+	"github.com/zmb3/teleport/integration/helpers"
+	libclient "github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/srv/db/mysql"
+	api "github.com/zmb3/teleport/lib/teleterm/api/protogen/golang/v1"
+	"github.com/zmb3/teleport/lib/teleterm/api/uri"
+	"github.com/zmb3/teleport/lib/teleterm/clusters"
+	"github.com/zmb3/teleport/lib/teleterm/daemon"
 )
 
 // testTeletermGatewaysCertRenewal is run from within TestALPNSNIProxyDatabaseAccess to amortize the

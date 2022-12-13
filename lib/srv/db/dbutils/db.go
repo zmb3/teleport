@@ -21,7 +21,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // IsDatabaseConnection inspects the TLS connection state and returns true

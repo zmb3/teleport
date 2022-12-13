@@ -30,9 +30,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/httpstream"
 	"k8s.io/apiserver/pkg/util/wsstream"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 const (

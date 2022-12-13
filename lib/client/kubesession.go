@@ -28,10 +28,10 @@ import (
 	"github.com/gravitational/trace"
 	"k8s.io/client-go/tools/remotecommand"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/client/terminal"
-	"github.com/gravitational/teleport/lib/kube/proxy/streamproto"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/client/terminal"
+	"github.com/zmb3/teleport/lib/kube/proxy/streamproto"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 const mfaChallengeInterval = time.Second * 30

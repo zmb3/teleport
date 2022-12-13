@@ -27,14 +27,14 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/exp/slices"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/observability/tracing"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/reversetunnel"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/teleagent"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/observability/tracing"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/reversetunnel"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/teleagent"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 type serverResolverFn = func(ctx context.Context, host, port string, site site) (types.Server, error)

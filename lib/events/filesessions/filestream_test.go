@@ -23,8 +23,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/session"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/session"
 )
 
 func TestReserveUploadPart(t *testing.T) {

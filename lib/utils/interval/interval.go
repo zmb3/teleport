@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gravitational/teleport/api/utils/retryutils"
+	"github.com/zmb3/teleport/api/utils/retryutils"
 )
 
 // Interval functions similarly to time.Ticker, with the added benefit of being

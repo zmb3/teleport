@@ -32,13 +32,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
-	"github.com/gravitational/teleport/api/breaker"
-	"github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/auth/authclient"
-	"github.com/gravitational/teleport/lib/config"
-	"github.com/gravitational/teleport/lib/service"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/breaker"
+	"github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/auth/authclient"
+	"github.com/zmb3/teleport/lib/config"
+	"github.com/zmb3/teleport/lib/service"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 type options struct {

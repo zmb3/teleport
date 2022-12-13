@@ -31,9 +31,9 @@ import (
 	"k8s.io/client-go/util/retry"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/gravitational/teleport/api/types"
-	resourcesv2 "github.com/gravitational/teleport/operator/apis/resources/v2"
-	resourcesv5 "github.com/gravitational/teleport/operator/apis/resources/v5"
+	"github.com/zmb3/teleport/api/types"
+	resourcesv2 "github.com/zmb3/teleport/operator/apis/resources/v2"
+	resourcesv5 "github.com/zmb3/teleport/operator/apis/resources/v5"
 )
 
 const teleportUserKind = "TeleportUser"

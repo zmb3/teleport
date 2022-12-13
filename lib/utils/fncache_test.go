@@ -29,7 +29,7 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	apiutils "github.com/gravitational/teleport/api/utils"
+	apiutils "github.com/zmb3/teleport/api/utils"
 )
 
 func TestFnCache_New(t *testing.T) {

@@ -21,7 +21,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
+	"github.com/zmb3/teleport"
 )
 
 // ReadEnvironmentFile will read environment variables from a passed in location.

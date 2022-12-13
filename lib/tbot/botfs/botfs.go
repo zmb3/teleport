@@ -27,8 +27,8 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/constants"
 )
 
 var log = logrus.WithFields(logrus.Fields{

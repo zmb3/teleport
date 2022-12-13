@@ -24,8 +24,8 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/lib/auth"
 )
 
 func runPresenceTask(ctx context.Context, term io.Writer, auth auth.ClientI, tc *TeleportClient, sessionID string) error {

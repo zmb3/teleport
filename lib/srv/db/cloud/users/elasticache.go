@@ -24,11 +24,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/elasticache/elasticacheiface"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils"
-	libaws "github.com/gravitational/teleport/lib/cloud/aws"
-	libsecrets "github.com/gravitational/teleport/lib/srv/db/secrets"
-	libutils "github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils"
+	libaws "github.com/zmb3/teleport/lib/cloud/aws"
+	libsecrets "github.com/zmb3/teleport/lib/srv/db/secrets"
+	libutils "github.com/zmb3/teleport/lib/utils"
 )
 
 // elastiCacheFetcher is a fetcher for discovering ElastiCache users.

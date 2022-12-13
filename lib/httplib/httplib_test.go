@@ -27,8 +27,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/observability/tracing"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/observability/tracing"
 )
 
 func TestRewritePaths(t *testing.T) {

@@ -24,8 +24,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/utils"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // TestJSON tests JSON marshal events

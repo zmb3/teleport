@@ -24,8 +24,8 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/cloud"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/cloud"
 )
 
 var (

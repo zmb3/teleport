@@ -34,11 +34,11 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	authproto "github.com/gravitational/teleport/api/client/proto"
-	wantypes "github.com/gravitational/teleport/api/types/webauthn"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/defaults"
+	authproto "github.com/zmb3/teleport/api/client/proto"
+	wantypes "github.com/zmb3/teleport/api/types/webauthn"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/defaults"
 )
 
 func TestEncodeDecode(t *testing.T) {

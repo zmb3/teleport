@@ -27,12 +27,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	apiclient "github.com/gravitational/teleport/api/client"
-	apiproxy "github.com/gravitational/teleport/api/client/proxy"
-	"github.com/gravitational/teleport/api/observability/tracing"
-	tracessh "github.com/gravitational/teleport/api/observability/tracing/ssh"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	apiclient "github.com/zmb3/teleport/api/client"
+	apiproxy "github.com/zmb3/teleport/api/client/proxy"
+	"github.com/zmb3/teleport/api/observability/tracing"
+	tracessh "github.com/zmb3/teleport/api/observability/tracing/ssh"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 var log = logrus.WithFields(logrus.Fields{

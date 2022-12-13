@@ -38,11 +38,11 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/events"
-	s3metrics "github.com/gravitational/teleport/lib/observability/metrics/s3"
-	"github.com/gravitational/teleport/lib/session"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/events"
+	s3metrics "github.com/zmb3/teleport/lib/observability/metrics/s3"
+	"github.com/zmb3/teleport/lib/session"
 )
 
 // s3AllowedACL is the set of canned ACLs that S3 accepts

@@ -23,8 +23,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/client"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // Below is an example of creating a new Teleport Auth client with Profile credentials,

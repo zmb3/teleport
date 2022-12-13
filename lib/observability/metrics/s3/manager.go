@@ -24,7 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/observability/metrics"
+	"github.com/zmb3/teleport/lib/observability/metrics"
 )
 
 type UploadAPIMetrics struct {

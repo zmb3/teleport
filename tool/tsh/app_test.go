@@ -21,7 +21,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gravitational/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/client"
 )
 
 func TestFormatAppConfig(t *testing.T) {

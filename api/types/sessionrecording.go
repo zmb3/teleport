@@ -22,7 +22,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/zmb3/teleport/api/utils"
 )
 
 // SessionRecordingConfig defines session recording configuration. This is

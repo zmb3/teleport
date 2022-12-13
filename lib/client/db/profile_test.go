@@ -22,11 +22,11 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/client/db/profile"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/observability/tracing"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/client/db/profile"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/observability/tracing"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // TestAddProfile verifies that connection profile is populated with correct

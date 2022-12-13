@@ -30,7 +30,7 @@ import (
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/events/test"
+	"github.com/zmb3/teleport/lib/events/test"
 )
 
 // TestThirdpartyStreams tests various streaming upload scenarios

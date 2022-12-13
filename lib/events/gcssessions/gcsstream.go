@@ -32,9 +32,9 @@ import (
 	"github.com/gravitational/trace"
 	"google.golang.org/api/iterator"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/session"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/session"
 )
 
 // CreateUpload creates a multipart upload

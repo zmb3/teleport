@@ -24,10 +24,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/srv"
+	"github.com/zmb3/teleport"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/srv"
 )
 
 // remoteSubsystem is a subsystem that executes on a remote node.

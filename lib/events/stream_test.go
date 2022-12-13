@@ -23,7 +23,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/session"
+	"github.com/zmb3/teleport/lib/session"
 )
 
 // TestStreamerCompleteEmpty makes sure that streamer Complete function

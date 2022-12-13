@@ -22,9 +22,9 @@ import (
 	"github.com/gravitational/trace"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/gravitational/teleport/api/types"
-	resourcesv3 "github.com/gravitational/teleport/operator/apis/resources/v3"
-	"github.com/gravitational/teleport/operator/sidecar"
+	"github.com/zmb3/teleport/api/types"
+	resourcesv3 "github.com/zmb3/teleport/operator/apis/resources/v3"
+	"github.com/zmb3/teleport/operator/sidecar"
 )
 
 // oidcConnectorClient implements TeleportResourceClient and offers CRUD methods needed to reconcile oidc_connectors

@@ -19,7 +19,7 @@ package events
 import (
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // This is the max size of all the events we return when searching for events.

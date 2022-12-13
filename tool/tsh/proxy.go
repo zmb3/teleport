@@ -36,19 +36,19 @@ import (
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 
-	"github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/client/proxy"
-	"github.com/gravitational/teleport/api/client/webclient"
-	"github.com/gravitational/teleport/api/constants"
-	tracessh "github.com/gravitational/teleport/api/observability/tracing/ssh"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils/keys"
-	libclient "github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/client/db/dbcmd"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/srv/alpnproxy"
-	alpncommon "github.com/gravitational/teleport/lib/srv/alpnproxy/common"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/client"
+	"github.com/zmb3/teleport/api/client/proxy"
+	"github.com/zmb3/teleport/api/client/webclient"
+	"github.com/zmb3/teleport/api/constants"
+	tracessh "github.com/zmb3/teleport/api/observability/tracing/ssh"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils/keys"
+	libclient "github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/client/db/dbcmd"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/srv/alpnproxy"
+	alpncommon "github.com/zmb3/teleport/lib/srv/alpnproxy/common"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // onProxyCommandSSH creates a local ssh proxy.
@@ -770,7 +770,7 @@ var dbProxyAuthMultiTpl = template.Must(template.New("").Parse(
 {{end}}
 Use one of the following commands to connect to the database or to the address above using other database GUI/CLI clients:
 {{range $item := .commands}}
-  * {{$item.Description}}: 
+  * {{$item.Description}}:
 
   $ {{$item.Command}}
 {{end}}

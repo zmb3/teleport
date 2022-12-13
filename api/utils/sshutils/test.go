@@ -24,7 +24,7 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport/api/constants"
+	"github.com/zmb3/teleport/api/constants"
 )
 
 // MakeTestSSHCA generates a new SSH certificate authority for tests.

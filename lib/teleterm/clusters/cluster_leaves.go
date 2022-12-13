@@ -21,9 +21,9 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/teleterm/api/uri"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/teleterm/api/uri"
 )
 
 // LeafCluster describes a leaf (trusted) cluster

@@ -26,7 +26,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/utils/golden"
+	"github.com/zmb3/teleport/lib/utils/golden"
 )
 
 func TestParseSSHVersion(t *testing.T) {

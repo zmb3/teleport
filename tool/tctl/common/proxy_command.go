@@ -21,9 +21,9 @@ import (
 	"github.com/gravitational/kingpin"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/service"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/service"
 )
 
 // ProxyCommand returns information about connected proxies

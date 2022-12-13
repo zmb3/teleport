@@ -24,8 +24,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	apiutils "github.com/gravitational/teleport/api/utils"
-	vc "github.com/gravitational/teleport/lib/versioncontrol"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	vc "github.com/zmb3/teleport/lib/versioncontrol"
 )
 
 // TestGithubAPI tests the github releases iterator against the real github

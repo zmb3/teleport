@@ -24,8 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/connectivity"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // TestClientConn checks the client's connection caching capabilities

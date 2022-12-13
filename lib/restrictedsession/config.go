@@ -21,7 +21,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/defaults"
 )
 
 // Config holds configuration for the RestrictedSession service.

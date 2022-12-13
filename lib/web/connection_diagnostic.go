@@ -22,10 +22,10 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/julienschmidt/httprouter"
 
-	"github.com/gravitational/teleport/lib/client/conntest"
-	"github.com/gravitational/teleport/lib/httplib"
-	"github.com/gravitational/teleport/lib/reversetunnel"
-	"github.com/gravitational/teleport/lib/web/ui"
+	"github.com/zmb3/teleport/lib/client/conntest"
+	"github.com/zmb3/teleport/lib/httplib"
+	"github.com/zmb3/teleport/lib/reversetunnel"
+	"github.com/zmb3/teleport/lib/web/ui"
 )
 
 // getConnectionDiagnostic returns a connection diagnostic connection diagnostics.

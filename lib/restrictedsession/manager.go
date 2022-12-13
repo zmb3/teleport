@@ -17,9 +17,9 @@ limitations under the License.
 package restrictedsession
 
 import (
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/bpf"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/bpf"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 // RestrictionsWatcherClient is used by changeset to fetch a list

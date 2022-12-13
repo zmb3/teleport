@@ -43,15 +43,15 @@ import (
 	"github.com/jonboulle/clockwork"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/backend/dynamo"
-	"github.com/gravitational/teleport/lib/events"
-	dynamometrics "github.com/gravitational/teleport/lib/observability/metrics/dynamo"
-	"github.com/gravitational/teleport/lib/session"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/backend/dynamo"
+	"github.com/zmb3/teleport/lib/events"
+	dynamometrics "github.com/zmb3/teleport/lib/observability/metrics/dynamo"
+	"github.com/zmb3/teleport/lib/session"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 const (

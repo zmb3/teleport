@@ -23,7 +23,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gravitational/teleport/lib/client/db/profile"
+	"github.com/zmb3/teleport/lib/client/db/profile"
 )
 
 // GetConnString returns formatted Postgres connection string for the profile.

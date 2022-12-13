@@ -21,7 +21,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/gravitational/teleport/lib/session"
+	"github.com/zmb3/teleport/lib/session"
 )
 
 // UploadHandler is a function supplied by the user, it will upload

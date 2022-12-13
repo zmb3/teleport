@@ -36,7 +36,7 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 	utilexec "k8s.io/client-go/util/exec"
 
-	apievents "github.com/gravitational/teleport/api/types/events"
+	apievents "github.com/zmb3/teleport/api/types/events"
 )
 
 // remoteCommandRequest is a request to execute a remote command

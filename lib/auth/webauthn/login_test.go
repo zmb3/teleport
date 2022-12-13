@@ -29,10 +29,10 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	wantypes "github.com/gravitational/teleport/api/types/webauthn"
-	"github.com/gravitational/teleport/lib/auth/mocku2f"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
+	"github.com/zmb3/teleport/api/types"
+	wantypes "github.com/zmb3/teleport/api/types/webauthn"
+	"github.com/zmb3/teleport/lib/auth/mocku2f"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
 )
 
 func TestLoginFlow_BeginFinish(t *testing.T) {

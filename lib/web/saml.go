@@ -24,10 +24,10 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/julienschmidt/httprouter"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/httplib"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/httplib"
 )
 
 func (h *Handler) samlSSO(w http.ResponseWriter, r *http.Request, p httprouter.Params) string {

@@ -27,10 +27,10 @@ import (
 	"github.com/gravitational/ttlmap"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/srv/app/common"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/srv/app/common"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // session holds a request forwarder and web session for this request.

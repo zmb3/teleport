@@ -31,8 +31,8 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 func TestIsSessionUsingTemporaryCredentials(t *testing.T) {

@@ -23,10 +23,10 @@ import (
 
 	"github.com/gravitational/trace"
 
-	apiutils "github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/reversetunnel"
-	"github.com/gravitational/teleport/lib/utils"
-	"github.com/gravitational/teleport/lib/web/app"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/reversetunnel"
+	"github.com/zmb3/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/web/app"
 )
 
 type hostPolicyCheckerConfig struct {

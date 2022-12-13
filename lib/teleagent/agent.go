@@ -27,8 +27,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh/agent"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // Agent extends the agent.ExtendedAgent interface.

@@ -21,9 +21,9 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/tbot/config"
-	"github.com/gravitational/teleport/lib/tbot/tshwrap"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/tbot/config"
+	"github.com/zmb3/teleport/lib/tbot/tshwrap"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func onDBCommand(botConfig *config.BotConfig, cf *config.CLIConf) error {

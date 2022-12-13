@@ -31,13 +31,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/client/db"
-	"github.com/gravitational/teleport/lib/client/db/mysql"
-	"github.com/gravitational/teleport/lib/client/db/postgres"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/tlsca"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/client/db"
+	"github.com/zmb3/teleport/lib/client/db/mysql"
+	"github.com/zmb3/teleport/lib/client/db/postgres"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 const (

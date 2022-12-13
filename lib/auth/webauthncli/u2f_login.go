@@ -26,8 +26,8 @@ import (
 	"github.com/flynn/u2f/u2ftoken"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
+	"github.com/zmb3/teleport/api/client/proto"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
 )
 
 // U2FLogin implements Login for U2F/CTAP1 devices.

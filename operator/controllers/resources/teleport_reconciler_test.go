@@ -27,7 +27,7 @@ import (
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 type resourceTestingPrimitives[T types.ResourceWithOrigin, K TeleportKubernetesResource[T]] interface {

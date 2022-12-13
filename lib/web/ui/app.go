@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/tlsca"
-	"github.com/gravitational/teleport/lib/utils/aws"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/lib/utils/aws"
 )
 
 // App describes an application

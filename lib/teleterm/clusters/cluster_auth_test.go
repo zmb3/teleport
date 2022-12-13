@@ -24,8 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 
-	wancli "github.com/gravitational/teleport/lib/auth/webauthncli"
-	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
+	wancli "github.com/zmb3/teleport/lib/auth/webauthncli"
+	api "github.com/zmb3/teleport/lib/teleterm/api/protogen/golang/v1"
 )
 
 func TestPwdlessLoginPrompt_PromptPIN(t *testing.T) {

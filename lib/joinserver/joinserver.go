@@ -27,8 +27,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/peer"
 
-	"github.com/gravitational/teleport/api/client"
-	"github.com/gravitational/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/client"
+	"github.com/zmb3/teleport/api/client/proto"
 )
 
 const iamJoinRequestTimeout = time.Minute

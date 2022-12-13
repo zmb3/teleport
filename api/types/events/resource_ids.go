@@ -16,7 +16,7 @@ limitations under the License.
 
 package events
 
-import "github.com/gravitational/teleport/api/types"
+import "github.com/zmb3/teleport/api/types"
 
 // EventResourceIDs converts a []ResourceID to a []events.ResourceID
 func ResourceIDs(resourceIDs []types.ResourceID) []ResourceID {

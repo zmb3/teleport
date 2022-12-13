@@ -26,11 +26,11 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/metadata"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/metadata"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 const (

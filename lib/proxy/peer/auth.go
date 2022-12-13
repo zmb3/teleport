@@ -24,9 +24,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // newProxyCredentials creates new proxyCredentials from the given transport credentials.

@@ -24,8 +24,8 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/client/terminal"
-	"github.com/gravitational/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/client/terminal"
+	"github.com/zmb3/teleport/lib/events"
 )
 
 // TestEmptyPlay verifies that a playback of 0 events

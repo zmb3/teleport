@@ -52,8 +52,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"github.com/gravitational/trace"
 
-	awsapiutils "github.com/gravitational/teleport/api/utils/aws"
-	awsutils "github.com/gravitational/teleport/lib/utils/aws"
+	awsapiutils "github.com/zmb3/teleport/api/utils/aws"
+	awsutils "github.com/zmb3/teleport/lib/utils/aws"
 )
 
 // resolveEndpoint extracts the aws-service on and aws-region from the request

@@ -28,8 +28,8 @@ import (
 	"github.com/gravitational/trace"
 	"gopkg.in/yaml.v3"
 
-	"github.com/gravitational/teleport/lib/tbot/botfs"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/tbot/botfs"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // DestinationDirectory is a Destination that writes to the local filesystem

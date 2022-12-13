@@ -24,7 +24,7 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/lib/srv/db/secrets"
+	"github.com/zmb3/teleport/lib/srv/db/secrets"
 )
 
 // User represents a managed cloud database user.

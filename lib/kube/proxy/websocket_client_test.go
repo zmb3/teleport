@@ -37,7 +37,7 @@ import (
 	clientremotecommand "k8s.io/client-go/tools/remotecommand"
 	"k8s.io/client-go/transport"
 
-	testingkubemock "github.com/gravitational/teleport/lib/kube/proxy/testing/kube_server"
+	testingkubemock "github.com/zmb3/teleport/lib/kube/proxy/testing/kube_server"
 )
 
 var (

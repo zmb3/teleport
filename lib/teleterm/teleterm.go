@@ -26,9 +26,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/gravitational/teleport/lib/teleterm/apiserver"
-	"github.com/gravitational/teleport/lib/teleterm/clusters"
-	"github.com/gravitational/teleport/lib/teleterm/daemon"
+	"github.com/zmb3/teleport/lib/teleterm/apiserver"
+	"github.com/zmb3/teleport/lib/teleterm/clusters"
+	"github.com/zmb3/teleport/lib/teleterm/daemon"
 )
 
 // Serve starts daemon service

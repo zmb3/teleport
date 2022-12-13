@@ -23,8 +23,8 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	alpn "github.com/gravitational/teleport/lib/srv/alpnproxy"
-	"github.com/gravitational/teleport/lib/tlsca"
+	alpn "github.com/zmb3/teleport/lib/srv/alpnproxy"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 type localProxyMiddleware struct {

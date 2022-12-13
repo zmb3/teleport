@@ -22,8 +22,8 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/vulcand/predicate"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // impersonateContext is a default rule context used in teleport

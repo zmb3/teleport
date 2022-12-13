@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/events"
 )
 
 func TestEmitConnTeleport(t *testing.T) {

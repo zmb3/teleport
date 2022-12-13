@@ -24,8 +24,8 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/services"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/services"
 )
 
 const (

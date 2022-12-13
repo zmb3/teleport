@@ -22,9 +22,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
-	"github.com/gravitational/teleport/lib/teleterm/apiserver/handler"
-	"github.com/gravitational/teleport/lib/utils"
+	api "github.com/zmb3/teleport/lib/teleterm/api/protogen/golang/v1"
+	"github.com/zmb3/teleport/lib/teleterm/apiserver/handler"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // New creates an instance of API Server

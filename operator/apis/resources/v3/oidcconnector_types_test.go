@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types/wrappers"
+	"github.com/zmb3/teleport/api/types/wrappers"
 )
 
 // This tests that `redirect_url` is consistently marshaled as a list of string

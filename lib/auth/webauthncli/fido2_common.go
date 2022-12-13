@@ -23,8 +23,8 @@ import (
 	"github.com/duo-labs/webauthn/protocol/webauthncose"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
+	"github.com/zmb3/teleport/api/client/proto"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
 )
 
 // FIDO2PollInterval is the poll interval used to check for new FIDO2 devices.

@@ -27,6 +27,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	authztypes "k8s.io/client-go/kubernetes/typed/authorization/v1"
+
 	// Load kubeconfig auth plugins for gcp and azure.
 	// Without this, users can't provide a kubeconfig using those.
 	//
@@ -36,8 +37,8 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 
-	"github.com/gravitational/teleport/api/types"
-	kubeutils "github.com/gravitational/teleport/lib/kube/utils"
+	"github.com/zmb3/teleport/api/types"
+	kubeutils "github.com/zmb3/teleport/lib/kube/utils"
 )
 
 // ImpersonationPermissionsChecker describes a function that can be used to check

@@ -33,8 +33,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/iterator"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth/keystore/internal/faketime"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth/keystore/internal/faketime"
 )
 
 const (

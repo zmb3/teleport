@@ -22,7 +22,7 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
+	"github.com/zmb3/teleport"
 )
 
 // EnvReqParams are parameters for env request

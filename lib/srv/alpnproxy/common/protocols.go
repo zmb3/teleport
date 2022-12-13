@@ -22,7 +22,7 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/exp/slices"
 
-	"github.com/gravitational/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/defaults"
 )
 
 // Protocol is the TLS ALPN protocol type.

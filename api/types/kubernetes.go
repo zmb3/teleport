@@ -24,7 +24,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/zmb3/teleport/api/utils"
 )
 
 // KubeCluster represents a kubernetes cluster.

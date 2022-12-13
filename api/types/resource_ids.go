@@ -23,7 +23,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/utils"
+	"github.com/zmb3/teleport/api/utils"
 )
 
 func (id *ResourceID) CheckAndSetDefaults() error {

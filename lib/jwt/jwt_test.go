@@ -24,9 +24,9 @@ import (
 	"github.com/stretchr/testify/require"
 	josejwt "gopkg.in/square/go-jose.v2/jwt"
 
-	"github.com/gravitational/teleport/api/types/wrappers"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types/wrappers"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func TestSignAndVerify(t *testing.T) {

@@ -23,7 +23,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/defaults"
 )
 
 // ClusterNetworkingConfig defines cluster networking configuration. This is

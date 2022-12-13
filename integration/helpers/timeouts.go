@@ -17,8 +17,8 @@ package helpers
 import (
 	"time"
 
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/lib/defaults"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/lib/defaults"
 )
 
 // SetTestTimeouts affects global timeouts inside Teleport, making connections

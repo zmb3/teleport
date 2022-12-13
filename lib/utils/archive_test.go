@@ -27,7 +27,7 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport"
+	"github.com/zmb3/teleport"
 )
 
 type mockFileReader struct {

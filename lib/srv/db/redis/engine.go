@@ -25,16 +25,16 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	apiawsutils "github.com/gravitational/teleport/api/utils/aws"
-	"github.com/gravitational/teleport/lib/cloud/azure"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/srv/db/common"
-	"github.com/gravitational/teleport/lib/srv/db/common/role"
-	"github.com/gravitational/teleport/lib/srv/db/redis/connection"
-	"github.com/gravitational/teleport/lib/srv/db/redis/protocol"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	apiawsutils "github.com/zmb3/teleport/api/utils/aws"
+	"github.com/zmb3/teleport/lib/cloud/azure"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/lib/srv/db/common/role"
+	"github.com/zmb3/teleport/lib/srv/db/redis/connection"
+	"github.com/zmb3/teleport/lib/srv/db/redis/protocol"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 func init() {

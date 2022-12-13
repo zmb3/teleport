@@ -24,7 +24,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/utils/workpool"
+	"github.com/zmb3/teleport/lib/utils/workpool"
 )
 
 type Lease = workpool.Lease

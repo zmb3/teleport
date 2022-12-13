@@ -31,16 +31,16 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/config"
-	awsconfigurators "github.com/gravitational/teleport/lib/configurators/aws"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/modules"
-	"github.com/gravitational/teleport/lib/service"
-	"github.com/gravitational/teleport/lib/srv"
-	"github.com/gravitational/teleport/lib/sshutils/scp"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/config"
+	awsconfigurators "github.com/zmb3/teleport/lib/configurators/aws"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/modules"
+	"github.com/zmb3/teleport/lib/service"
+	"github.com/zmb3/teleport/lib/srv"
+	"github.com/zmb3/teleport/lib/sshutils/scp"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // Options combines init/start teleport options

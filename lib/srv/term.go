@@ -32,10 +32,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport"
-	tracessh "github.com/gravitational/teleport/api/observability/tracing/ssh"
-	"github.com/gravitational/teleport/lib/services"
-	rsession "github.com/gravitational/teleport/lib/session"
+	"github.com/zmb3/teleport"
+	tracessh "github.com/zmb3/teleport/api/observability/tracing/ssh"
+	"github.com/zmb3/teleport/lib/services"
+	rsession "github.com/zmb3/teleport/lib/session"
 )
 
 // LookupUser is used to mock the value returned by user.Lookup(string).

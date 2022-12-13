@@ -18,7 +18,7 @@ package proxy
 import (
 	"testing"
 
-	"github.com/gravitational/teleport/integration/helpers"
+	"github.com/zmb3/teleport/integration/helpers"
 )
 
 // TestMain will re-execute Teleport to run a command if "exec" is passed to

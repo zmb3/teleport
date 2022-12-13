@@ -19,8 +19,8 @@ package events
 import (
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/types"
+	apievents "github.com/zmb3/teleport/api/types/events"
 )
 
 // ValidateServerMetadata checks that event server ID of the event

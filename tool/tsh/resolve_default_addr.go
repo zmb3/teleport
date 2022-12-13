@@ -30,7 +30,7 @@ import (
 	"github.com/gravitational/trace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
-	"github.com/gravitational/teleport/api/observability/tracing"
+	"github.com/zmb3/teleport/api/observability/tracing"
 )
 
 type raceResult struct {

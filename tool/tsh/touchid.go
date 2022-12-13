@@ -23,8 +23,8 @@ import (
 	"github.com/gravitational/kingpin"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/asciitable"
-	"github.com/gravitational/teleport/lib/auth/touchid"
+	"github.com/zmb3/teleport/lib/asciitable"
+	"github.com/zmb3/teleport/lib/auth/touchid"
 )
 
 type touchIDCommand struct {

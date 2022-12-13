@@ -27,9 +27,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/cloud"
-	"github.com/gravitational/teleport/lib/defaults"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/cloud"
+	"github.com/zmb3/teleport/lib/defaults"
 )
 
 // TestAWSMetadata tests fetching AWS metadata for RDS and Redshift databases.

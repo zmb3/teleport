@@ -18,7 +18,7 @@ limitations under the License.
 // of servers in memory, connecting them together and connecting to them
 package integration
 
-import "github.com/gravitational/teleport/integration/helpers"
+import "github.com/zmb3/teleport/integration/helpers"
 
 const (
 	Host     = helpers.Host

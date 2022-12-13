@@ -30,8 +30,8 @@ import (
 	applyconfigv1 "k8s.io/client-go/applyconfigurations/core/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/gravitational/teleport/lib/backend"
-	kubeutils "github.com/gravitational/teleport/lib/kube/utils"
+	"github.com/zmb3/teleport/lib/backend"
+	kubeutils "github.com/zmb3/teleport/lib/kube/utils"
 )
 
 const (

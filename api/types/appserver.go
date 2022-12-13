@@ -24,7 +24,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api"
+	"github.com/zmb3/teleport/api"
 )
 
 // AppServer represents a single proxied web app.

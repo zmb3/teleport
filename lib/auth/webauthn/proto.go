@@ -20,7 +20,7 @@ import (
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/protocol/webauthncose"
 
-	wantypes "github.com/gravitational/teleport/api/types/webauthn"
+	wantypes "github.com/zmb3/teleport/api/types/webauthn"
 )
 
 // CredentialAssertionToProto converts a CredentialAssertion to its proto

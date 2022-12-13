@@ -18,7 +18,7 @@ limitations under the License.
 // windows_desktop_access.
 package desktop
 
-import "github.com/gravitational/teleport/api/constants"
+import "github.com/zmb3/teleport/api/constants"
 
 const (
 	// SNISuffix is the server name suffix used during SNI to specify the

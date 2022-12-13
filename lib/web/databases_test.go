@@ -26,9 +26,9 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	awslib "github.com/gravitational/teleport/lib/cloud/aws"
-	dbiam "github.com/gravitational/teleport/lib/srv/db/common/iam"
+	"github.com/zmb3/teleport/api/types"
+	awslib "github.com/zmb3/teleport/lib/cloud/aws"
+	dbiam "github.com/zmb3/teleport/lib/srv/db/common/iam"
 )
 
 func TestCreateDatabaseRequestParameters(t *testing.T) {

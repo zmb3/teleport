@@ -31,9 +31,9 @@ import (
 	"k8s.io/client-go/util/retry"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/gravitational/teleport/api/types"
-	apiutils "github.com/gravitational/teleport/api/utils"
-	resourcesv5 "github.com/gravitational/teleport/operator/apis/resources/v5"
+	"github.com/zmb3/teleport/api/types"
+	apiutils "github.com/zmb3/teleport/api/utils"
+	resourcesv5 "github.com/zmb3/teleport/operator/apis/resources/v5"
 )
 
 // When I create or delete a TeleportRole CR in Kubernetes,

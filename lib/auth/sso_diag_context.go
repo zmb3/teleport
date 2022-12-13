@@ -19,7 +19,7 @@ package auth
 import (
 	"context"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // ssoDiagContext is a helper type for accumulating the SSO diagnostic info prior to writing it to the backend.

@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/scheme"
 
-	"github.com/gravitational/teleport/operator/apis/resources"
+	"github.com/zmb3/teleport/operator/apis/resources"
 )
 
 var (

@@ -25,11 +25,11 @@ import (
 	"github.com/jackc/pgproto3/v2"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/limiter"
-	"github.com/gravitational/teleport/lib/srv/alpnproxy"
-	"github.com/gravitational/teleport/lib/srv/db/common"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/limiter"
+	"github.com/zmb3/teleport/lib/srv/alpnproxy"
+	"github.com/zmb3/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // Proxy proxies connections from Postgres clients to database services

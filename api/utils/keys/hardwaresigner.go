@@ -20,7 +20,7 @@ import (
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gravitational/trace"
 
-	attestation "github.com/gravitational/teleport/api/gen/proto/go/attestation/v1"
+	attestation "github.com/zmb3/teleport/api/gen/proto/go/attestation/v1"
 )
 
 // HardwareSigner is a crypto.Signer which can be attested as being backed by a hardware key.

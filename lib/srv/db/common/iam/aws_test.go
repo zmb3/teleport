@@ -21,8 +21,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	awslib "github.com/gravitational/teleport/lib/cloud/aws"
+	"github.com/zmb3/teleport/api/types"
+	awslib "github.com/zmb3/teleport/lib/cloud/aws"
 )
 
 func TestGetAWSPolicyDocument(t *testing.T) {

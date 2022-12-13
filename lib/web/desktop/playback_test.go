@@ -27,10 +27,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/websocket"
 
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/session"
-	"github.com/gravitational/teleport/lib/utils"
-	"github.com/gravitational/teleport/lib/web/desktop"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/session"
+	"github.com/zmb3/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/web/desktop"
 )
 
 func TestStreamsDesktopEvents(t *testing.T) {

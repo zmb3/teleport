@@ -35,8 +35,8 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // Cloud provides cloud provider access related methods such as generating

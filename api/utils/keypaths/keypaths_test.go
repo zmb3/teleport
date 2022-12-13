@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/utils/keypaths"
+	"github.com/zmb3/teleport/api/utils/keypaths"
 )
 
 func TestIsProfileKubeConfigPath(t *testing.T) {

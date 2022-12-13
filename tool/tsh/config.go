@@ -24,9 +24,9 @@ import (
 	"github.com/coreos/go-semver/semver"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/profile"
-	"github.com/gravitational/teleport/api/utils/keypaths"
-	"github.com/gravitational/teleport/lib/config/openssh"
+	"github.com/zmb3/teleport/api/profile"
+	"github.com/zmb3/teleport/api/utils/keypaths"
+	"github.com/zmb3/teleport/lib/config/openssh"
 )
 
 // writeSSHConfig generates an OpenSSH config block from the `sshConfigTemplate`

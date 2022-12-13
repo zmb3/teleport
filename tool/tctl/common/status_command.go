@@ -23,12 +23,12 @@ import (
 	"github.com/gravitational/kingpin"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/constants"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/asciitable"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/service"
-	"github.com/gravitational/teleport/lib/tlsca"
+	"github.com/zmb3/teleport/api/constants"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/asciitable"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/service"
+	"github.com/zmb3/teleport/lib/tlsca"
 )
 
 // StatusCommand implements `tctl token` group of commands.

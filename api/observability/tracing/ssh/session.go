@@ -23,7 +23,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/gravitational/teleport/api/observability/tracing"
+	"github.com/zmb3/teleport/api/observability/tracing"
 )
 
 // Session is a wrapper around ssh.Session that adds tracing support

@@ -25,8 +25,8 @@ import (
 	"google.golang.org/grpc"
 	ggzip "google.golang.org/grpc/encoding/gzip"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/types/events"
 )
 
 // createOrResumeAuditStream creates or resumes audit stream described in the request.

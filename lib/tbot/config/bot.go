@@ -19,11 +19,11 @@ package config
 import (
 	"context"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/client/webclient"
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/tbot/identity"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/client/webclient"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/tbot/identity"
 )
 
 // Bot is an interface covering various public tbot.Bot methods to circumvent

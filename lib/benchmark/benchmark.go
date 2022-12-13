@@ -32,10 +32,10 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/profile"
-	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/observability/tracing"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/profile"
+	"github.com/zmb3/teleport/lib/client"
+	"github.com/zmb3/teleport/lib/observability/tracing"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 const (

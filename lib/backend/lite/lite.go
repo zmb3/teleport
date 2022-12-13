@@ -35,9 +35,9 @@ import (
 	sqlite3 "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils"
-	"github.com/gravitational/teleport/lib/backend"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils"
+	"github.com/zmb3/teleport/lib/backend"
 )
 
 const (

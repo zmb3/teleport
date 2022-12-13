@@ -27,9 +27,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/secret"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/secret"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 const (

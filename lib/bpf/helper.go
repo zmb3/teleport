@@ -30,7 +30,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
+	"github.com/zmb3/teleport"
 )
 
 var log = logrus.WithFields(logrus.Fields{

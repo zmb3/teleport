@@ -28,7 +28,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gravitational/trace"
 
-	libaws "github.com/gravitational/teleport/lib/cloud/aws"
+	libaws "github.com/zmb3/teleport/lib/cloud/aws"
 )
 
 // AWSSecretsManagerConfig is the config for AWSSecretsManager.

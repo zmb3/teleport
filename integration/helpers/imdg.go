@@ -17,7 +17,7 @@ package helpers
 import (
 	"context"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // DisabledIMDSClient is an EC2 instance metadata client that is always disabled. This is faster

@@ -19,7 +19,7 @@ package webauthn
 import (
 	wan "github.com/duo-labs/webauthn/webauthn"
 
-	"github.com/gravitational/teleport/api/types"
+	"github.com/zmb3/teleport/api/types"
 )
 
 // webUser implements a WebAuthn protocol user.

@@ -37,12 +37,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	azureutils "github.com/gravitational/teleport/api/utils/azure"
-	clients "github.com/gravitational/teleport/lib/cloud"
-	"github.com/gravitational/teleport/lib/cloud/azure"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/srv/db/cloud"
+	"github.com/zmb3/teleport/api/types"
+	azureutils "github.com/zmb3/teleport/api/utils/azure"
+	clients "github.com/zmb3/teleport/lib/cloud"
+	"github.com/zmb3/teleport/lib/cloud/azure"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/srv/db/cloud"
 )
 
 // TestWatcher tests cloud databases watcher.

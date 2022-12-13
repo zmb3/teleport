@@ -19,8 +19,8 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/proxy/peer"
-	"github.com/gravitational/teleport/lib/reversetunnel"
+	"github.com/zmb3/teleport/lib/proxy/peer"
+	"github.com/zmb3/teleport/lib/reversetunnel"
 )
 
 // ClusterDialerFunc is a function that implements a peer.ClusterDialer.

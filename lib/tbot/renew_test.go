@@ -24,13 +24,13 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/api/utils"
-	libconfig "github.com/gravitational/teleport/lib/config"
-	"github.com/gravitational/teleport/lib/tbot/config"
-	"github.com/gravitational/teleport/lib/tbot/testhelpers"
-	"github.com/gravitational/teleport/lib/tlsca"
-	libutils "github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/api/utils"
+	libconfig "github.com/zmb3/teleport/lib/config"
+	"github.com/zmb3/teleport/lib/tbot/config"
+	"github.com/zmb3/teleport/lib/tbot/testhelpers"
+	"github.com/zmb3/teleport/lib/tlsca"
+	libutils "github.com/zmb3/teleport/lib/utils"
 )
 
 // TestOnboardViaToken ensures a bot can join using token auth.

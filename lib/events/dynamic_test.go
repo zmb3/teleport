@@ -21,7 +21,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/types/events"
 )
 
 // TestDynamicTypeUnknown checks that we correctly translate unknown events strings into the correct proto type.

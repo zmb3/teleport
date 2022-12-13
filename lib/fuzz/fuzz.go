@@ -18,8 +18,8 @@
 package fuzz
 
 import (
-	"github.com/gravitational/teleport/lib/utils"
-	"github.com/gravitational/teleport/lib/utils/parse"
+	"github.com/zmb3/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/utils/parse"
 )
 
 func FuzzParseProxyJump(data []byte) int {

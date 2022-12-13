@@ -22,9 +22,9 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/julienschmidt/httprouter"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/reversetunnel"
-	"github.com/gravitational/teleport/lib/web/ui"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/reversetunnel"
+	"github.com/zmb3/teleport/lib/web/ui"
 )
 
 // clusterKubesGet returns a list of kube clusters in a form the UI can present.

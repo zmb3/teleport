@@ -21,7 +21,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/client/proto"
+	"github.com/zmb3/teleport/api/client/proto"
 )
 
 // JoinServiceClient is a client for the JoinService, which runs on both the

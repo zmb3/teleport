@@ -1,6 +1,6 @@
 #!/bin/bash -eu
 
-TELEPORT_PREFIX="github.com/gravitational/teleport"
+TELEPORT_PREFIX="github.com/zmb3/teleport"
 
 prepare_teleport() {
 

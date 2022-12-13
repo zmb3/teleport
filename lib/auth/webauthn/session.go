@@ -23,7 +23,7 @@ import (
 	wan "github.com/duo-labs/webauthn/webauthn"
 	"github.com/gravitational/trace"
 
-	wantypes "github.com/gravitational/teleport/api/types/webauthn"
+	wantypes "github.com/zmb3/teleport/api/types/webauthn"
 )
 
 // scopeLogin identifies session data stored for login.

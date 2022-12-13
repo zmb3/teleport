@@ -28,9 +28,9 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/bpf"
-	api "github.com/gravitational/teleport/lib/events"
+	"github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/bpf"
+	api "github.com/zmb3/teleport/lib/events"
 )
 
 const (

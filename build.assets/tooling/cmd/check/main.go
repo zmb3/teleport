@@ -30,7 +30,7 @@ import (
 	"github.com/gravitational/trace"
 	"golang.org/x/mod/semver"
 
-	"github.com/gravitational/teleport/build.assets/tooling/lib/github"
+	"github.com/zmb3/teleport/build.assets/tooling/lib/github"
 )
 
 func main() {

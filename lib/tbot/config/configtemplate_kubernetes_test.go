@@ -25,8 +25,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/tbot/botfs"
-	"github.com/gravitational/teleport/lib/utils/golden"
+	"github.com/zmb3/teleport/lib/tbot/botfs"
+	"github.com/zmb3/teleport/lib/utils/golden"
 )
 
 // TestTemplateKubernetesRender renders a Kubernetes template and compares it

@@ -22,9 +22,9 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/julienschmidt/httprouter"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	v1 "github.com/gravitational/teleport/api/gen/proto/go/usageevents/v1"
-	"github.com/gravitational/teleport/lib/httplib"
+	"github.com/zmb3/teleport/api/client/proto"
+	v1 "github.com/zmb3/teleport/api/gen/proto/go/usageevents/v1"
+	"github.com/zmb3/teleport/lib/httplib"
 )
 
 // these constants are 1:1 with user events found in the webapps codebase

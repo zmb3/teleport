@@ -26,9 +26,9 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/utils"
-	awsutils "github.com/gravitational/teleport/api/utils/aws"
-	azureutils "github.com/gravitational/teleport/api/utils/azure"
+	"github.com/zmb3/teleport/api/utils"
+	awsutils "github.com/zmb3/teleport/api/utils/aws"
+	azureutils "github.com/zmb3/teleport/api/utils/azure"
 )
 
 // Database represents a database proxied by a database server.

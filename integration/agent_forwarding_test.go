@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/unix"
 
-	"github.com/gravitational/teleport/lib/teleagent"
+	"github.com/zmb3/teleport/lib/teleagent"
 )
 
 func TestAgentSocketPermissions(t *testing.T) {

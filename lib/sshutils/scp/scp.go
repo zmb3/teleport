@@ -36,8 +36,8 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 const (

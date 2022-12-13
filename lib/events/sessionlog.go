@@ -25,7 +25,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/session"
+	"github.com/zmb3/teleport/lib/session"
 )
 
 const (

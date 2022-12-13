@@ -22,10 +22,10 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/lib/auth/touchid"
-	wanlib "github.com/gravitational/teleport/lib/auth/webauthn"
-	"github.com/gravitational/teleport/lib/auth/webauthnwin"
+	"github.com/zmb3/teleport/api/client/proto"
+	"github.com/zmb3/teleport/lib/auth/touchid"
+	wanlib "github.com/zmb3/teleport/lib/auth/webauthn"
+	"github.com/zmb3/teleport/lib/auth/webauthnwin"
 )
 
 // AuthenticatorAttachment allows callers to choose a specific attachment.

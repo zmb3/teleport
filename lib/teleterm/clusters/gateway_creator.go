@@ -19,7 +19,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/teleterm/gateway"
+	"github.com/zmb3/teleport/lib/teleterm/gateway"
 )
 
 type GatewayCreator struct {

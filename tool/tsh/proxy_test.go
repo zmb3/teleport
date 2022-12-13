@@ -34,19 +34,19 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh/agent"
 
-	"github.com/gravitational/teleport"
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
-	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/api/utils/retryutils"
-	"github.com/gravitational/teleport/lib"
-	"github.com/gravitational/teleport/lib/auth"
-	"github.com/gravitational/teleport/lib/client/db/dbcmd"
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/service"
-	"github.com/gravitational/teleport/lib/teleagent"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
+	apievents "github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/utils/retryutils"
+	"github.com/zmb3/teleport/lib"
+	"github.com/zmb3/teleport/lib/auth"
+	"github.com/zmb3/teleport/lib/client/db/dbcmd"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/service"
+	"github.com/zmb3/teleport/lib/teleagent"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // TestSSH verifies "tsh ssh" command.
@@ -854,11 +854,11 @@ Use the following command to connect to the database or to the address above usi
 
 Use one of the following commands to connect to the database or to the address above using other database GUI/CLI clients:
 
-  * default: 
+  * default:
 
   $ echo "hello world"
 
-  * alternative: 
+  * alternative:
 
   $ echo "goodbye world"
 
@@ -907,11 +907,11 @@ To avoid port randomization, you can choose the listening port using the --port 
 
 Use one of the following commands to connect to the database or to the address above using other database GUI/CLI clients:
 
-  * default: 
+  * default:
 
   $ echo "hello world"
 
-  * alternative: 
+  * alternative:
 
   $ echo "goodbye world"
 

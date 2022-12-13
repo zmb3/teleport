@@ -28,7 +28,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 
-	"github.com/gravitational/teleport/lib/teleagent"
+	"github.com/zmb3/teleport/lib/teleagent"
 )
 
 // ConnectionContext manages connection-level state.

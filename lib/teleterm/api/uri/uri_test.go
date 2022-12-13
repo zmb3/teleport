@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/lib/teleterm/api/uri"
+	"github.com/zmb3/teleport/lib/teleterm/api/uri"
 )
 
 func TestString(t *testing.T) {

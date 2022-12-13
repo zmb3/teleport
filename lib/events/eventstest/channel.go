@@ -22,8 +22,8 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/session"
+	"github.com/zmb3/teleport/api/types/events"
+	"github.com/zmb3/teleport/lib/session"
 )
 
 // ChannelEmitter emits audit events by writing them to a channel.

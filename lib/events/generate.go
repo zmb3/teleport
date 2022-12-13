@@ -23,7 +23,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
 
-	apievents "github.com/gravitational/teleport/api/types/events"
+	apievents "github.com/zmb3/teleport/api/types/events"
 )
 
 // SessionParams specifies optional parameters

@@ -31,11 +31,11 @@ import (
 	"google.golang.org/api/googleapi"
 	"google.golang.org/grpc/status"
 
-	"github.com/gravitational/teleport/api/types"
-	awslib "github.com/gravitational/teleport/lib/cloud/aws"
-	azurelib "github.com/gravitational/teleport/lib/cloud/azure"
-	"github.com/gravitational/teleport/lib/defaults"
-	dbiam "github.com/gravitational/teleport/lib/srv/db/common/iam"
+	"github.com/zmb3/teleport/api/types"
+	awslib "github.com/zmb3/teleport/lib/cloud/aws"
+	azurelib "github.com/zmb3/teleport/lib/cloud/azure"
+	"github.com/zmb3/teleport/lib/defaults"
+	dbiam "github.com/zmb3/teleport/lib/srv/db/common/iam"
 )
 
 // ConvertError converts errors to trace errors.

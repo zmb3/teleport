@@ -30,8 +30,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/http/httpproxy"
 
-	awsapiutils "github.com/gravitational/teleport/api/utils/aws"
-	"github.com/gravitational/teleport/lib/utils"
+	awsapiutils "github.com/zmb3/teleport/api/utils/aws"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // IsConnectRequest returns true if the request is a HTTP CONNECT tunnel

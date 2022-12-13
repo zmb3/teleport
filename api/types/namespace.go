@@ -22,7 +22,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/defaults"
 )
 
 // NewNamespace returns new namespace

@@ -30,12 +30,12 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/lib/defaults"
-	"github.com/gravitational/teleport/lib/services"
-	"github.com/gravitational/teleport/lib/srv/db/common"
-	"github.com/gravitational/teleport/lib/srv/db/common/role"
-	"github.com/gravitational/teleport/lib/srv/db/redis/connection"
-	"github.com/gravitational/teleport/lib/srv/db/redis/protocol"
+	"github.com/zmb3/teleport/lib/defaults"
+	"github.com/zmb3/teleport/lib/services"
+	"github.com/zmb3/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/lib/srv/db/common/role"
+	"github.com/zmb3/teleport/lib/srv/db/redis/connection"
+	"github.com/zmb3/teleport/lib/srv/db/redis/protocol"
 )
 
 // Commands with additional processing in Teleport when using cluster mode.

@@ -17,9 +17,9 @@ limitations under the License.
 package postgres
 
 import (
-	"github.com/gravitational/teleport/api/types/events"
-	libevents "github.com/gravitational/teleport/lib/events"
-	"github.com/gravitational/teleport/lib/srv/db/common"
+	"github.com/zmb3/teleport/api/types/events"
+	libevents "github.com/zmb3/teleport/lib/events"
+	"github.com/zmb3/teleport/lib/srv/db/common"
 )
 
 // makeParseEvent returns audit event for Postgres Parse wire message which

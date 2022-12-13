@@ -21,7 +21,7 @@ import (
 
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types/wrappers"
+	"github.com/zmb3/teleport/api/types/wrappers"
 )
 
 // GenerateAppTokenRequest are the parameters used to generate an application token.

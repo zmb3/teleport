@@ -23,10 +23,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/gravitational/trace"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/cloud"
-	"github.com/gravitational/teleport/lib/srv/db/secrets"
-	"github.com/gravitational/teleport/lib/utils"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/cloud"
+	"github.com/zmb3/teleport/lib/srv/db/secrets"
+	"github.com/zmb3/teleport/lib/utils"
 )
 
 // lookupMap is a mapping of database objects to their managed users.

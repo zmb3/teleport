@@ -48,7 +48,7 @@ message DialRequest {
     string NodeID = 1;
     // TunnelType is the type of service being accessed. This differentiates agents that
     // create multiple reverse tunnels for different services.
-    string TunnelType = 2 [ (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.TunnelType" ];
+    string TunnelType = 2 [ (gogoproto.casttype) = "github.com/zmb3/teleport/api/types.TunnelType" ];
     // Source is the original source address of the client.
     Addr Source = 3;
     // Destination is the destination address to connect to over the reverse tunnel.

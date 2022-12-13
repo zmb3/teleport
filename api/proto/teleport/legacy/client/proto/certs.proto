@@ -18,7 +18,7 @@ package proto;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/gravitational/teleport/api/client/proto";
+option go_package = "github.com/zmb3/teleport/api/client/proto";
 option (gogoproto.goproto_getters_all) = false;
 option (gogoproto.marshaler_all) = true;
 option (gogoproto.unmarshaler_all) = true;

@@ -20,11 +20,11 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport"
-	"github.com/gravitational/teleport/api/constants"
-	apidefaults "github.com/gravitational/teleport/api/defaults"
-	"github.com/gravitational/teleport/api/types"
-	utils "github.com/gravitational/teleport/api/utils"
+	"github.com/zmb3/teleport"
+	"github.com/zmb3/teleport/api/constants"
+	apidefaults "github.com/zmb3/teleport/api/defaults"
+	"github.com/zmb3/teleport/api/types"
+	utils "github.com/zmb3/teleport/api/utils"
 )
 
 // NewPresetEditorRole returns a new pre-defined role for cluster

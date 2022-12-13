@@ -25,11 +25,11 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/service"
-	"github.com/gravitational/teleport/lib/utils"
-	toolcommon "github.com/gravitational/teleport/tool/common"
-	"github.com/gravitational/teleport/tool/tctl/common"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/service"
+	"github.com/zmb3/teleport/lib/utils"
+	toolcommon "github.com/zmb3/teleport/tool/common"
+	"github.com/zmb3/teleport/tool/tctl/common"
 )
 
 func TestLoadConfigFromProfile(t *testing.T) {

@@ -21,7 +21,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gravitational/teleport/api/types/events"
+	"github.com/zmb3/teleport/api/types/events"
 )
 
 func Test_parsePath(t *testing.T) {

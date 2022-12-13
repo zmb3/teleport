@@ -28,10 +28,10 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
-	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/cloud"
-	awslib "github.com/gravitational/teleport/lib/cloud/aws"
-	dbiam "github.com/gravitational/teleport/lib/srv/db/common/iam"
+	"github.com/zmb3/teleport/api/types"
+	"github.com/zmb3/teleport/lib/cloud"
+	awslib "github.com/zmb3/teleport/lib/cloud/aws"
+	dbiam "github.com/zmb3/teleport/lib/srv/db/common/iam"
 )
 
 // awsConfig is the config for the client that configures IAM for AWS databases.
