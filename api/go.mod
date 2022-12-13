@@ -1,4 +1,4 @@
-module github.com/gravitational/teleport/api
+module github.com/zmb3/teleport/api
 
 go 1.18
 
