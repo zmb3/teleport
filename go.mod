@@ -1,4 +1,4 @@
-module github.com/zmb3/teleport/v11
+module github.com/zmb3/teleport
 
 go 1.19
 
